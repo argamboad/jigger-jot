@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <!-- JiggerJot mark: a jigger, larger cup down. One even-odd path; the mouth and base rim line are holes. -->
+  <g transform="translate(10 10)">
+    <path fill="#B4562A" fill-rule="evenodd" d="M28 16 A22 4.2 0 0 1 72 16 L59 46 L41 46 Z M32 16 A18 2.7 0 1 0 68 16 A18 2.7 0 1 0 32 16 Z M41 47.4 H59 A1 1 0 0 1 60 48.4 V51.6 A1 1 0 0 1 59 52.6 H41 A1 1 0 0 1 40 51.6 V48.4 A1 1 0 0 1 41 47.4 Z M41 54 L59 54 L76 86 A26 3.8 0 0 1 24 86 Z M28.5 86.4 A21.5 1.6 0 1 0 71.5 86.4 A21.5 1.6 0 1 0 28.5 86.4 Z"/>
+  </g>
+</svg>
