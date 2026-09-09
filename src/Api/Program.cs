@@ -14,6 +14,7 @@ using JiggerJot.Api.Services;
 using JiggerJot.Core.Abstractions;
 using JiggerJot.Infrastructure;
 using JiggerJot.Infrastructure.Persistence;
+using JiggerJot.Infrastructure.Persistence.Seed;
 
 // Local dev: load secrets/config from the repo-root .env (the single local source of truth —
 // see docs/DECISIONS.md). TraversePath walks up to find it regardless of the working dir; the
@@ -209,6 +210,19 @@ using (var scope = app.Services.CreateScope())
             db.Database.SetConnectionString(migrationsConnection);
         db.Database.Migrate();
     }
+}
+
+// The curated global lookups (SEED-1, JJ-022): glass types, methods, units and ingredient categories.
+// After Migrate() because it needs the tables, and BEFORE anything serves, because the catalog
+// vocabulary is what every recipe row points at. Idempotent — a boot with nothing to add is a count
+// query per lookup and no writes. The scope carries no ambient household, which is both what the RLS
+// insert policy requires for a shared row and what CatalogSeeder asserts before it writes (JJ-031).
+if (app.Configuration.GetValue(CatalogSeeder.EnabledConfigKey, true))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    if (db.Database.IsRelational())
+        await scope.ServiceProvider.GetRequiredService<CatalogSeeder>().SeedAsync();
 }
 
 // RLS posture guard (ADR-020, config-gated; prod activation enables it): refuse to start if the
