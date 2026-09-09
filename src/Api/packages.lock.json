@@ -446,12 +446,12 @@
         "type": "Project",
         "dependencies": {
           "AWSSDK.S3": "[4.0.100, )",
+          "JiggerJot.Core": "[1.0.0, )",
           "MailKit": "[4.17.0, )",
           "Microsoft.AspNetCore.Authentication.Google": "[10.0.11, )",
           "Microsoft.AspNetCore.Authentication.MicrosoftAccount": "[10.0.11, )",
           "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": "[10.0.11, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
-          "JiggerJot.Core": "[1.0.0, )",
           "Stripe.net": "[52.1.0, )"
         }
       },

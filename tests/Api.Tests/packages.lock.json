@@ -420,6 +420,8 @@
         "type": "Project",
         "dependencies": {
           "DotNetEnv": "[3.2.0, )",
+          "JiggerJot.Core": "[1.0.0, )",
+          "JiggerJot.Infrastructure": "[1.0.0, )",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.11, )",
           "Microsoft.AspNetCore.Components.WebAssembly.Server": "[10.0.11, )",
           "OpenTelemetry.Exporter.Console": "[1.16.0, )",
@@ -429,8 +431,6 @@
           "OpenTelemetry.Instrumentation.Http": "[1.16.0, )",
           "OpenTelemetry.Instrumentation.Runtime": "[1.18.0, )",
           "Otp.NET": "[1.4.1, )",
-          "JiggerJot.Core": "[1.0.0, )",
-          "JiggerJot.Infrastructure": "[1.0.0, )",
           "Swashbuckle.AspNetCore": "[7.2.0, )"
         }
       },
@@ -441,12 +441,12 @@
         "type": "Project",
         "dependencies": {
           "AWSSDK.S3": "[4.0.100, )",
+          "JiggerJot.Core": "[1.0.0, )",
           "MailKit": "[4.17.0, )",
           "Microsoft.AspNetCore.Authentication.Google": "[10.0.11, )",
           "Microsoft.AspNetCore.Authentication.MicrosoftAccount": "[10.0.11, )",
           "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": "[10.0.11, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
-          "JiggerJot.Core": "[1.0.0, )",
           "Stripe.net": "[52.1.0, )"
         }
       },
