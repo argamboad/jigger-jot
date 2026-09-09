@@ -1349,9 +1349,15 @@ required in a Margarita, optional elsewhere). A garnish is just an optional line
 **JJ-011 — Single `Ingredient` table with nullable `tenant_id` (null = global).**
 Rather than separate global/custom tables. *Rationale:* simpler queries; substitutions and
 recipes can span global + custom without unions.
+> **Amended by JJ-031 (2026-09-09):** the single table stands, but it does **not** implement
+> `ITenantScoped` — that interface's `TenantId` is non-nullable, and its filter and RLS policy would
+> hide the null-tenant catalog rows. Isolation comes from an app-level query filter plus a mirrored
+> hand-written RLS policy instead.
 
 **JJ-012 — Single `Cocktail` table with nullable `tenant_id` + nullable `forked_from`.**
 Same single-table rationale as JJ-011.
+> **Amended by JJ-031 (2026-09-09):** as JJ-011 — not `ITenantScoped`; app-level filter + mirrored
+> RLS policy. `CocktailIngredient` follows its parent cocktail and is treated the same way.
 
 **JJ-013 — Fork = snapshot copy, not live reference.**
 Forking copies the cocktail and all recipe lines; `forked_from` is provenance metadata only.
@@ -1518,6 +1524,80 @@ mechanical. Registering the domain is the owner's action and is not part of this
    file, the brief, `STATUS.md`, two platform stories, the gitleaks config title, two audit logs).
    The verify for this app therefore greps for the old brand name case-insensitively, excludes
    `docs/REBRANDING.md`, and filters out that slug; expected empty (verified 2026-09-08).
+
+**JJ-031 — How the shared catalog coexists with tenant isolation: one table, app-level filter,
+mirrored RLS policy. (decided 2026-09-09)**
+*Amends JJ-011 and JJ-012. Read with platform ADR-003 (tenancy) and ADR-020 (RLS backstop).*
+
+**The problem.** JJ-011/JJ-012 specify one table each for `Ingredient` and `Cocktail` with a
+**nullable `tenant_id`** — null = shared seed catalog, set = household-owned. Read against the
+platform as actually built, that shape **cannot be implemented**:
+
+1. `ITenantScoped` declares `Guid TenantId` — **non-nullable**. An entity implementing it cannot
+   hold a null tenant, so the "null = shared" row is not expressible.
+2. The global filter is `e.TenantId == CurrentTenantId` (`AppDbContext.ApplyTenantFilter`). Even if
+   the column were nullable, `NULL == <guid>` is never true, so shared rows would be invisible.
+3. The RLS policy (`RlsDdl.StatementsFor`) uses the same predicate with `FORCE`, so shared rows are
+   hidden **at the database** too — and since 2026-09-09 that backstop is genuinely enforcing on
+   staging (a non-`BYPASSRLS` runtime role), so this is no longer theoretical.
+4. `TenantStampingInterceptor` stamps the current tenant onto unset `ITenantScoped` inserts and
+   **throws** on a foreign tenant, so seeding null-tenant rows through the app is refused.
+5. `IgnoreQueryFilters()` is **banned in `src/Api/Features/**`** by a build gate, so a slice cannot
+   opt out to see the catalog.
+
+So a decision is required before any entity or migration is written. Three shapes were considered.
+
+**Option A — split tables.** A global `Ingredient`/`Cocktail` (not `ITenantScoped`, no tenant
+column) plus a separate household-owned `TenantIngredient`/`TenantCocktail`. *For:* uses only
+existing platform concepts; the shared side is ordinary reference data like `GlassType`. *Against:*
+`CocktailIngredient` must point at either table — a polymorphic foreign key (two nullable columns +
+a check constraint), which infects every query, and "list all my ingredients" becomes a union
+everywhere.
+
+**Option B — one table, app-level filter + mirrored policy (recommended).** Keep the single-table
+design of JJ-011/JJ-012. `Ingredient`/`Cocktail`/`CocktailIngredient` carry a **nullable
+`TenantId`** and deliberately do **not** implement `ITenantScoped`. Isolation is restored, not
+abandoned, by two mirrored rules:
+- an app-defined EF query filter `x.TenantId == null || x.TenantId == CurrentTenantId`, applied in
+  `AppDbContext.OnModelCreating` next to the platform's own loop; and
+- a hand-written RLS policy in the same migration with the matching predicate
+  (`"TenantId" IS NULL OR "TenantId" = NULLIF(current_setting('app.tenant_id', true), '')::uuid OR
+  current_setting('app.rls_bypass', true) = 'on'`).
+
+*For:* keeps simple foreign keys and the model the product docs already describe; keeps a
+structural read guarantee and a database backstop; shared rows are readable by every household and
+owned by none. *Against:* it is a **local divergence from the platform convention** — a reader who
+knows the codebase will assume "no `ITenantScoped`" means "not filtered", so the entities and the
+`AppDbContext` block must say plainly why. Two guarantees are also **not** inherited and must be
+supplied by hand: the write-stamping interceptor will not stamp these rows (custom rows must set
+`TenantId` explicitly at the call site), and `RlsMigrationGateTests` only checks `ITenantScoped`
+tables, so nothing fails CI if the hand-written policy is forgotten — an app-level test must assert
+it, or the backstop silently disappears on a later migration.
+
+**Option C — a catalog tenant.** Shared rows belong to one well-known system tenant and the filter
+widens to `TenantId == CurrentTenantId || TenantId == CatalogTenantId`. *For:* every row keeps a
+real tenant, so `ITenantScoped` and the stamping interceptor still apply. *Against:* the widened
+predicate has to replace the platform's generated filter **and** its RLS policy for those tables, so
+it diverges from the platform in the one place hardest to keep in step; and a fictional tenant row
+leaks into membership, export and dissolve paths that reasonably assume tenants are households.
+
+**Decision: Option B**, with the two hand-supplied guarantees written as tests in the same slice —
+one asserting the query filter admits shared rows and excludes another household's, one asserting
+the policy exists on each table after migration. It preserves the product model, and the divergence
+is one well-commented block rather than a shape that spreads through every query.
+
+**Binding consequences for Phase 5.** `Ingredient`, `Cocktail` and `CocktailIngredient` carry a
+nullable `TenantId` and do **not** implement `ITenantScoped`; `TenantInventory` still does (it is
+purely household data). `IngredientCategory`, `GlassType`, `Method`, `Unit` and
+`IngredientSubstitution` are global lookups with no tenant column at all (JJ-005, JJ-022). Every one
+of the three dual-natured tables ships its hand-written policy in the same migration that creates
+it, and inserting a household-owned row must set `TenantId` explicitly — nothing stamps it.
+
+**Upstream:** if B works, it is a candidate to become a platform primitive
+(`ISharedOrTenantScoped` + `RlsDdl` support), already filed as `PLATFORM_BACKLOG.md` §15 item 2 —
+any app with a seeded catalog hits this exact wall.
+
+*Decided 2026-09-09. Options A and C are recorded above so the choice is not re-litigated.*
 
 *Amendment (2026-09-08, Phase 2):* the four product docs were merged into this repo's `docs/`
 when the platform tree was adopted (JJ-026's product-only doc set now lives alongside the

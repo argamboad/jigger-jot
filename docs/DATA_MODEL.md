@@ -17,10 +17,11 @@
   `src/Api/Features/**`** (a build-time test enforces it). Never leak across tenants.
 - "Tenant" is the code term for the household/org/team. The reference implementation labels it
   **Household**; JiggerJot keeps that label (JJ-001).
-- **Shared vs. household-owned (JiggerJot):** `Ingredient` and `Cocktail` use a single table each
-  with a nullable `tenant_id` — **null = global/shared seed catalog**, **set = household-owned**
-  (JJ-011, JJ-012). How null-tenant rows coexist with the platform's global tenant filter and RLS is
-  an **open design point** resolved before the first migration — see "App entities".
+- **Shared vs. household-owned (JiggerJot):** `Ingredient`, `Cocktail` and `CocktailIngredient` use
+  a single table each with a nullable `tenant_id` — **null = global/shared seed catalog**, **set =
+  household-owned** (JJ-011, JJ-012). Because that column is nullable they are **not**
+  `ITenantScoped`; their isolation comes from an app-level query filter mirrored by a hand-written
+  RLS policy (JJ-031) — see "App entities".
 
 ## Base entities (constant — multi-tenant foundation)
 
@@ -112,17 +113,31 @@ stored.
 ## App entities (JiggerJot)
 
 > Designed fresh for this app (2026-06-17), aligned to the platform 2026-09-08 (JJ-028). Household
-> = tenant. `TenantInventory`, household-owned `Ingredient`s and `Cocktail`s are tenant data and
-> implement `ITenantScoped`; `IngredientCategory`, `IngredientSubstitution`, `GlassType`, `Method`
-> and `Unit` are global lookups. Every tenant-scoped entity registers an `ITenantDataContributor`
-> so household data participates in tenant export and dissolve.
+> = tenant. **`TenantInventory` is the only app entity that implements `ITenantScoped`**;
+> `Ingredient`, `Cocktail` and `CocktailIngredient` are dual-natured (nullable `tenant_id`) and are
+> filtered by hand per JJ-031; `IngredientCategory`, `IngredientSubstitution`, `GlassType`, `Method`
+> and `Unit` are global lookups with no tenant column. Every entity that can hold household data
+> registers an `ITenantDataContributor` so it participates in tenant export and dissolve — including
+> the dual-natured three, whose contributors must scope to the household's own rows and never touch
+> the shared catalog.
 >
-> **Open design point (resolve before the first migration, with a JJ- ADR):** the shared catalog
-> rows carry `tenant_id = null`, but the platform's global query filter and RLS scope every
-> `ITenantScoped` table to the *current* tenant, which would hide shared rows. Candidate shapes:
-> shared rows in a separate non-scoped table with household rows referencing them; or a filter
-> that admits `tenant_id IS NULL OR tenant_id = current`, mirrored in the RLS policy; or a
-> distinct "catalog" tenant. Decide on the platform's terms (platform wins).
+> **Resolved by JJ-031 (2026-09-09).** `Ingredient`, `Cocktail` and `CocktailIngredient` keep the
+> single-table shape with a nullable `tenant_id`, and therefore **do not implement `ITenantScoped`**:
+> that interface's `TenantId` is non-nullable, and the platform's global filter and forced RLS policy
+> (`TenantId = current`) would hide every shared row. Isolation is restored deliberately, in two
+> mirrored places that must be changed together:
+>
+> - **App-level EF query filter** in `AppDbContext.OnModelCreating`, alongside the platform's own
+>   loop: `x.TenantId == null || x.TenantId == CurrentTenantId`.
+> - **Hand-written RLS policy** shipped in the same migration that creates each table:
+>   `"TenantId" IS NULL OR "TenantId" = NULLIF(current_setting('app.tenant_id', true), '')::uuid OR
+>   current_setting('app.rls_bypass', true) = 'on'`.
+>
+> Two platform guarantees do **not** apply to these three tables and are replaced by explicit tests:
+> `TenantStampingInterceptor` will not stamp them (a household-owned row must set `TenantId` at the
+> call site), and `RlsMigrationGateTests` only inspects `ITenantScoped` tables, so nothing fails CI
+> if the policy is dropped by a later migration. `TenantInventory` is ordinary tenant data and does
+> implement `ITenantScoped`; the lookup tables carry no tenant column at all.
 
 ### Ingredient
 Single table for both shared and custom ingredients (JJ-011).
