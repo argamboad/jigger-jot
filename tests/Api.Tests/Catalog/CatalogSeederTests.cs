@@ -28,10 +28,13 @@ public sealed class CatalogSeederTests(PostgresFixture fixture) : PostgresTestBa
         await using (var db = Fixture.CreateContext())
             added = await Build(db).SeedAsync();
 
+        var recipes = CatalogSeeder.LoadCocktails();
         var expected = file.GlassTypes.Count + file.Methods.Count + file.Units.Count
                        + file.IngredientCategories.Count
                        + file.IngredientCategories.Sum(c => c.Children.Count)
-                       + CatalogSeeder.LoadIngredients().Ingredients.Count;
+                       + CatalogSeeder.LoadIngredients().Ingredients.Count
+                       + recipes.Sources.Count
+                       + recipes.Cocktails.Count + recipes.Cocktails.Sum(c => c.Lines.Count);
         Assert.Equal(expected, added);
 
         await using var read = Fixture.CreateContext();
@@ -202,6 +205,126 @@ public sealed class CatalogSeederTests(PostgresFixture fixture) : PostgresTestBa
         Assert.Equal(2, await read.Ingredients.IgnoreQueryFilters().CountAsync(i => i.Name == "Absinthe"));
         Assert.Single(await read.Ingredients.IgnoreQueryFilters()
             .Where(i => i.Name == "Absinthe" && i.TenantId == household).ToListAsync());
+    }
+
+    [Fact]
+    public async Task Seed_WritesTheRecipeCatalog_WithItsLinesAndSources()
+    {
+        var file = CatalogSeeder.LoadCocktails();
+
+        await using (var db = Fixture.CreateContext())
+            await Build(db).SeedAsync();
+
+        await using var read = Fixture.CreateContext();
+
+        Assert.Equal(file.Sources.Count, await read.RecipeSources.CountAsync());
+        Assert.Equal(file.Cocktails.Count,
+            await read.Cocktails.IgnoreQueryFilters().CountAsync(c => c.TenantId == null));
+        Assert.Equal(file.Cocktails.Sum(c => c.Lines.Count),
+            await read.CocktailIngredients.IgnoreQueryFilters().CountAsync(l => l.TenantId == null));
+
+        // A line carries its parent's nature (JJ-031). A shared cocktail whose lines were stamped
+        // would read as an empty recipe to every household, which is the kind of bug that looks like
+        // a UI problem for a week.
+        Assert.Empty(await read.CocktailIngredients.IgnoreQueryFilters()
+            .Where(l => l.TenantId != null).ToListAsync());
+    }
+
+    [Fact]
+    public async Task Seed_CreditsEveryRecipeToASource()
+    {
+        await using (var db = Fixture.CreateContext())
+            await Build(db).SeedAsync();
+
+        await using var read = Fixture.CreateContext();
+        var sources = await read.RecipeSources.ToDictionaryAsync(s => s.Id);
+        var cocktails = await read.Cocktails.IgnoreQueryFilters().ToListAsync();
+
+        // The whole point of the source column (JJ-032): a credit that is a property of the row, so
+        // "which of these came from the IBA" is a query rather than an archaeology exercise.
+        Assert.All(cocktails, c =>
+        {
+            Assert.NotNull(c.SourceId);
+            Assert.True(sources.ContainsKey(c.SourceId!.Value), $"{c.Name}: source row missing");
+        });
+        Assert.All(sources.Values, s => Assert.False(string.IsNullOrWhiteSpace(s.Attribution)));
+    }
+
+    [Fact]
+    public async Task Seed_KeepsBothRecipesWhenTwoSourcesShareAName()
+    {
+        await using (var db = Fixture.CreateContext())
+            await Build(db).SeedAsync();
+
+        await using var read = Fixture.CreateContext();
+        var fizzes = await read.Cocktails.IgnoreQueryFilters()
+            .Where(c => c.Name == "Gin Fizz")
+            .Include(c => c.Source)
+            .ToListAsync();
+
+        // Four names appear in both books. A 1930 Gin Fizz and the IBA's are different drinks that
+        // share a name, so the seed id is keyed on the source too — keyed on name alone, one would
+        // silently replace the other and the loss would show up as a missing drink, never an error.
+        Assert.Equal(2, fizzes.Count);
+        Assert.Equal(2, fizzes.Select(f => f.SourceId).Distinct().Count());
+    }
+
+    [Fact]
+    public async Task Seed_LeavesGlassAndMethodNull_WhenTheRecipeDidNotSay()
+    {
+        await using (var db = Fixture.CreateContext())
+            await Build(db).SeedAsync();
+
+        await using var read = Fixture.CreateContext();
+        var cocktails = await read.Cocktails.IgnoreQueryFilters().ToListAsync();
+
+        // JJ-034. A quarter of the catalog states no glass or states one that is not a glass type,
+        // and filling those in would be indistinguishable afterwards from a fact somebody wrote down.
+        Assert.Contains(cocktails, c => c.GlassTypeId is null);
+        Assert.Contains(cocktails, c => c.MethodId is null);
+        // ...but most DO say, so a mapping that quietly resolved nothing would not pass here.
+        Assert.True(cocktails.Count(c => c.GlassTypeId is not null) > cocktails.Count / 2);
+    }
+
+    [Fact]
+    public async Task Seed_StoresProportionalAmountsAgainstThePartUnit()
+    {
+        await using (var db = Fixture.CreateContext())
+            await Build(db).SeedAsync();
+
+        await using var read = Fixture.CreateContext();
+        var part = await read.Units.SingleAsync(u => u.Name == "part");
+        var proportional = await read.CocktailIngredients.IgnoreQueryFilters()
+            .Where(l => l.UnitId == part.Id)
+            .ToListAsync();
+
+        // The 1930 recipes are proportional — "2/3 gin, 1/3 vermouth" with no absolute volume in the
+        // book at all. Stored as authored (JJ-007) against a neutral unit that never converts.
+        Assert.NotEmpty(proportional);
+        Assert.Null(part.MillilitreFactor);
+        Assert.All(proportional, l => Assert.True(l.Amount > 0));
+
+        // Both shapes are real and both are as authored: most lines are a bare fraction of the
+        // drink, and a handful say "2 Parts" outright. Asserting only the first would have made a
+        // rule out of the common case.
+        Assert.Contains(proportional, l => l.Amount < 1);
+        Assert.Contains(proportional, l => l.Amount >= 1);
+    }
+
+    [Fact]
+    public async Task Seed_MarksGarnishesOptional_AndEverythingElseRequired()
+    {
+        await using (var db = Fixture.CreateContext())
+            await Build(db).SeedAsync();
+
+        await using var read = Fixture.CreateContext();
+        var lines = await read.CocktailIngredients.IgnoreQueryFilters().ToListAsync();
+
+        // A garnish is just an optional line, and optional lines never block makeability (JJ-009).
+        // If this inverted, every drink with a mint sprig would become unmakeable without mint.
+        Assert.All(lines, l => Assert.Equal(l.Role != RecipeRole.Garnish, l.IsRequired));
+        Assert.Contains(lines, l => l.Role == RecipeRole.Garnish);
+        Assert.Contains(lines, l => l.Role == RecipeRole.Base);
     }
 
     [Fact]

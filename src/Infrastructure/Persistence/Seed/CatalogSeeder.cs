@@ -33,6 +33,7 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
 
     private const string LookupsResource = "JiggerJot.Infrastructure.Persistence.Seed.lookups.json";
     private const string IngredientsResource = "JiggerJot.Infrastructure.Persistence.Seed.ingredients.json";
+    private const string CocktailsResource = "JiggerJot.Infrastructure.Persistence.Seed.cocktails.json";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -60,9 +61,10 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
         added += await SeedUnitsAsync(file, cancellationToken);
         added += await SeedCategoriesAsync(file, cancellationToken);
 
-        // Ingredients last: every one points at a category the pass above may have only just created,
-        // and both land in the same SaveChanges below.
+        // Ingredients then recipes: each pass points at rows the one before it may have only just
+        // created, and they all land in the same SaveChanges below.
         added += await SeedIngredientsAsync(cancellationToken);
+        added += await SeedCocktailsAsync(cancellationToken);
 
         if (added > 0)
         {
@@ -212,12 +214,89 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
         return added;
     }
 
+    /// <summary>
+    /// The shared recipe catalog (JJ-012): 969 cocktails and their lines, plus the sources they are
+    /// credited to (JJ-032). Shared rows, like the ingredients — <c>TenantId</c> null on both the
+    /// cocktail and every one of its lines, since a line carries its parent's nature (JJ-031).
+    /// <para>
+    /// Glass and method are optional (JJ-034): a recipe that did not say gets null rather than a
+    /// plausible guess. A cocktail is written once, whole, or not at all — a partially seeded recipe
+    /// is worse than an absent one, so a cocktail already present is skipped rather than reconciled.
+    /// </para>
+    /// </summary>
+    private async Task<int> SeedCocktailsAsync(CancellationToken ct)
+    {
+        var file = LoadCocktails();
+        var added = 0;
+
+        var existingSources = await db.RecipeSources.Select(s => s.Id).ToHashSetAsync(ct);
+        foreach (var source in file.Sources)
+        {
+            var id = SeedId.For("source", source.Name);
+            if (existingSources.Contains(id)) continue;
+            db.RecipeSources.Add(new RecipeSource
+            {
+                Id = id,
+                Name = source.Name,
+                Year = source.Year,
+                Url = source.Url,
+                Attribution = source.Attribution,
+            });
+            added++;
+        }
+
+        var existing = await db.Cocktails
+            .Where(c => c.TenantId == null)
+            .Select(c => c.Id)
+            .ToHashSetAsync(ct);
+
+        foreach (var cocktail in file.Cocktails)
+        {
+            // Identity is the SOURCE plus that source's own slug, never the name. Four names appear
+            // in both books, and the Savoy alone has "Mr. Manhattan Cocktail" twice, in different
+            // chapters and with different recipes. Keyed on the name, one of each pair would
+            // silently replace the other, and the loss would surface as a missing drink rather than
+            // an error.
+            var id = SeedId.For($"cocktail:{cocktail.Source}", cocktail.Slug);
+            if (existing.Contains(id)) continue;
+
+            db.Cocktails.Add(new Cocktail
+            {
+                Id = id,
+                TenantId = null,
+                Name = cocktail.Name,
+                SourceId = SeedId.For("source", cocktail.Source),
+                GlassTypeId = cocktail.GlassType is null ? null : SeedId.For("glass", cocktail.GlassType),
+                MethodId = cocktail.Method is null ? null : SeedId.For("method", cocktail.Method),
+                ServingType = Enum.Parse<ServingType>(cocktail.ServingType, ignoreCase: true),
+                Instructions = cocktail.Instructions,
+                Lines = [.. cocktail.Lines.Select(line => new CocktailIngredient
+                {
+                    Id = SeedId.For($"line:{cocktail.Source}:{cocktail.Slug}", $"{line.DisplayOrder}"),
+                    TenantId = null,
+                    IngredientId = SeedId.For("ingredient", line.Ingredient),
+                    Amount = line.Amount,
+                    UnitId = line.Unit is null ? null : SeedId.For("unit", line.Unit),
+                    IsRequired = line.IsRequired,
+                    Role = Enum.Parse<RecipeRole>(line.Role, ignoreCase: true),
+                    DisplayOrder = line.DisplayOrder,
+                })],
+            });
+            added += 1 + cocktail.Lines.Count;
+        }
+
+        return added;
+    }
+
     /// <summary>Reads the embedded seed file. A missing or malformed file is a build error, not a runtime
     /// condition to tolerate — the app has no catalog vocabulary without it.</summary>
     public static LookupFile Load() => Read<LookupFile>(LookupsResource);
 
     /// <summary>Reads the embedded ingredient catalog. Same contract as <see cref="Load"/>.</summary>
     public static IngredientFile LoadIngredients() => Read<IngredientFile>(IngredientsResource);
+
+    /// <summary>Reads the embedded recipe catalog. Same contract as <see cref="Load"/>.</summary>
+    public static CocktailFile LoadCocktails() => Read<CocktailFile>(CocktailsResource);
 
     private static T Read<T>(string resource)
     {
@@ -243,4 +322,28 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
     public sealed record IngredientFile(IReadOnlyList<SeedIngredient> Ingredients);
 
     public sealed record SeedIngredient(string Name, string Category, string? Subcategory);
+
+    public sealed record CocktailFile(
+        IReadOnlyList<SeedSource> Sources,
+        IReadOnlyList<SeedCocktail> Cocktails);
+
+    public sealed record SeedSource(string Name, int? Year, string? Url, string? Attribution);
+
+    public sealed record SeedCocktail(
+        string Slug,
+        string Name,
+        string Source,
+        string? GlassType,
+        string? Method,
+        string ServingType,
+        string? Instructions,
+        IReadOnlyList<SeedLine> Lines);
+
+    public sealed record SeedLine(
+        string Ingredient,
+        decimal? Amount,
+        string? Unit,
+        bool IsRequired,
+        string Role,
+        int DisplayOrder);
 }

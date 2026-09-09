@@ -1762,3 +1762,43 @@ same drink? If yes, store the category. If no, store the product.
    anticipate, rather than reversing it.
 
 *Decided 2026-09-09.*
+
+
+**JJ-034 — A recipe's glass and method are optional. (decided 2026-09-09)**
+*Amends the `Cocktail` shape in `docs/DATA_MODEL.md`. Forced by SEED-3, measured before deciding.*
+
+**The problem.** `Cocktail.glass_type_id` and `method_id` were non-nullable, on the reasonable
+assumption that every recipe states both. Against the real catalog, they do not:
+
+| | of 969 seeded recipes |
+|---|---|
+| state no glass at all | 96 |
+| state a "glass" that is not a glass type | 163 |
+| state no method | 94 |
+
+The second row is the interesting one. The Savoy's most common glass instructions are **"medium size
+glass"** (76 recipes) and bare **"glass"** (32). Those are not glass types; they are a 1930 bar book
+assuming you can see the bar.
+
+**Options.**
+- *Fill them in.* Pick a plausible glass for each. Rejected: it puts a fact in the database that
+  nobody wrote down, and once written it is indistinguishable from a fact that somebody did. A
+  reader disagreeing with the choice cannot even tell a choice was made.
+- *Drop the recipes.* 259 of 969, including most of the punches and coolers. Absurd.
+- *A "Not specified" lookup row.* A sentinel that every query has to remember to special-case, and
+  that shows up in a browse filter as though it were a kind of glass.
+- *Make both nullable (chosen).*
+
+**Decision: nullable.** Null reads as "the recipe does not say" and filters as such. Nothing depends
+on either field: makeability is derived from inventory, recipe lines and substitutions (JJ-003), and
+glass and method are browse facets (FEATURES §11), where "not specified" is an ordinary answer.
+
+**Consequences.**
+1. The UI shows the glass and the method when there is one, and says nothing when there is not.
+   Neither is ever invented at display time either — the same rule, one layer up.
+2. **A household authoring its own cocktail is not forced to pick a glass**, which is a better first
+   experience than a required dropdown on a screen whose point is to capture a drink quickly.
+3. The seed pipeline reports "unstated" and "too vague to map" as separate numbers, because they are
+   different data-quality stories and only the second is ours to improve.
+
+*Decided 2026-09-09.*

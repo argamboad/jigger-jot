@@ -32,6 +32,7 @@
     "Copper mug",
     "Tiki mug",
     "Snifter",
+    "Liqueur glass",
     "Shot glass",
     "Punch cup",
     "Irish coffee mug"
@@ -57,6 +58,7 @@
     { "name": "cup", "system": "Imperial", "millilitreFactor": 236.588 },
     { "name": "pint", "system": "Imperial", "millilitreFactor": 473.176 },
     { "name": "quart", "system": "Imperial", "millilitreFactor": 946.353 },
+    { "name": "gill", "system": "Imperial", "millilitreFactor": 142.065 },
 
     { "name": "ml", "system": "Metric", "millilitreFactor": 1 },
     { "name": "cl", "system": "Metric", "millilitreFactor": 10 },
@@ -74,7 +76,12 @@
     { "name": "wedge", "system": "Neutral", "millilitreFactor": null },
     { "name": "twist", "system": "Neutral", "millilitreFactor": null },
     { "name": "sprig", "system": "Neutral", "millilitreFactor": null },
-    { "name": "leaf", "system": "Neutral", "millilitreFactor": null }
+    { "name": "leaf", "system": "Neutral", "millilitreFactor": null },
+
+    { "name": "glass", "system": "Neutral", "millilitreFactor": null },
+    { "name": "wineglass", "system": "Neutral", "millilitreFactor": null },
+    { "name": "liqueur glass", "system": "Neutral", "millilitreFactor": null },
+    { "name": "bottle", "system": "Neutral", "millilitreFactor": null }
   ],
 
   "$unitNotes": [
@@ -87,7 +94,13 @@
     "reading '2/3 gin, 1/3 vermouth' has no absolute volume anywhere in it, and forcing one would be a",
     "fabrication. Stored as authored, displayed as authored.",
     "",
-    "There is no unit for a whole item. '1 egg' is an amount with no unit, which the model already allows."
+    "There is no unit for a whole item. '1 egg' is an amount with no unit, which the model already allows.",
+    "",
+    "'glass', 'wineglass' and 'liqueur glass' are the period bar measures, and they are Neutral rather",
+    "than carrying the volumes the histories give them (a wineglass of 2 oz, a pony of 1). Those figures",
+    "are real but they are not what the 1930 book meant every time, and rendering '1 wineglass' as '59 ml'",
+    "would state a precision nobody wrote. 'gill' is different and does convert: it is a defined imperial",
+    "measure, and the book is British."
   ],
 
   "ingredientCategories": [
@@ -118,7 +131,7 @@
     { "name": "Coffee and tea", "children": ["Coffee", "Espresso", "Black tea", "Green tea", "Herbal tea"] },
 
     { "name": "Fruit", "children": ["Citrus", "Berries", "Stone fruit", "Tropical fruit", "Orchard fruit"] },
-    { "name": "Herb and spice", "children": ["Mint", "Basil", "Rosemary", "Thyme", "Cinnamon", "Nutmeg", "Clove", "Chilli", "Pepper", "Salt", "Ginger", "Vanilla", "Cocoa", "Floral water", "Coriander"] },
+    { "name": "Herb and spice", "children": ["Mint", "Basil", "Rosemary", "Thyme", "Cinnamon", "Nutmeg", "Clove", "Chilli", "Pepper", "Salt", "Ginger", "Vanilla", "Cocoa", "Floral water", "Coriander", "Nut", "Botanical"] },
     { "name": "Garnish", "children": ["Citrus peel", "Citrus wheel", "Cherry", "Olive", "Onion", "Herb sprig", "Edible flower", "Spice dusting"] },
     { "name": "Savoury", "children": ["Hot sauce", "Worcestershire sauce", "Brine", "Vinegar", "Stock", "Ketchup"] }
   ],

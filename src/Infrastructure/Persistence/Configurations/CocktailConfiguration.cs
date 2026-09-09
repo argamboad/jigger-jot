@@ -20,6 +20,11 @@ public class CocktailConfiguration : IEntityTypeConfiguration<Cocktail>
         c.HasOne(x => x.Method).WithMany()
             .HasForeignKey(x => x.MethodId).OnDelete(DeleteBehavior.Restrict);
 
+        // Restrict, like the other lookups: a source that still credits recipes must be dealt with
+        // deliberately. Cascading here would delete 868 cocktails because someone tidied a row.
+        c.HasOne(x => x.Source).WithMany()
+            .HasForeignKey(x => x.SourceId).OnDelete(DeleteBehavior.Restrict);
+
         // ForkedFromCocktailId is provenance ONLY (JJ-013) — deliberately NOT a foreign key. A fork is
         // a snapshot copy, so it must survive the original being deleted; an FK would either block that
         // delete or cascade the household's own cocktail away with it.
@@ -27,5 +32,10 @@ public class CocktailConfiguration : IEntityTypeConfiguration<Cocktail>
 
         c.HasIndex(x => x.TenantId);
         c.HasIndex(x => new { x.TenantId, x.Name });
+
+        // Deliberately NOT unique on (TenantId, Name): the seeded catalog holds four names twice, once
+        // from each source — a 1930 Gin Fizz and the IBA's are different drinks with one name, and the
+        // source is what tells them apart. A unique index would force one of them out.
+        c.HasIndex(x => x.SourceId);
     }
 }
