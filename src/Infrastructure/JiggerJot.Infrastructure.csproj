@@ -12,6 +12,7 @@
     <!-- Brand logo embedded for CID inline-embedding in branded emails (BrandedEmail). -->
     <EmbeddedResource Include="Email\Assets\logo.png" />
     <EmbeddedResource Include="Persistence\Seed\lookups.json" />
+    <EmbeddedResource Include="Persistence\Seed\ingredients.json" />
   </ItemGroup>
 
   <ItemGroup>

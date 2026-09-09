@@ -4,8 +4,8 @@
 > owns, then the ingredients, then the recipes. Read with **JJ-022** (lookups are curated and global),
 > **JJ-031** (how a shared row coexists with tenant isolation) and `docs/DATA_MODEL.md`. Stories use
 > Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — SEED-1 (curated global lookups) ✅ and the IBA extraction ✅; the
-> source question is settled (JJ-032: Savoy plus the IBA list). Ingredients and recipes to follow.
+> **Status: 🚧 IN PROGRESS** — SEED-1 (lookups) ✅, the IBA extraction ✅, SEED-2 (the ingredient
+> catalog) ✅. Sources settled by JJ-032; recipes and the substitution graph to follow.
 
 **Epic key:** `SEED`
 
@@ -157,21 +157,82 @@ then labelled every Contemporary Classic a New Era drink, because that breadcrum
 Classics" with no leading "The" and the fallback landed on the nav's last entry. The parse now reads
 the breadcrumb structurally, and the counts are 34, 34 and 34.
 
-### SEED-2 — The ingredient catalog 📋 PLANNED
+### SEED-2 — The ingredient catalog
+
+**Status: ✅ Implemented.** 175 curated ingredients, each under a SEED-1 category, seeded as shared
+rows.
 
 **As a** member of a household
 **I want** a catalog of real ingredients, categorized
 **So that** I can tick what is on my shelf without typing it myself
 
-Maps both extracted vocabularies onto curated ingredients under SEED-1's categories: 214 distinct
-names from the Savoy and 205 from the IBA list, overlapping heavily. The mapping is the work, and each
-source is awkward in its own way. The Savoy is period-specific and needs aliases — "French vermouth"
-is dry vermouth, "Italian vermouth" is sweet, and "Dry Gin", "Gin", "Tom Gin" and "Plymouth Gin" are
-four names for three things. The IBA names brands in the spec itself, and JJ-017 says ingredients are
-generic — so "Bitter Campari" becomes a bitter aperitivo and "Bacardi Rum" becomes white rum, in both
-directions.
+**Context / notes.** The two extractions between them use **395 distinct names** for what turns out to
+be 175 things. The mapping is the work, and each source is awkward in its own way. The Savoy is
+period-specific: "French vermouth" is dry vermouth, "Italian vermouth" is sweet, and "Dry Gin", "Gin",
+"Tom Gin" and "Plymouth Gin" are four names for three things. The IBA names brands inside the
+specification itself.
 
-Rows are shared (`TenantId` null) and therefore go in under the system context SEED-1 proved out.
+**These are the first seeded rows that carry a tenant column,** and they carry it null. Nothing stamps
+them (JJ-031), the insert policy would reject them from a household context, and the seeder's
+ambient-household check is what stops that failing deep inside `SaveChanges` instead of at the door.
+
+**Coverage is enforced, not hoped for.** `seed/build_ingredients.py` refuses to emit anything while a
+single raw name is unaccounted for — mapped to an ingredient, or excluded with a written reason. The
+failure mode of a curation job is silence: an unmapped name is a recipe line that will not resolve in
+SEED-3, and you find out months later when a drink shows up missing an ingredient.
+
+| | |
+|---|---|
+| raw names across both books | 395 |
+| curated ingredients | 175 |
+| lines mapped | 3258 of 3305 |
+| lines excluded, with a reason | 47 |
+
+The 47 are ice and water (always available, JJ-020), four entries that are a choice rather than an
+ingredient ("Any Spirit"; "Rum, Brandy, Port Wine, Sherry, or Whisky"), three unidentifiable 1930s
+proprietaries, and two lines the scrape merged that SEED-3 splits by hand.
+
+**Brand names forced a decision (JJ-033).** JJ-017 says ingredients are generic, and taken literally
+that deletes the catalog: Chartreuse, Campari, Bénédictine, Angostura and a dozen others are
+proprietary and load-bearing. The rule now reads — generic **where a generic exists**, proper name
+**where the product has no substitute**. The test is whether a bartender could hand you a different
+bottle and have made the same drink.
+
+**Normalisation lives in the workspace, not the app.** `seed/` strips casing, "fresh"/"freshly
+squeezed", parentheticals, leading counts and accents before matching, so only genuinely different
+words need an alias. The shipped `ingredients.json` is a plain list; the aliases are facts about two
+particular books and stay where those books do.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: The ingredient catalog is seeded as shared rows
+  Given a database with the lookups seeded
+  When the app starts
+  Then every curated ingredient exists
+  And none of them belongs to a household
+
+Scenario: Every ingredient hangs off a real category
+  Given the catalog has been seeded
+  Then each ingredient's category is a top-level category
+  And each ingredient's subcategory belongs to that same category
+
+Scenario: A household's own ingredient is neither seeded over nor counted
+  Given the catalog has been seeded
+  And a household has added its own ingredient sharing a name with a shared one
+  When the app starts again
+  Then nothing is added
+  And both rows still exist, one shared and one the household's
+
+Scenario: Curation refuses to ship with a name nobody decided about
+  Given a raw ingredient name that is neither mapped nor excluded
+  When the catalog is built
+  Then the build fails and names it
+```
+
+**Tests.** `tests/Api.Tests/Catalog/CatalogSeederTests.cs` (ten). The household-ingredient one is the
+load-bearing case: the seeder counts only shared rows as already-seeded, so a household adding
+"Absinthe" neither suppresses the shared row nor gets counted as one.
 
 ### SEED-3 — Recipes and their lines 📋 PLANNED
 

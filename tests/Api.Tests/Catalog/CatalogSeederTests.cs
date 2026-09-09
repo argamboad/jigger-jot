@@ -30,7 +30,8 @@ public sealed class CatalogSeederTests(PostgresFixture fixture) : PostgresTestBa
 
         var expected = file.GlassTypes.Count + file.Methods.Count + file.Units.Count
                        + file.IngredientCategories.Count
-                       + file.IngredientCategories.Sum(c => c.Children.Count);
+                       + file.IngredientCategories.Sum(c => c.Children.Count)
+                       + CatalogSeeder.LoadIngredients().Ingredients.Count;
         Assert.Equal(expected, added);
 
         await using var read = Fixture.CreateContext();
@@ -126,6 +127,81 @@ public sealed class CatalogSeederTests(PostgresFixture fixture) : PostgresTestBa
         await using var db = Fixture.CreateContext(Guid.CreateVersion7());
         var error = await Assert.ThrowsAsync<InvalidOperationException>(() => Build(db).SeedAsync());
         Assert.Contains("no ambient household", error.Message);
+    }
+
+    [Fact]
+    public async Task Seed_WritesTheIngredientCatalog_AsSharedRows()
+    {
+        var file = CatalogSeeder.LoadIngredients();
+
+        await using (var db = Fixture.CreateContext())
+            await Build(db).SeedAsync();
+
+        await using var read = Fixture.CreateContext();
+
+        // Every one of them shared: TenantId null, owned by no household, readable by all (JJ-011).
+        // A stamped row would be invisible to every household but the one that seeded it.
+        Assert.Equal(file.Ingredients.Count,
+            await read.Ingredients.IgnoreQueryFilters().CountAsync(i => i.TenantId == null));
+        Assert.Empty(await read.Ingredients.IgnoreQueryFilters().Where(i => i.TenantId != null).ToListAsync());
+    }
+
+    [Fact]
+    public async Task Seed_HangsEveryIngredientOffARealCategory()
+    {
+        await using (var db = Fixture.CreateContext())
+            await Build(db).SeedAsync();
+
+        await using var read = Fixture.CreateContext();
+        var categories = await read.IngredientCategories.ToDictionaryAsync(c => c.Id);
+        var ingredients = await read.Ingredients.IgnoreQueryFilters().ToListAsync();
+
+        // The category ids are DERIVED, not looked up, so a typo in the curation file would produce a
+        // foreign key pointing at nothing. The database would reject it — this says so out loud, and
+        // catches the subtler case where a subcategory is hung off the wrong parent.
+        Assert.All(ingredients, i =>
+        {
+            Assert.True(categories.ContainsKey(i.CategoryId), $"{i.Name}: category row missing");
+            Assert.Null(categories[i.CategoryId].ParentId);
+
+            if (i.SubcategoryId is null) return;
+            Assert.True(categories.ContainsKey(i.SubcategoryId.Value), $"{i.Name}: subcategory row missing");
+            Assert.Equal(i.CategoryId, categories[i.SubcategoryId.Value].ParentId);
+        });
+    }
+
+    [Fact]
+    public async Task Seed_LeavesAHouseholdsOwnIngredientAlone()
+    {
+        await using (var db = Fixture.CreateContext())
+            await Build(db).SeedAsync();
+
+        var household = Guid.CreateVersion7();
+        await using (var db = Fixture.CreateContext())
+        {
+            // A household ingredient sharing a name with a shared one. Nothing stamps these, so the
+            // TenantId is set at the call site (JJ-031) — which is also what a real fork will do.
+            var category = await db.IngredientCategories.FirstAsync(c => c.ParentId == null);
+            db.Ingredients.Add(new Ingredient
+            {
+                Name = "Absinthe", TenantId = household, CategoryId = category.Id,
+            });
+            await db.SaveChangesAsync();
+        }
+
+        int second;
+        await using (var db = Fixture.CreateContext())
+            second = await Build(db).SeedAsync();
+
+        // The seeder counts only shared rows as already-seeded, so a household's own row neither
+        // suppresses a seed nor gets counted as one. Both directions matter: the reverse bug would
+        // have the seeder skip an ingredient because some household happened to add it first.
+        Assert.Equal(0, second);
+
+        await using var read = Fixture.CreateContext();
+        Assert.Equal(2, await read.Ingredients.IgnoreQueryFilters().CountAsync(i => i.Name == "Absinthe"));
+        Assert.Single(await read.Ingredients.IgnoreQueryFilters()
+            .Where(i => i.Name == "Absinthe" && i.TenantId == household).ToListAsync());
     }
 
     [Fact]

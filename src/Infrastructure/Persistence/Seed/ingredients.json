@@ -1,0 +1,893 @@
+{
+  "$comment": [
+    "JiggerJot's curated ingredient catalog, and the map from what two books call things to what",
+    "they are. Built by seed/build_ingredients.py, which refuses to emit anything while a single raw",
+    "name is unaccounted for.",
+    "",
+    "Ingredients are generic, not brands (JJ-017) - 'Bacardi Rum' is white rum and 'Smirnoff Vodka'",
+    "is vodka. The exception is the ingredient that IS a product: nothing generic substitutes for",
+    "Chartreuse in a Last Word, and 'herbal liqueur' would make the recipe unmakeable and the",
+    "inventory meaningless. Those keep their proper names (JJ-033).",
+    "",
+    "'aliases' are what the books say. Case, surrounding whitespace, 'fresh'/'freshly squeezed',",
+    "parentheticals and leading counts are stripped before matching, so only genuinely different",
+    "words need listing here."
+  ],
+  "ingredients": [
+    {
+      "name": "Absinthe",
+      "category": "Absinthe and pastis",
+      "subcategory": "Absinthe"
+    },
+    {
+      "name": "Agave nectar",
+      "category": "Sweetener",
+      "subcategory": "Agave nectar"
+    },
+    {
+      "name": "Agave syrup",
+      "category": "Syrup",
+      "subcategory": "Agave syrup"
+    },
+    {
+      "name": "Aged rum",
+      "category": "Rum",
+      "subcategory": "Aged rum"
+    },
+    {
+      "name": "Allspice dram",
+      "category": "Liqueur",
+      "subcategory": "Herbal liqueur"
+    },
+    {
+      "name": "Amaretto",
+      "category": "Liqueur",
+      "subcategory": "Nut liqueur"
+    },
+    {
+      "name": "Amaro Nonino",
+      "category": "Amaro and bitter",
+      "subcategory": "Amaro"
+    },
+    {
+      "name": "Amer Picon",
+      "category": "Amaro and bitter",
+      "subcategory": "Amaro"
+    },
+    {
+      "name": "Angostura bitters",
+      "category": "Bitters",
+      "subcategory": "Aromatic bitters"
+    },
+    {
+      "name": "Anisette",
+      "category": "Absinthe and pastis",
+      "subcategory": "Anise spirit"
+    },
+    {
+      "name": "Aperol",
+      "category": "Amaro and bitter",
+      "subcategory": "Aperitivo bitter"
+    },
+    {
+      "name": "Apple brandy",
+      "category": "Brandy",
+      "subcategory": "Apple brandy"
+    },
+    {
+      "name": "Apricot brandy",
+      "category": "Liqueur",
+      "subcategory": "Stone fruit liqueur"
+    },
+    {
+      "name": "Baked apple",
+      "category": "Fruit",
+      "subcategory": "Orchard fruit"
+    },
+    {
+      "name": "Basil",
+      "category": "Herb and spice",
+      "subcategory": "Basil"
+    },
+    {
+      "name": "Batavia arrack",
+      "category": "Other spirits",
+      "subcategory": "Arrack"
+    },
+    {
+      "name": "Beer",
+      "category": "Beer and cider",
+      "subcategory": "Beer"
+    },
+    {
+      "name": "Black tea",
+      "category": "Coffee and tea",
+      "subcategory": "Black tea"
+    },
+    {
+      "name": "Blanc vermouth",
+      "category": "Vermouth",
+      "subcategory": "Blanc vermouth"
+    },
+    {
+      "name": "Blanco tequila",
+      "category": "Agave",
+      "subcategory": "Blanco tequila"
+    },
+    {
+      "name": "Bourbon",
+      "category": "Whisky",
+      "subcategory": "Bourbon"
+    },
+    {
+      "name": "Brandy",
+      "category": "Brandy",
+      "subcategory": "Grape brandy"
+    },
+    {
+      "name": "Byrrh",
+      "category": "Fortified wine",
+      "subcategory": "Quinquina"
+    },
+    {
+      "name": "Bénédictine",
+      "category": "Liqueur",
+      "subcategory": "Herbal liqueur"
+    },
+    {
+      "name": "Cachaça",
+      "category": "Rum",
+      "subcategory": "Cachaça"
+    },
+    {
+      "name": "Campari",
+      "category": "Amaro and bitter",
+      "subcategory": "Aperitivo bitter"
+    },
+    {
+      "name": "Canadian whisky",
+      "category": "Whisky",
+      "subcategory": "Canadian whisky"
+    },
+    {
+      "name": "Caperitif",
+      "category": "Fortified wine",
+      "subcategory": "Quinquina"
+    },
+    {
+      "name": "Chamomile cordial",
+      "category": "Syrup",
+      "subcategory": "Floral syrup"
+    },
+    {
+      "name": "Champagne",
+      "category": "Wine",
+      "subcategory": "Champagne"
+    },
+    {
+      "name": "Cherry brandy",
+      "category": "Liqueur",
+      "subcategory": "Cherry liqueur"
+    },
+    {
+      "name": "Chilli",
+      "category": "Herb and spice",
+      "subcategory": "Chilli"
+    },
+    {
+      "name": "Cider",
+      "category": "Beer and cider",
+      "subcategory": "Cider"
+    },
+    {
+      "name": "Cinnamon",
+      "category": "Herb and spice",
+      "subcategory": "Cinnamon"
+    },
+    {
+      "name": "Citrus vodka",
+      "category": "Vodka",
+      "subcategory": "Flavoured vodka"
+    },
+    {
+      "name": "Clove",
+      "category": "Herb and spice",
+      "subcategory": "Clove"
+    },
+    {
+      "name": "Clove syrup",
+      "category": "Syrup",
+      "subcategory": "Spiced syrup"
+    },
+    {
+      "name": "Cocoa",
+      "category": "Herb and spice",
+      "subcategory": "Cocoa"
+    },
+    {
+      "name": "Coconut cream",
+      "category": "Dairy and egg",
+      "subcategory": "Coconut cream"
+    },
+    {
+      "name": "Coffee",
+      "category": "Coffee and tea",
+      "subcategory": "Coffee"
+    },
+    {
+      "name": "Coffee liqueur",
+      "category": "Liqueur",
+      "subcategory": "Coffee liqueur"
+    },
+    {
+      "name": "Cognac",
+      "category": "Brandy",
+      "subcategory": "Cognac"
+    },
+    {
+      "name": "Cointreau",
+      "category": "Liqueur",
+      "subcategory": "Orange liqueur"
+    },
+    {
+      "name": "Cola",
+      "category": "Soda and mixer",
+      "subcategory": "Cola"
+    },
+    {
+      "name": "Coriander seed",
+      "category": "Herb and spice",
+      "subcategory": "Coriander"
+    },
+    {
+      "name": "Corn whiskey",
+      "category": "Whisky",
+      "subcategory": "Corn whiskey"
+    },
+    {
+      "name": "Cranberry juice",
+      "category": "Juice",
+      "subcategory": "Cranberry juice"
+    },
+    {
+      "name": "Cream",
+      "category": "Dairy and egg",
+      "subcategory": "Cream"
+    },
+    {
+      "name": "Crème de cacao",
+      "category": "Liqueur",
+      "subcategory": "Chocolate liqueur"
+    },
+    {
+      "name": "Crème de cassis",
+      "category": "Liqueur",
+      "subcategory": "Berry liqueur"
+    },
+    {
+      "name": "Crème de menthe",
+      "category": "Liqueur",
+      "subcategory": "Herbal liqueur"
+    },
+    {
+      "name": "Crème de mûre",
+      "category": "Liqueur",
+      "subcategory": "Berry liqueur"
+    },
+    {
+      "name": "Crème de noyau",
+      "category": "Liqueur",
+      "subcategory": "Nut liqueur"
+    },
+    {
+      "name": "Crème de violette",
+      "category": "Liqueur",
+      "subcategory": "Floral liqueur"
+    },
+    {
+      "name": "Curaçao",
+      "category": "Liqueur",
+      "subcategory": "Orange liqueur"
+    },
+    {
+      "name": "Cynar",
+      "category": "Amaro and bitter",
+      "subcategory": "Artichoke amaro"
+    },
+    {
+      "name": "Dark rum",
+      "category": "Rum",
+      "subcategory": "Dark rum"
+    },
+    {
+      "name": "Demerara syrup",
+      "category": "Syrup",
+      "subcategory": "Demerara syrup"
+    },
+    {
+      "name": "Don's mix",
+      "category": "Syrup",
+      "subcategory": "Spiced syrup"
+    },
+    {
+      "name": "Drambuie",
+      "category": "Liqueur",
+      "subcategory": "Herbal liqueur"
+    },
+    {
+      "name": "Dry vermouth",
+      "category": "Vermouth",
+      "subcategory": "Dry vermouth"
+    },
+    {
+      "name": "Dry white wine",
+      "category": "Wine",
+      "subcategory": "White wine"
+    },
+    {
+      "name": "Dubonnet",
+      "category": "Fortified wine",
+      "subcategory": "Quinquina"
+    },
+    {
+      "name": "Egg white",
+      "category": "Dairy and egg",
+      "subcategory": "Egg white"
+    },
+    {
+      "name": "Egg yolk",
+      "category": "Dairy and egg",
+      "subcategory": "Egg yolk"
+    },
+    {
+      "name": "Elderflower cordial",
+      "category": "Syrup",
+      "subcategory": "Floral syrup"
+    },
+    {
+      "name": "Elderflower liqueur",
+      "category": "Liqueur",
+      "subcategory": "Floral liqueur"
+    },
+    {
+      "name": "Espresso",
+      "category": "Coffee and tea",
+      "subcategory": "Espresso"
+    },
+    {
+      "name": "Falernum",
+      "category": "Liqueur",
+      "subcategory": "Falernum"
+    },
+    {
+      "name": "Fernet Branca",
+      "category": "Amaro and bitter",
+      "subcategory": "Fernet"
+    },
+    {
+      "name": "Forbidden Fruit",
+      "category": "Liqueur",
+      "subcategory": "Stone fruit liqueur"
+    },
+    {
+      "name": "Frangelico",
+      "category": "Liqueur",
+      "subcategory": "Nut liqueur"
+    },
+    {
+      "name": "Ginger",
+      "category": "Herb and spice",
+      "subcategory": "Ginger"
+    },
+    {
+      "name": "Ginger ale",
+      "category": "Soda and mixer",
+      "subcategory": "Ginger ale"
+    },
+    {
+      "name": "Ginger beer",
+      "category": "Beer and cider",
+      "subcategory": "Ginger beer"
+    },
+    {
+      "name": "Ginger brandy",
+      "category": "Liqueur",
+      "subcategory": "Herbal liqueur"
+    },
+    {
+      "name": "Ginger extract",
+      "category": "Syrup",
+      "subcategory": "Spiced syrup"
+    },
+    {
+      "name": "Gold rum",
+      "category": "Rum",
+      "subcategory": "Gold rum"
+    },
+    {
+      "name": "Goldwasser",
+      "category": "Brandy",
+      "subcategory": "Eau de vie"
+    },
+    {
+      "name": "Gomme syrup",
+      "category": "Syrup",
+      "subcategory": "Rich syrup"
+    },
+    {
+      "name": "Grand Marnier",
+      "category": "Liqueur",
+      "subcategory": "Orange liqueur"
+    },
+    {
+      "name": "Grape juice",
+      "category": "Juice",
+      "subcategory": "Other juice"
+    },
+    {
+      "name": "Grapefruit juice",
+      "category": "Juice",
+      "subcategory": "Grapefruit juice"
+    },
+    {
+      "name": "Grapefruit soda",
+      "category": "Soda and mixer",
+      "subcategory": "Lemon-lime soda"
+    },
+    {
+      "name": "Grappa",
+      "category": "Brandy",
+      "subcategory": "Grappa"
+    },
+    {
+      "name": "Green Chartreuse",
+      "category": "Liqueur",
+      "subcategory": "Herbal liqueur"
+    },
+    {
+      "name": "Green tea",
+      "category": "Coffee and tea",
+      "subcategory": "Green tea"
+    },
+    {
+      "name": "Grenadine",
+      "category": "Syrup",
+      "subcategory": "Grenadine"
+    },
+    {
+      "name": "Honey",
+      "category": "Sweetener",
+      "subcategory": "Honey"
+    },
+    {
+      "name": "Honey syrup",
+      "category": "Syrup",
+      "subcategory": "Honey syrup"
+    },
+    {
+      "name": "Ice cream",
+      "category": "Dairy and egg",
+      "subcategory": "Ice cream"
+    },
+    {
+      "name": "Irish whiskey",
+      "category": "Whisky",
+      "subcategory": "Irish whiskey"
+    },
+    {
+      "name": "Kirsch",
+      "category": "Brandy",
+      "subcategory": "Eau de vie"
+    },
+    {
+      "name": "Kola tonic",
+      "category": "Syrup",
+      "subcategory": "Spiced syrup"
+    },
+    {
+      "name": "Kümmel",
+      "category": "Liqueur",
+      "subcategory": "Herbal liqueur"
+    },
+    {
+      "name": "Lemon",
+      "category": "Fruit",
+      "subcategory": "Citrus"
+    },
+    {
+      "name": "Lemon juice",
+      "category": "Juice",
+      "subcategory": "Lemon juice"
+    },
+    {
+      "name": "Lemon peel",
+      "category": "Garnish",
+      "subcategory": "Citrus peel"
+    },
+    {
+      "name": "Lemon syrup",
+      "category": "Syrup",
+      "subcategory": "Fruit syrup"
+    },
+    {
+      "name": "Lemon wheel",
+      "category": "Garnish",
+      "subcategory": "Citrus wheel"
+    },
+    {
+      "name": "Lemonade",
+      "category": "Soda and mixer",
+      "subcategory": "Lemon-lime soda"
+    },
+    {
+      "name": "Lillet Blanc",
+      "category": "Fortified wine",
+      "subcategory": "Quinquina"
+    },
+    {
+      "name": "Lime",
+      "category": "Fruit",
+      "subcategory": "Citrus"
+    },
+    {
+      "name": "Lime cordial",
+      "category": "Syrup",
+      "subcategory": "Fruit syrup"
+    },
+    {
+      "name": "Lime juice",
+      "category": "Juice",
+      "subcategory": "Lime juice"
+    },
+    {
+      "name": "London dry gin",
+      "category": "Gin",
+      "subcategory": "London dry gin"
+    },
+    {
+      "name": "Madeira",
+      "category": "Fortified wine",
+      "subcategory": "Madeira"
+    },
+    {
+      "name": "Maple syrup",
+      "category": "Sweetener",
+      "subcategory": "Maple syrup"
+    },
+    {
+      "name": "Maraschino",
+      "category": "Liqueur",
+      "subcategory": "Maraschino"
+    },
+    {
+      "name": "Mezcal",
+      "category": "Agave",
+      "subcategory": "Mezcal"
+    },
+    {
+      "name": "Milk",
+      "category": "Dairy and egg",
+      "subcategory": "Milk"
+    },
+    {
+      "name": "Mint",
+      "category": "Herb and spice",
+      "subcategory": "Mint"
+    },
+    {
+      "name": "Nutmeg",
+      "category": "Herb and spice",
+      "subcategory": "Nutmeg"
+    },
+    {
+      "name": "Old Tom gin",
+      "category": "Gin",
+      "subcategory": "Old Tom gin"
+    },
+    {
+      "name": "Orange",
+      "category": "Fruit",
+      "subcategory": "Citrus"
+    },
+    {
+      "name": "Orange bitters",
+      "category": "Bitters",
+      "subcategory": "Orange bitters"
+    },
+    {
+      "name": "Orange flower water",
+      "category": "Herb and spice",
+      "subcategory": "Floral water"
+    },
+    {
+      "name": "Orange gin",
+      "category": "Gin",
+      "subcategory": "Flavoured gin"
+    },
+    {
+      "name": "Orange juice",
+      "category": "Juice",
+      "subcategory": "Orange juice"
+    },
+    {
+      "name": "Orange marmalade",
+      "category": "Sweetener",
+      "subcategory": "Jam or preserve"
+    },
+    {
+      "name": "Orange peel",
+      "category": "Garnish",
+      "subcategory": "Citrus peel"
+    },
+    {
+      "name": "Orange wheel",
+      "category": "Garnish",
+      "subcategory": "Citrus wheel"
+    },
+    {
+      "name": "Orgeat",
+      "category": "Syrup",
+      "subcategory": "Orgeat"
+    },
+    {
+      "name": "Overproof rum",
+      "category": "Rum",
+      "subcategory": "Overproof rum"
+    },
+    {
+      "name": "Passion fruit liqueur",
+      "category": "Liqueur",
+      "subcategory": "Stone fruit liqueur"
+    },
+    {
+      "name": "Passion fruit purée",
+      "category": "Fruit",
+      "subcategory": "Tropical fruit"
+    },
+    {
+      "name": "Passion fruit syrup",
+      "category": "Syrup",
+      "subcategory": "Fruit syrup"
+    },
+    {
+      "name": "Pastis",
+      "category": "Absinthe and pastis",
+      "subcategory": "Pastis"
+    },
+    {
+      "name": "Peach bitters",
+      "category": "Bitters",
+      "subcategory": "Flavoured bitters"
+    },
+    {
+      "name": "Peach brandy",
+      "category": "Liqueur",
+      "subcategory": "Stone fruit liqueur"
+    },
+    {
+      "name": "Peach purée",
+      "category": "Fruit",
+      "subcategory": "Stone fruit"
+    },
+    {
+      "name": "Pepper",
+      "category": "Herb and spice",
+      "subcategory": "Pepper"
+    },
+    {
+      "name": "Peychaud's bitters",
+      "category": "Bitters",
+      "subcategory": "Creole bitters"
+    },
+    {
+      "name": "Pineapple",
+      "category": "Fruit",
+      "subcategory": "Tropical fruit"
+    },
+    {
+      "name": "Pineapple juice",
+      "category": "Juice",
+      "subcategory": "Pineapple juice"
+    },
+    {
+      "name": "Pineapple syrup",
+      "category": "Syrup",
+      "subcategory": "Fruit syrup"
+    },
+    {
+      "name": "Pisco",
+      "category": "Brandy",
+      "subcategory": "Pisco"
+    },
+    {
+      "name": "Plymouth gin",
+      "category": "Gin",
+      "subcategory": "Plymouth gin"
+    },
+    {
+      "name": "Port",
+      "category": "Fortified wine",
+      "subcategory": "Port"
+    },
+    {
+      "name": "Prosecco",
+      "category": "Wine",
+      "subcategory": "Sparkling wine"
+    },
+    {
+      "name": "Prune syrup",
+      "category": "Syrup",
+      "subcategory": "Fruit syrup"
+    },
+    {
+      "name": "Prunelle",
+      "category": "Liqueur",
+      "subcategory": "Stone fruit liqueur"
+    },
+    {
+      "name": "Raspberry syrup",
+      "category": "Syrup",
+      "subcategory": "Fruit syrup"
+    },
+    {
+      "name": "Red wine",
+      "category": "Wine",
+      "subcategory": "Red wine"
+    },
+    {
+      "name": "Redcurrant juice",
+      "category": "Juice",
+      "subcategory": "Other juice"
+    },
+    {
+      "name": "Redcurrant syrup",
+      "category": "Syrup",
+      "subcategory": "Fruit syrup"
+    },
+    {
+      "name": "Rhum agricole",
+      "category": "Rum",
+      "subcategory": "Rhum agricole"
+    },
+    {
+      "name": "Rye whiskey",
+      "category": "Whisky",
+      "subcategory": "Rye whiskey"
+    },
+    {
+      "name": "Salt",
+      "category": "Herb and spice",
+      "subcategory": "Salt"
+    },
+    {
+      "name": "Sauternes",
+      "category": "Wine",
+      "subcategory": "Dessert wine"
+    },
+    {
+      "name": "Scotch whisky",
+      "category": "Whisky",
+      "subcategory": "Scotch whisky"
+    },
+    {
+      "name": "Sherry",
+      "category": "Fortified wine",
+      "subcategory": "Sherry"
+    },
+    {
+      "name": "Simple syrup",
+      "category": "Syrup",
+      "subcategory": "Simple syrup"
+    },
+    {
+      "name": "Sloe gin",
+      "category": "Gin",
+      "subcategory": "Sloe gin"
+    },
+    {
+      "name": "Soda water",
+      "category": "Soda and mixer",
+      "subcategory": "Soda water"
+    },
+    {
+      "name": "Sparkling mineral water",
+      "category": "Soda and mixer",
+      "subcategory": "Sparkling mineral water"
+    },
+    {
+      "name": "Stout",
+      "category": "Beer and cider",
+      "subcategory": "Stout"
+    },
+    {
+      "name": "Strawberry",
+      "category": "Fruit",
+      "subcategory": "Berries"
+    },
+    {
+      "name": "Sugar",
+      "category": "Sweetener",
+      "subcategory": "Sugar"
+    },
+    {
+      "name": "Sugar cane juice",
+      "category": "Juice",
+      "subcategory": "Other juice"
+    },
+    {
+      "name": "Swedish punsch",
+      "category": "Liqueur",
+      "subcategory": "Herbal liqueur"
+    },
+    {
+      "name": "Sweet vermouth",
+      "category": "Vermouth",
+      "subcategory": "Sweet vermouth"
+    },
+    {
+      "name": "Tabasco",
+      "category": "Savoury",
+      "subcategory": "Hot sauce"
+    },
+    {
+      "name": "Tangerine",
+      "category": "Fruit",
+      "subcategory": "Citrus"
+    },
+    {
+      "name": "Tomato juice",
+      "category": "Juice",
+      "subcategory": "Tomato juice"
+    },
+    {
+      "name": "Tomato ketchup",
+      "category": "Savoury",
+      "subcategory": "Ketchup"
+    },
+    {
+      "name": "Tonic water",
+      "category": "Soda and mixer",
+      "subcategory": "Tonic water"
+    },
+    {
+      "name": "Vanilla",
+      "category": "Herb and spice",
+      "subcategory": "Vanilla"
+    },
+    {
+      "name": "Vanilla vodka",
+      "category": "Vodka",
+      "subcategory": "Flavoured vodka"
+    },
+    {
+      "name": "Vinegar",
+      "category": "Savoury",
+      "subcategory": "Vinegar"
+    },
+    {
+      "name": "Vodka",
+      "category": "Vodka",
+      "subcategory": "Plain vodka"
+    },
+    {
+      "name": "White rum",
+      "category": "Rum",
+      "subcategory": "White rum"
+    },
+    {
+      "name": "Whole egg",
+      "category": "Dairy and egg",
+      "subcategory": "Whole egg"
+    },
+    {
+      "name": "Worcestershire sauce",
+      "category": "Savoury",
+      "subcategory": "Worcestershire sauce"
+    },
+    {
+      "name": "Yellow Chartreuse",
+      "category": "Liqueur",
+      "subcategory": "Herbal liqueur"
+    }
+  ]
+}

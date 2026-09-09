@@ -1718,3 +1718,47 @@ caught two breadcrumb misreads that would otherwise have shipped every drink und
 category.
 
 *Decided 2026-09-09. Options A, B and C are recorded so the choice is not re-litigated.*
+
+
+**JJ-033 — Ingredients are generic, except where the product IS the ingredient. (decided 2026-09-09)**
+*Amends JJ-017. Surfaced by building the SEED-2 curation against the real vocabulary.*
+
+**The problem.** JJ-017 says ingredients are generic, never brands — "vodka", not a particular
+distillery. Applied literally to the 395 raw names coming out of the two extractions, that rule
+deletes the catalog. Chartreuse, Bénédictine, Campari, Fernet Branca, Maraschino, Cointreau, Amer
+Picon, Angostura, Peychaud's, Drambuie, Aperol, Cynar, Falernum, Swedish punsch and Lillet are all
+proprietary products, and all of them are load-bearing: a Last Word made with "herbal liqueur" is not
+a Last Word, and a household that ticks "herbal liqueur" on its shelf has told the makeable engine
+nothing it can use.
+
+**The distinction JJ-017 was actually drawing.** Its own example gives it away — "vodka, not Tito's".
+The rule is about **substitutable** products, where the brand on the bottle is a shopping preference
+and the ingredient is the category. It was never about products that have no generic equivalent.
+
+**Decision.** An ingredient is stored generically **when a generic exists**, and by its proper name
+**when the product has no generic substitute**.
+
+| The books say | We store | Why |
+|---|---|---|
+| Bacardi Rum | White rum | Any white rum makes the drink |
+| Smirnoff Vodka | Vodka | As above |
+| Canadian Club Whisky | Canadian whisky | As above |
+| Lagavulin 16y | Scotch whisky | A recipe naming an age statement is a recommendation |
+| Green Chartreuse | Green Chartreuse | Nothing else is Chartreuse |
+| Bitter Campari | Campari | "Aperitivo bitter" would not make a Negroni |
+| Angostura Bitters | Angostura bitters | Not interchangeable with orange bitters |
+
+**How the line is drawn in practice:** could a bartender hand you a different bottle and have made the
+same drink? If yes, store the category. If no, store the product.
+
+**Consequences.**
+1. The catalog holds proper names where it must. `seed/ingredient_map.json` is where the judgement is
+   recorded, one line per ingredient, so the calls are reviewable rather than implicit.
+2. **The substitution graph (SEED-4) carries the weight this rule does not.** Cointreau and triple sec
+   are stored as one ingredient here because they genuinely interchange; where two proper-name products
+   are near-substitutes and we keep both, the graph is the place to say so — not a merge that loses the
+   distinction, and not silence that pretends there is none.
+3. JJ-017 stands unchanged for the case it was written for. This adds the exception it did not
+   anticipate, rather than reversing it.
+
+*Decided 2026-09-09.*

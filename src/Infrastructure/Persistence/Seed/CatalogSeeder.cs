@@ -31,7 +31,8 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
     /// <summary>Config gate; false skips seeding entirely (an operator freezing a curated database).</summary>
     public const string EnabledConfigKey = "Seed:Catalog:Enabled";
 
-    private const string ResourceName = "JiggerJot.Infrastructure.Persistence.Seed.lookups.json";
+    private const string LookupsResource = "JiggerJot.Infrastructure.Persistence.Seed.lookups.json";
+    private const string IngredientsResource = "JiggerJot.Infrastructure.Persistence.Seed.ingredients.json";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -58,6 +59,10 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
         added += await SeedMethodsAsync(file, cancellationToken);
         added += await SeedUnitsAsync(file, cancellationToken);
         added += await SeedCategoriesAsync(file, cancellationToken);
+
+        // Ingredients last: every one points at a category the pass above may have only just created,
+        // and both land in the same SaveChanges below.
+        added += await SeedIngredientsAsync(cancellationToken);
 
         if (added > 0)
         {
@@ -167,17 +172,62 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
         return added;
     }
 
+    /// <summary>
+    /// The shared ingredient catalog (JJ-011): 175 curated ingredients, each under a category from the
+    /// pass above. <b>These are the first rows the seeder writes that carry a tenant column</b>, and they
+    /// carry it null — shared, owned by no household. Nothing stamps them (JJ-031), and the
+    /// <c>rls_shared_or_tenant_insert</c> policy would reject them outright from a household context,
+    /// which is what the ambient-household check at the top of <see cref="SeedAsync"/> is guarding.
+    /// </summary>
+    private async Task<int> SeedIngredientsAsync(CancellationToken ct)
+    {
+        var file = LoadIngredients();
+
+        // QueryAllTenants would be wrong here and Query() is right: with no ambient household the
+        // shared-or-tenant filter admits exactly the shared rows, which is precisely the set this pass
+        // owns. A household's own ingredient must never count as "already seeded".
+        var existing = await db.Ingredients
+            .Where(i => i.TenantId == null)
+            .Select(i => i.Id)
+            .ToHashSetAsync(ct);
+
+        var added = 0;
+        foreach (var ingredient in file.Ingredients)
+        {
+            var id = SeedId.For("ingredient", ingredient.Name);
+            if (existing.Contains(id)) continue;
+
+            db.Ingredients.Add(new Ingredient
+            {
+                Id = id,
+                TenantId = null,
+                Name = ingredient.Name,
+                CategoryId = SeedId.For("category", ingredient.Category),
+                SubcategoryId = ingredient.Subcategory is null
+                    ? null
+                    : SeedId.For($"category:{ingredient.Category}", ingredient.Subcategory),
+            });
+            added++;
+        }
+        return added;
+    }
+
     /// <summary>Reads the embedded seed file. A missing or malformed file is a build error, not a runtime
     /// condition to tolerate — the app has no catalog vocabulary without it.</summary>
-    public static LookupFile Load()
+    public static LookupFile Load() => Read<LookupFile>(LookupsResource);
+
+    /// <summary>Reads the embedded ingredient catalog. Same contract as <see cref="Load"/>.</summary>
+    public static IngredientFile LoadIngredients() => Read<IngredientFile>(IngredientsResource);
+
+    private static T Read<T>(string resource)
     {
-        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(ResourceName)
+        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resource)
             ?? throw new InvalidOperationException(
-                $"Embedded seed resource '{ResourceName}' is missing. It is declared as an EmbeddedResource "
+                $"Embedded seed resource '{resource}' is missing. It is declared as an EmbeddedResource "
                 + "in JiggerJot.Infrastructure.csproj; check that entry before anything else.");
 
-        return JsonSerializer.Deserialize<LookupFile>(stream, JsonOptions)
-            ?? throw new InvalidOperationException($"Embedded seed resource '{ResourceName}' is empty.");
+        return JsonSerializer.Deserialize<T>(stream, JsonOptions)
+            ?? throw new InvalidOperationException($"Embedded seed resource '{resource}' is empty.");
     }
 
     public sealed record LookupFile(
@@ -189,4 +239,8 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
     public sealed record SeedUnit(string Name, string System, decimal? MillilitreFactor);
 
     public sealed record SeedCategory(string Name, IReadOnlyList<string> Children);
+
+    public sealed record IngredientFile(IReadOnlyList<SeedIngredient> Ingredients);
+
+    public sealed record SeedIngredient(string Name, string Category, string? Subcategory);
 }

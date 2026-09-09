@@ -110,7 +110,7 @@
     { "name": "Bitters", "children": ["Aromatic bitters", "Orange bitters", "Citrus bitters", "Creole bitters", "Celery bitters", "Flavoured bitters"] },
 
     { "name": "Juice", "children": ["Lemon juice", "Lime juice", "Orange juice", "Grapefruit juice", "Pineapple juice", "Cranberry juice", "Tomato juice", "Apple juice", "Other juice"] },
-    { "name": "Syrup", "children": ["Simple syrup", "Rich syrup", "Demerara syrup", "Honey syrup", "Agave syrup", "Grenadine", "Orgeat", "Fruit syrup", "Spiced syrup"] },
+    { "name": "Syrup", "children": ["Simple syrup", "Rich syrup", "Demerara syrup", "Honey syrup", "Agave syrup", "Grenadine", "Orgeat", "Fruit syrup", "Spiced syrup", "Floral syrup"] },
     { "name": "Sweetener", "children": ["Sugar", "Honey", "Agave nectar", "Maple syrup", "Jam or preserve"] },
 
     { "name": "Soda and mixer", "children": ["Soda water", "Tonic water", "Ginger ale", "Cola", "Lemon-lime soda", "Sparkling mineral water"] },
@@ -118,9 +118,9 @@
     { "name": "Coffee and tea", "children": ["Coffee", "Espresso", "Black tea", "Green tea", "Herbal tea"] },
 
     { "name": "Fruit", "children": ["Citrus", "Berries", "Stone fruit", "Tropical fruit", "Orchard fruit"] },
-    { "name": "Herb and spice", "children": ["Mint", "Basil", "Rosemary", "Thyme", "Cinnamon", "Nutmeg", "Clove", "Chilli", "Pepper", "Salt"] },
+    { "name": "Herb and spice", "children": ["Mint", "Basil", "Rosemary", "Thyme", "Cinnamon", "Nutmeg", "Clove", "Chilli", "Pepper", "Salt", "Ginger", "Vanilla", "Cocoa", "Floral water", "Coriander"] },
     { "name": "Garnish", "children": ["Citrus peel", "Citrus wheel", "Cherry", "Olive", "Onion", "Herb sprig", "Edible flower", "Spice dusting"] },
-    { "name": "Savoury", "children": ["Hot sauce", "Worcestershire sauce", "Brine", "Vinegar", "Stock"] }
+    { "name": "Savoury", "children": ["Hot sauce", "Worcestershire sauce", "Brine", "Vinegar", "Stock", "Ketchup"] }
   ],
 
   "$categoryNotes": [
