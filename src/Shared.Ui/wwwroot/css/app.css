@@ -80,6 +80,24 @@ a, .btn-link {
     border-color: var(--brand-dark);
 }
 
+/* Bootstrap compiles .btn-outline-primary against its own blue, not --bs-primary; map it to the
+   brand tokens so the secondary sign-in action (the 6-digit code) matches the primary one. */
+.btn-outline-primary {
+    --bs-btn-color: var(--bs-primary);
+    --bs-btn-border-color: var(--bs-primary);
+    --bs-btn-hover-bg: var(--bs-primary);
+    --bs-btn-hover-border-color: var(--brand-dark);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-active-bg: var(--brand-dark);
+    --bs-btn-active-border-color: var(--brand-dark);
+    --bs-btn-active-color: #fff;
+    --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+}
+[data-bs-theme="dark"] .btn-outline-primary {
+    --bs-btn-color: var(--brand-accent-light);
+    --bs-btn-border-color: var(--brand-accent-light);
+}
+
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
     /* --bs-body-bg is #fff in light — identical to the old hardcoded white halo. */
     box-shadow: 0 0 0 0.1rem var(--bs-body-bg), 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.35);
