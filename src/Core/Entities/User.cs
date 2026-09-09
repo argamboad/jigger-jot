@@ -1,4 +1,4 @@
-namespace Perezosoft.Core.Entities;
+namespace JiggerJot.Core.Entities;
 
 public class User
 {

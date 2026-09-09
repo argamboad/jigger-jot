@@ -57,5 +57,5 @@ accept any of the five. No other code changes.
 > translation is fine as a starting point, but this microcopy carries nuance.
 
 ## Rebranding note
-The `.resx` files contain the brand name ("Perezosoft") and product copy in **each language**
+The `.resx` files contain the brand name ("JiggerJot") and product copy in **each language**
 — they're part of the rebranding checklist (`docs/REBRANDING.md`), not just the razor markup.

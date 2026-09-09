@@ -1,6 +1,6 @@
-using Perezosoft.Core.Entities;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Core.Abstractions;
+namespace JiggerJot.Core.Abstractions;
 
 /// <summary>
 /// Handles outbox messages of a single <see cref="Type"/>. The dispatcher resolves all registered

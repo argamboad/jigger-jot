@@ -1,4 +1,4 @@
-namespace Perezosoft.Infrastructure.Persistence;
+namespace JiggerJot.Infrastructure.Persistence;
 
 /// <summary>
 /// EF query tags that the RLS session interceptor (<see cref="RlsSessionInterceptor"/>) recognizes.

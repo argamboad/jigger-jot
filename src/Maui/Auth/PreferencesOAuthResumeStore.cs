@@ -1,6 +1,6 @@
-using Perezosoft.Shared.Ui.Auth;
+using JiggerJot.Shared.Ui.Auth;
 
-namespace Perezosoft.Maui.Auth;
+namespace JiggerJot.Maui.Auth;
 
 /// <summary>
 /// <see cref="IOAuthResumeStore"/> over MAUI <see cref="Preferences"/>, so the OAuth

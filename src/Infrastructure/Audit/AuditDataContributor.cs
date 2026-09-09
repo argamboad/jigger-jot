@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Entities;
-using Perezosoft.Core.Repositories;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Entities;
+using JiggerJot.Core.Repositories;
 
-namespace Perezosoft.Infrastructure.Audit;
+namespace JiggerJot.Infrastructure.Audit;
 
 /// <summary>
 /// Tenant-data hook so the audit trail participates in tenant dissolve (OBS-4, ADR-008). Uses the

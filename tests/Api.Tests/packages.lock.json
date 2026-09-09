@@ -416,7 +416,7 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
-      "perezosoft.api": {
+      "jiggerjot.api": {
         "type": "Project",
         "dependencies": {
           "DotNetEnv": "[3.2.0, )",
@@ -429,15 +429,15 @@
           "OpenTelemetry.Instrumentation.Http": "[1.16.0, )",
           "OpenTelemetry.Instrumentation.Runtime": "[1.18.0, )",
           "Otp.NET": "[1.4.1, )",
-          "Perezosoft.Core": "[1.0.0, )",
-          "Perezosoft.Infrastructure": "[1.0.0, )",
+          "JiggerJot.Core": "[1.0.0, )",
+          "JiggerJot.Infrastructure": "[1.0.0, )",
           "Swashbuckle.AspNetCore": "[7.2.0, )"
         }
       },
-      "perezosoft.core": {
+      "jiggerjot.core": {
         "type": "Project"
       },
-      "perezosoft.infrastructure": {
+      "jiggerjot.infrastructure": {
         "type": "Project",
         "dependencies": {
           "AWSSDK.S3": "[4.0.100, )",
@@ -446,11 +446,11 @@
           "Microsoft.AspNetCore.Authentication.MicrosoftAccount": "[10.0.11, )",
           "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": "[10.0.11, )",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
-          "Perezosoft.Core": "[1.0.0, )",
+          "JiggerJot.Core": "[1.0.0, )",
           "Stripe.net": "[52.1.0, )"
         }
       },
-      "perezosoft.shared.ui": {
+      "jiggerjot.shared.ui": {
         "type": "Project",
         "dependencies": {
           "System.IdentityModel.Tokens.Jwt": "[8.19.1, )"

@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Services;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Entities;
+using JiggerJot.Api.Services;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// Security-critical account resolution: the unverified-email takeover guard and the

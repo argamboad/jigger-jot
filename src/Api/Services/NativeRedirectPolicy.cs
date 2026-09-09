@@ -1,4 +1,4 @@
-namespace Perezosoft.Api.Services;
+namespace JiggerJot.Api.Services;
 
 /// <summary>
 /// Decides whether a native client's OAuth redirect target is safe to redirect to.

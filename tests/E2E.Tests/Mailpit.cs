@@ -1,17 +1,17 @@
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
 
-namespace Perezosoft.E2E.Tests;
+namespace JiggerJot.E2E.Tests;
 
 /// <summary>
-/// Minimal client for the dev Mailpit REST API (http://localhost:8025) so E2E tests can read
+/// Minimal client for the dev Mailpit REST API (http://localhost:8027) so E2E tests can read
 /// the OTP code / magic link the app "sends" — the same trick a manual tester uses.
 /// </summary>
 public static class Mailpit
 {
     private static readonly HttpClient Http = new()
     {
-        BaseAddress = new Uri(Environment.GetEnvironmentVariable("MAILPIT_BASE_URL") ?? "http://localhost:8025"),
+        BaseAddress = new Uri(Environment.GetEnvironmentVariable("MAILPIT_BASE_URL") ?? "http://localhost:8027"),
     };
 
     /// <summary>Deletes all trapped messages (call before triggering a fresh email).</summary>

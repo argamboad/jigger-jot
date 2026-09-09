@@ -7,13 +7,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using OtpNet;
-using Perezosoft.Api.Services;
-using Perezosoft.Core.Entities;
-using Perezosoft.Infrastructure;
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Api.Services;
+using JiggerJot.Core.Entities;
+using JiggerJot.Infrastructure;
+using JiggerJot.Infrastructure.Persistence;
 using Testcontainers.PostgreSql;
 
-namespace Perezosoft.Api.Tests.Infrastructure;
+namespace JiggerJot.Api.Tests.Infrastructure;
 
 /// <summary>
 /// v2 audit B8-6: the HTTP integration harness. Boots the REAL app (<c>Program</c>) via

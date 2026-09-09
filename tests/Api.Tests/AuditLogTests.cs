@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Entities;
-using Perezosoft.Infrastructure.Audit;
-using Perezosoft.Infrastructure.Repositories;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Entities;
+using JiggerJot.Infrastructure.Audit;
+using JiggerJot.Infrastructure.Repositories;
 
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// OBS-4 (ADR-008): the tenant audit log records semantic events scoped to the tenant, is append-only

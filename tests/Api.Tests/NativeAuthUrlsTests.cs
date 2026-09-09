@@ -1,6 +1,6 @@
-using Perezosoft.Api.Services;
+using JiggerJot.Api.Services;
 
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// The native OAuth flow round-trips a client-generated CSRF <c>state</c> nonce (v3 NAT-9): the loopback

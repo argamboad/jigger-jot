@@ -1,4 +1,4 @@
-namespace Perezosoft.Core.Repositories;
+namespace JiggerJot.Core.Repositories;
 
 /// <summary>
 /// A transactional boundary spanning several repository writes.

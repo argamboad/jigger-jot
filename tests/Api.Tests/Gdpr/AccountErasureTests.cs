@@ -1,13 +1,13 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Services;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Entities;
-using Perezosoft.Infrastructure.Audit;
-using Perezosoft.Infrastructure.Persistence;
-using Perezosoft.Infrastructure.Repositories;
+using JiggerJot.Api.Services;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Entities;
+using JiggerJot.Infrastructure.Audit;
+using JiggerJot.Infrastructure.Persistence;
+using JiggerJot.Infrastructure.Repositories;
 
-namespace Perezosoft.Api.Tests.Gdpr;
+namespace JiggerJot.Api.Tests.Gdpr;
 
 /// <summary>
 /// GDPR-2 (ADR-011): account erasure wipes the caller's identity/PII in one transaction while honoring

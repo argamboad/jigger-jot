@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Perezosoft.Api.Services;
-using Perezosoft.Core.Abstractions;
+using JiggerJot.Api.Services;
+using JiggerJot.Core.Abstractions;
 
-namespace Perezosoft.Api.Configuration;
+namespace JiggerJot.Api.Configuration;
 
 /// <summary>
 /// Per-epic service-registration extensions (DEBT-3). The flat DI block that used to live in

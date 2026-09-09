@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
-using Perezosoft.Api.Controllers;
-using Perezosoft.Api.Models;
-using Perezosoft.Api.Tests.Infrastructure;
+using JiggerJot.Api.Controllers;
+using JiggerJot.Api.Models;
+using JiggerJot.Api.Tests.Infrastructure;
 
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// The preference endpoints' storage rules (PREFS-1, ADR-022): "system" is a real, stored
@@ -63,7 +63,7 @@ public class AccountControllerTests(PostgresFixture fixture) : PostgresTestBase(
     }
 
     // Only the preference endpoints are exercised, so the unrelated collaborators stay null.
-    private static AccountController ControllerFor(Perezosoft.Api.Services.IUserService users, Guid userId) => new(
+    private static AccountController ControllerFor(JiggerJot.Api.Services.IUserService users, Guid userId) => new(
         users, null!, null!, null!, null!, NullLogger<AccountController>.Instance)
     {
         ControllerContext = new ControllerContext

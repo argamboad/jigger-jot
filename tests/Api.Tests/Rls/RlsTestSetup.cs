@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Infrastructure.Persistence;
 
-namespace Perezosoft.Api.Tests.Rls;
+namespace JiggerJot.Api.Tests.Rls;
 
 /// <summary>
 /// Provisions what the RLS backstop (ADR-020) needs on a test database: the non-privileged runtime

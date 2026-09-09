@@ -1,4 +1,4 @@
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// QA-SEC-03 (2026-08-31 co-pilot finding F3): after sign-out, the browser Back button can restore
@@ -10,7 +10,7 @@ namespace Perezosoft.Api.Tests;
 /// </summary>
 public class BfcacheGuardTests
 {
-    private const string ScriptRef = "_content/Perezosoft.Shared.Ui/js/bfcache-guard.js";
+    private const string ScriptRef = "_content/JiggerJot.Shared.Ui/js/bfcache-guard.js";
 
     [Fact]
     public void BfcacheGuard_ReloadsPersistedPageshowRestores()

@@ -5,7 +5,7 @@
       "label": "build",
       "command": "dotnet",
       "type": "process",
-      "args": ["build", "${workspaceFolder}/Perezosoft.slnx", "-v", "q"],
+      "args": ["build", "${workspaceFolder}/JiggerJot.slnx", "-v", "q"],
       "problemMatcher": "$msCompile"
     },
     {
@@ -14,7 +14,7 @@
       "label": "android: run",
       "command": "dotnet",
       "type": "process",
-      "args": ["build", "${workspaceFolder}/src/Maui/Perezosoft.Maui.csproj", "-t:Run", "-f", "net10.0-android"],
+      "args": ["build", "${workspaceFolder}/src/Maui/JiggerJot.Maui.csproj", "-t:Run", "-f", "net10.0-android"],
       "problemMatcher": "$msCompile"
     },
     {
@@ -25,7 +25,7 @@
       "label": "android: run on phone",
       "command": "dotnet",
       "type": "process",
-      "args": ["build", "${workspaceFolder}/src/Maui/Perezosoft.Maui.csproj", "-t:Run", "-f", "net10.0-android", "-p:AdbTarget=-d"],
+      "args": ["build", "${workspaceFolder}/src/Maui/JiggerJot.Maui.csproj", "-t:Run", "-f", "net10.0-android", "-p:AdbTarget=-d"],
       "problemMatcher": "$msCompile"
     }
   ]

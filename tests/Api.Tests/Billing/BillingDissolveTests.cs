@@ -1,14 +1,14 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Services;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Billing;
-using Perezosoft.Core.Entities;
-using Perezosoft.Infrastructure.Billing;
-using Perezosoft.Infrastructure.Outbox;
-using Perezosoft.Infrastructure.Repositories;
+using JiggerJot.Api.Services;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Billing;
+using JiggerJot.Core.Entities;
+using JiggerJot.Infrastructure.Billing;
+using JiggerJot.Infrastructure.Outbox;
+using JiggerJot.Infrastructure.Repositories;
 
-namespace Perezosoft.Api.Tests.Billing;
+namespace JiggerJot.Api.Tests.Billing;
 
 /// <summary>
 /// Drives BILLING-7 (ADR-006 point 6): billing participates in tenant dissolve. The
@@ -103,7 +103,7 @@ public class BillingDissolveTests(PostgresFixture fixture) : PostgresTestBase(fi
 
     // --- helpers ---
 
-    private static BillingDataContributor Build(Perezosoft.Infrastructure.Persistence.AppDbContext db) =>
+    private static BillingDataContributor Build(JiggerJot.Infrastructure.Persistence.AppDbContext db) =>
         new(new EfRepository<Subscription>(db), new EfOutbox(db, TimeProvider.System));
 
     private async Task SeedSubscriptionAsync(Guid tenant, string? stripeSubscriptionId)

@@ -1,4 +1,4 @@
-namespace Perezosoft.Core.Abstractions;
+namespace JiggerJot.Core.Abstractions;
 
 /// <summary>
 /// Enters a tenant context for system/integration operations that have no JWT but a <b>trusted</b>

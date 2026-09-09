@@ -109,7 +109,7 @@ fail-closed-confirm paths covered; tenant-scoping verified; merged, app working.
 **So that** Apple parity extends beyond web
 
 **Context / notes:** explicitly deferred (ADR-005 #6, ADR-C9 web-first). No native Apple SDK on
-Windows/Android, so this reuses the web flow through the loopback/`perezosoft://` path and inherits
+Windows/Android, so this reuses the web flow through the loopback/`jiggerjot://` path and inherits
 Apple's no-`localhost` (#3) and `form_post` (#4) constraints — a materially larger effort than the
 web slice. Do **not** start this before APPLE-1 ships and is validated on web.
 

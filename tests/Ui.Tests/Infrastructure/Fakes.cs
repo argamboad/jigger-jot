@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Localization;
-using Perezosoft.Shared.Ui;
-using Perezosoft.Shared.Ui.Resources;
-using Perezosoft.Shared.Ui.Auth;
+using JiggerJot.Shared.Ui;
+using JiggerJot.Shared.Ui.Resources;
+using JiggerJot.Shared.Ui.Auth;
 
-namespace Perezosoft.Ui.Tests.Infrastructure;
+namespace JiggerJot.Ui.Tests.Infrastructure;
 
 /// <summary>In-memory <see cref="ISessionStore"/>. Web-parity by default (cookie transport, no body token).</summary>
 public sealed class FakeSessionStore(bool usesBodyTransport = false) : ISessionStore

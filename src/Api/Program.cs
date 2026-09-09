@@ -3,15 +3,15 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Extensions;
 using Microsoft.OpenApi.Models;
-using Perezosoft.Api.Authentication;
-using Perezosoft.Api.Configuration;
-using Perezosoft.Api.Endpoints;
-using Perezosoft.Api.Features.Notes;
-using Perezosoft.Api.Observability;
-using Perezosoft.Api.Services;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Infrastructure;
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Api.Authentication;
+using JiggerJot.Api.Configuration;
+using JiggerJot.Api.Endpoints;
+using JiggerJot.Api.Features.Notes;
+using JiggerJot.Api.Observability;
+using JiggerJot.Api.Services;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Infrastructure;
+using JiggerJot.Infrastructure.Persistence;
 
 // Local dev: load secrets/config from the repo-root .env (the single local source of truth —
 // see docs/DECISIONS.md). TraversePath walks up to find it regardless of the working dir; the
@@ -37,7 +37,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(o =>
 {
-    o.SwaggerDoc("v1", new OpenApiInfo { Title = "Perezosoft API", Version = "v1" });
+    o.SwaggerDoc("v1", new OpenApiInfo { Title = "JiggerJot API", Version = "v1" });
     // A curated "public" document with ONLY the /api/public routes (PUBAPI-2) — the customer-facing
     // contract, served leak-free at /api/public/openapi.json when PUBAPI is enabled (see below).
     o.SwaggerDoc("public", new OpenApiInfo
@@ -260,7 +260,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Perezosoft API v1");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "JiggerJot API v1");
         if (publicApiSettings.Enabled)
             c.SwaggerEndpoint("/swagger/public/swagger.json", "Public API"); // PUBAPI-2
         c.RoutePrefix = string.Empty; // serve the UI at the API root (/)
@@ -268,7 +268,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // HTTPS redirect is a production concern. In Development we deliberately skip it so the
-// Android emulator can talk cleartext HTTP to the host (http://10.0.2.2:5238) without the
+// Android emulator can talk cleartext HTTP to the host (http://10.0.2.2:5338) without the
 // request being 307'd to a port/cert it can't reach. Native auth uses body tokens (no
 // cookies), so none of the web client's HTTPS/SameSite requirements apply to that leg.
 if (!app.Environment.IsDevelopment())

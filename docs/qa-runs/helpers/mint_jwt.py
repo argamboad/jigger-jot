@@ -1,8 +1,8 @@
 """Mint an access token for an email via the OTP API flow + Mailpit. Prints the token to stdout."""
 import json, re, ssl, sys, time, urllib.request
 
-API = "https://localhost:7160"
-MAIL = "http://localhost:8025"
+API = "https://localhost:7260"
+MAIL = "http://localhost:8027"
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE

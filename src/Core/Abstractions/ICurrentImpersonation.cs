@@ -1,4 +1,4 @@
-namespace Perezosoft.Core.Abstractions;
+namespace JiggerJot.Core.Abstractions;
 
 /// <summary>
 /// Ambient impersonation attribution (ADMIN-2, ADR-014 / v3 audit LB-ADM-1): when the current request is

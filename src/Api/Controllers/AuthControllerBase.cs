@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Perezosoft.Api.Authentication;
-using Perezosoft.Api.Services;
+using JiggerJot.Api.Authentication;
+using JiggerJot.Api.Services;
 
-namespace Perezosoft.Api.Controllers;
+namespace JiggerJot.Api.Controllers;
 
 /// <summary>
 /// Shared base for the auth controllers — holds request-scoped helpers common to the

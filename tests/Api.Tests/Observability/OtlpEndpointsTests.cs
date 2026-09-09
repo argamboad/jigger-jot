@@ -1,6 +1,6 @@
-using Perezosoft.Api.Observability;
+using JiggerJot.Api.Observability;
 
-namespace Perezosoft.Api.Tests.Observability;
+namespace JiggerJot.Api.Tests.Observability;
 
 /// <summary>
 /// OBS-2: the single configured OTLP base URL becomes a per-signal URL over <c>http/protobuf</c>, where the

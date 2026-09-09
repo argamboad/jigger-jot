@@ -1,9 +1,9 @@
 using System.Text.Json;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Entities;
-using Perezosoft.Core.Repositories;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Entities;
+using JiggerJot.Core.Repositories;
 
-namespace Perezosoft.Infrastructure.Audit;
+namespace JiggerJot.Infrastructure.Audit;
 
 /// <summary>
 /// EF implementation of <see cref="IAuditLog"/> (OBS-4, ADR-008). Stages an <see cref="AuditEvent"/> on

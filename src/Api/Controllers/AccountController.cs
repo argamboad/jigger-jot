@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Perezosoft.Api.Authentication;
-using Perezosoft.Api.Models;
-using Perezosoft.Api.Services;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Repositories;
+using JiggerJot.Api.Authentication;
+using JiggerJot.Api.Models;
+using JiggerJot.Api.Services;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Repositories;
 
-namespace Perezosoft.Api.Controllers;
+namespace JiggerJot.Api.Controllers;
 
 /// <summary>
 /// Signed-in account surface: profile, erasure, locale/theme preferences, and OAuth login links.

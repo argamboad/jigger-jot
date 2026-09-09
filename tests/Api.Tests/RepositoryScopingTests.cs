@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Infrastructure.Repositories;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Infrastructure.Repositories;
 
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// The generic repository exposes two deliberately distinct read surfaces: <c>Query()</c> is

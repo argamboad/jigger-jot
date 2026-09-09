@@ -6,20 +6,20 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Perezosoft.Api.Configuration;
-using Perezosoft.Api.Controllers;
-using Perezosoft.Api.Models;
-using Perezosoft.Api.Services;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Api.Tests.Notify;
-using Perezosoft.Core.Billing;
-using Perezosoft.Core.Entities;
-using Perezosoft.Infrastructure.Audit;
-using Perezosoft.Infrastructure.Outbox;
-using Perezosoft.Infrastructure.Persistence;
-using Perezosoft.Infrastructure.Repositories;
+using JiggerJot.Api.Configuration;
+using JiggerJot.Api.Controllers;
+using JiggerJot.Api.Models;
+using JiggerJot.Api.Services;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Api.Tests.Notify;
+using JiggerJot.Core.Billing;
+using JiggerJot.Core.Entities;
+using JiggerJot.Infrastructure.Audit;
+using JiggerJot.Infrastructure.Outbox;
+using JiggerJot.Infrastructure.Persistence;
+using JiggerJot.Infrastructure.Repositories;
 
-namespace Perezosoft.Api.Tests.Admin;
+namespace JiggerJot.Api.Tests.Admin;
 
 /// <summary>
 /// ADMIN-1 (ADR-014): the staff back-office. Non-staff callers get 403; staff can list tenants and view
@@ -442,9 +442,9 @@ public class AdminControllerTests(PostgresFixture fixture) : PostgresTestBase(fi
             var handler = new AdminBroadcastOutboxHandler(new UserRepository(db), new NotificationService(
                 new EfRepository<Notification>(db), new EfRepository<NotificationPreference>(db),
                 new UserRepository(db), _email, TimeProvider.System));
-            return await new Perezosoft.Infrastructure.Outbox.OutboxProcessor(
-                db, [handler], TimeProvider.System, new Perezosoft.Infrastructure.Outbox.OutboxOptions(),
-                NullLogger<Perezosoft.Infrastructure.Outbox.OutboxProcessor>.Instance).ProcessDueAsync();
+            return await new JiggerJot.Infrastructure.Outbox.OutboxProcessor(
+                db, [handler], TimeProvider.System, new JiggerJot.Infrastructure.Outbox.OutboxOptions(),
+                NullLogger<JiggerJot.Infrastructure.Outbox.OutboxProcessor>.Instance).ProcessDueAsync();
         }
 
         Assert.Equal(1, await PollAsync()); // delivered + Sent, atomically

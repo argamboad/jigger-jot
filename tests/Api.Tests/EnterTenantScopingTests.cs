@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Services;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Api.Services;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Infrastructure.Persistence;
 
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// The structural proof for the <c>EnterTenant</c> primitive (ADR-003): a write made while a tenant is

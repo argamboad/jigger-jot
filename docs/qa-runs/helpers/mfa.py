@@ -2,7 +2,7 @@
 import base64, hashlib, hmac, json, os, ssl, struct, sys, time, urllib.request, urllib.error
 
 SP = os.path.dirname(os.path.abspath(__file__))
-API = "https://localhost:7160"
+API = "https://localhost:7260"
 ctx = ssl.create_default_context(); ctx.check_hostname = False; ctx.verify_mode = ssl.CERT_NONE
 
 

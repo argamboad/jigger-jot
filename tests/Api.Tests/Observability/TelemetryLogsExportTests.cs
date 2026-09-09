@@ -3,9 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Logs;
-using Perezosoft.Api.Observability;
+using JiggerJot.Api.Observability;
 
-namespace Perezosoft.Api.Tests.Observability;
+namespace JiggerJot.Api.Tests.Observability;
 
 /// <summary>
 /// OBS-2 (ADR-008 amendment, 2026-09-07): log records are exported alongside traces and metrics. The

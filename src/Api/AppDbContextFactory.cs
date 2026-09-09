@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Infrastructure.Persistence;
 
-namespace Perezosoft.Api;
+namespace JiggerJot.Api;
 
 /// <summary>
 /// Design-time factory so EF tooling (<c>migrations add</c>,

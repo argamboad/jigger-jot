@@ -3,15 +3,15 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.RateLimiting;
-using Perezosoft.Api.Configuration;
-using Perezosoft.Api.Models;
-using Perezosoft.Api.Services;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Entities;
-using Perezosoft.Infrastructure;
-using Perezosoft.Infrastructure.Email;
+using JiggerJot.Api.Configuration;
+using JiggerJot.Api.Models;
+using JiggerJot.Api.Services;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Entities;
+using JiggerJot.Infrastructure;
+using JiggerJot.Infrastructure.Email;
 
-namespace Perezosoft.Api.Controllers;
+namespace JiggerJot.Api.Controllers;
 
 /// <summary>
 /// Authentication controller for the OAuth → JWT + refresh-token flow.

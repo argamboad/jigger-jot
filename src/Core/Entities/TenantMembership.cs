@@ -1,4 +1,4 @@
-namespace Perezosoft.Core.Entities;
+namespace JiggerJot.Core.Entities;
 
 /// <summary>
 /// Links a user to their tenant with a role. A user belongs to exactly one

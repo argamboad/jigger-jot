@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Infrastructure;
-using Perezosoft.Infrastructure.Files;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Infrastructure;
+using JiggerJot.Infrastructure.Files;
 
-namespace Perezosoft.Api.Tests.Files;
+namespace JiggerJot.Api.Tests.Files;
 
 /// <summary>
 /// FILES-3 (ADR-010): the storage backend is config-gated like the billing provider — S3 when a bucket

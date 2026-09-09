@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace Perezosoft.Maui;
+namespace JiggerJot.Maui;
 
 [Register("AppDelegate")]
 public class AppDelegate : MauiUIApplicationDelegate

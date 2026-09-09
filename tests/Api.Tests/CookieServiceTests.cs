@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Time.Testing;
-using Perezosoft.Api.Services;
-using Perezosoft.Api.Tests.Infrastructure;
+using JiggerJot.Api.Services;
+using JiggerJot.Api.Tests.Infrastructure;
 
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// The refresh cookie is pinned to <c>Path=/api/auth</c>. A legacy build that wrote it at a broader

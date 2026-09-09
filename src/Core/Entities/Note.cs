@@ -1,4 +1,4 @@
-namespace Perezosoft.Core.Entities;
+namespace JiggerJot.Core.Entities;
 
 /// <summary>
 /// SAMPLE feature entity — a tenant-scoped note. It exists only to demonstrate the

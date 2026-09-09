@@ -1,12 +1,12 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using Perezosoft.Api.Services;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Authorization;
-using Perezosoft.Core.Entities;
-using Perezosoft.Infrastructure.Repositories;
+using JiggerJot.Api.Services;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Authorization;
+using JiggerJot.Core.Entities;
+using JiggerJot.Infrastructure.Repositories;
 
-namespace Perezosoft.Api.Tests.Rbac;
+namespace JiggerJot.Api.Tests.Rbac;
 
 /// <summary>
 /// RBAC-1 (ADR-009): <see cref="PermissionService"/> resolves the authenticated caller's membership

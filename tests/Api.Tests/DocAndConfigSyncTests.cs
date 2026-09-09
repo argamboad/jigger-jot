@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// v2 audit B11-5: doc/config drift gates (R20, R23) + the MailKit boundary (email hygiene). These are

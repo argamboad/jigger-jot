@@ -1,9 +1,9 @@
-namespace Perezosoft.Infrastructure.Email;
+namespace JiggerJot.Infrastructure.Email;
 
 public class SmtpSettings
 {
     public required string Host { get; init; }
-    public int Port { get; init; } = 1025;
+    public int Port { get; init; } = 1027;
     public string? Username { get; init; }
     public string? Password { get; init; }
     public required string FromAddress { get; init; }

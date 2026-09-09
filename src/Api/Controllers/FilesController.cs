@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Perezosoft.Core.Abstractions;
+using JiggerJot.Core.Abstractions;
 
-namespace Perezosoft.Api.Controllers;
+namespace JiggerJot.Api.Controllers;
 
 /// <summary>
 /// Serves local-disk file downloads behind a signed, time-limited token (FILES-2, ADR-010). A

@@ -1,12 +1,12 @@
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Perezosoft.Shared.Ui.Components;
-using Perezosoft.Shared.Ui.Pages;
-using Perezosoft.Ui.Tests.Infrastructure;
+using JiggerJot.Shared.Ui.Components;
+using JiggerJot.Shared.Ui.Pages;
+using JiggerJot.Ui.Tests.Infrastructure;
 using Xunit;
 
-namespace Perezosoft.Ui.Tests;
+namespace JiggerJot.Ui.Tests;
 
 /// <summary>
 /// v3 audit LB-UI-9 (bell double-decrement) + UX-5 (raw billing tokens), T42.

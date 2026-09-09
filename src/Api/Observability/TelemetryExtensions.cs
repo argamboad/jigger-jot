@@ -4,9 +4,9 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Perezosoft.Core.Abstractions;
+using JiggerJot.Core.Abstractions;
 
-namespace Perezosoft.Api.Observability;
+namespace JiggerJot.Api.Observability;
 
 /// <summary>
 /// OpenTelemetry traces + metrics + logs (OBS-2, ADR-008). Instruments ASP.NET Core, outbound HttpClient, the
@@ -33,7 +33,7 @@ public static class TelemetryExtensions
         var useConsole = configuration.GetValue<bool>("OpenTelemetry:ConsoleExporter");
 
         services.AddOpenTelemetry()
-            .ConfigureResource(resource => resource.AddService("Perezosoft.Api"))
+            .ConfigureResource(resource => resource.AddService("JiggerJot.Api"))
             .WithTracing(tracing =>
             {
                 tracing

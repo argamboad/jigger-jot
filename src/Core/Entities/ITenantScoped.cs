@@ -1,4 +1,4 @@
-namespace Perezosoft.Core.Entities;
+namespace JiggerJot.Core.Entities;
 
 /// <summary>
 /// Marks an entity as belonging to a single tenant. Every entity implementing this is

@@ -1,9 +1,9 @@
-using Perezosoft.Api.Configuration;
-using Perezosoft.Api.Models;
-using Perezosoft.Core.Entities;
-using Perezosoft.Core.Repositories;
+using JiggerJot.Api.Configuration;
+using JiggerJot.Api.Models;
+using JiggerJot.Core.Entities;
+using JiggerJot.Core.Repositories;
 
-namespace Perezosoft.Api.Services;
+namespace JiggerJot.Api.Services;
 
 /// <summary>
 /// An issued access session: the <see cref="TokenResponse"/> for the client plus the raw

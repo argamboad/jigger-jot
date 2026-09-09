@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Entities;
-using Perezosoft.Infrastructure.Inbox;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Entities;
+using JiggerJot.Infrastructure.Inbox;
 
-namespace Perezosoft.Api.Tests.Inbox;
+namespace JiggerJot.Api.Tests.Inbox;
 
 /// <summary>
 /// Drives JOBS-2 (ADR-007): the inbox gives inbound at-least-once deliveries exactly-once handling.

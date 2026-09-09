@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
-using Perezosoft.Core.Entities;
-using Perezosoft.Core.Repositories;
+using JiggerJot.Core.Entities;
+using JiggerJot.Core.Repositories;
 
-namespace Perezosoft.Api.Models;
+namespace JiggerJot.Api.Models;
 
 public record RenameTenantRequest
 {

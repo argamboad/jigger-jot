@@ -67,7 +67,7 @@ Open Claude Code in the repo and use **the expected first prompt from `README.md
   templates are the classically missed spot), the OAuth callback scheme + `ApplicationId`, and
   the brand strings in every localization `.resx`.
 - Fills the `CLAUDE.md` TODOs (app-specific golden rules, conventions) from your Phase-1 docs.
-- Verifies: `git grep -i perezosoft` returns nothing, and a test OTP email arrives with the new
+- Verifies: `git grep -i jiggerjot` returns nothing, and a test OTP email arrives with the new
   brand.
 
 ## Phase 4 — First local run
@@ -75,12 +75,12 @@ Open Claude Code in the repo and use **the expected first prompt from `README.md
 ```bash
 cp .env.example .env          # then fill it — at minimum Jwt__Secret (any ≥32-char string)
 docker compose up -d db mail  # Postgres 17 + Mailpit
-dotnet run --project src/Api --launch-profile https    # API on https://localhost:7160
-dotnet run --project src/Web                           # web UI on https://localhost:7008
+dotnet run --project src/Api --launch-profile https    # API on https://localhost:7260
+dotnet run --project src/Web                           # web UI on https://localhost:7108
 ```
 
 Sign in with **"Email me a 6-digit code"** and read the code from Mailpit at
-<http://localhost:8025> — no OAuth keys needed yet (Google/Microsoft buttons need Phase 7 §5
+<http://localhost:8027> — no OAuth keys needed yet (Google/Microsoft buttons need Phase 7 §5
 credentials; everything else works without them). You now have a branded, multi-tenant,
 running app with zero features.
 

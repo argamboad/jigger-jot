@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Perezosoft.Core.Entities;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Infrastructure.Persistence.Configurations;
+namespace JiggerJot.Infrastructure.Persistence.Configurations;
 
 // 🗑️ DELETE-ME: sample feature (remove with the Features/Notes slice). Implements
 // ITenantScoped, so the global query filter in AppDbContext covers it automatically.

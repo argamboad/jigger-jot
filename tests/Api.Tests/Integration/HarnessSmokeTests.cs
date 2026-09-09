@@ -1,10 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Entities;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Api.Tests.Integration;
+namespace JiggerJot.Api.Tests.Integration;
 
 /// <summary>
 /// v2 audit B8-6: proves the integration harness boots the real app and that the end-to-end pipeline

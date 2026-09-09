@@ -8,13 +8,13 @@ smoke path that doesn't need an external OAuth provider.
 
 1. **Backing services** — `docker compose up -d` (Postgres + Mailpit).
 2. **API — must send email to Mailpit, not a real provider.** The dev default
-   (`appsettings.Development.json`) already points at Mailpit (`localhost:1025`). **If your
+   (`appsettings.Development.json`) already points at Mailpit (`localhost:1027`). **If your
    repo-root `.env` overrides `Email__Smtp__*` to a real SMTP provider (e.g. Brevo), override
    it back for the test run** via command-line args (command-line config beats `.env`, and
    leaves `.env` untouched):
    ```sh
    dotnet run --project src/Api --launch-profile https -- \
-     --Email:Smtp:Host=localhost --Email:Smtp:Port=1025 --Email:Smtp:Username= --Email:Smtp:Password= \
+     --Email:Smtp:Host=localhost --Email:Smtp:Port=1027 --Email:Smtp:Username= --Email:Smtp:Password= \
      --Auth:RateLimit:PasswordlessPermitLimit=1000 \
      --Admin:StaffEmails:0=e2e-staff@example.com \
      --Billing:Stripe:SecretKey=
@@ -24,12 +24,12 @@ smoke path that doesn't need an external OAuth provider.
    **FakeBillingProvider** even if your `.env` has Stripe test keys — the billing journey
    (BILLING-8) depends on the fake's deterministic checkout URLs and `valid` webhook signature.
    CI sets the same overrides. Tests that call the API directly (the billing webhook) use
-   `E2E_API_BASE_URL` (default `https://localhost:7160`; CI overrides).
+   `E2E_API_BASE_URL` (default `https://localhost:7260`; CI overrides).
    If your `.env` doesn't override email, you can drop the `--Email:*` args — but keep the
    **rate-limit override**: the journey tests sign in several users per run from one IP, which
    trips the production default (5 OTP requests/min/IP → 429 → flaky "no OTP email" timeouts).
    CI sets the same override for its E2E job.
-3. **Web** — `dotnet run --project src/Web --launch-profile https` (serves <https://localhost:7008>).
+3. **Web** — `dotnet run --project src/Web --launch-profile https` (serves <https://localhost:7108>).
 4. **Browser (once)** — `pwsh tests/E2E.Tests/bin/Debug/net10.0/playwright.ps1 install chromium`.
 
 ## Run
@@ -38,7 +38,7 @@ smoke path that doesn't need an external OAuth provider.
 dotnet test tests/E2E.Tests
 ```
 
-Base URL defaults to `https://localhost:7008`; override with `PLAYWRIGHT_BASE_URL`. The
+Base URL defaults to `https://localhost:7108`; override with `PLAYWRIGHT_BASE_URL`. The
 dev self-signed cert is accepted (`IgnoreHTTPSErrors`).
 
 ## Coverage

@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace Perezosoft.Maui;
+namespace JiggerJot.Maui;
 
 public class Program
 {

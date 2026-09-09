@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Caching.Memory;
-using Perezosoft.Api.Services;
+using JiggerJot.Api.Services;
 
-namespace Perezosoft.Api.Tests.Mfa;
+namespace JiggerJot.Api.Tests.Mfa;
 
 /// <summary>
 /// MFA-2 (ADR-012): the login challenge binds user + provider + native, signed and time-limited, and

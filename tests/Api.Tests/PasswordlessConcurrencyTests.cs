@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Services;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Entities;
+using JiggerJot.Api.Services;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// v3 audit LB-AUTH-3 (TB-AUTH-4) + LB-AUTH-2 (TB-AUTH-5): the passwordless credential paths under real

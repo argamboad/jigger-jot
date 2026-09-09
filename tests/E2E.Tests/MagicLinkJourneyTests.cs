@@ -1,8 +1,8 @@
 using System.Text.RegularExpressions;
 using Microsoft.Playwright;
-using Perezosoft.E2E.Tests.Pages;
+using JiggerJot.E2E.Tests.Pages;
 
-namespace Perezosoft.E2E.Tests;
+namespace JiggerJot.E2E.Tests;
 
 /// <summary>
 /// Magic-link sign-in journey (E2E-4): request the link, read it from Mailpit, open it, land

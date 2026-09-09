@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api;
-using Perezosoft.Core.Entities;
+using JiggerJot.Api;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// Guards the design-time DbContext factory that EF tooling uses for migrations /

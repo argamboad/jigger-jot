@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Perezosoft.Api.Authentication;
-using Perezosoft.Api.Configuration;
-using Perezosoft.Api.Services;
-using Perezosoft.Core.Authorization;
-using Perezosoft.Core.Entities;
-using Perezosoft.Core.Repositories;
+using JiggerJot.Api.Authentication;
+using JiggerJot.Api.Configuration;
+using JiggerJot.Api.Services;
+using JiggerJot.Core.Authorization;
+using JiggerJot.Core.Entities;
+using JiggerJot.Core.Repositories;
 
-namespace Perezosoft.Api.Controllers;
+namespace JiggerJot.Api.Controllers;
 
 /// <summary>
 /// Base for JWT-authenticated, tenant-scoped controllers. Centralizes the

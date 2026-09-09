@@ -1,6 +1,6 @@
-using Perezosoft.Api.Services;
+using JiggerJot.Api.Services;
 
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// The native OAuth callback redirects to a client-supplied URL, so this guard is the
@@ -43,30 +43,30 @@ public class NativeRedirectPolicyTests
     [Fact]
     public void Allows_ConfiguredCustomScheme()
     {
-        Assert.True(NativeRedirectPolicy.IsAllowed("perezosoft://auth", customScheme: "perezosoft"));
+        Assert.True(NativeRedirectPolicy.IsAllowed("jiggerjot://auth", customScheme: "jiggerjot"));
     }
 
     [Fact]
     public void CustomScheme_IsCaseInsensitive()
     {
-        Assert.True(NativeRedirectPolicy.IsAllowed("Perezosoft://auth", customScheme: "perezosoft"));
+        Assert.True(NativeRedirectPolicy.IsAllowed("JiggerJot://auth", customScheme: "jiggerjot"));
     }
 
     [Fact]
     public void Rejects_CustomScheme_WhenNoneConfigured()
     {
-        Assert.False(NativeRedirectPolicy.IsAllowed("perezosoft://auth", customScheme: null));
+        Assert.False(NativeRedirectPolicy.IsAllowed("jiggerjot://auth", customScheme: null));
     }
 
     [Fact]
     public void Rejects_CustomScheme_Mismatch()
     {
-        Assert.False(NativeRedirectPolicy.IsAllowed("other://auth", customScheme: "perezosoft"));
+        Assert.False(NativeRedirectPolicy.IsAllowed("other://auth", customScheme: "jiggerjot"));
     }
 
     [Fact]
     public void Loopback_StillAllowed_WhenCustomSchemeConfigured()
     {
-        Assert.True(NativeRedirectPolicy.IsAllowed("http://127.0.0.1:5000/", customScheme: "perezosoft"));
+        Assert.True(NativeRedirectPolicy.IsAllowed("http://127.0.0.1:5000/", customScheme: "jiggerjot"));
     }
 }

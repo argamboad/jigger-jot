@@ -233,7 +233,7 @@ flavor author) — they are the new code; probes are SQL scripts run through the
 1. `kit/Dockerfile`: `mcr.microsoft.com/dotnet/sdk:10.0.400` base (pinned like `global.json`) +
    Node LTS + Newman + Playwright Chromium (`playwright.ps1 install --with-deps chromium`). Entrypoint
    `kit.sh` with the four flags; exit code = worst of the four stages; JUnit XML to `/out`.
-2. **Newman stage:** `newman run kit/postman/Perezosoft.postman_collection.json -e local --env-var
+2. **Newman stage:** `newman run kit/postman/JiggerJot.postman_collection.json -e local --env-var
    baseUrl=…`; the chaining scripts already assert status codes + capture secrets. Add a `kit`
    environment file (Mailpit URL, staff email `e2e-staff@example.com`, the same env the `e2e` CI job
    sets: `Auth__RateLimit__PasswordlessPermitLimit=1000`, `Admin__StaffEmails__0`).
@@ -267,7 +267,7 @@ flavor author) — they are the new code; probes are SQL scripts run through the
 ```gherkin
 Scenario: One command, four stages, one verdict
   Given the reference stack is up (API, Web, Postgres, Mailpit)
-  When `docker run --network host spec-kit:1.0.0 --base-url http://localhost:5238 --web-url http://localhost:5169 --mailpit http://localhost:8025 --db "<app-role conn>"` runs
+  When `docker run --network host spec-kit:1.0.0 --base-url http://localhost:5338 --web-url http://localhost:5269 --mailpit http://localhost:8027 --db "<app-role conn>"` runs
   Then newman, journeys, adversarial, probes each write JUnit XML to /out and the exit code is 0
 
 Scenario: A tenancy regression is caught by the kit, not by C# tests
@@ -580,7 +580,7 @@ outbox worker a separate process (same as the reference's hosted service).
 ## Epic `NATIVE-RN` — true-native mobile for the React family
 
 Repo `argamboad/native-rn`. **Expo** (managed workflow, EAS builds), **expo-router**, **TanStack
-Query** (shared hooks + the API client extracted from `frontend-react` into a small `@perezosoft/
+Query** (shared hooks + the API client extracted from `frontend-react` into a small `@jiggerjot/
 client-ts` package — the first shared package between two pieces; publish to GitHub Packages),
 `expo-auth-session` for OAuth via the system browser (process-death resilience from NATIVE-12: persist
 state in `expo-secure-store` before leaving), `expo-secure-store` for the refresh token, `expo-local-
@@ -655,7 +655,7 @@ Scenario: A set-based update is filtered without query tags
 
 ## Epic `SCAFFOLD` — compose pieces into one app repo
 
-Repo `argamboad/scaffold`. A small **Node CLI** (`npx @perezosoft/create` or `perezosoft new`):
+Repo `argamboad/scaffold`. A small **Node CLI** (`npx @jiggerjot/create` or `jiggerjot new`):
 `--backend dotnet|node|go|spring|fastapi --frontend blazor|react|angular|flutter --db postgres|
 sqlserver --name <App> --tenant-label <Household>`; validates the combo against `spec/matrix/
 flavors.json` (supported/lagging/community, refuses red), fetches each piece at the pinned spec
@@ -670,7 +670,7 @@ SC-4 `--list` + docs.
 ```gherkin
 Scenario: A supported combo becomes a green app in one command
   Given the matrix shows node-react-postgres supported at 1.2.0
-  When `perezosoft new --backend node --frontend react --db postgres --name Vuelto2` runs
+  When `jiggerjot new --backend node --frontend react --db postgres --name Vuelto2` runs
   Then a repo exists with both pieces rebranded, `docker compose up` boots, and the generated CI runs the kit green
 
 Scenario: A community combo is refused with the reason
@@ -694,7 +694,7 @@ Scenario: A community combo is refused with the reason
 | 6 | `BACK-FASTAPI` | L | row `fastapi-react-postgres` | demand |
 | 7 | `NATIVE-RN` · `FRONT-FLUTTER` · `DB-SQLSERVER` · `SCAFFOLD` | M · L · M · M | per epic | demand |
 
-**Before starting `SPEC`:** decide the GitHub org (keep `argamboad/*` or create `perezosoft/*`; GitHub
+**Before starting `SPEC`:** decide the GitHub org (keep `argamboad/*` or create `jiggerjot/*`; GitHub
 redirects renames, so either is safe); confirm the repo stays private until the first external flavor;
 land `LOCALCI-1` first if the matrix runs will be frequent (they are long).
 

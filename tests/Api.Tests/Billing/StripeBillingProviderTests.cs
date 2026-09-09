@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Options;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Infrastructure.Billing;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Infrastructure.Billing;
 
-namespace Perezosoft.Api.Tests.Billing;
+namespace JiggerJot.Api.Tests.Billing;
 
 /// <summary>
 /// Unit coverage for the deterministic part of <see cref="StripeBillingProvider"/> — the

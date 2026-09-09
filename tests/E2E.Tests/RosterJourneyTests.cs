@@ -1,7 +1,7 @@
 using Microsoft.Playwright;
-using Perezosoft.E2E.Tests.Pages;
+using JiggerJot.E2E.Tests.Pages;
 
-namespace Perezosoft.E2E.Tests;
+namespace JiggerJot.E2E.Tests;
 
 /// <summary>
 /// RBAC roster journey (E2E-1): invite → join via token → promote/demote → remove, plus the

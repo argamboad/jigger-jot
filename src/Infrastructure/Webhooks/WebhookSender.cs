@@ -1,8 +1,8 @@
 using System.Text;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Webhooks;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Webhooks;
 
-namespace Perezosoft.Infrastructure.Webhooks;
+namespace JiggerJot.Infrastructure.Webhooks;
 
 /// <summary>
 /// Performs a single signed webhook HTTP POST (HOOKS, ADR-016) and returns the endpoint's status code.

@@ -1,4 +1,4 @@
-namespace Perezosoft.Core.Entities;
+namespace JiggerJot.Core.Entities;
 
 /// <summary>
 /// A dedup ledger entry for an inbound at-least-once delivery (e.g. a Stripe webhook). Recording a

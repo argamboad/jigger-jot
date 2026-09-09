@@ -1,14 +1,14 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Models;
-using Perezosoft.Api.Services;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Billing;
-using Perezosoft.Core.Entities;
-using Perezosoft.Core.Repositories;
+using JiggerJot.Api.Models;
+using JiggerJot.Api.Services;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Billing;
+using JiggerJot.Core.Entities;
+using JiggerJot.Core.Repositories;
 
-namespace Perezosoft.Api.Controllers;
+namespace JiggerJot.Api.Controllers;
 
 /// <summary>
 /// Platform-staff back-office (ADMIN-1, ADR-014): read-only cross-tenant inspection. The global tenant

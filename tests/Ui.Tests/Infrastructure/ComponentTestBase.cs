@@ -2,11 +2,11 @@ using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
-using Perezosoft.Shared.Ui;
-using Perezosoft.Shared.Ui.Resources;
-using Perezosoft.Shared.Ui.Auth;
+using JiggerJot.Shared.Ui;
+using JiggerJot.Shared.Ui.Resources;
+using JiggerJot.Shared.Ui.Auth;
 
-namespace Perezosoft.Ui.Tests.Infrastructure;
+namespace JiggerJot.Ui.Tests.Infrastructure;
 
 /// <summary>
 /// Base for RCL component tests (v3 TOOL-2). Registers a test double for every seam the shared components

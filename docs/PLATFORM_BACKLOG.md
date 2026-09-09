@@ -181,17 +181,17 @@ add it until horizontal scale actually forces it. The outbox dispatcher's `SKIP 
 ---
 
 ## 10. Platform as NuGet packages — `PKG`
-**What:** ship `Perezosoft.Core` / `Perezosoft.Infrastructure` / `Perezosoft.Shared.Ui` as versioned
+**What:** ship `JiggerJot.Core` / `JiggerJot.Infrastructure` / `JiggerJot.Shared.Ui` as versioned
 NuGet packages so downstream apps consume the platform by package reference instead of clone-and-rebrand.
 **Why:** only once several apps exist on different upgrade cadences and clone-merge starts hurting.
 **Sketch / hooks:** Core/Infrastructure/Shared.Ui pack as-is (RCL static assets flow via `_content/`);
-the hard parts are (1) turning `Perezosoft.Api` into a referenced library (`AddApplicationPart` +
+the hard parts are (1) turning `JiggerJot.Api` into a referenced library (`AddApplicationPart` +
 extracting `Program.cs` composition into extension methods) and (2) the DbContext/migrations seam —
 app-owned context deriving from a platform base, entity configs discovered from app assemblies, per-app
 migration history interleaving with platform schema changes. Hosts (Web/Maui), CI, Dockerfile, and docs
 can never be packages — a thin scaffold repo remains either way. **Defer hard** until the platform API
 surface stabilizes; the ADR-019 naming convention deliberately keeps this door open (a downstream app
-that never renamed `Perezosoft.*` swaps project references for package references with zero code churn).
+that never renamed `JiggerJot.*` swaps project references for package references with zero code churn).
 
 ---
 

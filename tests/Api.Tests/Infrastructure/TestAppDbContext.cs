@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Entities;
-using Perezosoft.Core.Repositories;
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Entities;
+using JiggerJot.Core.Repositories;
+using JiggerJot.Infrastructure.Persistence;
 
-namespace Perezosoft.Api.Tests.Infrastructure;
+namespace JiggerJot.Api.Tests.Infrastructure;
 
 /// <summary>
 /// A test-only <see cref="ITenantScoped"/> fixture entity. The platform tenancy/GDPR/outbox tests use

@@ -2,15 +2,15 @@ using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Services;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Entities;
-using Perezosoft.Core.Webhooks;
-using Perezosoft.Infrastructure.Repositories;
-using Perezosoft.Infrastructure.Webhooks;
+using JiggerJot.Api.Services;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Entities;
+using JiggerJot.Core.Webhooks;
+using JiggerJot.Infrastructure.Repositories;
+using JiggerJot.Infrastructure.Webhooks;
 
-namespace Perezosoft.Api.Tests.Webhooks;
+namespace JiggerJot.Api.Tests.Webhooks;
 
 /// <summary>
 /// Drives HOOKS (ADR-016) delivery: the publisher fans an event out to one durable outbox message per

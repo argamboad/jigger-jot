@@ -1,4 +1,4 @@
-# Postman collection — Perezosoft Platform API
+# Postman collection — JiggerJot API
 
 Complete, chained collection covering **every HTTP surface** of the platform: health/meta,
 passwordless sign-in (+ MFA step-up), account/sessions, MFA management, household (members,
@@ -18,9 +18,9 @@ Postman; everything else is executable and chained.
 
 | File | Becomes in Postman |
 |------|-----------|
-| `Perezosoft.postman_collection.json` | Collection (v2.1) — one collection for **all** environments |
-| `Perezosoft.local.postman_environment.json` | Environment "Perezosoft — local dev" |
-| `Perezosoft.staging.postman_environment.json` | Environment "Perezosoft — staging (Render)" |
+| `JiggerJot.postman_collection.json` | Collection (v2.1) — one collection for **all** environments |
+| `JiggerJot.local.postman_environment.json` | Environment "JiggerJot — local dev" |
+| `JiggerJot.staging.postman_environment.json` | Environment "JiggerJot — staging (Render)" |
 
 ## Workspace sync — git → Postman, automatic (no export/import)
 
@@ -53,8 +53,8 @@ stay signed in to local and staging simultaneously and flip between them.
 
 | Environment | baseUrl | Email / OTP |
 |-------------|---------|-------------|
-| local dev | `https://localhost:7160` | Mailpit — the fetch request auto-extracts the code |
-| staging (Render) | `https://template-staging.onrender.com` | **Real inboxes** (Brevo) — no Mailpit; read the OTP in your mail and set `{{otpCode}}` manually. Use a real address you own as `userEmail`. |
+| local dev | `https://localhost:7260` | Mailpit — the fetch request auto-extracts the code |
+| staging (Render) | `https://jiggerjot-staging.onrender.com` | **Real inboxes** (Brevo) — no Mailpit; read the OTP in your mail and set `{{otpCode}}` manually. Use a real address you own as `userEmail`. |
 
 **Adding an environment** (e.g. production, once activated): duplicate a `*.postman_environment.json`,
 change `name` + `baseUrl`, set `mailpitUrl` to `""` for hosted envs (the Mailpit fetch then skips
@@ -69,9 +69,9 @@ instead). **Admin** requires your email in that environment's `Admin__StaffEmail
 ## Quick start (local)
 
 1. `docker compose up -d` (Postgres + Mailpit) and run the API with the **https** profile
-   (`dotnet run --project src/Api --launch-profile https` → `https://localhost:7160`).
-2. Import the collection + both environments, select **Perezosoft — local dev**.
-3. **SMTP must point at Mailpit** (`localhost:1025`). If your local `.env` overrides SMTP to a
+   (`dotnet run --project src/Api --launch-profile https` → `https://localhost:7260`).
+2. Import the collection + both environments, select **JiggerJot — local dev**.
+3. **SMTP must point at Mailpit** (`localhost:1027`). If your local `.env` overrides SMTP to a
    real provider (e.g. Brevo), switch it back — the OTP auto-fetch reads Mailpit's API.
 4. For `https://localhost` allow self-signed certs: Postman → Settings → General → **SSL
    certificate verification OFF** (or add the dev cert). Not needed for hosted envs.
@@ -110,4 +110,4 @@ instead). **Admin** requires your email in that environment's `Admin__StaffEmail
   "too many requests" message; that's the abuse guard (QA-AUTH-11), not a bug.
 - Requests marked ⚠ are destructive (account erasure). The tests on each request assert the
   *expected* status set, including documented guard responses (402 quota, 409 provider-managed…).
-- Rebranding: rename the collection/env (`Perezosoft` → your app) — see `docs/REBRANDING.md`.
+- Rebranding: rename the collection/env (`JiggerJot` → your app) — see `docs/REBRANDING.md`.

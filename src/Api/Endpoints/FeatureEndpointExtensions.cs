@@ -1,6 +1,6 @@
-using Perezosoft.Api.Configuration;
+using JiggerJot.Api.Configuration;
 
-namespace Perezosoft.Api.Endpoints;
+namespace JiggerJot.Api.Endpoints;
 
 /// <summary>
 /// Shared scaffolding for vertical-slice feature endpoints. <see cref="MapTenantFeatureGroup"/> is

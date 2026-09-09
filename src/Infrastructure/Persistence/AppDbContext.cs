@@ -1,10 +1,10 @@
 using System.Reflection;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Entities;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Infrastructure.Persistence;
+namespace JiggerJot.Infrastructure.Persistence;
 
 public class AppDbContext : DbContext, IDataProtectionKeyContext
 {

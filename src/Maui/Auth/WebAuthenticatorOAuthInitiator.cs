@@ -1,9 +1,9 @@
 #if ANDROID || IOS || MACCATALYST
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Authentication;
-using Perezosoft.Shared.Ui.Auth;
+using JiggerJot.Shared.Ui.Auth;
 
-namespace Perezosoft.Maui.Auth;
+namespace JiggerJot.Maui.Auth;
 
 /// <summary>
 /// OAuth via a custom-scheme <see cref="WebAuthenticator"/> flow — Android, iOS, and macCatalyst.

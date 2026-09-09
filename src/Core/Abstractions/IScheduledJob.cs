@@ -1,4 +1,4 @@
-namespace Perezosoft.Core.Abstractions;
+namespace JiggerJot.Core.Abstractions;
 
 /// <summary>
 /// A recurring background job run by the <c>ScheduledJobsHost</c> on its own <see cref="Interval"/>

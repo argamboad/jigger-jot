@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
-using Perezosoft.Api.Services;
+using JiggerJot.Api.Services;
 
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// The native OAuth flow can't return tokens directly in the loopback redirect URL

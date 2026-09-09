@@ -1,13 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Entities;
-using Perezosoft.Infrastructure.Outbox;
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Entities;
+using JiggerJot.Infrastructure.Outbox;
+using JiggerJot.Infrastructure.Persistence;
 
-namespace Perezosoft.Api.Tests.Outbox;
+namespace JiggerJot.Api.Tests.Outbox;
 
 /// <summary>
 /// Drives JOBS-1 (ADR-007): the outbox makes side effects atomic with the data change and the

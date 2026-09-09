@@ -1,7 +1,7 @@
-using Perezosoft.Core.Entities;
-using Perezosoft.Core.Repositories;
+using JiggerJot.Core.Entities;
+using JiggerJot.Core.Repositories;
 
-namespace Perezosoft.Api.Services;
+namespace JiggerJot.Api.Services;
 
 /// <summary>
 /// Sends billing lifecycle notifications (dunning) to a tenant's **owner** — the account holder

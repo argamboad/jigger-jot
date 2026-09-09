@@ -1,6 +1,6 @@
-using Perezosoft.Core.Entities;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Core.Repositories;
+namespace JiggerJot.Core.Repositories;
 
 /// <summary>
 /// Repository abstraction for user data access.

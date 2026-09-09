@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using Perezosoft.Api.Services;
+using JiggerJot.Api.Services;
 
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// <see cref="ClaimsExtractor.IsEmailVerified"/> is the fail-closed gate feeding the

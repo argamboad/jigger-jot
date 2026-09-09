@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Authorization;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Authorization;
 
-namespace Perezosoft.Api.Endpoints;
+namespace JiggerJot.Api.Endpoints;
 
 /// <summary>
 /// Gates an endpoint (or a feature group) behind a tenant <see cref="Permission"/> (ADR-009). A feature

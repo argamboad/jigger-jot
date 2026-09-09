@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Configuration;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Billing;
-using Perezosoft.Core.Entities;
-using Perezosoft.Core.Repositories;
+using JiggerJot.Api.Configuration;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Billing;
+using JiggerJot.Core.Entities;
+using JiggerJot.Core.Repositories;
 
-namespace Perezosoft.Api.Services;
+namespace JiggerJot.Api.Services;
 
 public enum CheckoutOutcome { Created, InvalidPlan }
 

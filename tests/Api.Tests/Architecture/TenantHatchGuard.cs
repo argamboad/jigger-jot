@@ -1,6 +1,6 @@
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Infrastructure.Persistence;
 
-namespace Perezosoft.Api.Tests.Architecture;
+namespace JiggerJot.Api.Tests.Architecture;
 
 /// <summary>
 /// Pure tenant-hatch scanner shared by the ban gate (<c>FeatureSlices_DoNotBypassTheTenantFilter</c>) and

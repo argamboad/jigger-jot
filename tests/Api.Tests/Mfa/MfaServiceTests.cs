@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using OtpNet;
-using Perezosoft.Api.Services;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Entities;
-using Perezosoft.Infrastructure.Persistence;
-using Perezosoft.Infrastructure.Repositories;
+using JiggerJot.Api.Services;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Entities;
+using JiggerJot.Infrastructure.Persistence;
+using JiggerJot.Infrastructure.Repositories;
 
-namespace Perezosoft.Api.Tests.Mfa;
+namespace JiggerJot.Api.Tests.Mfa;
 
 /// <summary>
 /// MFA-1 (ADR-012): TOTP enrollment/management. Enroll → confirm enables MFA + returns hashed

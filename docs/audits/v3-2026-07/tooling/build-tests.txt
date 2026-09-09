@@ -1,13 +1,13 @@
 ########## Api.Tests ##########
   Determining projects to restore...
-  Restored C:\Users\argam\source\repos\Personal\perezosoft-platform\src\Core\Perezosoft.Core.csproj (in 81 ms).
-  Restored C:\Users\argam\source\repos\Personal\perezosoft-platform\tests\Api.Tests\Perezosoft.Api.Tests.csproj (in 248 ms).
-  Restored C:\Users\argam\source\repos\Personal\perezosoft-platform\src\Infrastructure\Perezosoft.Infrastructure.csproj (in 258 ms).
-  Restored C:\Users\argam\source\repos\Personal\perezosoft-platform\src\Api\Perezosoft.Api.csproj (in 258 ms).
-  Perezosoft.Core -> C:\Users\argam\source\repos\Personal\perezosoft-platform\src\Core\bin\Debug\net10.0\Perezosoft.Core.dll
-  Perezosoft.Infrastructure -> C:\Users\argam\source\repos\Personal\perezosoft-platform\src\Infrastructure\bin\Debug\net10.0\Perezosoft.Infrastructure.dll
-  Perezosoft.Api -> C:\Users\argam\source\repos\Personal\perezosoft-platform\src\Api\bin\Debug\net10.0\Perezosoft.Api.dll
-  Perezosoft.Api.Tests -> C:\Users\argam\source\repos\Personal\perezosoft-platform\tests\Api.Tests\bin\Debug\net10.0\Perezosoft.Api.Tests.dll
+  Restored C:\Users\argam\source\repos\Personal\perezosoft-platform\src\Core\JiggerJot.Core.csproj (in 81 ms).
+  Restored C:\Users\argam\source\repos\Personal\perezosoft-platform\tests\Api.Tests\JiggerJot.Api.Tests.csproj (in 248 ms).
+  Restored C:\Users\argam\source\repos\Personal\perezosoft-platform\src\Infrastructure\JiggerJot.Infrastructure.csproj (in 258 ms).
+  Restored C:\Users\argam\source\repos\Personal\perezosoft-platform\src\Api\JiggerJot.Api.csproj (in 258 ms).
+  JiggerJot.Core -> C:\Users\argam\source\repos\Personal\perezosoft-platform\src\Core\bin\Debug\net10.0\JiggerJot.Core.dll
+  JiggerJot.Infrastructure -> C:\Users\argam\source\repos\Personal\perezosoft-platform\src\Infrastructure\bin\Debug\net10.0\JiggerJot.Infrastructure.dll
+  JiggerJot.Api -> C:\Users\argam\source\repos\Personal\perezosoft-platform\src\Api\bin\Debug\net10.0\JiggerJot.Api.dll
+  JiggerJot.Api.Tests -> C:\Users\argam\source\repos\Personal\perezosoft-platform\tests\Api.Tests\bin\Debug\net10.0\JiggerJot.Api.Tests.dll
 
 Build succeeded.
     0 Warning(s)
@@ -18,11 +18,11 @@ Time Elapsed 00:00:14.93
 
 ########## Core.Tests ##########
   Determining projects to restore...
-  Restored C:\Users\argam\source\repos\Personal\perezosoft-platform\tests\Core.Tests\Perezosoft.Core.Tests.csproj (in 346 ms).
+  Restored C:\Users\argam\source\repos\Personal\perezosoft-platform\tests\Core.Tests\JiggerJot.Core.Tests.csproj (in 346 ms).
   2 of 3 projects are up-to-date for restore.
-  Perezosoft.Core -> C:\Users\argam\source\repos\Personal\perezosoft-platform\src\Core\bin\Debug\net10.0\Perezosoft.Core.dll
-  Perezosoft.Shared.Ui -> C:\Users\argam\source\repos\Personal\perezosoft-platform\src\Shared.Ui\bin\Debug\net10.0\Perezosoft.Shared.Ui.dll
-  Perezosoft.Core.Tests -> C:\Users\argam\source\repos\Personal\perezosoft-platform\tests\Core.Tests\bin\Debug\net10.0\Perezosoft.Core.Tests.dll
+  JiggerJot.Core -> C:\Users\argam\source\repos\Personal\perezosoft-platform\src\Core\bin\Debug\net10.0\JiggerJot.Core.dll
+  JiggerJot.Shared.Ui -> C:\Users\argam\source\repos\Personal\perezosoft-platform\src\Shared.Ui\bin\Debug\net10.0\JiggerJot.Shared.Ui.dll
+  JiggerJot.Core.Tests -> C:\Users\argam\source\repos\Personal\perezosoft-platform\tests\Core.Tests\bin\Debug\net10.0\JiggerJot.Core.Tests.dll
 
 Build succeeded.
     0 Warning(s)

@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Core.Repositories;
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Core.Repositories;
+using JiggerJot.Infrastructure.Persistence;
 
-namespace Perezosoft.Infrastructure.Repositories;
+namespace JiggerJot.Infrastructure.Repositories;
 
 /// <summary>
 /// EF Core implementation of the generic feature repository. Registered open-generically

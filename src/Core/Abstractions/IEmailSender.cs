@@ -1,4 +1,4 @@
-namespace Perezosoft.Core.Abstractions;
+namespace JiggerJot.Core.Abstractions;
 
 public interface IEmailSender
 {

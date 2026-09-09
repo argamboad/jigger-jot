@@ -1,14 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Authentication;
-using Perezosoft.Api.Models;
-using Perezosoft.Api.Services;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Authorization;
-using Perezosoft.Core.Entities;
-using Perezosoft.Core.Repositories;
+using JiggerJot.Api.Authentication;
+using JiggerJot.Api.Models;
+using JiggerJot.Api.Services;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Authorization;
+using JiggerJot.Core.Entities;
+using JiggerJot.Core.Repositories;
 
-namespace Perezosoft.Api.Controllers;
+namespace JiggerJot.Api.Controllers;
 
 /// <summary>
 /// Billing &amp; subscriptions (ADR-006). A <b>platform</b> controller — billing is reusable chassis,

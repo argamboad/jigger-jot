@@ -1,6 +1,6 @@
-using Perezosoft.Core.Abstractions;
+using JiggerJot.Core.Abstractions;
 
-namespace Perezosoft.Api.Tests.Infrastructure;
+namespace JiggerJot.Api.Tests.Infrastructure;
 
 /// <summary>
 /// Permissive <see cref="IOutboundUrlGuard"/> for tests that aren't exercising the SSRF guard itself —

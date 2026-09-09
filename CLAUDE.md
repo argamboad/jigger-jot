@@ -5,7 +5,12 @@
 
 ## What this project is
 <!-- One-paragraph summary: what the app is and its core loop. -->
-_TODO_ — full context in `docs/PROJECT_BRIEF.md`.
+**JiggerJot** is a cocktail app for home bartenders that answers one question better than anyone
+else: *"What can I make right now, with what I actually have?"* A **household** (the tenant) keeps a
+checklist of the ingredients on its shelf; the app shows every cocktail it can make **now**
+(substitution-aware) and every one it is exactly **one ingredient short** of; members browse and
+filter a shared, seeded catalog, fork any cocktail into their own editable copy, and author their
+own. Full context in `docs/PROJECT_BRIEF.md`; tagline "Mix what you have." (JJ-029).
 
 ## Read before you act
 - **Writing or modifying ANY code → `docs/audits/v3-2026-07/FOUNDATION_RULES_v2.md` (v2.0: R1–R35
@@ -63,9 +68,24 @@ _TODO_ — full context in `docs/PROJECT_BRIEF.md`.
    template. Don't build sprawling multi-epic chunks — propose a split.
 
 ## Golden rules — app-specific
-<!-- Add the domain rules that must never be violated (e.g. the cocktail app's "makeable is
-     always derived"). These come out of DATA_MODEL.md's derived rules. -->
-_TODO_
+1. **Makeable and almost-makeable are always derived** from inventory + recipe lines +
+   substitutions at query time; never persisted as a flag (JJ-003, JJ-019).
+2. **The shared catalog is read-only and referenced, never mutated.** Households personalize by
+   **forking** — a full snapshot copy with `forked_from_cocktail_id` as provenance only; edits to the
+   original never propagate (JJ-002, JJ-013).
+3. **Substitutions are global and ingredient-level**, stored in both directions; custom
+   (household) ingredients satisfy recipe lines by exact match only (JJ-004, JJ-005, JJ-006, JJ-018).
+4. **Amounts are stored as authored and converted only at display** to the viewing user's
+   `preferred_unit_system`; neutral units (dash, barspoon, piece, to taste) pass through (JJ-007, JJ-008).
+5. **Optional lines never block makeability**, and **ice and water are always available** — never
+   model them as blocking inventory (JJ-009, JJ-020).
+6. **No manual "main spirit" field.** Spirit/ingredient filtering is derived from recipe lines and
+   ingredient categories; a parent category matches all its children, and name matches too (JJ-014, JJ-016).
+7. **Lookup tables are curated and global** (`GlassType`, `Method`, `Unit`, `IngredientCategory`); no
+   tenant additions in MVP (JJ-022). Inventory is boolean (JJ-023).
+8. **Platform wins.** App docs never override platform mechanics; when they disagree, defer to the
+   platform and log a `JJ-` decision (JJ-026, JJ-028). Open before the first migration: how
+   shared-catalog rows (`tenant_id = null`) coexist with the global tenant filter — see `docs/DATA_MODEL.md`.
 
 ## Tech stack (see `docs/TECH_STACK.md`)
 - **Versions:** latest stable on the current .NET line — **.NET SDK 10.0.400 (pinned in `global.json`, the single source of truth, with `rollForward: disable` — the 2026-08 drift showed `latestPatch` let runners outrun both the lockfiles and the MCR image catalog), ASP.NET Core / EF Core packages 10.0.11, Npgsql.EF 10.0.3, PostgreSQL 17.** The SDK is **pinned, not floating** (v3 audit DEP-4): CI's `setup-dotnet` reads `global-json-file: global.json`, and both Dockerfile image tags (`sdk:10.0.400` build, `aspnet:10.0.11` runtime) match it — so a runner-image SDK patch can't outrun the committed `packages.lock.json` (the WASM SDK injects patch-sensitive implicit packages → NU1004 in locked-mode restore).
@@ -97,7 +117,7 @@ _TODO_
 - **The Postman collection mirrors the API — and the repo copy is canonical (ADR-023; the
   `PostmanParityTests` CI gate enforces the floor).** Any change to API
   endpoints (route, verb, path/query params, request/response shape, auth requirements, or error
-  codes) must update **`docs/postman/Perezosoft.postman_collection.json`** (+ the environment
+  codes) must update **`docs/postman/JiggerJot.postman_collection.json`** (+ the environment
   files when config/env expectations change) in the same slice. Controllers in
   `src/Api/Controllers/` and slices under `src/Api/Features/` are the source of truth; the
   collection documents them.
@@ -118,10 +138,29 @@ deferred items without an explicit decision.
 ## Conventions
 - Code term for the tenant is **tenant**; the reference implementation's app-facing label is
   **Household** (`/api/household`, `HouseholdController`). Rename per app — see `docs/REBRANDING.md`.
-- _TODO: app-specific conventions (naming, lookup tables, etc.)_
+- **App decisions are `JJ-nnn`** (closing section of `docs/DECISIONS.md`); platform decisions stay
+  `ADR-nnn` / `ADR-Cn`. Cite them that way in code comments, stories and PRs.
+- **The tenant label stays "Household"** — the platform's reference label is the app's real one; no
+  relabel (JJ-001).
+- **Epic keys** for stories and scopes: `INGREDIENT`, `INV` (inventory), `CKTL` (cocktail catalog),
+  `MAKE` (makeable engine), `ALMOST`, `FORK`, `AUTHORING`, `ONBOARD`, `FILTER`, `SEED`. Feature
+  slices live in `src/Api/Features/<Feature>/` (e.g. `Features/Inventory`).
+- **Shared vs. household rows:** `Ingredient` and `Cocktail` use one table each with a nullable
+  `tenant_id` — null = shared seed catalog, set = household-owned (JJ-011, JJ-012). Lookups are global.
+- **Recipe line vocabulary:** `is_required` (drives makeable), `role` (`base | modifier | juice |
+  syrup | bitters | garnish | mixer | other`), `display_order`; a garnish is just an optional line.
+- **Brand:** name **JiggerJot**, tagline **"Mix what you have."** (ES: "Mezcla lo que tienes."),
+  copper `#B4562A` primary, icons bone-on-night (JJ-029). Editable SVG sources live in
+  `src/Shared.Ui/wwwroot/brand/`, `src/Web/wwwroot/favicon.svg` and `src/Maui/Resources/`;
+  regenerate every PNG/ICO with `python docs/brand/build_assets.py`.
 
 ## Status / not yet decided
-- Seed data (if any) — _TODO_.
+- **Seed data — in progress** (`seed/`): the 1930 Savoy Cocktail Book is extracted
+  (`seed/savoy_cocktails.json`, 868 recipes, via `seed/scrape_savoy.py`); the Waldorf-Astoria and
+  bartender's-guide PDFs are local-only under the gitignored `seed/sources/`. Not yet curated: the
+  ingredient catalog + two-level categories, the `GlassType`/`Method`/`Unit` lookups, the
+  substitution graph, and the normalization of raw recipe lines into `CocktailIngredient` rows.
+  Rights/attribution per source still to confirm.
 - Concrete schema (EF Core migrations) — generated from `docs/DATA_MODEL.md`.
 - **User stories: generated per-epic at build time**, under `docs/stories/` (one file per epic).
 - Non-web framework: **decided and built** — MAUI Blazor Hybrid ships all four native shells
@@ -132,10 +171,11 @@ deferred items without an explicit decision.
 | File | Purpose |
 |------|---------|
 | `CLAUDE.md` (root) | This file — operating manual, auto-loaded |
-| `_PLATFORM_PRIMER.md` (root) | Conceptualization primer — paste into a NEW project chat to pre-load the constant decisions and jump straight to what the app does |
 | `docs/NEW_APP_GUIDE.md` | **The onboarding spine** — every phase from idea to production, in order, linking the detailed doc per step |
 | `docs/OVERVIEW.md` | Friendly platform tour (PM/power-user/developer/architect) — no codebase knowledge assumed |
 | `docs/PROJECT_BRIEF.md` | Why/what/scope (lean PRD) + OUT list |
+| `docs/brand/build_assets.py` | Regenerates every brand PNG + `favicon.ico` from the SVG sources (headless Edge + Pillow); store/marketing renders land in `docs/brand/` |
+| `seed/` | Seed-catalog extractions + scripts (Savoy done); raw source books stay local under `seed/sources/` |
 | `docs/FEATURES.md` | User flows & behavior |
 | `docs/DATA_MODEL.md` | Entities, relationships, derived rules |
 | `docs/TECH_STACK.md` | Stack choices + rationale |

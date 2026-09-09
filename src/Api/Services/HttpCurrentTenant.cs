@@ -1,6 +1,6 @@
-using Perezosoft.Core.Abstractions;
+using JiggerJot.Core.Abstractions;
 
-namespace Perezosoft.Api.Services;
+namespace JiggerJot.Api.Services;
 
 /// <summary>
 /// Resolves <see cref="ICurrentTenant"/> from the authenticated principal's <c>tenant_id</c> claim

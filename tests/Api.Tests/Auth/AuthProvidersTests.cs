@@ -1,9 +1,9 @@
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
-using Perezosoft.Api.Services;
+using JiggerJot.Api.Services;
 
-namespace Perezosoft.Api.Tests.Auth;
+namespace JiggerJot.Api.Tests.Auth;
 
 /// <summary>
 /// The OAuth provider-discovery logic behind <c>GET /api/auth/providers</c> (used by the login/settings

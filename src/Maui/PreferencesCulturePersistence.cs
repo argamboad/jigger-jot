@@ -1,6 +1,6 @@
-using Perezosoft.Shared.Ui;
+using JiggerJot.Shared.Ui;
 
-namespace Perezosoft.Maui;
+namespace JiggerJot.Maui;
 
 /// <summary>
 /// Native implementation: OS <see cref="Preferences"/>, because that's the only store

@@ -1,12 +1,12 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Entities;
-using Perezosoft.Infrastructure.Email;
-using Perezosoft.Infrastructure.Outbox;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Entities;
+using JiggerJot.Infrastructure.Email;
+using JiggerJot.Infrastructure.Outbox;
 
-namespace Perezosoft.Api.Tests.Outbox;
+namespace JiggerJot.Api.Tests.Outbox;
 
 /// <summary>
 /// Proves the email migration in JOBS-1: the app-facing <see cref="IEmailSender"/> enqueues onto the

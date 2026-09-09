@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Options;
-using Perezosoft.Api.Configuration;
-using Perezosoft.Core.Repositories;
+using JiggerJot.Api.Configuration;
+using JiggerJot.Core.Repositories;
 
-namespace Perezosoft.Api.Services;
+namespace JiggerJot.Api.Services;
 
 /// <summary>
 /// Decides whether a user is platform staff (ADR-014) by resolving their email and checking the

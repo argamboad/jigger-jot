@@ -167,7 +167,7 @@ Each entry: ID · severity (claim→adjusted) · one-line description · files �
 ### Docs
 - **CONF-20** · Low · `CLAUDE.md:99` doc-map references `SCHEMA.sql`, which does not exist. Fix: point at the EF migrations folder instead. → **B8-1**.
 - **CONF-21** · Med→Low · Docs say `LoginToken.purpose` stores `magic_link`; code stores `magic-link`. `docs/DATA_MODEL.md:56`, `docs/FEATURES.md:52`, `src/Core/Entities/LoginToken.cs:40`. Fix: change docs to `magic-link` (code is internally consistent). → **B8-2**.
-- **CONF-22** · Med→Low · Default email `FromName` is `"App"` (`appsettings.json:53`) but `REBRANDING.md:24` and `.env.example:33` say `Perezosoft`; three sources disagree. Fix: make `FromName` brand-consistent and have REBRANDING list `appsettings*.json` as the runtime-default source. → **B8-3**.
+- **CONF-22** · Med→Low · Default email `FromName` is `"App"` (`appsettings.json:53`) but `REBRANDING.md:24` and `.env.example:33` say `JiggerJot`; three sources disagree. Fix: make `FromName` brand-consistent and have REBRANDING list `appsettings*.json` as the runtime-default source. → **B8-3**.
 
 ---
 

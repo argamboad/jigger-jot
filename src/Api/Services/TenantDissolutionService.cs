@@ -1,7 +1,7 @@
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Repositories;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Repositories;
 
-namespace Perezosoft.Api.Services;
+namespace JiggerJot.Api.Services;
 
 /// <summary>
 /// The shared "dissolve a tenant's data" sequence (DEBT-7): fan out over every

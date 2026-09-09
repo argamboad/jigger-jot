@@ -3,11 +3,11 @@ using Bunit;
 using Bunit.TestDoubles;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Perezosoft.Shared.Ui.Layout;
-using Perezosoft.Ui.Tests.Infrastructure;
+using JiggerJot.Shared.Ui.Layout;
+using JiggerJot.Ui.Tests.Infrastructure;
 using Xunit;
 
-namespace Perezosoft.Ui.Tests;
+namespace JiggerJot.Ui.Tests;
 
 /// <summary>
 /// v3 audit UX-1 (T39): when a signed-in user's saved locale differs from the boot culture, MainLayout does

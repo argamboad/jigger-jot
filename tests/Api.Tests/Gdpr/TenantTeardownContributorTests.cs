@@ -1,12 +1,12 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Services;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Entities;
-using Perezosoft.Infrastructure.Persistence;
-using Perezosoft.Infrastructure.Repositories;
+using JiggerJot.Api.Services;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Entities;
+using JiggerJot.Infrastructure.Persistence;
+using JiggerJot.Infrastructure.Repositories;
 
-namespace Perezosoft.Api.Tests.Gdpr;
+namespace JiggerJot.Api.Tests.Gdpr;
 
 /// <summary>
 /// Behavioral proof for LB-TEN-1: the three contributors that close the tenant-teardown holes actually

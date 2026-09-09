@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Options;
-using Perezosoft.Api.Configuration;
-using Perezosoft.Api.Services;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Entities;
-using Perezosoft.Infrastructure.Persistence;
-using Perezosoft.Infrastructure.Repositories;
+using JiggerJot.Api.Configuration;
+using JiggerJot.Api.Services;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Entities;
+using JiggerJot.Infrastructure.Persistence;
+using JiggerJot.Infrastructure.Repositories;
 
-namespace Perezosoft.Api.Tests.Admin;
+namespace JiggerJot.Api.Tests.Admin;
 
 /// <summary>
 /// ADMIN-1 (ADR-014): platform-staff membership is an out-of-band config email allowlist, checked

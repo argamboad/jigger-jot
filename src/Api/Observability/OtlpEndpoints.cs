@@ -1,4 +1,4 @@
-namespace Perezosoft.Api.Observability;
+namespace JiggerJot.Api.Observability;
 
 /// <summary>
 /// Resolves the per-signal OTLP endpoint from the single configured base URL (OBS-2).

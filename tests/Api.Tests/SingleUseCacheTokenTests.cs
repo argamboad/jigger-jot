@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
-using Perezosoft.Api.Services;
+using JiggerJot.Api.Services;
 
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// The single-use guarantee for cache-backed tokens, tested once on the shared

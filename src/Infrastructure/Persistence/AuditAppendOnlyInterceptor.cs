@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Perezosoft.Core.Entities;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Infrastructure.Persistence;
+namespace JiggerJot.Infrastructure.Persistence;
 
 /// <summary>
 /// Enforces that <see cref="AuditEvent"/> is <b>append-only</b> (OBS-4, ADR-008): a tracked audit row in

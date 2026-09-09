@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Http;
-using Perezosoft.Api.Authentication;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Authorization;
-using Perezosoft.Core.Repositories;
+using JiggerJot.Api.Authentication;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Authorization;
+using JiggerJot.Core.Repositories;
 
-namespace Perezosoft.Api.Services;
+namespace JiggerJot.Api.Services;
 
 /// <summary>
 /// Resolves the authenticated caller's tenant membership (by the <see cref="ClaimTypes.NameIdentifier"/>

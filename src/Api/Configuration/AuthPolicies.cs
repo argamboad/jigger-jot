@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
-using Perezosoft.Api.Authentication;
+using JiggerJot.Api.Authentication;
 
-namespace Perezosoft.Api.Configuration;
+namespace JiggerJot.Api.Configuration;
 
 /// <summary>
 /// The named authorization policies. <see cref="TenantApi"/> is the JWT-authenticated tenant policy shared

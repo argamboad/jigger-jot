@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Infrastructure.Persistence;
 
-namespace Perezosoft.Infrastructure.Scheduling;
+namespace JiggerJot.Infrastructure.Scheduling;
 
 /// <summary>
 /// Reference scheduled job (ADR-007): deletes expired passwordless and refresh tokens so the auth

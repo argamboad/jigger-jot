@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Perezosoft.Core.Entities;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Infrastructure.Persistence.Configurations;
+namespace JiggerJot.Infrastructure.Persistence.Configurations;
 
 public class WebhookSubscriptionConfiguration : IEntityTypeConfiguration<WebhookSubscription>
 {

@@ -1,8 +1,8 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.DataProtection;
-using Perezosoft.Core.Abstractions;
+using JiggerJot.Core.Abstractions;
 
-namespace Perezosoft.Infrastructure.Files;
+namespace JiggerJot.Infrastructure.Files;
 
 /// <summary>
 /// Signs local-disk download tokens with the Data Protection stack's

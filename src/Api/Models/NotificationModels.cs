@@ -1,8 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Perezosoft.Core.Entities;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Api.Models;
+namespace JiggerJot.Api.Models;
 
 public record NotificationResponse
 {

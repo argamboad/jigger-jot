@@ -1,11 +1,11 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Entities;
-using Perezosoft.Core.Repositories;
-using Perezosoft.Infrastructure.Webhooks;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Entities;
+using JiggerJot.Core.Repositories;
+using JiggerJot.Infrastructure.Webhooks;
 
-namespace Perezosoft.Api.Services;
+namespace JiggerJot.Api.Services;
 
 /// <summary>A freshly created subscription plus its signing secret (shown once, never stored plaintext).</summary>
 public sealed record WebhookCreated(WebhookSubscription Subscription, string Secret);

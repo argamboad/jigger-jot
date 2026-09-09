@@ -3,14 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Time.Testing;
 using OtpNet;
-using Perezosoft.Api.Configuration;
-using Perezosoft.Api.Services;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Entities;
-using Perezosoft.Infrastructure.Persistence;
-using Perezosoft.Infrastructure.Repositories;
+using JiggerJot.Api.Configuration;
+using JiggerJot.Api.Services;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Entities;
+using JiggerJot.Infrastructure.Persistence;
+using JiggerJot.Infrastructure.Repositories;
 
-namespace Perezosoft.Api.Tests.Mfa;
+namespace JiggerJot.Api.Tests.Mfa;
 
 /// <summary>
 /// MFA-2 (ADR-012): the login step-up. When MFA is off, a session is issued directly; when on, primary

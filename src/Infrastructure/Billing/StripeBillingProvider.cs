@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Billing;
-using Perezosoft.Core.Entities;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Billing;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Infrastructure.Billing;
+namespace JiggerJot.Infrastructure.Billing;
 
 /// <summary>
 /// Stripe reference implementation of <see cref="IBillingProvider"/> (ADR-006). Creates a hosted

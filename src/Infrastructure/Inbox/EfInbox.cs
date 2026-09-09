@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Infrastructure.Persistence;
 
-namespace Perezosoft.Infrastructure.Inbox;
+namespace JiggerJot.Infrastructure.Inbox;
 
 /// <summary>
 /// EF implementation of <see cref="IInbox"/>. Claims a delivery with a single

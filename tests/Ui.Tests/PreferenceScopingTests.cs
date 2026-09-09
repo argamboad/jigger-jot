@@ -2,11 +2,11 @@ using System.Globalization;
 using Bunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Perezosoft.Shared.Ui.Layout;
-using Perezosoft.Ui.Tests.Infrastructure;
+using JiggerJot.Shared.Ui.Layout;
+using JiggerJot.Ui.Tests.Infrastructure;
 using Xunit;
 
-namespace Perezosoft.Ui.Tests;
+namespace JiggerJot.Ui.Tests;
 
 /// <summary>
 /// v3 audit ADM-9 + the impersonation-hardening half of T40. ADM-9: the device pref store cached a

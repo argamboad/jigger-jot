@@ -1,4 +1,4 @@
-namespace Perezosoft.Core.Abstractions;
+namespace JiggerJot.Core.Abstractions;
 
 /// <summary>
 /// Answers "does the current tenant's plan include this entitlement?" — the server-side gate behind

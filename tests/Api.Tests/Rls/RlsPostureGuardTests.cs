@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Infrastructure.Persistence;
 
-namespace Perezosoft.Api.Tests.Rls;
+namespace JiggerJot.Api.Tests.Rls;
 
 /// <summary>
 /// ADR-020: the posture guard must refuse privileged runtime connections (which Postgres exempts

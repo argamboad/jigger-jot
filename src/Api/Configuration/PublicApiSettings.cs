@@ -1,4 +1,4 @@
-namespace Perezosoft.Api.Configuration;
+namespace JiggerJot.Api.Configuration;
 
 /// <summary>
 /// Toggles the public API surface (PUBAPI, ADR-015). **Default off** — a platform deployment opts in

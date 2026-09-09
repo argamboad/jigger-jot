@@ -1,11 +1,11 @@
 using System.Text;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Options;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Infrastructure.Files;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Infrastructure.Files;
 
-namespace Perezosoft.Api.Tests.Files;
+namespace JiggerJot.Api.Tests.Files;
 
 /// <summary>
 /// FILES-1 (ADR-010): <see cref="LocalDiskFileStorage"/> round-trips bytes + content-type, namespaces

@@ -307,7 +307,7 @@ CDP connect w/ retry → login renders (a G7-style boot crash dies here) → OTP
 Household loads over the native Bearer path. New CI job **`native-smoke-windows`** (develop pushes
 only — Windows bills 2×, ~10 min; NOT in deploy-staging needs so native flake can't block web
 deploys): preinstalled-Postgres + downloaded Mailpit + API on plain HTTP + the built exe, pointed at
-the stack via the new **`PEREZOSOFT_API_BASE_URL`** override in `MauiProgram` (also useful for
+the stack via the new **`JIGGERJOT_API_BASE_URL`** override in `MauiProgram` (also useful for
 physical-device testing against a LAN API). Verified locally with the exact CI shape (smoke green in
 5 s against the live app). **Android leg ✅ Implemented**
 (`feat/native-7b-android-smoke`): Android WebView's CDP lacks the browser-context management
@@ -326,7 +326,7 @@ older deploy's version-gated smoke instead of failing it). **Apple legs ✅ Impl
 the expensive setup — workload restore, brew Postgres, API build — is paid once) covers **Mac
 Catalyst** (launches the Debug .app binary directly on the runner — the unsandboxed
 Debug-entitlements path from PR #125) and the **iOS simulator** (`simctl bootstatus -b`, install,
-launch with `SIMCTL_CHILD_PEREZOSOFT_API_BASE_URL`), both against a plain-HTTP API (ATS exempts
+launch with `SIMCTL_CHILD_JIGGERJOT_API_BASE_URL`), both against a plain-HTTP API (ATS exempts
 loopback — the login page fully renders over http; no Mailpit since a boot smoke sends no email).
 Each target asserts **boot-to-login**: the app process survives startup (the G7 crash class) AND
 the login page's provider probe lands `GET /api/auth/providers → 200` in the API log
@@ -370,7 +370,7 @@ Scenario: Native smoke runs on every push
 > (verification). NATIVE-12 below is unaffected — a platform hardening slice, merged (PR #172).
 
 > **Release builds require `-p:ApiBaseUrl=` (v3 audit NAT-3).** A Release build of `src/Maui` fails
-> unless a real API base URL is supplied — the localhost fallback + `PEREZOSOFT_API_BASE_URL` override
+> unless a real API base URL is supplied — the localhost fallback + `JIGGERJOT_API_BASE_URL` override
 > and the Android cleartext-traffic exception are **Debug-only**, so a by-the-book signed AAB can never
 > ship pointing at (and sending credentials in plaintext to) device-localhost. Every signing command in
 > this wave must pass e.g. `-p:ApiBaseUrl=https://api.yourapp.com`; it's compiled in via AssemblyMetadata
@@ -463,7 +463,7 @@ friendly retry message. TDD: 14 red-first unit tests (`OAuthResumeTests`) pin th
 resume outcomes, and TTL guard; web is a structural no-op (no store registered). **Mechanism proven
 on the tablet emulator** with a scripted drill (playwright-core `_android`): tap Continue-with-Google
 → Custom Tab foregrounds → `am kill` (process verified dead) → fire
-`perezosoft://auth?code=<invalid>` → the app cold-starts, **stays open**, runs the startup exchange,
+`jiggerjot://auth?code=<invalid>` → the app cold-starts, **stays open**, runs the startup exchange,
 and lands on Login with the friendly OAuth error (pre-fix behavior: flash open + close, no UI); the
 standard Android smoke (boot + OTP + roster) passed after, so the warm path is unregressed. The
 real-consent variant (valid code → signed in) = QA-AND-15 in the NATIVE-6 device pass.
@@ -475,7 +475,7 @@ real-consent variant (valid code → signed in) = QA-AND-15 in the NATIVE-6 devi
 **Context / notes:** observed on the tablet emulator under memory pressure (2026-07-07):
 `WebAuthenticatorOAuthInitiator` awaits `WebAuthenticator.AuthenticateAsync`, whose pending state is
 in-memory only. If the OS kills the process during the provider round-trip, the
-`perezosoft://auth?code=…` redirect cold-starts a fresh process, `WebAuthenticatorCallbackActivity`
+`jiggerjot://auth?code=…` redirect cold-starts a fresh process, `WebAuthenticatorCallbackActivity`
 finds no pending operation, and the one-time code is lost. The Custom-Tabs `<queries>` fix (a3bad29)
 shrinks the window but can't close it. Fix: (1) persist an "OAuth in flight" marker
 (`IOAuthResumeStore` → MAUI Preferences) around the browser flow; (2) on a cold-start callback
@@ -488,7 +488,7 @@ with a friendly retry message instead of a doomed exchange.
 ```gherkin
 Scenario: Sign-in survives process death
   Given I started a native Google sign-in and Android killed the app while I was on Google's page
-  When the provider redirects to perezosoft://auth?code=…
+  When the provider redirects to jiggerjot://auth?code=…
   Then the app relaunches, exchanges the stashed code on startup, and I am signed in
 
 Scenario: MFA step-up after a resumed sign-in

@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Services;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Billing;
-using Perezosoft.Core.Entities;
+using JiggerJot.Api.Services;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Billing;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Api.Tests.Billing;
+namespace JiggerJot.Api.Tests.Billing;
 
 /// <summary>
 /// BILLING-9 (ADR-006 addendum): the seat quota is re-checked when an invitation is ACCEPTED, not

@@ -225,7 +225,7 @@ backend, the screen ladder per frontend, ADR-026 + S-001…S-003 drafts): `stori
 | `NATIVE-RN` | M | Expo / React Native as the **true-native mobile** option for the React family (shares the TS API client + query hooks with FRONT-REACT); desktop stays Tauri | FRONT-REACT |
 | `FRONT-FLUTTER` | L | One Dart codebase → iOS/Android/Windows/macOS/Linux/web. **Per-app, mobile-first only**: web-first (golden rule 5) is waived in that app's brief; own integration-test journey suite | SPEC; demand |
 | `DB-SQLSERVER` | M | Second Tier-A DB for the .NET and Spring flavors: security-policy RLS + `SESSION_CONTEXT` interceptor (set per connection open — pooled-connection trap), READPAST/UPDLOCK claim, poll-only dispatcher, DDL dialect for the RLS parity gate | SPEC; demand |
-| `SCAFFOLD` | M | `perezosoft new --backend <x> --frontend <y> --db <z>` composes pinned pieces + runs the rebrand | ≥ 2 backends and ≥ 2 frontends exist |
+| `SCAFFOLD` | M | `jiggerjot new --backend <x> --frontend <y> --db <z>` composes pinned pieces + runs the rebrand | ≥ 2 backends and ≥ 2 frontends exist |
 
 **Support matrix (only these rows get CI in the conformance matrix; the spec allows any Tier-A DB ×
 backend × frontend):**

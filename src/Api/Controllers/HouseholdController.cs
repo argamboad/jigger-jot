@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
-using Perezosoft.Api.Authentication;
-using Perezosoft.Api.Models;
-using Perezosoft.Api.Services;
-using Perezosoft.Core.Authorization;
-using Perezosoft.Core.Repositories;
+using JiggerJot.Api.Authentication;
+using JiggerJot.Api.Models;
+using JiggerJot.Api.Services;
+using JiggerJot.Core.Authorization;
+using JiggerJot.Core.Repositories;
 
-namespace Perezosoft.Api.Controllers;
+namespace JiggerJot.Api.Controllers;
 
 /// <summary>
 /// Tenant ("household") management. Authorization goes through the permission seam (ADR-009):

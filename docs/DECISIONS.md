@@ -219,13 +219,13 @@ now live in a distinct namespace/folder, separated from vertical-slice features.
 established that PUBAPI/HOOKS are **platform** (not app features); this refines *where* they live so the
 distinction is structural, not just narrative:
 1. **Config-gated minimal-API PLATFORM surfaces live under `src/Api/Endpoints/`** (namespace
-   `Perezosoft.Api.Endpoints`), NOT `src/Api/Features/`. `ApiKeyEndpoints` (PUBAPI) and `WebhookEndpoints`
+   `JiggerJot.Api.Endpoints`), NOT `src/Api/Features/`. `ApiKeyEndpoints` (PUBAPI) and `WebhookEndpoints`
    (HOOKS) moved there. They may use a raw `MapGroup(...)` because they are platform surfaces, not slices.
 2. **The shared endpoint-extension helpers are platform infra and live with Endpoints.**
    `MapTenantFeatureGroup` (`FeatureEndpointExtensions`), `RequirePermission` (`PermissionEndpointExtensions`),
-   and `RequireEntitlement` (`EntitlementEndpointExtensions`) moved from `Perezosoft.Api.Features` to
-   `Perezosoft.Api.Endpoints`. This is what lets the R8 gate hold: nothing outside `src/Api/Features/` (except
-   `Program.cs`, which composes the Notes sample) references `Perezosoft.Api.Features.*`.
+   and `RequireEntitlement` (`EntitlementEndpointExtensions`) moved from `JiggerJot.Api.Features` to
+   `JiggerJot.Api.Endpoints`. This is what lets the R8 gate hold: nothing outside `src/Api/Features/` (except
+   `Program.cs`, which composes the Notes sample) references `JiggerJot.Api.Features.*`.
 3. **Vertical-slice features stay under `src/Api/Features/<X>/`** and register their routes via
    `MapTenantFeatureGroup` — never a raw `MapGroup`. A new build gate (R6,
    `FeatureFiles_RegisterRoutesViaMapTenantFeatureGroup_NotRawMapGroup`) scans `src/Api/Features/**` and
@@ -259,8 +259,8 @@ here so they are not rediscovered later:
 2. **The "client secret" is a rotating ES256 JWT**, minted from a downloaded `.p8` key + Team ID +
    Key ID + Service ID, expiring every ≤6 months. This breaks the single-static-secret-in-`.env`
    shape of ADR-001 (the package can generate/cache the JWT from the key material).
-3. **Apple forbids `localhost` redirect URIs.** Google/MS redirect to `https://localhost:7160` /
-   `http://localhost:5238`, which the QA plan and `MOBILE_TESTING.md` rely on. Apple needs a real
+3. **Apple forbids `localhost` redirect URIs.** Google/MS redirect to `https://localhost:7260` /
+   `http://localhost:5338`, which the QA plan and `MOBILE_TESTING.md` rely on. Apple needs a real
    **HTTPS domain or tunnel** even for local QA — a workflow asterisk, not a code change.
 4. **`form_post` callback** (because name/email scope is requested) ⇒ the OAuth correlation cookie
    must be `SameSite=None; Secure`; relevant given the schemeful-same-site cookie history.
@@ -1046,22 +1046,22 @@ not about shipped store artifacts; a platform may therefore hold at "builds gree
 deferred per-app" without violating this ADR. This keeps point 4's recorded costs a decision that is
 re-made at the gate rather than an autopilot consequence of the original commitment.
 
-**ADR-019 — Platform identity: "Perezosoft Platform"; `Perezosoft.*` code identity; downstream apps rebrand by find/replace. (2026-07-05)**
+**ADR-019 — Platform identity: "JiggerJot"; `JiggerJot.*` code identity; downstream apps rebrand by find/replace. (2026-07-05)**
 The repo (formerly "template") is named **perezosoft-platform** and its engineering identity is
-**`Perezosoft.*`** end to end: solution `Perezosoft.slnx`, all project/assembly names, the root
-namespace, the JWT issuer, and the MAUI `ApplicationId` (`com.perezosoft.platform`). "Template" no
+**`JiggerJot.*`** end to end: solution `JiggerJot.slnx`, all project/assembly names, the root
+namespace, the JWT issuer, and the MAUI `ApplicationId` (`com.jiggerjot.app`). "Template" no
 longer appears as an identifier anywhere — it survives only as the English word for the repo's role.
 *Rationale:* "Template" collided with ordinary English (docs, comments, third-party API names),
-making every downstream rename risky; "Perezosoft" is a made-up word, so standing up a new app is one
-unambiguous find/replace of `Perezosoft` → `<Brand>` per `docs/REBRANDING.md`.
-*Downstream convention:* apps clone-and-rebrand (fork-and-forget). Keeping `Perezosoft.*` namespaces
+making every downstream rename risky; "JiggerJot" is a made-up word, so standing up a new app is one
+unambiguous find/replace of `JiggerJot` → `<Brand>` per `docs/REBRANDING.md`.
+*Downstream convention:* apps clone-and-rebrand (fork-and-forget). Keeping `JiggerJot.*` namespaces
 in a downstream app (for clean upstream `git merge`) and extracting the platform as NuGet packages
 were both considered and deliberately left open — nothing in this rename forecloses either (see
 `docs/PLATFORM_BACKLOG.md`).
 *Deliberately unchanged:* the DataProtection application name (`"template"`) and the four
 `CreateProtector("Template.*.v1")` purpose strings — they feed encryption key derivation, so renaming
 them would orphan MFA/webhook secrets already encrypted at rest; they are guarded by comments and may
-only change alongside a re-encryption migration. The Render service keeps the name `template-staging`
+only change alongside a re-encryption migration. The Render service keeps the name `jiggerjot-staging`
 (Render treats the name as service identity; renaming would mint a new service + URL and churn the
 OAuth consoles for zero functional gain — fold into a future console-touching change if desired).
 
@@ -1221,7 +1221,7 @@ The platform documents its API as a Postman collection rather than a spec-first 
 This was practice (CLAUDE.md rule + `docs/postman/README.md`) without a recorded decision; the v3
 audit (TR-6/TR-10, T55/T57) found the gap and this ADR closes it. Decided:
 
-1. **`docs/postman/Perezosoft.postman_collection.json` is canonical.** Any change to an API
+1. **`docs/postman/JiggerJot.postman_collection.json` is canonical.** Any change to an API
    endpoint (route, verb, params, request/response shape, auth, error codes) updates the
    collection **in the same slice** — the PR-template checkbox and review enforce the habit; the
    `PostmanParityTests` CI gate (T55) enforces the floor: every endpoint the app actually maps
@@ -1254,7 +1254,7 @@ posture); a release artifact is the ultimate vertical.
 *Rationale:*
 1. **Signing identity is inherently per-app.** The Android keystore *is* the app's identity; Apple
    certs/profiles bind to a bundle id + team; the MSIX publisher must match a specific manifest.
-   The platform has no shippable app — anything it signed would be `com.perezosoft.platform`, an
+   The platform has no shippable app — anything it signed would be `com.jiggerjot.app`, an
    artifact nobody ships, so the resulting workflow would be **untested plumbing** the moment a
    downstream app swapped in its own identity.
 2. **The costs are recurring and buy the platform nothing.** The Apple Developer account is
@@ -1496,6 +1496,51 @@ copper as a colour no cocktail app in the results owns and one that stands clear
 platform's green. Deciding the palette with the mark (rather than at rebrand time) means Phase 3 is
 mechanical. Registering the domain is the owner's action and is not part of this ADR.
 
+*Amendment (2026-09-08, Phase 3 — the rebrand as applied).*
+1. **Assets now live in place, not in `brand/`.** The editable SVG sources are
+   `src/Shared.Ui/wwwroot/brand/*.svg`, `src/Web/wwwroot/favicon.svg` and
+   `src/Maui/Resources/{AppIcon,Splash}/*.svg`; every PNG, `favicon.ico` and the `docs/brand/`
+   store/marketing set are regenerated by **`docs/brand/build_assets.py`**. The `brand/` staging
+   folder was removed once applied.
+2. **Two palette values differ from the table above, on purpose.** The pale tint `#F6E7DE` is a UI
+   chip colour, not a text colour: in `app.css` the `--brand-accent-light` token (which the dark
+   theme uses for link text) is the lifted copper `#D9865A`, and in `BrandedEmail.cs` the muted
+   small-text roles are `Brass = #9C6A3F` and `BrassLight = #7A6E66` (both ≥ 4.5:1 on white). The
+   primary/dark/surface/border/ink/muted values are as tabled.
+3. **The rename went beyond `REBRANDING.md`'s list** to satisfy its verify step: the solution,
+   every project file, root namespaces, the RCL static-asset path, CI smoke identifiers, the
+   Postman files and the Docker tag became `JiggerJot.*`/`jiggerjot`; `ApplicationId` is
+   **`com.jiggerjot.app`**, the Render service is **`jiggerjot-staging`**; the platform's
+   conceptualization primer and its tutorial course (`docs/tutorial/`) were removed as
+   template-only material; `README.md` was rewritten for the app.
+4. **One accepted exception to the checklist's "no old-brand mention anywhere" verify:** the
+   upstream repo slug `perezosoft-platform` is kept where it names the platform as provenance (this
+   file, the brief, `STATUS.md`, two platform stories, the gitleaks config title, two audit logs).
+   The verify for this app therefore greps for the old brand name case-insensitively, excludes
+   `docs/REBRANDING.md`, and filters out that slug; expected empty (verified 2026-09-08).
+
 *Amendment (2026-09-08, Phase 2):* the four product docs were merged into this repo's `docs/`
 when the platform tree was adopted (JJ-026's product-only doc set now lives alongside the
 platform docs); `WAYS_OF_WORKING.md`, `TECH_STACK.md` and `CLAUDE.md` are the platform's.
+
+**JJ-030 — Local ports are distinct from the platform's so both stacks run side by side. (2026-09-08)**
+perezosoft-platform, vuelto and JiggerJot are developed on the same machine, and the platform's
+launch profiles pin the app ports (ADR-C13 makes only the compose ports env-driven). The neighbours
+occupy: platform API 7160/5238, Web 7008/5169, compose 5433/1025/8025; vuelto API 5000, client 5001,
+a local Postgres on 5432 and a compose stack on 5434/1026/8026. JiggerJot therefore re-pins to a
+free set: **API `https://localhost:7260` + `http://localhost:5338`** (the cleartext leg the
+Android emulator reaches via `adb reverse`), **Web `https://localhost:7108` + `http://localhost:5269`**,
+and in `.env.example` **`DB_PORT=5435`, `MAIL_SMTP_PORT=1027`, `MAIL_UI_PORT=8027`, `APP_PORT=8280`**
+(the last for the optional prod-like `app` compose service, which the platform leaves on 8080). The
+compose project name comes from the folder (`jigger-jot`), so containers, network and the `db_data`
+volume are already namespaced apart from `perezosoft-platform-*` and `vuelto-*`. The committed dev
+defaults follow (`appsettings.Development.json` SMTP port and CORS/`AppBaseUrl`, the Web client's
+`ApiBaseUrl`, the MAUI fallbacks and `adb reverse`, the E2E and Android-smoke Mailpit defaults, the
+Postman local environment, the docs). CI keeps its container-side ports (`5432`, `1025`, `8025`) and
+maps Mailpit host-side to `1027`/`8027` so the committed defaults stay coherent there; `docker-compose.yml`
+is untouched (its `${VAR:-default}` fallbacks are overridden by `.env`). Excluded from the rewrite:
+vendored Bootstrap (where `5169` is a timing constant), the seed JSON (where `1025` is a record id),
+lockfiles, audit logs. *Rationale:* the alternative — remembering to stop one stack before starting
+the other — is exactly the kind of friction that gets skipped; a one-time mechanical re-pin, verified by
+the same build and tests, removes it. OAuth redirect URIs are registered per app anyway, so nothing
+breaks upstream.

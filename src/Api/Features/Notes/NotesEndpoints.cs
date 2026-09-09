@@ -1,7 +1,7 @@
-using Perezosoft.Api.Endpoints;
-using Perezosoft.Api.Services;
+using JiggerJot.Api.Endpoints;
+using JiggerJot.Api.Services;
 
-namespace Perezosoft.Api.Features.Notes;
+namespace JiggerJot.Api.Features.Notes;
 
 /// <summary>
 /// 🗑️ DELETE-ME: sample feature endpoints. A vertical slice registers its own routes via

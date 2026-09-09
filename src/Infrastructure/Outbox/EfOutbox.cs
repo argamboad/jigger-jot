@@ -1,8 +1,8 @@
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Entities;
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Entities;
+using JiggerJot.Infrastructure.Persistence;
 
-namespace Perezosoft.Infrastructure.Outbox;
+namespace JiggerJot.Infrastructure.Outbox;
 
 /// <summary>
 /// EF implementation of <see cref="IOutbox"/>. Stages an <see cref="OutboxMessage"/> on the shared

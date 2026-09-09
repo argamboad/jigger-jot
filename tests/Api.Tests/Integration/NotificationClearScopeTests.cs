@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
-using Perezosoft.Api.Tests.Infrastructure;
+using JiggerJot.Api.Tests.Infrastructure;
 
-namespace Perezosoft.Api.Tests.Integration;
+namespace JiggerJot.Api.Tests.Integration;
 
 /// <summary>
 /// v3 audit LB-UI-10 (T42): the bulk clear must never DEFAULT to the widest blast radius. Before, an

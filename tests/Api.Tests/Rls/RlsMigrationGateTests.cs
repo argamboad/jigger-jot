@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Infrastructure.Persistence;
 
-namespace Perezosoft.Api.Tests.Rls;
+namespace JiggerJot.Api.Tests.Rls;
 
 /// <summary>
 /// B11-style enforcement gate for ADR-020: on a database built by the REAL migrations (the

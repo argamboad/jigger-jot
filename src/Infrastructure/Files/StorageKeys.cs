@@ -1,6 +1,6 @@
-using Perezosoft.Core.Abstractions;
+using JiggerJot.Core.Abstractions;
 
-namespace Perezosoft.Infrastructure.Files;
+namespace JiggerJot.Infrastructure.Files;
 
 /// <summary>
 /// Shared tenant-scoped key handling for the file-storage backends (ADR-010). One place validates the

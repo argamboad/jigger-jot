@@ -2,11 +2,11 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Perezosoft.Api.Authentication;
-using Perezosoft.Api.Models;
-using Perezosoft.Api.Services;
+using JiggerJot.Api.Authentication;
+using JiggerJot.Api.Models;
+using JiggerJot.Api.Services;
 
-namespace Perezosoft.Api.Controllers;
+namespace JiggerJot.Api.Controllers;
 
 /// <summary>
 /// The per-user notification center (NOTIFY-1, ADR-013). Every operation is scoped to the authenticated

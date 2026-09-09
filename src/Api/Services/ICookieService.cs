@@ -1,4 +1,4 @@
-namespace Perezosoft.Api.Services;
+namespace JiggerJot.Api.Services;
 
 /// <summary>
 /// Manages refresh token cookie configuration.

@@ -1,10 +1,10 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Entities;
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Entities;
+using JiggerJot.Infrastructure.Persistence;
 
-namespace Perezosoft.Infrastructure.Webhooks;
+namespace JiggerJot.Infrastructure.Webhooks;
 
 /// <summary>The outbox payload for a single webhook delivery (one per subscription × event).</summary>
 public sealed record WebhookOutboxPayload(Guid SubscriptionId, string EventType, string EventId, string Body);

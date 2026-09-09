@@ -1,6 +1,6 @@
-using Perezosoft.Shared.Ui;
+using JiggerJot.Shared.Ui;
 
-namespace Perezosoft.Maui;
+namespace JiggerJot.Maui;
 
 /// <summary>
 /// Native implementation (NATIVE-3): a WebView can't perform a browser download, so fetch the

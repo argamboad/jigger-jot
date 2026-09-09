@@ -1,6 +1,6 @@
-using Perezosoft.Core.Webhooks;
+using JiggerJot.Core.Webhooks;
 
-namespace Perezosoft.Core.Tests;
+namespace JiggerJot.Core.Tests;
 
 /// <summary>
 /// Boundary tests for the webhook HMAC signature (HOOKS, ADR-016): deterministic for a given secret+body,

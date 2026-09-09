@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Perezosoft.Core.Entities;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Infrastructure.Persistence;
+namespace JiggerJot.Infrastructure.Persistence;
 
 /// <summary>
 /// Generates the row-level-security DDL for the tenancy backstop (ADR-020): one fail-closed policy

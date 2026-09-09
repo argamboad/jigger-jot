@@ -1,8 +1,8 @@
-using Perezosoft.Api.Configuration;
-using Perezosoft.Core.Entities;
-using Perezosoft.Core.Repositories;
+using JiggerJot.Api.Configuration;
+using JiggerJot.Core.Entities;
+using JiggerJot.Core.Repositories;
 
-namespace Perezosoft.Api.Services;
+namespace JiggerJot.Api.Services;
 
 /// <summary>
 /// Result of issuing a refresh token. The raw token goes to the client cookie;

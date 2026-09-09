@@ -1,6 +1,6 @@
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Infrastructure.Persistence;
 
-namespace Perezosoft.Api.Tests.Rls;
+namespace JiggerJot.Api.Tests.Rls;
 
 /// <summary>
 /// Proves the cross-tenant tag detection (<see cref="RlsSessionInterceptor.HasLeadingCrossTenantTag"/>) is

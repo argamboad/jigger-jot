@@ -1,4 +1,4 @@
-namespace Perezosoft.Maui;
+namespace JiggerJot.Maui;
 
 public partial class MainPage : ContentPage
 {

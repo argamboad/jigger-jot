@@ -1,11 +1,11 @@
 using System.Text.Json.Serialization;
-using Perezosoft.Api.Authentication;
-using Perezosoft.Api.Configuration;
-using Perezosoft.Api.Services;
-using Perezosoft.Core.Authorization;
-using Perezosoft.Core.Entities;
+using JiggerJot.Api.Authentication;
+using JiggerJot.Api.Configuration;
+using JiggerJot.Api.Services;
+using JiggerJot.Core.Authorization;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Api.Endpoints;
+namespace JiggerJot.Api.Endpoints;
 
 /// <summary>
 /// Outbound webhook management (HOOKS, ADR-016): owner-only routes to register/list/remove subscriptions

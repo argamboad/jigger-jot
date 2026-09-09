@@ -1,6 +1,6 @@
-using Perezosoft.Shared.Ui.Auth;
+using JiggerJot.Shared.Ui.Auth;
 
-namespace Perezosoft.Web.Http;
+namespace JiggerJot.Web.Http;
 
 /// <summary>
 /// Web <see cref="ISessionStore"/>: the refresh token is an HttpOnly cookie the browser

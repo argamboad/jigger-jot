@@ -6,13 +6,13 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Perezosoft.Api.Configuration;
-using Perezosoft.Api.Endpoints;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Billing;
+using JiggerJot.Api.Configuration;
+using JiggerJot.Api.Endpoints;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Billing;
 
-namespace Perezosoft.Api.Tests.Billing;
+namespace JiggerJot.Api.Tests.Billing;
 
 /// <summary>
 /// Drives BILLING-1's gate (ADR-006): <c>.RequireEntitlement(...)</c> returns <b>402 Payment

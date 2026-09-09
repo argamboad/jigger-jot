@@ -62,7 +62,7 @@ Every resolved v1 finding was checked against the **current code**, not the tick
 | MITI-5 (B7-3) | No double reload on locale mismatch | Held | `MainLayout.razor:53-67` (the `:81` forceLoad is the new ADMIN-2 stop-impersonation path) |
 | CONF-20 (B8-1) | `SCHEMA.sql` reference removed | Held | repo-wide grep: 0 hits |
 | CONF-21 (B8-2) | `magic_link` → `magic-link` | Held | repo-wide grep: 0 `magic_link` |
-| CONF-22 (B8-3) | Email `FromName` consistency | Held | `appsettings.json:54` = `"Perezosoft"` |
+| CONF-22 (B8-3) | Email `FromName` consistency | Held | `appsettings.json:54` = `"JiggerJot"` |
 | B8-4 | Carry-over doc nits | Held | 0 `saas-template` hits |
 | B9-1…B9-4 | Enforcement gates | Held | gates table above |
 

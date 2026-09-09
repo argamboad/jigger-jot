@@ -1,6 +1,6 @@
-using Perezosoft.Core.Authorization;
+using JiggerJot.Core.Authorization;
 
-namespace Perezosoft.Core.Abstractions;
+namespace JiggerJot.Core.Abstractions;
 
 /// <summary>
 /// Answers "does the current caller's tenant role grant this <see cref="Permission"/>?" for the

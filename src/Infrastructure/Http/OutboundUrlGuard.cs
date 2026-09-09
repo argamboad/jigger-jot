@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Sockets;
 using Microsoft.Extensions.Hosting;
-using Perezosoft.Core.Abstractions;
+using JiggerJot.Core.Abstractions;
 
-namespace Perezosoft.Infrastructure.Http;
+namespace JiggerJot.Infrastructure.Http;
 
 /// <summary>
 /// Default <see cref="IOutboundUrlGuard"/>. In Development it is permissive (any http/https URL, so

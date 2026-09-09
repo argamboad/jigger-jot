@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
-using Perezosoft.Core.Repositories;
+using JiggerJot.Core.Repositories;
 
-namespace Perezosoft.Api.Models;
+namespace JiggerJot.Api.Models;
 
 public record AdminTenantSummaryResponse
 {

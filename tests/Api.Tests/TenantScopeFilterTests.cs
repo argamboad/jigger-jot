@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Api.Tests.Infrastructure;
-using Perezosoft.Core.Entities;
+using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// Proves the EF global query filter makes tenant isolation structural: a tenant-scoped

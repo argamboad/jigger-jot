@@ -38,7 +38,7 @@
             <string>OAuth callback</string>
             <key>CFBundleURLSchemes</key>
             <array>
-                <string>perezosoft</string>
+                <string>jiggerjot</string>
             </array>
         </dict>
     </array>

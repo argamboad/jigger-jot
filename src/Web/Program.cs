@@ -2,9 +2,9 @@ using System.Globalization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.JSInterop;
-using Perezosoft.Shared.Ui;
-using Perezosoft.Shared.Ui.Auth;
-using Perezosoft.Web.Http;
+using JiggerJot.Shared.Ui;
+using JiggerJot.Shared.Ui.Auth;
+using JiggerJot.Web.Http;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");

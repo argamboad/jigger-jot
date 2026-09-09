@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Perezosoft.Core.Entities;
-using Perezosoft.Core.Repositories;
-using Perezosoft.Infrastructure.Persistence;
+using JiggerJot.Core.Entities;
+using JiggerJot.Core.Repositories;
+using JiggerJot.Infrastructure.Persistence;
 
-namespace Perezosoft.Infrastructure.Repositories;
+namespace JiggerJot.Infrastructure.Repositories;
 
 /// <summary>
 /// EF Core implementation of <see cref="IUserRepository"/>.

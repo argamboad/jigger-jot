@@ -1,4 +1,4 @@
-namespace Perezosoft.Core.Abstractions;
+namespace JiggerJot.Core.Abstractions;
 
 /// <summary>
 /// A platform concern's contribution to per-<b>user</b> data teardown on account erasure (GDPR-2,

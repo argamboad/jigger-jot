@@ -1,11 +1,11 @@
 using System.Net.Mail;
-using Perezosoft.Api.Configuration;
-using Perezosoft.Core.Abstractions;
-using Perezosoft.Core.Entities;
-using Perezosoft.Core.Repositories;
-using Perezosoft.Infrastructure.Email;
+using JiggerJot.Api.Configuration;
+using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Entities;
+using JiggerJot.Core.Repositories;
+using JiggerJot.Infrastructure.Email;
 
-namespace Perezosoft.Api.Services;
+namespace JiggerJot.Api.Services;
 
 public enum InviteCreateStatus { Created, InvalidEmail, AlreadyMember, SeatLimitReached }
 

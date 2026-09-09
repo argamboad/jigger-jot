@@ -4,9 +4,9 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
-using Perezosoft.Shared.Ui.Auth;
+using JiggerJot.Shared.Ui.Auth;
 
-namespace Perezosoft.Api.Tests;
+namespace JiggerJot.Api.Tests;
 
 /// <summary>
 /// NATIVE-12: native OAuth must survive Android killing the app during the browser
@@ -18,7 +18,7 @@ namespace Perezosoft.Api.Tests;
 /// </summary>
 public class OAuthResumeTests
 {
-    private const string CallbackBase = "perezosoft://auth";
+    private const string CallbackBase = "jiggerjot://auth";
 
     // ── fakes ────────────────────────────────────────────────────────────────
 

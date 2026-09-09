@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
-using Perezosoft.Core.Abstractions;
+using JiggerJot.Core.Abstractions;
 
-namespace Perezosoft.Infrastructure.Files;
+namespace JiggerJot.Infrastructure.Files;
 
 /// <summary>
 /// Local-filesystem <see cref="IFileStorage"/> — the dev/test default (ADR-010). Objects live under

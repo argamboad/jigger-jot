@@ -1,13 +1,13 @@
 using System.Security.Claims;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.RateLimiting;
-using Perezosoft.Api.Authentication;
-using Perezosoft.Api.Configuration;
-using Perezosoft.Api.Services;
-using Perezosoft.Core.Authorization;
-using Perezosoft.Core.Entities;
+using JiggerJot.Api.Authentication;
+using JiggerJot.Api.Configuration;
+using JiggerJot.Api.Services;
+using JiggerJot.Core.Authorization;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Api.Endpoints;
+namespace JiggerJot.Api.Endpoints;
 
 /// <summary>
 /// The public API surface (PUBAPI, ADR-015), split in two: <b>management</b> (owner, JWT) to mint/list/

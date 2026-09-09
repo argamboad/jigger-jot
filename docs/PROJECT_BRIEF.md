@@ -6,9 +6,9 @@
 
 > **Name.** **JiggerJot** is the code name and namespace root (JJ-027) and, for now, also the
 > customer-facing brand (JJ-029). The two are deliberately decoupled in code — the brand lives only
-> in UI strings, assets and marketing — so it can change later without renames. Renaming the
-> platform's `Perezosoft.*` projects and namespaces to `JiggerJot.*` is part of the rebrand
-> (`REBRANDING.md`). "jigger" = a bartender's 1–2 oz measure; "jot" = to note/save your own —
+> in UI strings, assets and marketing — so it can change later without renames. The platform
+> template's projects and namespaces were renamed to `JiggerJot.*` in the rebrand (`REBRANDING.md`,
+> 2026-09-08). "jigger" = a bartender's 1–2 oz measure; "jot" = to note/save your own —
 > measure + personalize.
 
 ## Elevator pitch

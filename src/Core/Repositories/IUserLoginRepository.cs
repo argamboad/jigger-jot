@@ -1,6 +1,6 @@
-using Perezosoft.Core.Entities;
+using JiggerJot.Core.Entities;
 
-namespace Perezosoft.Core.Repositories;
+namespace JiggerJot.Core.Repositories;
 
 /// <summary>
 /// Reads/removes the OAuth identities linked to an account.

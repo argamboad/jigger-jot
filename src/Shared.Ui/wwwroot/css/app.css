@@ -1,29 +1,29 @@
 :root {
     /* Brand palette — THE single place to re-theme the app (web + all native shells).
-       Single-sourced in the RCL; both hosts load it via _content/Perezosoft.Shared.Ui/css/app.css.
+       Single-sourced in the RCL; both hosts load it via _content/JiggerJot.Shared.Ui/css/app.css.
        Rebranding: derive these from the new logo and see docs/REBRANDING.md §4
        (the email templates in Infrastructure/Email/BrandedEmail.cs carry their own copies).
-       Current values: Perezosoft sage/forest greens, harmonized with the logo. */
-    --bs-primary: #465d4d;          /* primary — buttons, header, accents */
-    --bs-primary-rgb: 70, 93, 77;
-    --brand-accent: #6b8a72;        /* accent — logo body, loading spinner */
-    --brand-dark: #2f3d33;          /* darkest shade — hover / active */
-    --brand-accent-light: #9bb6a1;  /* light accent */
-    --bs-link-color: #4f6b58;
-    --bs-link-hover-color: #2f3d33;
+       Current values: JiggerJot copper + brass, derived from the jigger mark (JJ-029). */
+    --bs-primary: #B4562A;          /* primary — copper: buttons, header, accents (4.9:1 with white) */
+    --bs-primary-rgb: 180, 86, 42;
+    --brand-accent: #D9A441;        /* accent — brass: logo detail, loading spinner */
+    --brand-dark: #8C3F1D;          /* darkest shade — hover / active */
+    --brand-accent-light: #D9865A;  /* accent that reads on dark surfaces (dark-theme links) */
+    --bs-link-color: #B4562A;
+    --bs-link-hover-color: #8C3F1D;
     --header-height: 60px;
-    --app-bg: #F5F7F4;              /* page background surface */
-    --app-border: #DCE5DD;
+    --app-bg: #F4F5F7;              /* page background surface — cool near-white */
+    --app-border: #E4D8CF;          /* soft border tinted toward the primary */
 }
 
 /* Dark theme (THEME-1). data-bs-theme is set on <html> pre-paint by js/theme.js; Bootstrap 5.3
    re-derives its own --bs-* tokens from the attribute, so only the app's surface tokens and the
-   few hardcoded light values below need dark counterparts. The brand greens stay. */
+   few hardcoded light values below need dark counterparts. Copper lifts so it still reads. */
 [data-bs-theme="dark"] {
-    --app-bg: #171c19;              /* sage-tinted dark surface */
-    --app-border: #2e3a33;
-    --bs-link-color: #9bb6a1;
-    --bs-link-hover-color: #c3d5c8;
+    --app-bg: #15181C;              /* night surface */
+    --app-border: #2F353E;
+    --bs-link-color: #D9865A;
+    --bs-link-hover-color: #F0A87E;
 }
 
 [data-bs-theme="dark"] a,

@@ -1,0 +1,6 @@
+@JiggerJot.Api_HostAddress = http://localhost:5338
+
+GET {{JiggerJot.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

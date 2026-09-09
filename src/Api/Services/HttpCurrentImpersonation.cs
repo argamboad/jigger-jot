@@ -1,7 +1,7 @@
-using Perezosoft.Api.Authentication;
-using Perezosoft.Core.Abstractions;
+using JiggerJot.Api.Authentication;
+using JiggerJot.Core.Abstractions;
 
-namespace Perezosoft.Api.Services;
+namespace JiggerJot.Api.Services;
 
 /// <summary>
 /// Resolves <see cref="ICurrentImpersonation"/> from the authenticated principal's

@@ -236,11 +236,11 @@ Report §4 (CONF-20, CONF-21, CONF-22) + carry-over doc nits from the prior back
 
 - [x] **B8-1 · Remove the `SCHEMA.sql` reference** — Low · S · (CONF-20) — `CLAUDE.md` doc-map row now points at `src/Infrastructure/Persistence/Migrations/`.
 - [x] **B8-2 · Fix `magic_link` → `magic-link` in docs** — Low · S · (CONF-21) — `docs/DATA_MODEL.md` + `docs/FEATURES.md` now say `magic-link`, matching `LoginToken.cs`. (No other `magic_link` underscore hits remain outside the audit docs.)
-- [x] **B8-3 · Reconcile email `FromName`** — Low · S · (CONF-22) — `appsettings.json` default is now `"Perezosoft"` (consistent with `.env.example`/REBRANDING); `REBRANDING.md` now names `appsettings*.json` as the committed runtime default with `.env`/env vars as the override.
+- [x] **B8-3 · Reconcile email `FromName`** — Low · S · (CONF-22) — `appsettings.json` default is now `"JiggerJot"` (consistent with `.env.example`/REBRANDING); `REBRANDING.md` now names `appsettings*.json` as the committed runtime default with `.env`/env vars as the override.
 - [x] **B8-4 · Carry-over doc nits** — Low · S — README `saas-template/` → "this template tree"; ADR-C9 reworded (MAUI shells scaffolded with auth wired, feature parity deferred web-first); ADR-C13 "all ports" scoped to **Compose service** ports (app ports fixed in launch profiles); ADR-C11 doc list expanded; ADR-001 made the `Section__Sub` ≡ `Section:Sub` equivalence explicit. (ADR-C15 left as-is — REF-13 confirmed it's intentionally preserved historical, already carrying a dated supersede note.)
   - Done-when (B8): [x] no doc references a nonexistent artifact; [x] doc strings match code values.
 
-**Exit check (B8):** grep for `SCHEMA.sql`, `magic_link`, `Perezosoft`, `saas-template` returns only intended hits.
+**Exit check (B8):** grep for `SCHEMA.sql`, `magic_link`, `JiggerJot`, `saas-template` returns only intended hits.
 
 ---
 
