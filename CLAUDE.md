@@ -84,8 +84,13 @@ own. Full context in `docs/PROJECT_BRIEF.md`; tagline "Mix what you have." (JJ-0
 7. **Lookup tables are curated and global** (`GlassType`, `Method`, `Unit`, `IngredientCategory`); no
    tenant additions in MVP (JJ-022). Inventory is boolean (JJ-023).
 8. **Platform wins.** App docs never override platform mechanics; when they disagree, defer to the
-   platform and log a `JJ-` decision (JJ-026, JJ-028). Open before the first migration: how
-   shared-catalog rows (`tenant_id = null`) coexist with the global tenant filter — see `docs/DATA_MODEL.md`.
+   platform and log a `JJ-` decision (JJ-026, JJ-028).
+9. **The shared catalog is filtered by hand, not by `ITenantScoped` (JJ-031).** `Ingredient`,
+   `Cocktail` and `CocktailIngredient` carry a nullable `TenantId` and are deliberately NOT
+   `ITenantScoped`. Their isolation comes from an app-level query filter (`TenantId == null ||
+   TenantId == CurrentTenantId`) mirrored by a hand-written RLS policy in the same migration —
+   change the two together. Nothing stamps their `TenantId`, so set it explicitly when creating a
+   household-owned row, and no CI gate covers their policy, so the app's own tests must.
 
 ## Tech stack (see `docs/TECH_STACK.md`)
 - **Versions:** latest stable on the current .NET line — **.NET SDK 10.0.400 (pinned in `global.json`, the single source of truth, with `rollForward: disable` — the 2026-08 drift showed `latestPatch` let runners outrun both the lockfiles and the MCR image catalog), ASP.NET Core / EF Core packages 10.0.11, Npgsql.EF 10.0.3, PostgreSQL 17.** The SDK is **pinned, not floating** (v3 audit DEP-4): CI's `setup-dotnet` reads `global-json-file: global.json`, and both Dockerfile image tags (`sdk:10.0.400` build, `aspnet:10.0.11` runtime) match it — so a runner-image SDK patch can't outrun the committed `packages.lock.json` (the WASM SDK injects patch-sensitive implicit packages → NU1004 in locked-mode restore).
