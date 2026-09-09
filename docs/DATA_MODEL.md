@@ -129,14 +129,20 @@ stored.
 >
 > - **App-level EF query filter** in `AppDbContext.OnModelCreating`, alongside the platform's own
 >   loop: `x.TenantId == null || x.TenantId == CurrentTenantId`.
-> - **Hand-written RLS policy** shipped in the same migration that creates each table:
->   `"TenantId" IS NULL OR "TenantId" = NULLIF(current_setting('app.tenant_id', true), '')::uuid OR
->   current_setting('app.rls_bypass', true) = 'on'`.
+> - **Hand-written RLS policies** shipped in the same migration that creates each table — four of them,
+>   one per command (`RlsDdl.SharedOrTenantStatementsFor`). `SELECT` admits shared rows
+>   (`"TenantId" IS NULL OR "TenantId" = current OR bypass`); `INSERT`, `UPDATE` and `DELETE` admit the
+>   household's own rows only. The asymmetry is not decoration: Postgres checks `DELETE` against `USING`
+>   and never against `WITH CHECK`, so one `FOR ALL` policy with the read predicate would let any
+>   household delete the shared catalog (JJ-031 amendment ①). Writing a shared row therefore needs the
+>   bypass GUC, which is what makes seeding a deliberate act.
 >
-> Two platform guarantees do **not** apply to these three tables and are replaced by explicit tests:
+> Three platform guarantees do **not** apply to these three tables and are replaced by explicit tests:
 > `TenantStampingInterceptor` will not stamp them (a household-owned row must set `TenantId` at the
-> call site), and `RlsMigrationGateTests` only inspects `ITenantScoped` tables, so nothing fails CI
-> if the policy is dropped by a later migration. `TenantInventory` is ordinary tenant data and does
+> call site); `RlsMigrationGateTests` only inspects `ITenantScoped` tables, so nothing fails CI
+> if the policy is dropped by a later migration; and `EveryTenantOwnedEntity_IsWiredIntoTenantDissolution`
+> only sees a **non-nullable** `TenantId`, so it cannot tell whether these tables are wired into tenant
+> teardown at all (JJ-031 amendment ②). `TenantInventory` is ordinary tenant data and does
 > implement `ITenantScoped`; the lookup tables carry no tenant column at all.
 
 ### Ingredient
@@ -218,6 +224,22 @@ Curated lookup tables (no tenant additions in MVP — JJ-022).
   - Convertible units (oz ↔ ml) carry conversion factors.
   - **Neutral / non-convertible** units (dash, barspoon, piece, leaves, to-taste) display as
     authored regardless of user preference.
+
+### Supporting types
+
+Not tables, but they live in `src/Core/Entities/` and the schema is written in their terms.
+
+- **`ISharedOrTenantScoped`** — the marker on `Ingredient`, `Cocktail` and `CocktailIngredient`: a
+  nullable `TenantId` where null means "shared catalog, readable by every household and owned by none"
+  (JJ-031). Its sibling `ITenantScoped` cannot express that row, which is the whole reason it exists.
+  Anything marked with it opts out of three platform guarantees — see the note at the top of this
+  section.
+- **`ServingType`** — `shot` | `full_drink`, on `Cocktail`. A browse filter facet.
+- **`RecipeRole`** — `base` | `modifier` | `juice` | `syrup` | `bitters` | `garnish` | `mixer` |
+  `other`, on `CocktailIngredient`. **Display grouping only** — makeability keys off `is_required`, so a
+  garnish blocks nothing by virtue of its role (JJ-009, JJ-010).
+- **`UnitSystem`** — `metric` | `imperial` | `neutral`, on `Unit` and on `User.preferred_unit_system`.
+  A neutral unit has no millilitre factor and always displays as authored (JJ-007, JJ-008).
 
 ## Relationship summary
 - Tenant 1 — N TenantMembership N — 1 User *(constant; unique on `user_id` = one tenant per user)*

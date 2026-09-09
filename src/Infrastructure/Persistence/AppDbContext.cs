@@ -84,6 +84,26 @@ public class AppDbContext : DbContext, IDataProtectionKeyContext
     // 🗑️ DELETE-ME: sample feature set (remove with the Features/Notes slice).
     public DbSet<Note> Notes => Set<Note>();
 
+    // ── JiggerJot domain (JJ-031) ────────────────────────────────────────────────────────────
+    // Curated global lookups: no tenant column at all, so no filter and no RLS policy (JJ-022).
+    public DbSet<IngredientCategory> IngredientCategories => Set<IngredientCategory>();
+    public DbSet<GlassType> GlassTypes => Set<GlassType>();
+    public DbSet<Method> Methods => Set<Method>();
+    public DbSet<Unit> Units => Set<Unit>();
+
+    // Global-only substitution graph, both directions stored (JJ-005, JJ-006).
+    public DbSet<IngredientSubstitution> IngredientSubstitutions => Set<IngredientSubstitution>();
+
+    // Dual-natured: shared catalog (TenantId null) + household-owned rows in one table. NOT
+    // ITenantScoped — see ISharedOrTenantScoped and JJ-031. Filtered by the second loop in
+    // OnModelCreating and by a hand-written RLS policy in their creating migration.
+    public DbSet<Ingredient> Ingredients => Set<Ingredient>();
+    public DbSet<Cocktail> Cocktails => Set<Cocktail>();
+    public DbSet<CocktailIngredient> CocktailIngredients => Set<CocktailIngredient>();
+
+    // The household's shelf — ordinary ITenantScoped data, fully covered by the platform.
+    public DbSet<TenantInventory> TenantInventories => Set<TenantInventory>();
+
     // Tenant isolation is structural in BOTH directions: the global query filter (below)
     // scopes reads, and this interceptor scopes writes — stamping the current tenant onto
     // new ITenantScoped rows and refusing foreign-tenant writes. Registered here (not only
@@ -117,6 +137,16 @@ public class AppDbContext : DbContext, IDataProtectionKeyContext
                 ApplyTenantFilterMethod
                     .MakeGenericMethod(entityType.ClrType)
                     .Invoke(this, [builder]);
+
+            // JiggerJot's catalog shape (JJ-031): rows that are EITHER shared (TenantId null) or
+            // household-owned. ITenantScoped cannot express them — its TenantId is non-nullable and
+            // its filter would hide every shared row — so they get this parallel filter instead.
+            // Deliberately in the same loop as the rule above so the two are read as a pair and a
+            // future reader can't take "not ITenantScoped" to mean "not filtered".
+            if (typeof(ISharedOrTenantScoped).IsAssignableFrom(entityType.ClrType))
+                ApplySharedOrTenantFilterMethod
+                    .MakeGenericMethod(entityType.ClrType)
+                    .Invoke(this, [builder]);
         }
     }
 
@@ -126,4 +156,23 @@ public class AppDbContext : DbContext, IDataProtectionKeyContext
 
     private void ApplyTenantFilter<TEntity>(ModelBuilder builder) where TEntity : class, ITenantScoped
         => builder.Entity<TEntity>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
+
+    private static readonly MethodInfo ApplySharedOrTenantFilterMethod =
+        typeof(AppDbContext).GetMethod(nameof(ApplySharedOrTenantFilter),
+            BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+    /// <summary>
+    /// The JJ-031 filter: a household sees the shared catalog plus its own rows, and nothing of
+    /// anyone else's. Mirrored by the hand-written RLS policy on the same tables — change the two
+    /// together or the database and the app disagree about what is visible.
+    /// <para>
+    /// With no tenant current (a system/seed context, where <c>CurrentTenantId</c> is
+    /// <c>Guid.Empty</c>) this admits exactly the shared rows, which is what seeding the catalog
+    /// needs and is why it is not written as a fail-closed comparison.
+    /// </para>
+    /// </summary>
+    private void ApplySharedOrTenantFilter<TEntity>(ModelBuilder builder)
+        where TEntity : class, ISharedOrTenantScoped
+        => builder.Entity<TEntity>()
+            .HasQueryFilter(e => e.TenantId == null || e.TenantId == CurrentTenantId);
 }

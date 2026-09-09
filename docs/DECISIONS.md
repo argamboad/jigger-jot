@@ -1599,6 +1599,36 @@ any app with a seeded catalog hits this exact wall.
 
 *Decided 2026-09-09. Options A and C are recorded above so the choice is not re-litigated.*
 
+> **Amended 2026-09-09 (implementing CKTL-1).** Building Option B turned up two things the decision as
+> written got wrong, both in the direction of being too trusting. Neither changes the choice; both change
+> what "mirrored RLS policy" means in practice.
+>
+> **① One `FOR ALL` policy would have left the shared catalog deletable.** The predicate this ADR
+> specified — `TenantId IS NULL OR TenantId = current OR bypass` — is right for reading and wrong for
+> everything else. Postgres checks `DELETE` against `USING` and never against `WITH CHECK`, so a single
+> `FOR ALL` policy carrying that predicate lets any household delete or update any shared catalog row —
+> exactly what JJ-002 says must be impossible, and the one guarantee the whole seeded-catalog design rests
+> on. The shipped shape is therefore **four command-scoped policies per dual-natured table**
+> (`RlsDdl.SharedOrTenantStatementsFor`): `SELECT` admits shared rows, while `INSERT`, `UPDATE` and
+> `DELETE` admit the household's own rows only. Writing a shared row now requires the bypass GUC, which
+> makes seeding the catalog a deliberate, greppable act rather than the default for an unset `TenantId`.
+> `SharedCatalogRlsTests` pins each half, including the mirror case (a household CAN delete its own row),
+> so the policies cannot pass by forbidding everything.
+>
+> **② A fourth platform guarantee does not apply, not three.** The ADR named the stamping interceptor and
+> the RLS migration gate. The third is **tenant dissolution**: the platform canary
+> `EveryTenantOwnedEntity_IsWiredIntoTenantDissolution` only inspects entities with a **non-nullable**
+> `Guid TenantId`, and every `ISharedOrTenantScoped` entity has a nullable one by construction — so a
+> missing `ITenantDataContributor` on these tables would orphan a dissolved household's recipes with no
+> test failing anywhere. `CatalogDataContributor` supplies the teardown and export (household rows only,
+> shared catalog untouched); `SharedOrTenantDissolutionTests.EverySharedOrTenantEntity_IsWiredIntoTenantDissolution`
+> is the app-level canary that replaces the blind one. `InventoryDataContributor` does the same for
+> `TenantInventory`, which the platform canary *can* see and now lists.
+>
+> **Upstream:** both corrections belong with the `ISharedOrTenantScoped` primitive proposed in
+> `PLATFORM_BACKLOG.md` §15 item 2 — the `FOR ALL` trap in particular is not obvious from reading the
+> platform's own policy, since a non-nullable `TenantId` makes the asymmetry unnecessary there.
+
 *Amendment (2026-09-08, Phase 2):* the four product docs were merged into this repo's `docs/`
 when the platform tree was adopted (JJ-026's product-only doc set now lives alongside the
 platform docs); `WAYS_OF_WORKING.md`, `TECH_STACK.md` and `CLAUDE.md` are the platform's.
