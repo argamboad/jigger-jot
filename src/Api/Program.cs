@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Extensions;
@@ -6,6 +6,8 @@ using Microsoft.OpenApi.Models;
 using JiggerJot.Api.Authentication;
 using JiggerJot.Api.Configuration;
 using JiggerJot.Api.Endpoints;
+using JiggerJot.Api.Features.Catalog;
+using JiggerJot.Api.Features.Inventory;
 using JiggerJot.Api.Features.Notes;
 using JiggerJot.Api.Observability;
 using JiggerJot.Api.Services;
@@ -105,6 +107,12 @@ builder.Services.AddBillingServices();
 // here (not in ServiceRegistrationExtensions) because only Program.cs may reference Features.* (R8).
 builder.Services.AddScoped<NotesHandler>();
 builder.Services.AddScoped<ITenantDataContributor, NotesDataContributor>();
+
+// JiggerJot domain (epic CKTL): the tenant-data hooks for the household's own catalog and its shelf.
+// The catalog one is load-bearing beyond dissolve — the platform's arch canary keys off a NON-nullable
+// TenantId, so it cannot see the ISharedOrTenantScoped tables at all (JJ-031).
+builder.Services.AddScoped<ITenantDataContributor, CatalogDataContributor>();
+builder.Services.AddScoped<ITenantDataContributor, InventoryDataContributor>();
 
 // Caches + session (LinkTokenService uses IMemoryCache; session backed by distributed cache).
 builder.Services.AddMemoryCache();

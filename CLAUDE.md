@@ -88,9 +88,13 @@ own. Full context in `docs/PROJECT_BRIEF.md`; tagline "Mix what you have." (JJ-0
 9. **The shared catalog is filtered by hand, not by `ITenantScoped` (JJ-031).** `Ingredient`,
    `Cocktail` and `CocktailIngredient` carry a nullable `TenantId` and are deliberately NOT
    `ITenantScoped`. Their isolation comes from an app-level query filter (`TenantId == null ||
-   TenantId == CurrentTenantId`) mirrored by a hand-written RLS policy in the same migration —
-   change the two together. Nothing stamps their `TenantId`, so set it explicitly when creating a
-   household-owned row, and no CI gate covers their policy, so the app's own tests must.
+   TenantId == CurrentTenantId`) mirrored by hand-written RLS policies in the same migration —
+   change the two together. The policies are **asymmetric on purpose**: `SELECT` sees shared rows,
+   `INSERT`/`UPDATE`/`DELETE` never do, because one `FOR ALL` policy would let a household delete the
+   catalog. **Three** platform guarantees skip these tables, so the app must supply each: nothing
+   stamps their `TenantId` (set it explicitly on a household-owned row), no CI gate covers their
+   policy, and the dissolution canary cannot see them — every one of them needs an
+   `ITenantDataContributor` that wipes household rows only.
 
 ## Tech stack (see `docs/TECH_STACK.md`)
 - **Versions:** latest stable on the current .NET line — **.NET SDK 10.0.401 (pinned in `global.json`, the single source of truth, with `rollForward: disable` — the 2026-08 drift showed `latestPatch` let runners outrun both the lockfiles and the MCR image catalog), ASP.NET Core / EF Core packages 10.0.11, Npgsql.EF 10.0.3, PostgreSQL 17.** The SDK is **pinned, not floating** (v3 audit DEP-4): CI's `setup-dotnet` reads `global-json-file: global.json`, and both Dockerfile image tags (`sdk:10.0.401` build, `aspnet:10.0.11` runtime) match it — so a runner-image SDK patch can't outrun the committed `packages.lock.json` (the WASM SDK injects patch-sensitive implicit packages → NU1004 in locked-mode restore).
@@ -197,6 +201,7 @@ deferred items without an explicit decision.
 | `docs/STATUS.md` | 2026-07-04 status snapshot + operator guides — native QA pass (✅ 2026-07-14), Apple first-run smoke (MacBook walkthrough), prod activation (⤵ downstream Phase-8 runbook, ADR-017 amendment); SaaS-readiness assessment |
 | `docs/PLATFORM_BACKLOG.md` | Per-item design sketches for the future foundation slices (the detail behind ROADMAP) |
 | `docs/stories/` | User stories per epic — generated at build time |
+| `docs/stories/cocktails.md` | epic `CKTL` 🚧 IN PROGRESS — CKTL-1 ✅ the nine domain entities, their configurations, the one migration that creates them, and the two walls that make the dual-natured catalog tables safe (app-level query filter + four command-scoped RLS policies, JJ-031) plus the three app-level tests that replace the platform guarantees those tables do not inherit; CKTL-2 browse + CKTL-3 detail planned |
 | `docs/stories/ui.md` | epic `UI` ✅ COMPLETE — **retrospective** (v3 T59, closing v2 DOC-22): the four 2026-07 web-UI slices that shipped without a story file — UI-1 GDPR export/erasure UI, UI-2 MFA UI, UI-3 notification bell/prefs UI, UI-4 staff `/admin` console; defines what QA §2 + the traceability matrix cite |
 | `docs/stories/billing.md` | epic `BILLING` ✅ COMPLETE — entitlements + Checkout + webhook + Portal (1–4) + seat/usage quotas (5, `IQuotaService`) + trial/dunning (6, `IBillingNotifier` + lapse sweep via NOTIFY) + dissolve cleanup (7, `BillingDataContributor` cancels the provider sub + wipes the projection) + billing page (8, `GET /api/billing` summary + `/billing` UI, fake-provider E2E upgrade loop) + seat re-check at invitation accept (9, 2026-07-14: downgrade left stale invites joinable past the cap → 402 `seat_limit_reached` + `/join` "household full" state, self-heals on upgrade); ADR-006 |
 | `docs/stories/async-jobs.md` | epic `JOBS` ✅ COMPLETE — outbox+dispatcher, inbox, scheduler (ADR-007) |

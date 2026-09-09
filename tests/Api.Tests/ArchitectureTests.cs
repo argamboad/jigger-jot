@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -123,6 +123,7 @@ public class ArchitectureTests
             nameof(UsageCounter),                           // UsageCounterDataContributor
             nameof(WebhookSubscription), nameof(WebhookDelivery), // WebhookDataContributor
             nameof(TenantInvitation), nameof(TenantMembership),   // core teardown (WipeDataAsync)
+            nameof(TenantInventory),                        // InventoryDataContributor
         };
 
         var options = new DbContextOptionsBuilder<AppDbContext>()

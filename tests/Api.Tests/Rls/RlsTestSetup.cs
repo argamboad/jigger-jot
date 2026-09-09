@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using JiggerJot.Infrastructure.Persistence;
 
@@ -63,7 +63,10 @@ public static class RlsTestSetup
     public static async Task ProvisionAsync(DbContext db)
     {
         await ProvisionRuntimeRoleAsync(db);
-        foreach (var sql in RlsDdl.StatementsFor(db.Model))
+        // Both policy families: the platform's ITenantScoped policy and JiggerJot's shared-or-tenant one
+        // (JJ-031). A model-built database that got only the first would leave the dual-natured catalog
+        // tables with RLS off, and every test here would pass for the wrong reason.
+        foreach (var sql in RlsDdl.StatementsFor(db.Model).Concat(RlsDdl.SharedOrTenantStatementsFor(db.Model)))
 #pragma warning disable EF1002 // no user input — DDL is model-derived
             await db.Database.ExecuteSqlRawAsync(sql);
 #pragma warning restore EF1002
