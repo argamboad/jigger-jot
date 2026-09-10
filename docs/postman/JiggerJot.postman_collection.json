@@ -1045,7 +1045,7 @@
                 }
               ]
             },
-            "description": "The almost-makeable set read the other way round (ALMOST-2, **JJ-035**): grouped by the missing ingredient rather than by the cocktail, and ranked.\n\nThe request above answers *this drink is missing that bottle*, one drink at a time. On a modest shelf that is eighty-one rows, which is correct and unreadable. This answers *which bottle opens the most, and which drinks* — one sentence someone can act on.\n\n**It runs `almost`'s predicate character-for-character**, so the two readings of the set cannot drift. A test walks both and checks that every drink named here appears in the per-drink list attributed to the same bottle, and that nothing in that list is left out of the ranking.\n\n**`unlocks` always equals the length of `cocktails`.** The card shows the number beside the names, so they are one value read twice rather than two values computed twice — which is why the names are never truncated.\n\n**Ties order by count, then by ingredient name.** Without that second key two bottles that each open three drinks would swap places between requests with nothing behind it, and the card would appear to change its mind.\n\n**An empty shelf ranks nothing** and returns `[]` rather than a guess. Suggesting a first purchase to a household that is one bottle away from *nothing* is a different question with no set to rank; it is logged against `MARGA-3`, not answered here.\n\nA household's own cocktails count too — same shared-or-tenant filter as everything else (JJ-031). Tick a partial shelf with the Shelf folder first."
+            "description": "The almost-makeable set read the other way round (ALMOST-2, **JJ-035**): grouped by the missing ingredient rather than by the cocktail, and ranked.\n\nThe request above answers *this drink is missing that bottle*, one drink at a time. On a modest shelf that is eighty-one rows, which is correct and unreadable. This answers *which bottle opens the most, and which drinks* — one sentence someone can act on.\n\n**It runs `almost`'s predicate character-for-character**, so the two readings of the set cannot drift. A test walks both and checks that every drink named here appears in the per-drink list attributed to the same bottle, and that nothing in that list is left out of the ranking.\n\n**`unlocks` always equals the length of `cocktails`.** The card shows the number beside the names, so they are one value read twice rather than two values computed twice — which is why the names are never truncated.\n\n**Ties order by count, then by ingredient name.** Without that second key two bottles that each open three drinks would swap places between requests with nothing behind it, and the card would appear to change its mind.\n\n**An empty shelf ranks nothing** and returns `[]` rather than a guess. Suggesting a first purchase to a household that is one bottle away from *nothing* is a different question with no set to rank — answered by the request below, `GET /api/cocktails/starters`, and deliberately not by this one.\n\nA household's own cocktails count too — same shared-or-tenant filter as everything else (JJ-031). Tick a partial shelf with the Shelf folder first."
           },
           "response": [],
           "event": [
@@ -1061,6 +1061,49 @@
                   "pm.test(\"best first\", () =>",
                   "  body.forEach(b => pm.expect(b.unlocks).to.be.at.most((body[0] || b).unlocks)));",
                   "body.forEach(b => console.log(b.ingredient + ' unlocks ' + b.unlocks + ': ' + b.cocktails.join(', ')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cocktails — where to start from nothing",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails/starters?limit=3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cocktails",
+                "starters"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "3",
+                  "description": "How many bottles to name, 1–25, clamped rather than rejected."
+                }
+              ]
+            },
+            "description": "Where to start when the shelf is empty (MARGA-3) — the question the request above deliberately does not answer.\n\n**This is not a variant of `/unlocks`.** That one ranks the almost-makeable set, and a household that has ticked nothing is not one bottle away from anything: the set is empty, so there is nothing to rank. This asks a question that needs no shelf at all — *which bottle do these recipes lean on most* — and then removes the ones the household already has.\n\n**`appears` is how many recipes ASK for it, and the copy built on it says exactly that.** An unlocking bottle can promise drinks because it measured them; a starter bottle cannot, since one bottle alone makes very nearly nothing. Reading `appears` as \"drinks you could make\" would be the one way this endpoint misleads.\n\n**Required lines only** (JJ-009). An optional line never blocks a drink, so an ingredient that only ever garnishes is not one the catalog leans on — counting it would send someone out for a lemon twist.\n\n**Substitutions are ignored**, on purpose: a first bottle should be the one the recipes name, and with an empty shelf there is nothing to substitute from.\n\n**Ties order by count, then by ingredient name**, so the suggestion does not change between requests with nothing behind it. A household's own recipes count towards its own suggestion and never towards anyone else's (JJ-031). Returns `[]` only for a household that already has everything the catalog requires."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"ranked, most-asked-for first\", () =>",
+                  "  body.forEach(b => pm.expect(b.appears).to.be.at.most((body[0] || b).appears)));",
+                  "pm.test(\"every suggestion is asked for by something\", () =>",
+                  "  body.forEach(b => pm.expect(b.appears, b.ingredient).to.be.above(0)));",
+                  "body.forEach(b => console.log(b.ingredient + ' is asked for by ' + b.appears + ' recipes'));"
                 ]
               }
             }

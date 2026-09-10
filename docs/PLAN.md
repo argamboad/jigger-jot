@@ -72,17 +72,21 @@ All three apps inherited the defect from the platform's `app.css`.
 **MARGA-2**, the signed-in home screen — which closed the `<!-- TODO -->` the platform's welcome card
 had carried since day one.
 
-**Built, verified, uncommitted** on `feat/INV-3-shelf-rework` (branched from `develop`):
+**Merged since** (PR #25): **INV-3**, the shelf rework — pills, per-category counts, a jump bar, and
+the payoff footer that asks once per burst of ticks rather than once per tick.
 
-- **INV-3**: the shelf rework, and the screen that gates the product. Pills instead of a fixed
-  three-column checkbox grid, a count on every category card, a jump bar carrying the same numbers,
-  a sticky footer showing the payoff, and `+ Add your own` moved inside the card it files into.
-- **No API change, no migration, no new endpoint.** Presentation over data the screen already had,
-  plus one number asked of the browse endpoint.
-- **The footer's open question is answered** — see below.
-- **Found in the browser, not by a test:** every jump link left the page. `index.html` carries
-  `<base href="/">`, and a fragment-only `href` resolves against the base, so `#cat-gin` meant
-  `/#cat-gin` — the home page. Now spelled out as `/shelf#cat-gin`, with a test holding it.
+**Built, verified, uncommitted** on `feat/MARGA-3-empty-states` (branched from `develop`):
+
+- **MARGA-3**: the two empty states. Both carry her scene, `Make_FillYourShelf` is a primary button,
+  and the one-away state names a bottle to start from.
+- **The first-bottle question is answered** — see below. It needed a new endpoint,
+  `GET /api/cocktails/starters`, which is the wave's second and last piece of engine work.
+- **Found in the browser, not by a test:** with the one-away filter on *and a search typed*, an empty
+  list means the search found nothing — and the suggestion told someone who may own forty bottles to
+  go shopping. The filter now has to be the only thing narrowing the list.
+- **Tested as components rather than as a journey**, because the development database cannot produce
+  the state: it was seeded before the catalog was cut to its starter set, so an empty shelf there is
+  one bottle away from fourteen drinks rather than from nothing.
 
 ## The UI wave — 2026-09-10
 
@@ -113,18 +117,20 @@ Each is one branch off `develop`, one PR, after the previous one is merged.
 
 | # | Slice | Flow / screen | What it is |
 |---|---|---|---|
-| 1 | **INV-3** | screen 5 | The uncommitted work above. Waiting on C+P+PR. |
-| 2 | **MARGA-3** | screens 6, 7 | The two empty states. ⚠️ blocked on an open question — see below. |
-| 3 | **SHELL-1** | all, below `lg` | Bottom tab bar for the app's three destinations; account furniture stays on top. ⚠️ must keep the `nav-shelf` and `nav-cocktails` test ids. |
-| 4 | **SHELL-2** | screen 9 | The boot state. Smallest of the wave, and it lands in **two** `index.html` files, not one. |
-| 5 | **ONBOARD-1** | §7 | The last unbuilt flow, and the only one predating the wave. Sits after it because a wizard that lands on a reworked shelf should be built against the reworked shelf. |
+| 1 | **MARGA-3** | screens 6, 7 | The uncommitted work above. Waiting on C+P+PR. |
+| 2 | **SHELL-1** | all, below `lg` | Bottom tab bar for the app's three destinations; account furniture stays on top. ⚠️ must keep the `nav-shelf` and `nav-cocktails` test ids. |
+| 3 | **SHELL-2** | screen 9 | The boot state. Smallest of the wave, and it lands in **two** `index.html` files, not one. |
+| 4 | **ONBOARD-1** | §7 | The last unbuilt flow, and the only one predating the wave. Sits after it because a wizard that lands on a reworked shelf should be built against the reworked shelf. **Now has a head start**: MARGA-3 settled what a first bottle is, and a starter SET is the same question asked four times. |
 
-**Three questions to settle before the slices that need them. One is now settled.**
+**Three questions to settle before the slices that need them. Two are now settled; one is left.**
 
-1. **What is the best first bottle for an empty shelf?** `MARGA-3` screen 7 offers a concrete first
-   purchase to a household that is one bottle away from nothing. `ALMOST-2` cannot answer it — with an
-   empty shelf there is no almost-makeable set to rank. It needs a different query and a decision
-   about what "best first bottle" means.
+1. ~~**What is the best first bottle for an empty shelf?**~~ **Answered by `MARGA-3`.** It is the
+   ingredient the most recipes **ask for**, among those the household does not already have — required
+   lines only, substitutions ignored, served by `GET /api/cocktails/starters`. The two readings that
+   lost: "the bottle that makes the most drinkable on its own" is useless, because one bottle alone
+   makes very nearly nothing; and a starter *set* is better advice but is `ONBOARD-1`, not an empty
+   state. The choice carries an honesty constraint into the copy — the number is how many recipes ask
+   for the bottle, never how many it would unlock.
 2. ~~**How does the shelf footer stay current?**~~ **Answered by `INV-3`.** The write cannot carry the
    total: a feature slice may not reference another slice (R7/TR-9), and copying the makeability query
    into the inventory endpoint to get around that would leave the app with two definitions of makeable.
