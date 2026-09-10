@@ -192,6 +192,23 @@ public sealed class InventoryTests(PostgresFixture fixture) : PostgresTestBase(f
     }
 
     [Fact]
+    public async Task Shelf_CountsWhatIsTicked_AfterAReRead()
+    {
+        // Mirrors what the shelf screen shows in its counter. The E2E journey asserts the same thing
+        // through the browser; this says whether the server half is right, so a browser failure can
+        // be read as a UI problem rather than a mystery.
+        await SeedAsync();
+        var gin = await IngredientAsync("London dry gin");
+
+        await using (var db = Fixture.CreateContext(_household))
+            Assert.True(await Handler(db, _household).SetAsync(gin, true, default));
+
+        await using var read = Fixture.CreateContext(_household);
+        var shelf = await Handler(read, _household).ListAsync(default);
+        Assert.Equal(1, shelf.Count(i => i.IsAvailable));
+    }
+
+    [Fact]
     public async Task Shelf_NeverOffersIceOrWater()
     {
         await SeedAsync();
