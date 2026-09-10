@@ -33,7 +33,73 @@
                data-testid="cocktail-almost" checked="@_almostOnly" @onchange="OnAlmostChanged" />
         <label class="form-check-label small" for="almost-makeable">@Localizer["Cocktails_OneAway"]</label>
     </div>
+
+    @* FEATURES §11 lists these alongside the makeability toggles as one combinable set. Behind a
+       button because most visits are a search, and four dropdowns above every list is a form nobody
+       asked for. *@
+    <button class="btn btn-outline-secondary btn-sm ms-auto" data-testid="cocktail-filters-toggle"
+            @onclick="ToggleFiltersAsync">
+        @Localizer["Cocktails_Filters"]@(ActiveFilters > 0 ? $" ({ActiveFilters})" : "")
+    </button>
 </div>
+
+@if (_filtersOpen)
+{
+    <div class="card shadow-sm mb-3">
+        <div class="card-body py-3">
+            <div class="row g-2 align-items-end">
+                <div class="col-12 col-md-4">
+                    @* Text rather than a picker: "everything with vodka" is what someone means, and
+                       one box matches the ingredient's name, its category and its subcategory at
+                       once, so a parent catches every child (JJ-015, JJ-016). *@
+                    <label class="form-label small mb-1" for="filter-ingredient">@Localizer["Cocktails_FilterIngredient"]</label>
+                    <input class="form-control" id="filter-ingredient" data-testid="cocktail-filter-ingredient"
+                           placeholder="@Localizer["Cocktails_FilterIngredientHint"]"
+                           value="@_ingredient" @oninput="OnIngredientInput" />
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small mb-1" for="filter-method">@Localizer["Cocktails_FilterMethod"]</label>
+                    <select class="form-select" id="filter-method" data-testid="cocktail-filter-method"
+                            value="@_method" @onchange="e => ApplyAsync(() => _method = e.Value?.ToString() ?? string.Empty)">
+                        <option value="">@Localizer["Cocktails_FilterAny"]</option>
+                        @foreach (var m in _options.Methods)
+                        {
+                            <option value="@m.Id">@m.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small mb-1" for="filter-glass">@Localizer["Cocktails_FilterGlass"]</label>
+                    <select class="form-select" id="filter-glass" data-testid="cocktail-filter-glass"
+                            value="@_glass" @onchange="e => ApplyAsync(() => _glass = e.Value?.ToString() ?? string.Empty)">
+                        <option value="">@Localizer["Cocktails_FilterAny"]</option>
+                        @foreach (var g in _options.Glasses)
+                        {
+                            <option value="@g.Id">@g.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <label class="form-label small mb-1" for="filter-serving">@Localizer["Cocktails_FilterServing"]</label>
+                    <select class="form-select" id="filter-serving" data-testid="cocktail-filter-serving"
+                            value="@_serving" @onchange="e => ApplyAsync(() => _serving = e.Value?.ToString() ?? string.Empty)">
+                        <option value="">@Localizer["Cocktails_FilterAny"]</option>
+                        @foreach (var s in _options.ServingTypes)
+                        {
+                            <option value="@s">@Localizer[$"Cocktails_Serving{s}"]</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            @if (ActiveFilters > 0)
+            {
+                <button class="btn btn-link btn-sm px-0 mt-2" data-testid="cocktail-filter-clear"
+                        @onclick="ClearFiltersAsync">@Localizer["Cocktails_FilterClear"]</button>
+            }
+        </div>
+    </div>
+}
 
 @if (_error is not null)
 {
@@ -153,6 +219,24 @@ else
     private int _requestTicket;
     private CancellationTokenSource? _debounce;
 
+    // FILTER-1. The options are fetched once, the first time the panel is opened — they are the same
+    // answer for every page of every search, so sending them with each browse response would put the
+    // whole list of glasses on the wire for every keystroke in the search box.
+    private bool _filtersOpen;
+    private string _ingredient = string.Empty;
+    private string _method = string.Empty;
+    private string _glass = string.Empty;
+    private string _serving = string.Empty;
+    private FilterOptionsView _options = new([], [], []);
+    private CancellationTokenSource? _ingredientDebounce;
+
+    /// <summary>How many filters are narrowing the list, so the button can say so while closed.</summary>
+    private int ActiveFilters =>
+        (string.IsNullOrWhiteSpace(_ingredient) ? 0 : 1)
+        + (_method.Length == 0 ? 0 : 1)
+        + (_glass.Length == 0 ? 0 : 1)
+        + (_serving.Length == 0 ? 0 : 1);
+
     private int LastPage => _page is null || _page.Total == 0
         ? 1
         : (_page.Total + _page.PageSize - 1) / _page.PageSize;
@@ -203,6 +287,57 @@ else
 
     private Task GoToAsync(int page) => LoadAsync(page);
 
+    private async Task ToggleFiltersAsync()
+    {
+        _filtersOpen = !_filtersOpen;
+        if (!_filtersOpen || _options.Methods.Count > 0) return;
+
+        try
+        {
+            _options = await Http.GetFromJsonAsync<FilterOptionsView>("/api/cocktails/filters")
+                       ?? new FilterOptionsView([], [], []);
+        }
+        catch (Exception)
+        {
+            _error = Localizer["Cocktails_LoadFailed"];
+        }
+    }
+
+    /// <summary>Applies one dropdown change and reloads from the first page.</summary>
+    private Task ApplyAsync(Action change)
+    {
+        change();
+        return LoadAsync(1);   // narrowing the list always starts again at the first page
+    }
+
+    private async Task OnIngredientInput(ChangeEventArgs e)
+    {
+        _ingredient = e.Value?.ToString() ?? string.Empty;
+
+        // Debounced like the search box, and for the same reason: this is a typed filter, not a
+        // dropdown, so it would otherwise fire a request per keystroke.
+        _ingredientDebounce?.Cancel();
+        _ingredientDebounce?.Dispose();
+        _ingredientDebounce = new CancellationTokenSource();
+        var token = _ingredientDebounce.Token;
+
+        try
+        {
+            await Task.Delay(SearchDebounce, token);
+            await LoadAsync(1);
+        }
+        catch (TaskCanceledException)
+        {
+            // Superseded by a later keystroke.
+        }
+    }
+
+    private Task ClearFiltersAsync()
+    {
+        _ingredient = _method = _glass = _serving = string.Empty;
+        return LoadAsync(1);
+    }
+
     private async Task LoadAsync(int page)
     {
         var ticket = ++_requestTicket;
@@ -217,6 +352,11 @@ else
             if (_almostOnly) url += "&almost=true";
             if (!string.IsNullOrWhiteSpace(_search))
                 url += $"&search={Uri.EscapeDataString(_search.Trim())}";
+            if (!string.IsNullOrWhiteSpace(_ingredient))
+                url += $"&ingredient={Uri.EscapeDataString(_ingredient.Trim())}";
+            if (_method.Length > 0) url += $"&method={_method}";
+            if (_glass.Length > 0) url += $"&glass={_glass}";
+            if (_serving.Length > 0) url += $"&serving={_serving}";
 
             var result = await Http.GetFromJsonAsync<PagedResponse<CocktailSummary>>(url);
             if (ticket != _requestTicket) return;
@@ -244,7 +384,11 @@ else
         yield return Localizer["Cocktails_IngredientCount", c.IngredientCount];
     }
 
-    public void Dispose() => _debounce?.Dispose();
+    public void Dispose()
+    {
+        _debounce?.Dispose();
+        _ingredientDebounce?.Dispose();
+    }
 
     private record PagedResponse<T>(IReadOnlyList<T> Items, int Page, int PageSize, int Total);
 
@@ -254,4 +398,9 @@ else
         IReadOnlyList<SubstitutionInPlay> Substitutions, string? MissingIngredient);
 
     private record SubstitutionInPlay(string AsksFor, string YouHave);
+
+    private record FilterOptionView(Guid Id, string Name);
+
+    private record FilterOptionsView(
+        List<FilterOptionView> Methods, List<FilterOptionView> Glasses, List<string> ServingTypes);
 }

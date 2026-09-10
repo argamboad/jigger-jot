@@ -353,4 +353,14 @@
   <data name="Cocktail_NotMakeable" xml:space="preserve"><value>More than one bottle away</value></data>
   <data name="Cocktail_YoudPour" xml:space="preserve"><value>you'd pour {0}</value></data>
   <data name="Cocktail_LineMissing" xml:space="preserve"><value>not on your shelf</value></data>
+  <data name="Cocktails_Filters" xml:space="preserve"><value>Filters</value></data>
+  <data name="Cocktails_FilterIngredient" xml:space="preserve"><value>Made with</value></data>
+  <data name="Cocktails_FilterIngredientHint" xml:space="preserve"><value>gin, dark rum, elderflower…</value></data>
+  <data name="Cocktails_FilterMethod" xml:space="preserve"><value>Method</value></data>
+  <data name="Cocktails_FilterGlass" xml:space="preserve"><value>Glass</value></data>
+  <data name="Cocktails_FilterServing" xml:space="preserve"><value>Served as</value></data>
+  <data name="Cocktails_FilterAny" xml:space="preserve"><value>Any</value></data>
+  <data name="Cocktails_FilterClear" xml:space="preserve"><value>Clear filters</value></data>
+  <data name="Cocktails_ServingShot" xml:space="preserve"><value>Shot</value></data>
+  <data name="Cocktails_ServingFullDrink" xml:space="preserve"><value>Full drink</value></data>
 </root>

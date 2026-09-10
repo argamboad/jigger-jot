@@ -353,4 +353,14 @@
   <data name="Cocktail_NotMakeable" xml:space="preserve"><value>A más de una botella</value></data>
   <data name="Cocktail_YoudPour" xml:space="preserve"><value>usarías {0}</value></data>
   <data name="Cocktail_LineMissing" xml:space="preserve"><value>no está en tu estantería</value></data>
+  <data name="Cocktails_Filters" xml:space="preserve"><value>Filtros</value></data>
+  <data name="Cocktails_FilterIngredient" xml:space="preserve"><value>Hecho con</value></data>
+  <data name="Cocktails_FilterIngredientHint" xml:space="preserve"><value>ginebra, ron oscuro, saúco…</value></data>
+  <data name="Cocktails_FilterMethod" xml:space="preserve"><value>Método</value></data>
+  <data name="Cocktails_FilterGlass" xml:space="preserve"><value>Copa</value></data>
+  <data name="Cocktails_FilterServing" xml:space="preserve"><value>Se sirve como</value></data>
+  <data name="Cocktails_FilterAny" xml:space="preserve"><value>Cualquiera</value></data>
+  <data name="Cocktails_FilterClear" xml:space="preserve"><value>Quitar filtros</value></data>
+  <data name="Cocktails_ServingShot" xml:space="preserve"><value>Chupito</value></data>
+  <data name="Cocktails_ServingFullDrink" xml:space="preserve"><value>Copa completa</value></data>
 </root>

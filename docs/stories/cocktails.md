@@ -5,8 +5,8 @@
 > beside it. Design decision + the shape's constraints in **JJ-031** (read with platform ADR-003 and
 > ADR-020); entity-by-entity detail in `docs/DATA_MODEL.md`. Stories use Gherkin acceptance criteria.
 > **Status: ✅ COMPLETE for MVP** — CKTL-1 (domain model + tenancy walls) ✅, CKTL-2 (browse) ✅,
-> CKTL-3 (detail) ✅, CKTL-4 (makeable status on the recipe) ✅. Filtering is the `FILTER` epic;
-> forking is `FORK`.
+> CKTL-3 (detail) ✅, CKTL-4 (makeable status on the recipe) ✅. Filtering shipped as `FILTER-1`
+> (`docs/stories/filter.md`); forking is `FORK`.
 
 **Epic key:** `CKTL`
 

@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using JiggerJot.Api.Authentication;
 using JiggerJot.Api.Endpoints;
+using JiggerJot.Core.Entities;
 
 namespace JiggerJot.Api.Features.Catalog;
 
@@ -21,6 +22,10 @@ public static class CocktailEndpoints
             int? pageSize,
             bool? makeable,
             bool? almost,
+            string? ingredient,
+            Guid? method,
+            Guid? glass,
+            string? serving,
             CocktailBrowseHandler handler,
             CancellationToken ct) =>
         {
@@ -37,10 +42,23 @@ public static class CocktailEndpoints
                 // FEATURES §10: one required line short, after substitutions. Adjacent to the filter
                 // above and never overlapping it, so asking for both returns nothing — which is the
                 // honest answer rather than a precedence rule invented here.
-                almost ?? false);
+                almost ?? false,
+                // FEATURES §11, FILTER-1. All combinable, with each other and with everything above.
+                ingredient,
+                method,
+                glass,
+                // An unparseable serving type is treated as no filter rather than a 400, in keeping
+                // with the rest of this read: a bad query string should not cost someone their page.
+                Enum.TryParse<ServingType>(serving, ignoreCase: true, out var kind) ? kind : null);
 
             return Results.Ok(await handler.BrowseAsync(request, ct));
         });
+
+        // The dropdowns for the filters above. A separate call because it is the same answer for
+        // every page of every search, and folding it into each browse response would send the whole
+        // list of glasses down with every keystroke in the search box.
+        group.MapGet("/filters", async (CocktailBrowseHandler handler, CancellationToken ct) =>
+            Results.Ok(await handler.FilterOptionsAsync(ct)));
 
         group.MapGet("/{id:guid}", async (
             Guid id,

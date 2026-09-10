@@ -65,14 +65,35 @@ public class CocktailBrowseHandler(
                                   && available.Contains(s.SubstituteIngredientId))) == 1);
         }
 
+        if (request.SafeIngredient is { } ingredient)
+        {
+            // FEATURES §11 and JJ-016: name, category AND subcategory, all at once. Matching the
+            // category is what makes a parent catch every child — nobody types "London dry gin" when
+            // they mean gin — and matching the name is what finds the elderflower nobody tagged.
+            // Read off the recipe lines, because there is no stored classification to read instead
+            // and a drink with two spirits or none is exactly why (JJ-014).
+            var pattern = Contains(ingredient);
+            query = query.Where(c => c.Lines.Any(l =>
+                EF.Functions.ILike(l.Ingredient!.Name, pattern, "\\")
+                || EF.Functions.ILike(l.Ingredient!.Category!.Name, pattern, "\\")
+                || (l.Ingredient!.Subcategory != null
+                    && EF.Functions.ILike(l.Ingredient!.Subcategory!.Name, pattern, "\\"))));
+        }
+
+        // Straight equality, and an id nobody recognises simply matches nothing. A read with a bad id
+        // is a caller's typo rather than a reason to hand back a 400 — the same reasoning that clamps
+        // a page number instead of rejecting it. A recipe that never stated a glass or a method
+        // (JJ-034) does not match either, which is the honest answer: no glass is not a glass.
+        if (request.MethodId is { } methodId) query = query.Where(c => c.MethodId == methodId);
+        if (request.GlassTypeId is { } glassId) query = query.Where(c => c.GlassTypeId == glassId);
+        if (request.ServingType is { } serving) query = query.Where(c => c.ServingType == serving);
+
         if (request.SafeSearch is { } search)
         {
             // ILike rather than ToLower().Contains(): it is the Postgres operator for exactly this,
             // it matches anywhere in the name rather than only at the front, and it leaves room for a
-            // trigram index later without the query changing shape. The escapes matter — a name with
-            // a % in it should search for a %, not for anything at all.
-            var pattern = $"%{search.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_")}%";
-            query = query.Where(c => EF.Functions.ILike(c.Name, pattern, "\\"));
+            // trigram index later without the query changing shape.
+            query = query.Where(c => EF.Functions.ILike(c.Name, Contains(search), "\\"));
         }
 
         var total = await query.CountAsync(cancellationToken);
@@ -111,6 +132,52 @@ public class CocktailBrowseHandler(
 
         return new PagedResponse<CocktailSummary>(items, page, pageSize, total);
     }
+
+    /// <summary>
+    /// What the filter dropdowns offer (FILTER-1) — read off the catalog rather than off the lookup
+    /// tables, so every option returns at least one drink.
+    /// </summary>
+    /// <remarks>
+    /// The curated lookups hold nineteen glasses and ten methods; any given catalog uses a fraction of
+    /// them, and a filter whose options mostly return nothing reads as broken rather than as precise.
+    /// Deriving them also means the lists grow by themselves when the full 969-recipe catalog is
+    /// switched on. <c>Query()</c> carries the shared-or-tenant filter, so a household's own cocktails
+    /// contribute their glasses and methods too, and another household's never do.
+    /// </remarks>
+    public async Task<CatalogFilterOptions> FilterOptionsAsync(CancellationToken cancellationToken)
+    {
+        // Anonymous types through the DISTINCT, records only once the rows are back: EF cannot
+        // translate a Distinct over a projection into a positional record, and finding that out from
+        // a runtime exception is worse than writing the extra Select.
+        var methods = await cocktails.Query()
+            .Where(c => c.MethodId != null)
+            .Select(c => new { Id = c.MethodId!.Value, c.Method!.Name })
+            .Distinct().OrderBy(o => o.Name)
+            .ToListAsync(cancellationToken);
+
+        var glasses = await cocktails.Query()
+            .Where(c => c.GlassTypeId != null)
+            .Select(c => new { Id = c.GlassTypeId!.Value, c.GlassType!.Name })
+            .Distinct().OrderBy(o => o.Name)
+            .ToListAsync(cancellationToken);
+
+        var serving = await cocktails.Query()
+            .Select(c => c.ServingType).Distinct()
+            .ToListAsync(cancellationToken);
+
+        return new CatalogFilterOptions(
+            [.. methods.Select(m => new FilterOption(m.Id, m.Name))],
+            [.. glasses.Select(g => new FilterOption(g.Id, g.Name))],
+            [.. serving.Select(s => s.ToString()).Order(StringComparer.Ordinal)]);
+    }
+
+    /// <summary>
+    /// A LIKE pattern matching this text anywhere, with the wildcards escaped. The escaping is the
+    /// point: a filter for "%" should look for a percent sign, not return the whole catalog and look
+    /// for all the world like a working filter.
+    /// </summary>
+    private static string Contains(string text) =>
+        $"%{text.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_")}%";
 
     /// <summary>
     /// Fills in "using X in place of Y" for the rows on this page (FEATURES §9). A drink that
