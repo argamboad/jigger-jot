@@ -322,4 +322,12 @@
   <data name="Units_Metric" xml:space="preserve"><value>Métrico (ml)</value></data>
   <data name="Units_Imperial" xml:space="preserve"><value>Imperial (oz)</value></data>
   <data name="Units_Hint" xml:space="preserve"><value>Los golpes, las cucharillas y las proporciones siempre se leen como los escribió la receta.</value></data>
+  <data name="Nav_Shelf" xml:space="preserve"><value>Estantería</value></data>
+  <data name="Shelf_Subtitle" xml:space="preserve"><value>Marca lo que tiene tu hogar. Lo demás cuenta como que falta.</value></data>
+  <data name="Shelf_SearchPlaceholder" xml:space="preserve"><value>Buscar ingredientes</value></data>
+  <data name="Shelf_OnlyMine" xml:space="preserve"><value>Solo lo que tengo</value></data>
+  <data name="Shelf_Count" xml:space="preserve"><value>{0} en la estantería</value></data>
+  <data name="Shelf_NoMatches" xml:space="preserve"><value>Ningún ingrediente coincide.</value></data>
+  <data name="Shelf_LoadFailed" xml:space="preserve"><value>No se pudo cargar tu estantería. Inténtalo de nuevo.</value></data>
+  <data name="Shelf_SaveFailed" xml:space="preserve"><value>Ese cambio no se guardó. Inténtalo de nuevo.</value></data>
 </root>
