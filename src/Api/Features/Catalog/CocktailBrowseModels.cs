@@ -103,6 +103,24 @@ public record CocktailSummary(
 /// <param name="YouHave">What the household actually has, and would pour.</param>
 public record SubstitutionInPlay(string AsksFor, string YouHave);
 
+/// <summary>
+/// One bottle and the drinks it would open (ALMOST-2, JJ-035) — the almost-makeable set read the
+/// other way round.
+/// <para>
+/// ALMOST-1 answers per drink: <i>this cocktail is missing that bottle</i>. Asked eighty-one times
+/// that is a list nobody reads. This groups the same set by the missing ingredient, so one sentence
+/// can say "buy this and four open up".
+/// </para>
+/// </summary>
+/// <param name="Unlocks">Always equal to <paramref name="Cocktails"/>' length. The card shows the two
+/// side by side, so they are one value read twice rather than two values computed twice — which is
+/// also why the names are never truncated.</param>
+public record UnlockingBottle(
+    Guid IngredientId,
+    string Ingredient,
+    int Unlocks,
+    IReadOnlyList<string> Cocktails);
+
 /// <summary>One lookup value the catalog actually uses, for a filter dropdown.</summary>
 public record FilterOption(Guid Id, string Name);
 

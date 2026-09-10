@@ -140,6 +140,38 @@ public class MakeableJourneyTests : E2ETestBase
     }
 
     /// <summary>
+    /// ALMOST-2 (JJ-035): the same set the rows show, read the other way round. The summary names one
+    /// bottle and the drinks it opens, and the number it gives has to match the names beside it.
+    /// </summary>
+    [Test]
+    public async Task TheOneAwayList_LeadsWithTheBottleThatOpensTheMost()
+    {
+        await Mailpit.ClearAsync();
+        await SignInAsync(Page, UniqueEmail("unlocks"));
+
+        await Page.GetByTestId("nav-shelf").ClickAsync();
+        foreach (var ingredient in new[] { "London dry gin", "Campari" }) await StockAsync(ingredient);
+
+        await ShowMakeableAsync();
+        await Page.GetByTestId("cocktail-makeable").UncheckAsync();
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("cocktail-almost").CheckAsync(),
+            r => r.Url.Contains("/api/cocktails/unlocks") && r.Status == 200);
+
+        // The summary is the point of the slice: eighty-one rows each naming a bottle is correct and
+        // unreadable, so the card says which single purchase opens the most.
+        var card = Page.GetByTestId("cocktail-unlocks");
+        await Expect(card).ToBeVisibleAsync(new() { Timeout = 30_000 });
+        await Expect(card).ToContainTextAsync("Sweet vermouth");
+        await Expect(Page.GetByTestId("cocktail-unlocks-drinks")).ToContainTextAsync("Negroni");
+
+        // It belongs to this filter only. Turning it off takes the card with it, because a shopping
+        // suggestion over the whole catalog would be a claim nothing on screen supports.
+        await Page.GetByTestId("cocktail-almost").UncheckAsync();
+        await Expect(card).Not.ToBeVisibleAsync();
+    }
+
+    /// <summary>
     /// CKTL-4 (FEATURES §12): the recipe itself says where it stands. Opening a drink you are one
     /// bottle short of should mark the badge AND the line, so the reader knows what to do without
     /// counting the lines themselves.

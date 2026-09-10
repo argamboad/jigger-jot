@@ -1024,6 +1024,49 @@
           ]
         },
         {
+          "name": "Cocktails — the bottle that unlocks the most",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails/unlocks?limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cocktails",
+                "unlocks"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "How many BOTTLES to rank, 1–25, clamped rather than rejected. It never caps the drinks each bottle names."
+                }
+              ]
+            },
+            "description": "The almost-makeable set read the other way round (ALMOST-2, **JJ-035**): grouped by the missing ingredient rather than by the cocktail, and ranked.\n\nThe request above answers *this drink is missing that bottle*, one drink at a time. On a modest shelf that is eighty-one rows, which is correct and unreadable. This answers *which bottle opens the most, and which drinks* — one sentence someone can act on.\n\n**It runs `almost`'s predicate character-for-character**, so the two readings of the set cannot drift. A test walks both and checks that every drink named here appears in the per-drink list attributed to the same bottle, and that nothing in that list is left out of the ranking.\n\n**`unlocks` always equals the length of `cocktails`.** The card shows the number beside the names, so they are one value read twice rather than two values computed twice — which is why the names are never truncated.\n\n**Ties order by count, then by ingredient name.** Without that second key two bottles that each open three drinks would swap places between requests with nothing behind it, and the card would appear to change its mind.\n\n**An empty shelf ranks nothing** and returns `[]` rather than a guess. Suggesting a first purchase to a household that is one bottle away from *nothing* is a different question with no set to rank; it is logged against `MARGA-3`, not answered here.\n\nA household's own cocktails count too — same shared-or-tenant filter as everything else (JJ-031). Tick a partial shelf with the Shelf folder first."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"the count is the names\", () =>",
+                  "  body.forEach(b => pm.expect(b.cocktails.length, b.ingredient).to.eql(b.unlocks)));",
+                  "pm.test(\"best first\", () =>",
+                  "  body.forEach(b => pm.expect(b.unlocks).to.be.at.most((body[0] || b).unlocks)));",
+                  "body.forEach(b => console.log(b.ingredient + ' unlocks ' + b.unlocks + ': ' + b.cocktails.join(', ')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Cocktails — detail",
           "request": {
             "method": "GET",

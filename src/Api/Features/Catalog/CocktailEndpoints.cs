@@ -61,6 +61,20 @@ public static class CocktailEndpoints
         group.MapGet("/filters", async (CocktailBrowseHandler handler, CancellationToken ct) =>
             Results.Ok(await handler.FilterOptionsAsync(ct)));
 
+        // ALMOST-2 (JJ-035): the almost-makeable set read the other way round — by the bottle rather
+        // than by the drink. A separate call rather than a field on the browse response, because the
+        // summary answers a different question from the rows and nothing else on the page needs it.
+        group.MapGet("/unlocks", async (
+            int? limit,
+            CocktailBrowseHandler handler,
+            CancellationToken ct) =>
+        {
+            // Clamped rather than rejected, like every other paging number on this surface: it is a
+            // read, and a 400 for someone who typed limit=0 helps nobody.
+            var wanted = Math.Clamp(limit ?? 5, 1, 25);
+            return Results.Ok(await handler.UnlockingBottlesAsync(wanted, ct));
+        });
+
         // Everything the authoring form may offer. Deliberately NOT the same list as /filters above:
         // that one is derived from the catalog so a filter never offers a dead end, while this is the
         // whole curated lookup, because someone writing down what they pour must be able to reach a

@@ -61,7 +61,13 @@ onboarding wizard, has never been built.
 The same stylesheet fixes went upstream the same day: `perezosoft-platform` #222 and `vuelto` #57.
 All three apps inherited the defect from the platform's `app.css`.
 
-**Nothing is uncommitted.** The tree is clean.
+**Built, verified, uncommitted** on `feat/ALMOST-2-unlocking-bottle` (branched from `develop`):
+
+- **ALMOST-2** (**JJ-035**): `GET /api/cocktails/unlocks` and the summary card on the one-away list.
+  It runs ALMOST-1's predicate character-for-character, so the two readings of the set cannot drift,
+  and a test walks both to prove it.
+- **Measured**: a shelf holding gin and Campari leaves 81 drinks one bottle away, and dry vermouth
+  alone accounts for 13 of them. That is the slice in one number.
 
 ## The UI wave — 2026-09-10
 
@@ -92,7 +98,7 @@ Each is one branch off `develop`, one PR, after the previous one is merged.
 
 | # | Slice | Flow / screen | What it is |
 |---|---|---|---|
-| 1 | **ALMOST-2** | screen 4 | The bottle that unlocks the most. The only new query in the wave: the almost-makeable set grouped by missing ingredient instead of by cocktail, ranked. Gates screens 1, 4 and 7. Small. |
+| 1 | **ALMOST-2** | screen 4 | The uncommitted work above. Waiting on C+P+PR. |
 | 2 | **MARGA-1** | screens 2, 3, 8 | The character: her asset optimized into the brand folder, one shared component, and three fixed lines over data already on their pages. No new queries. |
 | 3 | **MARGA-2** | screen 1 | The home screen. Needs both of the above. Closes the `Home.razor` TODO — the only screen in the wave with room rather than a rework. |
 | 4 | **INV-3** | screen 5 | The shelf rework. Pills, per-category counts, a jump bar, and a sticky footer showing the payoff as you tick. The biggest, and the one that gates the product. |
