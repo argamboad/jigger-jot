@@ -14,3 +14,12 @@
         padding: 1.25rem 1rem;
     }
 }
+
+/* SHELL-1. The tab bar is fixed to the bottom of the viewport, so it sits ON the page rather than
+   below it — without this the last thing on every screen is unreachable, and the last thing on the
+   catalog is the pager. */
+@media (max-width: 991.98px) {
+    .content-container {
+        padding-bottom: calc(var(--tab-bar-height, 56px) + env(safe-area-inset-bottom, 0px) + 1.25rem);
+    }
+}
