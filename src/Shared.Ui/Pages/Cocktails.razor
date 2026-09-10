@@ -1,6 +1,7 @@
 @page "/cocktails"
 @using System.Net.Http.Json
 @inject HttpClient Http
+@inject NavigationManager Nav
 @inject IStringLocalizer<AppStrings> Localizer
 
 <PageTitle>@Localizer["Nav_Cocktails"]</PageTitle>
@@ -117,7 +118,12 @@
         <div class="card-body py-3">
             <p class="mb-1 fw-medium">@Localizer["Cocktails_UnlocksHeadline", best.Ingredient, best.Unlocks]</p>
             <p class="mb-0 text-body-secondary small" data-testid="cocktail-unlocks-drinks">
-                @string.Join(" · ", best.Cocktails)
+                @* Four, then a count. Thirteen names is a wall, and the number beside them already
+                   says how many there are. The DATA stays whole — see ALMOST-2. *@
+                @(best.Cocktails.Count <= 4
+                    ? string.Join(" · ", best.Cocktails)
+                    : string.Join(" · ", best.Cocktails.Take(4))
+                      + " · " + Localizer["Cocktails_UnlocksMore", best.Cocktails.Count - 4])
             </p>
         </div>
     </div>
@@ -272,7 +278,20 @@ else
         ? 1
         : (_page.Total + _page.PageSize - 1) / _page.PageSize;
 
-    protected override Task OnInitializedAsync() => LoadAsync(1);
+    /// <summary>
+    /// Either toggle can be pre-set from the address bar, so another screen can link straight to the
+    /// answer it just quoted (MARGA-2). Without this the home screen's "show me the twelve" would land
+    /// on the whole catalog and make the reader find the filter that produced the number they clicked.
+    /// </summary>
+    protected override Task OnInitializedAsync()
+    {
+        var query = System.Web.HttpUtility.ParseQueryString(new Uri(Nav.Uri).Query);
+        _makeableOnly = string.Equals(query["makeable"], "true", StringComparison.OrdinalIgnoreCase);
+        _almostOnly = !_makeableOnly
+                      && string.Equals(query["almost"], "true", StringComparison.OrdinalIgnoreCase);
+
+        return LoadAsync(1);
+    }
 
     private async Task OnSearchInput(ChangeEventArgs e)
     {

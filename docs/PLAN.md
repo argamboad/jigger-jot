@@ -61,16 +61,19 @@ onboarding wizard, has never been built.
 The same stylesheet fixes went upstream the same day: `perezosoft-platform` #222 and `vuelto` #57.
 All three apps inherited the defect from the platform's `app.css`.
 
-**Built, verified, uncommitted** on `feat/MARGA-1-the-character` (branched from `develop`):
+**Built, verified, uncommitted** on `feat/MARGA-2-home-screen` (branched from `develop`):
 
-- **MARGA-1**: her two optimized assets, one shared component, and three copy replacements over data
-  already on their pages — the substitution line in the catalog, a card on the recipe, and her line
-  in place of the login subtitle that described the buttons.
-- **The illustration went from 2 MB to 134 KB across both assets**, 7% of what the design bundle
-  delivered, with nothing visible lost — flat colour quantizes almost for free. That matters for
-  `SHELL-2`, which puts her in the boot path.
-- The component takes a **finished** sentence and renders it. It never builds one, picks one or
-  fetches anything, which is what keeps "not an assistant" true in code rather than only in a doc.
+- **MARGA-2**: the signed-in home screen, closing the `<!-- TODO -->` the platform's welcome card has
+  carried since day one. The makeable count as the headline, her line naming the one purchase that
+  extends it, three drinks, and the one-bottle-away summary.
+- **Two calls, each internally consistent.** The headline and the three drinks come from one
+  response; the bottle and its drinks from another. Her sentence quotes one number from each, and
+  each half agrees with the list beneath it.
+- **The buttons are deep-linked** (`?makeable=true`, `?almost=true`), so "show me them" lands on the
+  list that produced the number it quotes. A small addition to `Cocktails.razor` beyond the story,
+  and the reason the button is honest.
+- **Found and fixed while building:** the unlocks card named thirteen drinks on a real shelf. The
+  display now stops at four and counts the rest, in both places that show it; the data stays whole.
 
 ## The UI wave — 2026-09-10
 
@@ -101,13 +104,12 @@ Each is one branch off `develop`, one PR, after the previous one is merged.
 
 | # | Slice | Flow / screen | What it is |
 |---|---|---|---|
-| 1 | **MARGA-1** | screens 2, 3, 8 | The uncommitted work above. Waiting on C+P+PR. |
-| 2 | **MARGA-2** | screen 1 | The home screen. Needs ALMOST-2 and MARGA-1, both now merged. Closes the `Home.razor` TODO — the only screen in the wave with room rather than a rework. |
-| 3 | **INV-3** | screen 5 | The shelf rework. Pills, per-category counts, a jump bar, and a sticky footer showing the payoff as you tick. The biggest, and the one that gates the product. |
-| 4 | **MARGA-3** | screens 6, 7 | The two empty states. ⚠️ blocked on an open question — see below. |
-| 5 | **SHELL-1** | all, below `lg` | Bottom tab bar for the app's three destinations; account furniture stays on top. ⚠️ must keep the `nav-shelf` and `nav-cocktails` test ids. |
-| 6 | **SHELL-2** | screen 9 | The boot state. Smallest of the wave, and it lands in **two** `index.html` files, not one. |
-| 7 | **ONBOARD-1** | §7 | The last unbuilt flow, and the only one predating the wave. Sits after it because a wizard that lands on a reworked shelf should be built against the reworked shelf. |
+| 1 | **MARGA-2** | screen 1 | The uncommitted work above. Waiting on C+P+PR. |
+| 2 | **INV-3** | screen 5 | The shelf rework. Pills, per-category counts, a jump bar, and a sticky footer showing the payoff as you tick. The biggest, and the one that gates the product. |
+| 3 | **MARGA-3** | screens 6, 7 | The two empty states. ⚠️ blocked on an open question — see below. |
+| 4 | **SHELL-1** | all, below `lg` | Bottom tab bar for the app's three destinations; account furniture stays on top. ⚠️ must keep the `nav-shelf` and `nav-cocktails` test ids. |
+| 5 | **SHELL-2** | screen 9 | The boot state. Smallest of the wave, and it lands in **two** `index.html` files, not one. |
+| 6 | **ONBOARD-1** | §7 | The last unbuilt flow, and the only one predating the wave. Sits after it because a wizard that lands on a reworked shelf should be built against the reworked shelf. |
 
 **Three questions to settle before the slices that need them.**
 

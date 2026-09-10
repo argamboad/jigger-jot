@@ -153,6 +153,42 @@ public class MakeableJourneyTests : E2ETestBase
     }
 
     /// <summary>
+    /// MARGA-2 (proposal screen 1): the front page answers the product's question, and its buttons
+    /// land on the list that produced the number they quote rather than on the whole catalog.
+    /// </summary>
+    [Test]
+    public async Task TheHomeScreen_AnswersTheQuestion_AndItsButtonsGoWhereTheySay()
+    {
+        await Mailpit.ClearAsync();
+        await SignInAsync(Page, UniqueEmail("home"));
+
+        // An empty shelf gets her pointing at the shelf rather than a count of nothing.
+        await Page.GotoAsync($"{BaseUrl}/");
+        await Expect(Page.GetByTestId("home-marga")).ToBeVisibleAsync(new() { Timeout = 30_000 });
+        await Expect(Page.GetByTestId("home-count")).Not.ToBeVisibleAsync();
+
+        await Page.GetByTestId("nav-shelf").ClickAsync();
+        foreach (var ingredient in Negroni) await StockAsync(ingredient);
+
+        await Page.GotoAsync($"{BaseUrl}/");
+        await Expect(Page.GetByTestId("home-count")).ToBeVisibleAsync(new() { Timeout = 30_000 });
+
+        // The headline number and the list under it come from ONE response, so the count has to
+        // match what the makeable filter says when you follow the button.
+        var headline = (await Page.GetByTestId("home-count").InnerTextAsync()).Trim();
+        await Page.GetByTestId("home-show-makeable").ClickAsync();
+        await Expect(Page.GetByTestId("cocktail-makeable")).ToBeCheckedAsync(new() { Timeout = 30_000 });
+        await Expect(Page.GetByTestId("cocktail-count")).ToContainTextAsync(headline);
+
+        // ...and the other button lands on the other filter, with its summary card.
+        await Page.GotoAsync($"{BaseUrl}/");
+        await Expect(Page.GetByTestId("home-unlocks")).ToBeVisibleAsync(new() { Timeout = 30_000 });
+        await Page.GetByTestId("home-show-almost").ClickAsync();
+        await Expect(Page.GetByTestId("cocktail-almost")).ToBeCheckedAsync(new() { Timeout = 30_000 });
+        await Expect(Page.GetByTestId("cocktail-unlocks")).ToBeVisibleAsync();
+    }
+
+    /// <summary>
     /// ALMOST-2 (JJ-035): the same set the rows show, read the other way round. The summary names one
     /// bottle and the drinks it opens, and the number it gives has to match the names beside it.
     /// </summary>

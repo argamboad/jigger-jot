@@ -23,3 +23,19 @@
 .hero-section {
     max-width: 520px;
 }
+
+/* MARGA-2. The signed-in home is a column of cards rather than one centred box: it now carries an
+   answer and two next actions, which a 520px card cannot hold without cramping. */
+.home-wrapper {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.home-count {
+    /* The count IS the headline — the product's one question, answered in one figure. */
+    font-size: 3.25rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--bs-primary);
+    font-variant-numeric: tabular-nums;
+}
