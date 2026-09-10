@@ -29,12 +29,15 @@ public sealed class CatalogSeederTests(PostgresFixture fixture) : PostgresTestBa
             added = await Build(db).SeedAsync();
 
         var recipes = CatalogSeeder.LoadCocktails();
+        var subs = CatalogSeeder.LoadSubstitutions();
         var expected = file.GlassTypes.Count + file.Methods.Count + file.Units.Count
                        + file.IngredientCategories.Count
                        + file.IngredientCategories.Sum(c => c.Children.Count)
                        + CatalogSeeder.LoadIngredients().Ingredients.Count
                        + recipes.Sources.Count
-                       + recipes.Cocktails.Count + recipes.Cocktails.Sum(c => c.Lines.Count);
+                       + recipes.Cocktails.Count + recipes.Cocktails.Sum(c => c.Lines.Count)
+                       + subs.Interchangeable.Sum(g => g.Members.Count * (g.Members.Count - 1))
+                       + subs.OneWay.Count;
         Assert.Equal(expected, added);
 
         await using var read = Fixture.CreateContext();
@@ -325,6 +328,59 @@ public sealed class CatalogSeederTests(PostgresFixture fixture) : PostgresTestBa
         Assert.All(lines, l => Assert.Equal(l.Role != RecipeRole.Garnish, l.IsRequired));
         Assert.Contains(lines, l => l.Role == RecipeRole.Garnish);
         Assert.Contains(lines, l => l.Role == RecipeRole.Base);
+    }
+
+    [Fact]
+    public async Task Seed_WritesTheSubstitutionGraph_AsDirectedRows()
+    {
+        var file = CatalogSeeder.LoadSubstitutions();
+
+        await using (var db = Fixture.CreateContext())
+            await Build(db).SeedAsync();
+
+        await using var read = Fixture.CreateContext();
+        var expected = file.Interchangeable.Sum(g => g.Members.Count * (g.Members.Count - 1))
+                       + file.OneWay.Count;
+        Assert.Equal(expected, await read.IngredientSubstitutions.CountAsync());
+
+        // Both ends must be real catalog ingredients — the ids are derived from names, so a typo in
+        // the curation file becomes a foreign key pointing at nothing.
+        var ingredients = await read.Ingredients.IgnoreQueryFilters().Select(i => i.Id).ToHashSetAsync();
+        var rows = await read.IngredientSubstitutions.ToListAsync();
+        Assert.All(rows, r =>
+        {
+            Assert.Contains(r.IngredientId, ingredients);
+            Assert.Contains(r.SubstituteIngredientId, ingredients);
+            Assert.NotEqual(r.IngredientId, r.SubstituteIngredientId);
+        });
+    }
+
+    [Fact]
+    public async Task Substitutions_AreSymmetricWhenInterchangeable_AndNotWhenOneWay()
+    {
+        await using (var db = Fixture.CreateContext())
+            await Build(db).SeedAsync();
+
+        await using var read = Fixture.CreateContext();
+
+        async Task<bool> Allows(string asksFor, string pour)
+        {
+            var a = SeedId.For("ingredient", asksFor);
+            var b = SeedId.For("ingredient", pour);
+            return await read.IngredientSubstitutions
+                .AnyAsync(x => x.IngredientId == a && x.SubstituteIngredientId == b);
+        }
+
+        // Interchangeable: both directions exist, which is what JJ-006 means by storing symmetry as
+        // two rows rather than a flag.
+        Assert.True(await Allows("Cointreau", "Curaçao"));
+        Assert.True(await Allows("Curaçao", "Cointreau"));
+
+        // One-way: a recipe asking for brandy takes cognac, and a recipe asking for cognac does NOT
+        // take any brandy. This is the whole reason the rows are directed — a symmetric graph would
+        // recommend drinks the household cannot actually make well.
+        Assert.True(await Allows("Brandy", "Cognac"));
+        Assert.False(await Allows("Cognac", "Brandy"));
     }
 
     [Fact]

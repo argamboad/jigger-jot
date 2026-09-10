@@ -73,8 +73,11 @@ own. Full context in `docs/PROJECT_BRIEF.md`; tagline "Mix what you have." (JJ-0
 2. **The shared catalog is read-only and referenced, never mutated.** Households personalize by
    **forking** — a full snapshot copy with `forked_from_cocktail_id` as provenance only; edits to the
    original never propagate (JJ-002, JJ-013).
-3. **Substitutions are global and ingredient-level**, stored in both directions; custom
+3. **Substitutions are global and ingredient-level**, stored as directed rows; custom
    (household) ingredients satisfy recipe lines by exact match only (JJ-004, JJ-005, JJ-006, JJ-018).
+   **Not every substitution is mutual** — a recipe asking for brandy takes cognac, and one asking for
+   cognac does not take any brandy, so `substitutions.json` has both an interchangeable shape and a
+   one-way one. A symmetric graph would recommend drinks a household cannot actually make well.
    **Ingredients are generic where a generic exists, and a proper name where the product has no
    substitute (JJ-017 as amended by JJ-033)** — white rum, not Bacardi; but Chartreuse, Campari and
    Angostura by name, because nothing else is those. The test: could a bartender hand you a different
@@ -179,13 +182,16 @@ deferred items without an explicit decision.
   extractions are **not** seed data; nothing ships without a curation pass. **Sources are settled
   (JJ-032):** Savoy for vintage depth, the IBA list for the modern canon — Savoy has zero tequila,
   zero bourbon and one Campari line, and no public-domain book fixes that, so the Waldorf-Astoria
-  and bartender's-guide PDFs are **dropped** (they stay local under the gitignored `seed/sources/`).
+  and bartender's-guide PDFs were **dropped and deleted** (2026-09-09) — neither was ever extracted.
   Specifications only from every source; prose stays where it is, and attribution ships in the data.
   **Done (SEED-2):** the ingredient catalog — 175 curated ingredients from 395 raw names, in
   `ingredients.json`, seeded as shared rows; `seed/build_ingredients.py` fails the build while any raw
   name is neither mapped nor explicitly excluded. **Done (SEED-3):** 969 cocktails and 3526 recipe
-  lines in `cocktails.json`, each credited to a `RecipeSource` (JJ-032). **Not yet curated:** the
-  substitution graph (SEED-4).
+  lines in `cocktails.json`, each credited to a `RecipeSource` (JJ-032). **Done (SEED-4):** the substitution graph — 17
+  interchangeable groups and 12 one-way entries, 88 directed rows. **The seed epic is complete for
+  MVP.** Two threads stay open and neither blocks anything: the Savoy extraction came from a
+  transcription website rather than the book, and two scrape-merged recipe lines are excluded rather
+  than guessed at.
 - Concrete schema (EF Core migrations) — generated from `docs/DATA_MODEL.md`.
 - **User stories: generated per-epic at build time**, under `docs/stories/` (one file per epic).
 - Non-web framework: **decided and built** — MAUI Blazor Hybrid ships all four native shells
@@ -200,7 +206,7 @@ deferred items without an explicit decision.
 | `docs/OVERVIEW.md` | Friendly platform tour (PM/power-user/developer/architect) — no codebase knowledge assumed |
 | `docs/PROJECT_BRIEF.md` | Why/what/scope (lean PRD) + OUT list |
 | `docs/brand/build_assets.py` | Regenerates every brand PNG + `favicon.ico` from the SVG sources (headless Edge + Pillow); store/marketing renders land in `docs/brand/` |
-| `seed/` | Seed-catalog extractions + scripts (Savoy done); raw source books stay local under `seed/sources/` |
+| `seed/` | The seed workspace — both extractions (`savoy_cocktails.json`, `iba_cocktails.json`), their scrapers, and the two curation scripts that emit the shipped files. Not shipped |
 | `docs/FEATURES.md` | User flows & behavior |
 | `docs/DATA_MODEL.md` | Entities, relationships, derived rules |
 | `docs/TECH_STACK.md` | Stack choices + rationale |
@@ -217,7 +223,7 @@ deferred items without an explicit decision.
 | `docs/STATUS.md` | 2026-07-04 status snapshot + operator guides — native QA pass (✅ 2026-07-14), Apple first-run smoke (MacBook walkthrough), prod activation (⤵ downstream Phase-8 runbook, ADR-017 amendment); SaaS-readiness assessment |
 | `docs/PLATFORM_BACKLOG.md` | Per-item design sketches for the future foundation slices (the detail behind ROADMAP) |
 | `docs/stories/` | User stories per epic — generated at build time |
-| `docs/stories/seed.md` | epic `SEED` 🚧 IN PROGRESS — SEED-1 ✅ the curated global lookups (19 glasses, 10 methods, 22 units, 25 categories with 154 subcategories) in one embedded `lookups.json`, written at startup by an idempotent `CatalogSeeder` behind `Seed:Catalog:Enabled`; ids derive from names (`SeedId`) so they are stable across environments and a rename is a data migration; the seeder refuses to run under a household because only a system context may write a shared row (JJ-031). plus the IBA extraction ✅ (`seed/scrape_iba.py`, 102 drinks, sitemap-driven, three-groups-of-34 used as a parse check). Sources settled by **JJ-032**: Savoy plus the IBA list, the two 1930s bar books dropped. SEED-2 ✅ the ingredient catalog (175 curated from 395 raw names; coverage enforced by `seed/build_ingredients.py`, brand-name rule in **JJ-033**). SEED-3 ✅ 969 cocktails + 3526 lines, credited to a `RecipeSource`; identity is the source plus its slug, glass and method optional (**JJ-034**), 60 prose recipes recovered from tag lists. SEED-4 substitutions planned |
+| `docs/stories/seed.md` | epic `SEED` 🚧 IN PROGRESS — SEED-1 ✅ the curated global lookups (19 glasses, 10 methods, 22 units, 25 categories with 154 subcategories) in one embedded `lookups.json`, written at startup by an idempotent `CatalogSeeder` behind `Seed:Catalog:Enabled`; ids derive from names (`SeedId`) so they are stable across environments and a rename is a data migration; the seeder refuses to run under a household because only a system context may write a shared row (JJ-031). plus the IBA extraction ✅ (`seed/scrape_iba.py`, 102 drinks, sitemap-driven, three-groups-of-34 used as a parse check). Sources settled by **JJ-032**: Savoy plus the IBA list, the two 1930s bar books dropped. SEED-2 ✅ the ingredient catalog (175 curated from 395 raw names; coverage enforced by `seed/build_ingredients.py`, brand-name rule in **JJ-033**). SEED-3 ✅ 969 cocktails + 3526 lines, credited to a `RecipeSource`; identity is the source plus its slug, glass and method optional (**JJ-034**), 60 prose recipes recovered from tag lists. SEED-4 ✅ the substitution graph (17 interchangeable groups + 12 one-way entries → 88 directed rows, each carrying its reasoning). **Epic complete for MVP** |
 | `docs/stories/cocktails.md` | epic `CKTL` 🚧 IN PROGRESS — CKTL-1 ✅ the nine domain entities, their configurations, the one migration that creates them, and the two walls that make the dual-natured catalog tables safe (app-level query filter + four command-scoped RLS policies, JJ-031) plus the three app-level tests that replace the platform guarantees those tables do not inherit; CKTL-2 browse + CKTL-3 detail planned |
 | `docs/stories/ui.md` | epic `UI` ✅ COMPLETE — **retrospective** (v3 T59, closing v2 DOC-22): the four 2026-07 web-UI slices that shipped without a story file — UI-1 GDPR export/erasure UI, UI-2 MFA UI, UI-3 notification bell/prefs UI, UI-4 staff `/admin` console; defines what QA §2 + the traceability matrix cite |
 | `docs/stories/billing.md` | epic `BILLING` ✅ COMPLETE — entitlements + Checkout + webhook + Portal (1–4) + seat/usage quotas (5, `IQuotaService`) + trial/dunning (6, `IBillingNotifier` + lapse sweep via NOTIFY) + dissolve cleanup (7, `BillingDataContributor` cancels the provider sub + wipes the projection) + billing page (8, `GET /api/billing` summary + `/billing` UI, fake-provider E2E upgrade loop) + seat re-check at invitation accept (9, 2026-07-14: downgrade left stale invites joinable past the cap → 402 `seat_limit_reached` + `/join` "household full" state, self-heals on upgrade); ADR-006 |
