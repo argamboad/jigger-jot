@@ -24,7 +24,7 @@ Two directories, and the split is deliberate.
 
 | Path | What it is | Shipped? |
 |---|---|---|
-| `seed/` | the extraction workspace — `savoy_cocktails.json`, `iba_cocktails.json` and their scripts, plus `seed/sources/` (gitignored: the two dropped books' scans run to 141 MB, past GitHub's file limit) | no |
+| `seed/` | the extraction workspace — `savoy_cocktails.json`, `iba_cocktails.json`, their two scrapers and the two curation scripts. `seed/sources/` stays gitignored for future raw material, and is empty | no |
 | `src/Infrastructure/Persistence/Seed/` | the **curated** files, embedded in the assembly and read at startup | yes |
 
 Extraction output is raw material, not seed data. Nothing reaches the second directory without a
@@ -125,7 +125,8 @@ question.
 tequila, zero bourbon, zero Aperol, one line of Campari and four of vodka. Jerry Thomas is from 1862
 and *Old Waldorf Bar Days* from 1931, so neither closes that gap — nothing old enough to be free
 contains a Margarita. Both are dropped, which also removes the wait on Waldorf, whose US public-domain
-term does not expire until 1 January 2027.
+term does not expire until 1 January 2027. **Neither was ever extracted, and both PDFs were deleted on
+2026-09-09** — there is no half-finished pipeline left behind to mislead anyone.
 
 **What is taken.** Specifications only: name, category, ingredient lines, amounts, method, garnish.
 Prose, headnotes, video and photography stay where they are. Attribution ships in the data, and

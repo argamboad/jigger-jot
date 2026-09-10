@@ -32,7 +32,9 @@ src/Maui/packages.lock.json
 # Native installables (DEPLOYMENT §9 publishes to out/android and out/windows)
 out/
 
-# Raw seed source books (large; waldorf.pdf exceeds GitHub's 100 MB limit) — keep local
+# Raw seed source material — scans and PDFs, which run past GitHub's 100 MB file limit.
+# Nothing lives here today (JJ-032 dropped the two books that did); the rule stays so the next
+# large source lands somewhere sensible instead of in a commit.
 seed/sources/
 
 # Python bytecode from the seed extraction scripts

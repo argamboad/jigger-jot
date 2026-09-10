@@ -1696,9 +1696,11 @@ crowd-sourced, and small enough to normalise by hand. It is where the Margarita,
 Espresso Martini live, and they live in no public-domain book at all.
 
 **Consequences.**
-1. **Waldorf and Jerry Thomas are dropped**, and the PDFs stay local under the gitignored
-   `seed/sources/`. This removes the January 2027 wait and two optical-character-recognition
-   cleanups, one of them rough.
+1. **Waldorf and Jerry Thomas are dropped.** This removes the January 2027 wait and two
+   optical-character-recognition cleanups, one of them rough. *(Amended 2026-09-09: the two PDFs
+   were deleted rather than kept locally. Neither was ever extracted, so nothing was lost but 155 MB,
+   and a half-finished source sitting in the workspace is an invitation to pick it back up without
+   re-reading why it was dropped. `seed/sources/` stays gitignored for future raw material.)*
 2. **Specifications only, from every source.** Name, category, ingredient lines, amounts, method,
    garnish. Prose, headnotes, video and photography are left where they are. A list of ingredients
    with functional directions is thin ground for copyright in the US; the writing around it is not.

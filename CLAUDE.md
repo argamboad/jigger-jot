@@ -182,7 +182,7 @@ deferred items without an explicit decision.
   extractions are **not** seed data; nothing ships without a curation pass. **Sources are settled
   (JJ-032):** Savoy for vintage depth, the IBA list for the modern canon — Savoy has zero tequila,
   zero bourbon and one Campari line, and no public-domain book fixes that, so the Waldorf-Astoria
-  and bartender's-guide PDFs are **dropped** (they stay local under the gitignored `seed/sources/`).
+  and bartender's-guide PDFs were **dropped and deleted** (2026-09-09) — neither was ever extracted.
   Specifications only from every source; prose stays where it is, and attribution ships in the data.
   **Done (SEED-2):** the ingredient catalog — 175 curated ingredients from 395 raw names, in
   `ingredients.json`, seeded as shared rows; `seed/build_ingredients.py` fails the build while any raw
@@ -206,7 +206,7 @@ deferred items without an explicit decision.
 | `docs/OVERVIEW.md` | Friendly platform tour (PM/power-user/developer/architect) — no codebase knowledge assumed |
 | `docs/PROJECT_BRIEF.md` | Why/what/scope (lean PRD) + OUT list |
 | `docs/brand/build_assets.py` | Regenerates every brand PNG + `favicon.ico` from the SVG sources (headless Edge + Pillow); store/marketing renders land in `docs/brand/` |
-| `seed/` | Seed-catalog extractions + scripts (Savoy done); raw source books stay local under `seed/sources/` |
+| `seed/` | The seed workspace — both extractions (`savoy_cocktails.json`, `iba_cocktails.json`), their scrapers, and the two curation scripts that emit the shipped files. Not shipped |
 | `docs/FEATURES.md` | User flows & behavior |
 | `docs/DATA_MODEL.md` | Entities, relationships, derived rules |
 | `docs/TECH_STACK.md` | Stack choices + rationale |
