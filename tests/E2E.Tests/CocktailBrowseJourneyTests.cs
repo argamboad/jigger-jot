@@ -80,6 +80,40 @@ public class CocktailBrowseJourneyTests : E2ETestBase
     }
 
     [Test]
+    public async Task ChoosingImperial_ChangesWhatTheRecipeSays_AndChoosingAsWrittenPutsItBack()
+    {
+        await Mailpit.ClearAsync();
+        await SignInAsync(Page, UniqueEmail("units"));
+
+        // The Negroni is authored in millilitres, so it is the drink that shows the difference.
+        await Page.GotoAsync($"{BaseUrl}/cocktails");
+        await Page.GetByTestId("cocktail-search").FillAsync("negroni");
+        await Expect(Page.GetByTestId("cocktail-list")).ToContainTextAsync("Negroni", new() { Timeout = 15_000 });
+        await Page.GetByTestId("cocktail-list").GetByText("Negroni", new() { Exact = true }).First.ClickAsync();
+        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("30 ml", new() { Timeout = 15_000 });
+        var recipeUrl = Page.Url;
+
+        // Settings, and the switcher saves server-side like the language and theme ones.
+        await Page.GotoAsync($"{BaseUrl}/settings");
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("unit-switcher").SelectOptionAsync("Imperial"),
+            r => r.Url.EndsWith("/api/auth/unit-system") && r.Request.Method == "PUT");
+
+        // Same recipe, read in ounces. The stored 30 ml has not moved — only the reading of it.
+        await Page.GotoAsync(recipeUrl);
+        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("1 oz", new() { Timeout = 15_000 });
+
+        // ...and "as written" is a choice a reader can come back to, not just where they started.
+        await Page.GotoAsync($"{BaseUrl}/settings");
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("unit-switcher").SelectOptionAsync(""),
+            r => r.Url.EndsWith("/api/auth/unit-system") && r.Request.Method == "PUT");
+
+        await Page.GotoAsync(recipeUrl);
+        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("30 ml", new() { Timeout = 15_000 });
+    }
+
+    [Test]
     public async Task ADrinkThatIsNotYours_IsNotFound()
     {
         await Mailpit.ClearAsync();

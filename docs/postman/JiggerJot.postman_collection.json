@@ -257,6 +257,51 @@
           "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"2xx\", () => pm.expect(pm.response.code).to.be.below(300));"], "type": "text/javascript" } }]
         },
         {
+          "name": "Preferences — set measurements",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/unit-system",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "unit-system"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unitSystem\": \"Metric\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "How this reader wants recipe amounts shown (JJ-008). \"Metric\" or \"Imperial\", case-insensitive.\n\n**null or omitted clears the preference** back to \"never chose\", which shows every recipe as its book wrote it. That is a choice a reader can return to, not merely where they start — it is the only way to read the 1930 recipes in the book's own words.\n\n**\"Neutral\" is rejected with 400.** Neutral is a property of a UNIT, not something a reader can prefer: \"show me everything in dashes\" is not a request anyone can act on, and accepting it would silently do nothing.\n\n403 from an impersonation session — staff must not mutate the target's preferences (ADR-022). The value comes back on GET /api/auth/me."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Set theme",
           "request": {
             "method": "PUT",

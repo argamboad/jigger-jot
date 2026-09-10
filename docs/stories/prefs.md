@@ -74,3 +74,63 @@ table/endpoint (declined — see the 2026-07-14 discussion; storage stays per-co
 E2E covers the cross-browser locale journey and the reconcile-on-sign-in theme journey (workaround
 reload removed); QA_TEST_PLAN updated in the same PR (R31) + PDFs regenerated; ADR-022 added;
 Postman descriptions updated; app working.
+
+---
+
+### PREFS-2 — Measurement preference
+
+**Status: ✅ Implemented.** `PUT /api/auth/unit-system` and the `UnitSwitcher` beside language and
+theme in Settings.
+
+**As a** reader of recipes
+**I want** to choose whether amounts show in millilitres or ounces
+**So that** a recipe reads in the measures I actually pour
+
+**Context / notes.** CKTL-3 built the conversion and read `User.PreferredUnitSystem`, but nothing set
+it — so every reader saw recipes as authored, which is the correct behaviour for a null preference
+and not yet a choice anyone could make. This closes that.
+
+**Three options, and "as written" is one of them.** Null is a real value meaning *never chose*, and a
+reader can return to it deliberately: it is the only way to read the 1930 recipes in the book's own
+words. Collapsing null to a default would have removed that, so the profile response carries null as
+null rather than substituting anything.
+
+**"Neutral" is rejected with a 400.** Neutral is a property of a *unit*, not something a reader can
+prefer — "show me everything in dashes" is not a request anyone can act on, and quietly accepting it
+would store a value that does nothing.
+
+**No device-local copy, unlike theme and language.** Nothing renders differently until a recipe is
+opened, and the server does the conversion, so there is nothing to apply before first paint and no
+`localStorage` bootstrap to keep in step. The switcher reads the server and writes to it. That makes
+this the simplest of the three preferences despite looking like the same shape.
+
+Impersonation is blocked by the same server-side guard as the other preference writes (ADR-022): a
+staff session must not change the target's account settings.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: Choosing imperial changes what a recipe says
+  Given a recipe written in millilitres
+  When I choose imperial in settings and open it
+  Then the amounts read in ounces
+
+Scenario: As written is a choice I can come back to
+  Given I have chosen imperial
+  When I choose "as written"
+  Then recipes read exactly as their books wrote them
+
+Scenario: A preference that is not a system is refused
+  When something that is not metric or imperial is sent
+  Then the request is rejected
+  And "neutral" is refused too, because no reader can prefer it
+
+Scenario: The switcher shows where I actually am
+  When I open settings
+  Then the control reflects the preference stored on my account
+```
+
+**Tests.** `tests/Api.Tests/Catalog/UnitPreferenceTests.cs` (seven) and a journey in
+`tests/E2E.Tests/CocktailBrowseJourneyTests.cs` that reads the same Negroni before, during and after
+the choice (suite 38 → 39). The conversion arithmetic itself is tested in
+`tests/Core.Tests/AmountDisplayTests.cs`, from CKTL-3.

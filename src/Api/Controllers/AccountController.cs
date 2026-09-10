@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using JiggerJot.Api.Authentication;
 using JiggerJot.Api.Models;
 using JiggerJot.Api.Services;
+using JiggerJot.Core.Entities;
 using JiggerJot.Core.Abstractions;
 using JiggerJot.Core.Repositories;
 
@@ -44,7 +45,10 @@ public class AccountController(
         return Ok(new UserProfileResponse
         {
             UserName = user.DisplayName ?? user.Email,
-            TenantName = tenantName ?? string.Empty
+            TenantName = tenantName ?? string.Empty,
+            // Null travels as null on purpose: "never chose" is a real state that the unit switcher
+            // shows as "As written", and collapsing it to a default here would erase the difference.
+            PreferredUnitSystem = user.PreferredUnitSystem?.ToString(),
         });
     }
 
@@ -111,6 +115,38 @@ public class AccountController(
             return BadRequest(new ErrorResponse("unsupported_theme", "Unsupported theme."));
 
         await userService.UpdateThemeAsync(userId, theme, cancellationToken);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Saves how the signed-in user wants recipe amounts shown, so it follows them across devices
+    /// (JJ-008). An empty or absent value clears the preference back to "never chose", which shows
+    /// every recipe as its book wrote it — that is a choice a reader can make, not just a default
+    /// they start with.
+    /// </summary>
+    [HttpPut("unit-system")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public async Task<IActionResult> SetUnitSystem(
+        [FromBody] UnitSystemRequest req, CancellationToken cancellationToken)
+    {
+        if (!TryGetUserId(out var userId)) return Unauthorized();
+        if (ImpersonatedPrefWrite() is { } denied) return denied;
+
+        UnitSystem? unitSystem = null;
+        if (!string.IsNullOrWhiteSpace(req.UnitSystem))
+        {
+            // Neutral is a property of a UNIT, not something a reader can prefer: "show me everything
+            // in dashes" is not a request anyone can act on.
+            if (!Enum.TryParse<UnitSystem>(req.UnitSystem.Trim(), ignoreCase: true, out var parsed)
+                || parsed == UnitSystem.Neutral)
+            {
+                return BadRequest(new ErrorResponse(
+                    "unsupported_unit_system", "Unsupported unit system."));
+            }
+            unitSystem = parsed;
+        }
+
+        await userService.UpdatePreferredUnitSystemAsync(userId, unitSystem, cancellationToken);
         return Ok();
     }
 

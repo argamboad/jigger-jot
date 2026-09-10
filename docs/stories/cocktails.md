@@ -242,9 +242,9 @@ front end — and a client that wants to format its own still has everything it 
 return the row; "forbidden" would be a claim the endpoint is in no position to make, and saying it
 would confirm the row exists.
 
-**The preference has no UI yet.** `PreferredUnitSystem` is read but nothing sets it, so today every
-reader sees recipes as authored. The switcher belongs beside the language and theme controls in
-Settings and is `PREFS` work, not this slice's.
+**The preference gained its UI in PREFS-2**, shipped alongside this: the switcher sits beside the
+language and theme controls in Settings, and "as written" is one of its three options rather than
+merely the state a reader starts in.
 
 **Acceptance criteria**
 
