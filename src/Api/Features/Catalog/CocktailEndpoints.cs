@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using JiggerJot.Api.Authentication;
 using JiggerJot.Api.Endpoints;
+using JiggerJot.Api.Services;
 using JiggerJot.Core.Entities;
 
 namespace JiggerJot.Api.Features.Catalog;
@@ -60,6 +61,13 @@ public static class CocktailEndpoints
         group.MapGet("/filters", async (CocktailBrowseHandler handler, CancellationToken ct) =>
             Results.Ok(await handler.FilterOptionsAsync(ct)));
 
+        // Everything the authoring form may offer. Deliberately NOT the same list as /filters above:
+        // that one is derived from the catalog so a filter never offers a dead end, while this is the
+        // whole curated lookup, because someone writing down what they pour must be able to reach a
+        // glass no seeded recipe happens to use (JJ-022).
+        group.MapGet("/lookups", async (CocktailAuthoringHandler handler, CancellationToken ct) =>
+            Results.Ok(await handler.OptionsAsync(ct)));
+
         group.MapGet("/{id:guid}", async (
             Guid id,
             ClaimsPrincipal principal,
@@ -71,6 +79,37 @@ public static class CocktailEndpoints
             // position to make — and saying it would confirm the row exists.
             var detail = await handler.GetAsync(id, principal.GetUserId(), ct);
             return detail is null ? Results.NotFound() : Results.Ok(detail);
+        });
+
+        // FEATURES §14: a household writes its own cocktail. The plain POST on the collection,
+        // because that is what this is — everything else here is a read or a copy.
+        group.MapPost("/", async (
+            AuthorCocktailRequest request,
+            CocktailAuthoringHandler handler,
+            CancellationToken ct) =>
+        {
+            var result = await handler.CreateAsync(request, ct);
+
+            return result.Outcome switch
+            {
+                AuthorCocktailOutcome.Created =>
+                    Results.Created($"/api/cocktails/{result.Id}", new CocktailCreatedResponse(result.Id!.Value)),
+
+                AuthorCocktailOutcome.InvalidName => Results.BadRequest(new ErrorResponse(
+                    "invalid_name", "A cocktail name is required")),
+
+                AuthorCocktailOutcome.NoLines => Results.BadRequest(new ErrorResponse(
+                    "no_lines", "A cocktail needs at least one ingredient")),
+
+                AuthorCocktailOutcome.UnknownIngredient => Results.BadRequest(new ErrorResponse(
+                    "unknown_ingredient", "One of those ingredients is not in your catalog")),
+
+                AuthorCocktailOutcome.InvalidLine => Results.BadRequest(new ErrorResponse(
+                    "invalid_line", "Check the amounts and units on each line")),
+
+                _ => Results.BadRequest(new ErrorResponse(
+                    "unknown_lookup", "That glass or method does not exist")),
+            };
         });
 
         // FEATURES §13: "create my own version". A POST because it creates a row, under the cocktail
@@ -85,7 +124,7 @@ public static class CocktailEndpoints
             // 404 for a cocktail this household cannot see, for the same reason the read is: the
             // filter does not return it, and "forbidden" would confirm the row exists.
             return forkId is { } created
-                ? Results.Created($"/api/cocktails/{created}", new ForkedCocktailResponse(created))
+                ? Results.Created($"/api/cocktails/{created}", new CocktailCreatedResponse(created))
                 : Results.NotFound();
         });
 

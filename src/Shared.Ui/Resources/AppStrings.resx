@@ -366,4 +366,32 @@
   <data name="Cocktail_Fork" xml:space="preserve"><value>Create my own version</value></data>
   <data name="Cocktail_BasedOn" xml:space="preserve"><value>Based on</value></data>
   <data name="Cocktail_ForkFailed" xml:space="preserve"><value>Could not copy that. Try again.</value></data>
+  <data name="Cocktail_New" xml:space="preserve"><value>Write a cocktail</value></data>
+  <data name="Cocktail_NewSubtitle" xml:space="preserve"><value>Your own recipe, in your own words. It joins the catalog and the makeable list straight away.</value></data>
+  <data name="Cocktail_FieldName" xml:space="preserve"><value>Name</value></data>
+  <data name="Cocktail_FieldGlass" xml:space="preserve"><value>Glass</value></data>
+  <data name="Cocktail_FieldMethod" xml:space="preserve"><value>Method</value></data>
+  <data name="Cocktail_FieldServing" xml:space="preserve"><value>Served as</value></data>
+  <data name="Cocktail_FieldInstructions" xml:space="preserve"><value>Instructions</value></data>
+  <data name="Cocktail_NotStated" xml:space="preserve"><value>Not stated</value></data>
+  <data name="Cocktail_LineIngredient" xml:space="preserve"><value>Ingredient</value></data>
+  <data name="Cocktail_LineAmount" xml:space="preserve"><value>Amount</value></data>
+  <data name="Cocktail_LineUnit" xml:space="preserve"><value>Unit</value></data>
+  <data name="Cocktail_LineRole" xml:space="preserve"><value>Role</value></data>
+  <data name="Cocktail_LineRequired" xml:space="preserve"><value>Required</value></data>
+  <data name="Cocktail_AddLine" xml:space="preserve"><value>Add an ingredient</value></data>
+  <data name="Cocktail_Save" xml:space="preserve"><value>Save this recipe</value></data>
+  <data name="Cocktail_ErrName" xml:space="preserve"><value>Give the drink a name.</value></data>
+  <data name="Cocktail_ErrNoLines" xml:space="preserve"><value>A cocktail needs at least one ingredient.</value></data>
+  <data name="Cocktail_ErrIngredient" xml:space="preserve"><value>One of those ingredients is not in your catalog.</value></data>
+  <data name="Cocktail_ErrLine" xml:space="preserve"><value>Check the amounts and units. A unit needs an amount to go with it.</value></data>
+  <data name="Cocktail_ErrLookup" xml:space="preserve"><value>That glass or method does not exist.</value></data>
+  <data name="Cocktail_RoleBase" xml:space="preserve"><value>Base</value></data>
+  <data name="Cocktail_RoleModifier" xml:space="preserve"><value>Modifier</value></data>
+  <data name="Cocktail_RoleJuice" xml:space="preserve"><value>Juice</value></data>
+  <data name="Cocktail_RoleSyrup" xml:space="preserve"><value>Syrup</value></data>
+  <data name="Cocktail_RoleBitters" xml:space="preserve"><value>Bitters</value></data>
+  <data name="Cocktail_RoleGarnish" xml:space="preserve"><value>Garnish</value></data>
+  <data name="Cocktail_RoleMixer" xml:space="preserve"><value>Mixer</value></data>
+  <data name="Cocktail_RoleOther" xml:space="preserve"><value>Other</value></data>
 </root>

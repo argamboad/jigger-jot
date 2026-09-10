@@ -52,21 +52,23 @@
 
 ## Where things stand — 2026-09-10
 
-**Merged into `develop`** (PRs #1–#16): CKTL-1 domain model and both tenancy walls; SEED-1 to
-SEED-4; CKTL-2 browse; CKTL-3 detail + PREFS-2 measurement preference; INV-1 the shelf; MAKE-1 the
-makeable engine; ALMOST-1 one-ingredient-away and the header's app/platform split; CKTL-4 the
-recipe's own makeability; INV-2 custom ingredients; FILTER-1 the catalog filters. Staging deploys on
-every merge and the seeder runs there against the enforcing RLS role. The shipped seed is a **starter
-catalog** of 31 recipes; `python seed/build_cocktails.py --full` emits all 969.
+**Merged into `develop`** (PRs #1–#17): the domain model and both tenancy walls, the seed catalog,
+browse, detail, the measurement preference, the shelf, the makeable engine, one-ingredient-away, the
+recipe's own makeability, custom ingredients, the catalog filters, and forking. Staging deploys on
+every merge. The shipped seed is a **starter catalog** of 31 recipes; `python
+seed/build_cocktails.py --full` emits all 969.
 
-**Built, verified, uncommitted** on `feat/FORK-1-create-my-own-version` (branched from `develop`):
+**Built, verified, uncommitted** on `feat/AUTHORING-1-write-a-cocktail` (branched from `develop`):
 
-- **FORK-1** to `FEATURES.md` §13: `POST /api/cocktails/{id}/fork` and a button on the recipe page.
-  A snapshot copy, never a reference (JJ-013) — half the tests exist to prove the copy stays put when
-  the original is edited, deleted or forked again.
-- The source credit is deliberately **not** copied: the book wrote the original, not the household's
-  version of it (JJ-032). Provenance rides on `ForkedFromCocktailId` and reads as "Based on X".
-- `TenantId` set by hand on the cocktail **and** every line — nothing stamps either (JJ-031).
+- **AUTHORING-1** to `FEATURES.md` §14: `POST /api/cocktails`, `GET /api/cocktails/lookups` and the
+  `/cocktails/new` form. A written drink joins makeable and filtering immediately and for free.
+- **Two lookup endpoints that must not be merged**: `/filters` is catalog-derived so no filter is a
+  dead end; `/lookups` is the whole curated set so a form can reach a glass no recipe uses (JJ-022).
+- **A bug the twenty handler tests all passed through**: request enums could not bind, because
+  nothing had ever sent this API an enum before. Found in the browser, fixed with a per-property
+  converter, and now covered by an HTTP-level test — the second time this project has needed
+  reminding that a handler test cannot see model binding.
+- One gap **logged, not folded in**: AUTHORING-2, editing a cocktail (including a fork).
 
 ## What is next, in order
 
@@ -74,9 +76,11 @@ Each is one branch off `develop`, one PR, after the previous one is merged.
 
 | # | Slice | Flow | What it is |
 |---|---|---|---|
-| 1 | **FORK-1** | §13 | The uncommitted work above. Waiting on C+P+PR. |
-| 2 | **AUTHORING-1** | §14 | A household writes a cocktail from scratch. Glass and method optional (JJ-034). |
-| 3 | **ONBOARD-1** | §7 | New-household wizard: tick a starter shelf, land on what you can make. |
+| 1 | **AUTHORING-1** | §14 | The uncommitted work above. Waiting on C+P+PR. |
+| 2 | **ONBOARD-1** | §7 | New-household wizard: tick a starter shelf, land on what you can make. |
+
+Also open, and not scheduled: **AUTHORING-2**, editing a cocktail (including a fork) — it
+needs the write form again in an edit shape.
 
 Not on this list, deliberately: the Savoy transcription-source question (JJ-032, open, blocks
 nothing), the two scrape-merged recipe lines, and restoring the 969-recipe catalog — that is a

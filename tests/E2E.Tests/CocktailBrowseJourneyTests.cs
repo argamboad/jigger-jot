@@ -169,6 +169,72 @@ public class CocktailBrowseJourneyTests : E2ETestBase
             .ToBeVisibleAsync(new() { Timeout = 30_000 });
     }
 
+    /// <summary>
+    /// AUTHORING-1 (FEATURES §14): a household writes a cocktail from scratch. The last line of that
+    /// flow is the one worth driving through a browser — the new drink joins the catalog and the
+    /// makeable engine straight away, with nothing to rebuild and no tag to remember to set.
+    /// </summary>
+    [Test]
+    public async Task WritingMyOwnCocktail_PutsItInTheCatalog_AndInWhatICanMake()
+    {
+        await Mailpit.ClearAsync();
+        await SignInAsync(Page, UniqueEmail("author"));
+
+        // Two bottles on the shelf first, so the drink written below is makeable the moment it exists.
+        await Page.GetByTestId("nav-shelf").ClickAsync();
+        await Expect(Page.Locator("[data-testid^='shelf-item-']").First)
+            .ToBeVisibleAsync(new() { Timeout = 30_000 });
+        foreach (var ingredient in new[] { "London dry gin", "Campari" })
+        {
+            var box = Page.GetByRole(AriaRole.Checkbox, new() { Name = ingredient, Exact = true });
+            await Page.RunAndWaitForResponseAsync(
+                () => box.CheckAsync(),
+                r => r.Url.Contains("/api/inventory/") && r.Request.Method == "PUT" && r.Status == 204);
+        }
+
+        await Page.GotoAsync($"{BaseUrl}/cocktails/new");
+        await Expect(Page.GetByTestId("new-name")).ToBeVisibleAsync(new() { Timeout = 30_000 });
+
+        var name = $"House Special {Guid.NewGuid():N}"[..24];
+        await Page.GetByTestId("new-name").FillAsync(name);
+        await Page.GetByTestId("new-instructions").FillAsync("Stir, and do not overthink it.");
+
+        // Two lines: the second one added, because a recipe with one ingredient would not exercise
+        // the part of the form a person actually uses.
+        await Page.GetByTestId("new-line-add").ClickAsync();
+        await Expect(Page.GetByTestId("new-line")).ToHaveCountAsync(2);
+
+        var ingredients = Page.GetByTestId("new-line-ingredient");
+        await ingredients.Nth(0).SelectOptionAsync(new SelectOptionValue { Label = "London dry gin" });
+        await Page.GetByTestId("new-line-amount").Nth(0).FillAsync("30");
+        await Page.GetByTestId("new-line-unit").Nth(0).SelectOptionAsync(new SelectOptionValue { Label = "ml" });
+
+        await ingredients.Nth(1).SelectOptionAsync(new SelectOptionValue { Label = "Campari" });
+        await Page.GetByTestId("new-line-amount").Nth(1).FillAsync("30");
+        await Page.GetByTestId("new-line-unit").Nth(1).SelectOptionAsync(new SelectOptionValue { Label = "ml" });
+
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("new-save").ClickAsync(),
+            r => r.Url.EndsWith("/api/cocktails") && r.Request.Method == "POST" && r.Status == 201);
+
+        // It opens, with both lines and the amounts as written. Glass and method were left unstated,
+        // which is allowed and shows as nothing rather than as a guess (JJ-034).
+        await Expect(Page.GetByTestId("cocktail-name")).ToContainTextAsync(name, new() { Timeout = 30_000 });
+        await Expect(Page.GetByTestId("cocktail-lines").Locator("li")).ToHaveCountAsync(2);
+        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("30 ml");
+
+        // And the claim §14 actually makes: it is makeable now, because makeability is derived from
+        // the lines rather than stored (JJ-003).
+        await Expect(Page.GetByTestId("cocktail-makeability")).ToContainTextAsync("You can make this");
+
+        await Page.GotoAsync($"{BaseUrl}/cocktails");
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("cocktail-search").FillAsync(name),
+            r => r.Url.Contains("search=") && r.Status == 200);
+        await Expect(Page.GetByTestId("cocktail-list")).ToContainTextAsync(name, new() { Timeout = 30_000 });
+        await Expect(Page.GetByTestId("cocktail-list")).ToContainTextAsync("Yours");
+    }
+
     [Test]
     public async Task ChoosingImperial_ChangesWhatTheRecipeSays_AndChoosingAsWrittenPutsItBack()
     {

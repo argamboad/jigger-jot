@@ -146,8 +146,9 @@ public record CocktailDetail(
 /// </summary>
 public record ForkOriginView(Guid Id, string Name);
 
-/// <summary>The new cocktail's id, so the caller can go straight to it.</summary>
-public record ForkedCocktailResponse(Guid Id);
+/// <summary>The new cocktail's id, so the caller can go straight to it. Shared by the fork and
+/// the authoring endpoints, which differ in how the drink came to exist and in nothing else.</summary>
+public record CocktailCreatedResponse(Guid Id);
 
 /// <param name="Attribution">Written out per source, because the sources are not on the same footing
 /// and a template would flatten that.</param>

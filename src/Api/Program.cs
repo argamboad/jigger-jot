@@ -116,6 +116,7 @@ builder.Services.AddScoped<ITenantDataContributor, CatalogDataContributor>();
 builder.Services.AddScoped<CocktailBrowseHandler>();
 builder.Services.AddScoped<CocktailDetailHandler>();
 builder.Services.AddScoped<CocktailForkHandler>();
+builder.Services.AddScoped<CocktailAuthoringHandler>();
 builder.Services.AddScoped<InventoryHandler>();
 builder.Services.AddScoped<ITenantDataContributor, InventoryDataContributor>();
 
