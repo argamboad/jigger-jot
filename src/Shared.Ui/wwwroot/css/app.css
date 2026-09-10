@@ -6,6 +6,13 @@
        Current values: JiggerJot copper + brass, derived from the jigger mark (JJ-029). */
     --bs-primary: #B4562A;          /* primary — copper: buttons, header, accents (4.9:1 with white) */
     --bs-primary-rgb: 180, 86, 42;
+    /* Bootstrap 5.3 DERIVES a second family of tokens from its own primary rather than from
+       --bs-primary, so overriding the two above does not reach them and .text-primary-emphasis,
+       .bg-primary-subtle and .border-primary-subtle stay Bootstrap navy. Restate them here or the
+       brand stops at the buttons. */
+    --bs-primary-text-emphasis: #7A3517;   /* darkened copper — 8.9:1 on white */
+    --bs-primary-bg-subtle: #F9EDE7;
+    --bs-primary-border-subtle: #E8C4B2;
     --brand-accent: #D9A441;        /* accent — brass: logo detail, loading spinner */
     --brand-dark: #8C3F1D;          /* darkest shade — hover / active */
     --brand-accent-light: #D9865A;  /* accent that reads on dark surfaces (dark-theme links) */
@@ -24,11 +31,34 @@
     --app-border: #2F353E;
     --bs-link-color: #D9865A;
     --bs-link-hover-color: #F0A87E;
+    /* The dark counterparts of the derived family above. */
+    --bs-primary-text-emphasis: #E5A883;
+    --bs-primary-bg-subtle: #2A1A12;
+    --bs-primary-border-subtle: #5C3620;
 }
 
 [data-bs-theme="dark"] a,
 [data-bs-theme="dark"] .btn-link {
     color: var(--brand-accent-light);
+}
+
+/* ...but not an anchor that is really a button. The rule above is specificity 0,1,1 and beats
+   .btn-primary at 0,1,0, so in dark theme an <a class="btn btn-primary"> took the copper accent and
+   sat on the copper fill — 1.74:1, where AA wants 4.5:1. It fires for anchors only, which is why an
+   identical <button> looked right and the two rendered differently from the same class. */
+[data-bs-theme="dark"] a.btn-primary,
+[data-bs-theme="dark"] a.btn-primary:hover,
+[data-bs-theme="dark"] a.btn-primary:focus {
+    color: #fff;
+}
+
+/* Same collision, on the header. The bar is copper in BOTH themes, so its wordmark is white by way
+   of Bootstrap's --bs-navbar-brand-color at 0,1,0 — which the anchor rule also outranks. Scoped to
+   the brand rather than to every anchor in the bar: the nav links resolve through
+   .navbar-nav .nav-link at 0,2,0 and were never affected, and widening this would silently change
+   their opacity in one theme only. */
+[data-bs-theme="dark"] .app-header .navbar-brand {
+    color: #fff;
 }
 
 /* The wordmark lockups are dark-on-transparent; swap in the light-on-transparent variant
@@ -96,6 +126,33 @@ a, .btn-link {
 [data-bs-theme="dark"] .btn-outline-primary {
     --bs-btn-color: var(--brand-accent-light);
     --bs-btn-border-color: var(--brand-accent-light);
+}
+
+/* Not a specificity problem: bootstrap.min.css compiles these with a literal #0d6efd rather than
+   var(--bs-primary), so no token override can reach them and every ticked box in the app stayed
+   Bootstrap blue — all 191 shelf checkboxes and both switches that drive the makeable feature. The
+   focus BORDER is hardcoded the same way; its halo is already brand-coloured by the rule below, so
+   only the border is restated here. */
+.form-check-input:checked {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+.form-check-input:focus {
+    border-color: var(--bs-primary);
+}
+
+/* The last hardcoded blue of the same family: Bootstrap swaps the switch knob for a blue circle on
+   focus, as an inline SVG that no token can reach. Only the UNCHECKED switch was showing it — in
+   Bootstrap's own file the :checked rule comes after :focus and wins. app.css loads after Bootstrap,
+   though, so overriding :focus at equal specificity would take the checked knob with it and put a
+   copper circle on the copper track, where it disappears. Hence the second rule. */
+.form-switch .form-check-input:focus {
+    --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23B4562A'/%3e%3c/svg%3e");
+}
+
+.form-switch .form-check-input:checked:focus {
+    --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
