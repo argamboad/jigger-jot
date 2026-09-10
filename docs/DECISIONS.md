@@ -1804,3 +1804,26 @@ glass and method are browse facets (FEATURES §11), where "not specified" is an 
    different data-quality stories and only the second is ours to improve.
 
 *Decided 2026-09-09.*
+
+**JJ-035 — A ranked "which bottle unlocks the most" IS in MVP, reversing two earlier exclusions.**
+`ALMOST-1` shipped saying a ranked shopping list was out of scope, and `FORK-1` repeated it. Both were
+right at the time and both are now overturned deliberately rather than quietly.
+
+*What changed.* The starter catalog puts 81 drinks one bottle away on a modest shelf. Per-drink the
+answer is correct and useless: eighty-one rows each naming a bottle is a list nobody reads. Grouped by
+the missing ingredient it becomes one sentence — *buy this and four open up* — which is the same data
+answering the question a person actually has. The UI proposal (`MARGA`) depends on it for three
+screens, and nothing else in that proposal needs new data at all.
+
+*Rationale.* It costs one query and no schema. It reuses `ALMOST-1`'s predicate verbatim, so the two
+readings of the set cannot drift, and a test walks both to prove it. The earlier exclusions were about
+building a *shopping list feature* — multi-bottle combinations, saved lists, quantities — and those
+stay out.
+
+*Consequences.* Ties order by count then by ingredient name, so the answer does not change between
+requests with nothing behind it. The count and the drinks it names are one value read twice, never
+two values computed twice, so the endpoint never truncates the names it returns. Suggesting a first
+bottle to a household that is one away from *nothing* is a different question with no set to rank —
+that stays open, logged against `MARGA-3`.
+
+*Decided 2026-09-10.*

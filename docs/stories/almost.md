@@ -4,7 +4,7 @@
 > required line short of, each one naming the bottle that would unlock it. Read with **JJ-019**
 > (derived, never stored), **JJ-004**/**JJ-006** (substitutions, directed) and **JJ-009** (optional
 > lines never block). Stories use Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — ALMOST-1 shipped; ALMOST-2 (the bottle that unlocks the most) planned.
+> **Status: ✅ COMPLETE for MVP** — ALMOST-1 and ALMOST-2 shipped.
 
 **Epic key:** `ALMOST`
 
@@ -122,8 +122,8 @@ status on the **detail** page is `CKTL-4`.
 
 ### ALMOST-2 — The bottle that unlocks the most
 
-**Status: 📋 Planned.** The inverse of ALMOST-1, and the only new engine work in the UI wave.
-Proposal screen **4**.
+**Status: ✅ Implemented** (**JJ-035**). `GET /api/cocktails/unlocks` and the summary card on the
+one-away list. The inverse of ALMOST-1, and the only new engine work in the UI wave. Proposal screen **4**.
 
 **As a** member of a household
 **I want** to know which single bottle unlocks the most drinks
@@ -138,7 +138,10 @@ Every grouping in the catalog today is per cocktail. This is the first one that 
 **It was deliberately left out twice**, in this file and in `FORK`, on the grounds that a ranked
 shopping list is not in `PROJECT_BRIEF`. The proposal puts it back, and it earns its place: "buy this
 one thing and four drinks open up" is a far stronger hook than the same per-row line repeated down a
-long list. Log the decision rather than quietly reversing the earlier one.
+long list. The reversal is logged as **JJ-035** rather than made quietly.
+
+**Measured on the shipped catalog:** a shelf holding gin and Campari leaves 81 drinks one bottle
+away. Dry vermouth alone accounts for 13 of them. That ratio is the argument for the slice.
 
 **The summary and the rows must agree.** The card says a number and names drinks; the rows beneath it
 say the same thing one at a time. Both come from one query or they drift.
@@ -173,3 +176,13 @@ Scenario: An empty shelf ranks nothing
 **Out of scope, deliberately:** a full shopping list, multi-bottle combinations ("these two unlock
 nine"), and the cold-start recommendation for a household that is one away from nothing — that last
 one is a different query and is the open question logged in `MARGA-3`.
+
+**Tests.** `tests/Api.Tests/Catalog/UnlockingBottleTests.cs` (ten) and one journey in
+`tests/E2E.Tests/MakeableJourneyTests.cs` (suite 48 → 49). Almost every assertion is an **invariant**
+rather than a claim about the catalog — the count equals the names, the order is count then name, the
+top entry really is the maximum — so they survive the seed changing, which six tests failed to do
+when the catalog last shrank.
+
+> **One thing for `MARGA-1` to decide.** With a real shelf the top bottle named 13 drinks, and 13
+> names wraps to two lines. The DATA must stay uncapped, because the count is the length of the
+> names. The DISPLAY probably wants "and nine more".

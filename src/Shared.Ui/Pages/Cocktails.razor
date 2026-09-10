@@ -107,6 +107,22 @@
     </div>
 }
 
+@* ALMOST-2 (JJ-035): the same set the rows below show, read the other way round. Eighty-one rows
+   each naming a bottle is correct and unreadable; one bottle naming four drinks is the sentence
+   someone can act on. MARGA-1 gives this card her face and her voice — the shape is hers already. *@
+@if (_almostOnly && _unlocks is { Count: > 0 })
+{
+    var best = _unlocks[0];
+    <div class="card shadow-sm mb-3 border-primary-subtle bg-primary-subtle" data-testid="cocktail-unlocks">
+        <div class="card-body py-3">
+            <p class="mb-1 fw-medium">@Localizer["Cocktails_UnlocksHeadline", best.Ingredient, best.Unlocks]</p>
+            <p class="mb-0 text-body-secondary small" data-testid="cocktail-unlocks-drinks">
+                @string.Join(" · ", best.Cocktails)
+            </p>
+        </div>
+    </div>
+}
+
 @if (_error is not null)
 {
     <div class="alert alert-danger py-2" data-testid="cocktail-error">@_error</div>
@@ -235,6 +251,10 @@ else
     private string _serving = string.Empty;
     private FilterOptionsView _options = new([], [], []);
     private CancellationTokenSource? _ingredientDebounce;
+
+    // ALMOST-2. Fetched only while the one-away filter is on, and refreshed whenever that list
+    // reloads: the shelf can change under it, and a stale "buy triple sec" is worse than none.
+    private List<UnlockView> _unlocks = [];
 
     /// <summary>How many filters are narrowing the list, so the button can say so while closed.</summary>
     private int ActiveFilters =>
@@ -367,6 +387,13 @@ else
             var result = await Http.GetFromJsonAsync<PagedResponse<CocktailSummary>>(url);
             if (ticket != _requestTicket) return;
             _page = result;
+
+            // Only while the one-away filter is on, and behind the same ticket, so a slow summary
+            // cannot land on a list that has already moved on.
+            _unlocks = _almostOnly
+                ? await Http.GetFromJsonAsync<List<UnlockView>>("/api/cocktails/unlocks?limit=1") ?? []
+                : [];
+            if (ticket != _requestTicket) return;
         }
         catch (Exception)
         {
@@ -404,6 +431,8 @@ else
         IReadOnlyList<SubstitutionInPlay> Substitutions, string? MissingIngredient);
 
     private record SubstitutionInPlay(string AsksFor, string YouHave);
+
+    private record UnlockView(Guid IngredientId, string Ingredient, int Unlocks, List<string> Cocktails);
 
     private record FilterOptionView(Guid Id, string Name);
 

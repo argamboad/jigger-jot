@@ -134,6 +134,62 @@ public class CocktailBrowseHandler(
     }
 
     /// <summary>
+    /// The bottles that would open the most drinks, best first (ALMOST-2, JJ-035).
+    /// </summary>
+    /// <param name="limit">How many bottles to rank. It caps the BOTTLES, never the drinks each one
+    /// names — truncating those would break the count the card shows beside them.</param>
+    /// <remarks>
+    /// <para>
+    /// This is ALMOST-1's set grouped the other way: by the missing ingredient rather than by the
+    /// cocktail. The predicate below is character-for-character the one the almost filter uses, so
+    /// the two endpoints can never disagree about which drinks are one bottle away or about which
+    /// bottle each is waiting on. There is a test that walks both and checks exactly that.
+    /// </para>
+    /// <para>
+    /// Grouped in memory rather than in SQL. The set is bounded by the catalog — under a thousand
+    /// rows even at full size — and the readable version is worth more here than a GROUP BY, not
+    /// least because EF could not translate the projection FILTER-1 first tried.
+    /// </para>
+    /// </remarks>
+    public async Task<IReadOnlyList<UnlockingBottle>> UnlockingBottlesAsync(
+        int limit, CancellationToken cancellationToken)
+    {
+        var available = inventory.Query().Where(i => i.IsAvailable).Select(i => i.IngredientId);
+        var subs = substitutions.Query();
+
+        // Exactly one required line unsatisfied, after substitutions — the almost-makeable set.
+        var almost = cocktails.Query().Where(c => c.Lines.Count(l =>
+            l.IsRequired
+            && !available.Contains(l.IngredientId)
+            && !subs.Any(s => s.IngredientId == l.IngredientId
+                              && available.Contains(s.SubstituteIngredientId))) == 1);
+
+        // ...and the one line each of them is waiting on.
+        var rows = await almost
+            .SelectMany(c => c.Lines
+                .Where(l => l.IsRequired
+                            && !available.Contains(l.IngredientId)
+                            && !subs.Any(s => s.IngredientId == l.IngredientId
+                                              && available.Contains(s.SubstituteIngredientId)))
+                .Select(l => new { l.IngredientId, Ingredient = l.Ingredient!.Name, Cocktail = c.Name }))
+            .ToListAsync(cancellationToken);
+
+        return [.. rows
+            .GroupBy(r => new { r.IngredientId, r.Ingredient })
+            // Most first, then by name. Without the second key two bottles that each open three
+            // drinks would swap places between requests with nothing behind it, and the card would
+            // appear to change its mind.
+            .OrderByDescending(g => g.Count())
+            .ThenBy(g => g.Key.Ingredient, StringComparer.Ordinal)
+            .Take(limit < 1 ? 1 : limit)
+            .Select(g => new UnlockingBottle(
+                g.Key.IngredientId,
+                g.Key.Ingredient,
+                g.Count(),
+                [.. g.Select(r => r.Cocktail).OrderBy(n => n, StringComparer.Ordinal)]))];
+    }
+
+    /// <summary>
     /// What the filter dropdowns offer (FILTER-1) — read off the catalog rather than off the lookup
     /// tables, so every option returns at least one drink.
     /// </summary>
