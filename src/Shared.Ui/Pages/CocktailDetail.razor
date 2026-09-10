@@ -1,0 +1,148 @@
+@page "/cocktails/{Id:guid}"
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject IStringLocalizer<AppStrings> Localizer
+
+<PageTitle>@(_recipe?.Name ?? Localizer["Nav_Cocktails"])</PageTitle>
+
+<a class="btn btn-link px-0 mb-2" href="/cocktails">← @Localizer["Nav_Cocktails"]</a>
+
+@if (_loading)
+{
+    <div class="p-4 text-center text-muted">
+        <span class="spinner-border spinner-border-sm me-2"></span> @Localizer["Common_Loading"]
+    </div>
+}
+else if (_notFound)
+{
+    <div class="alert alert-warning py-2" data-testid="cocktail-notfound">@Localizer["Cocktail_NotFound"]</div>
+}
+else if (_error is not null)
+{
+    <div class="alert alert-danger py-2" data-testid="cocktail-error">@_error</div>
+}
+else if (_recipe is not null)
+{
+    <h1 class="h4 fw-bold mb-1" data-testid="cocktail-name">
+        @_recipe.Name
+        @if (_recipe.IsOwn)
+        {
+            <span class="badge text-bg-primary align-middle ms-2">@Localizer["Cocktails_Yours"]</span>
+        }
+    </h1>
+
+    @* Glass and method are optional (JJ-034). When a recipe never said, the line is simply absent —
+       no "unknown", which would read as a fact about the drink rather than a gap in the book. *@
+    @if (Facets().Any())
+    {
+        <p class="text-muted mb-4" data-testid="cocktail-facets">@string.Join(" · ", Facets())</p>
+    }
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <h2 class="h6 text-uppercase text-muted mb-3">@Localizer["Cocktail_Ingredients"]</h2>
+            <ul class="list-unstyled mb-0" data-testid="cocktail-lines">
+                @foreach (var line in _recipe.Lines)
+                {
+                    <li class="d-flex gap-3 py-1 border-bottom">
+                        @* The amount is already rendered in the reader's preferred system by the API,
+                           so there is one implementation of that arithmetic rather than one per client. *@
+                        <span class="text-nowrap fw-medium" style="min-width:6rem">@line.Display</span>
+                        <span>
+                            @line.Ingredient
+                            @if (!line.IsRequired)
+                            {
+                                <span class="badge text-bg-light ms-1">@Localizer["Cocktail_Optional"]</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(line.Notes))
+                            {
+                                <span class="text-muted small ms-1">@line.Notes</span>
+                            }
+                        </span>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_recipe.Instructions))
+    {
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <h2 class="h6 text-uppercase text-muted mb-2">@Localizer["Cocktail_Method"]</h2>
+                <p class="mb-0" data-testid="cocktail-instructions">@_recipe.Instructions</p>
+            </div>
+        </div>
+    }
+
+    @if (_recipe.Source is not null)
+    {
+        @* The credit rides with the row rather than living in a footer, which is the whole reason
+           RecipeSource exists (JJ-032). *@
+        <p class="text-muted small" data-testid="cocktail-source">
+            @_recipe.Source.Name@(_recipe.Source.Year is { } y ? $" ({y})" : "")
+            @if (!string.IsNullOrWhiteSpace(_recipe.Source.Attribution))
+            {
+                <br />
+
+                @_recipe.Source.Attribution
+            }
+        </p>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private CocktailDetailView? _recipe;
+    private bool _loading = true;
+    private bool _notFound;
+    private string? _error;
+
+    // OnParametersSetAsync rather than OnInitializedAsync: Blazor reuses the component when the route
+    // parameter changes, so initialising once would leave the old recipe on screen.
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _notFound = false;
+        _error = null;
+
+        try
+        {
+            var response = await Http.GetAsync($"/api/cocktails/{Id}");
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                _notFound = true;
+                return;
+            }
+
+            response.EnsureSuccessStatusCode();
+            _recipe = await response.Content.ReadFromJsonAsync<CocktailDetailView>();
+        }
+        catch (Exception)
+        {
+            _error = Localizer["Cocktails_LoadFailed"];
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private IEnumerable<string> Facets()
+    {
+        if (_recipe is null) yield break;
+        if (!string.IsNullOrWhiteSpace(_recipe.Glass)) yield return _recipe.Glass!;
+        if (!string.IsNullOrWhiteSpace(_recipe.Method)) yield return _recipe.Method!;
+    }
+
+    private record CocktailDetailView(
+        Guid Id, string Name, string? Glass, string? Method, string ServingType,
+        string? Instructions, SourceView? Source, bool IsOwn, IReadOnlyList<LineView> Lines);
+
+    private record SourceView(string Name, int? Year, string? Url, string? Attribution);
+
+    private record LineView(
+        string Ingredient, decimal? Amount, string? Unit, string Display,
+        bool IsRequired, string Role, string? Notes);
+}

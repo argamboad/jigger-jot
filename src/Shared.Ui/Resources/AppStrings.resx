@@ -313,4 +313,8 @@
   <data name="Cocktails_LoadFailed" xml:space="preserve"><value>Could not load the catalog. Try again.</value></data>
   <data name="Common_Previous" xml:space="preserve"><value>Previous</value></data>
   <data name="Common_Next" xml:space="preserve"><value>Next</value></data>
+  <data name="Cocktail_Ingredients" xml:space="preserve"><value>Ingredients</value></data>
+  <data name="Cocktail_Method" xml:space="preserve"><value>Method</value></data>
+  <data name="Cocktail_Optional" xml:space="preserve"><value>optional</value></data>
+  <data name="Cocktail_NotFound" xml:space="preserve"><value>That cocktail is not in your catalog.</value></data>
 </root>

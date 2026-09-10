@@ -864,6 +864,42 @@
           ], "type": "text/javascript" } }]
         },
         {
+          "name": "Cocktails — detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails/{{cocktailId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cocktails",
+                "{{cocktailId}}"
+              ]
+            },
+            "description": "One cocktail, whole (CKTL-3). {{cocktailId}} is captured by \"Cocktails — browse\", so run that first.\n\nEvery line carries BOTH the authored amount/unit and a `display` string already converted to the caller's PreferredUnitSystem (JJ-007, JJ-008). Converting server-side means one implementation to get right rather than one per client; the authored values are still there for a client that wants to do its own formatting.\n\nNeutral units never convert — a proportional 1930 recipe reads \"2/3 part\" for every reader, because inventing millilitres for it would state a precision the book never had.\n\n**404, not 403**, for a cocktail belonging to another household: the query filter simply does not return it, and \"forbidden\" would confirm the row exists."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"has lines\", () => pm.expect(body.lines).to.be.an('array').that.is.not.empty);",
+                  "pm.test(\"every line is rendered for the reader\", () =>",
+                  "  body.lines.forEach(l => pm.expect(l).to.have.property('display')));",
+                  "pm.test(\"authored values survive\", () =>",
+                  "  body.lines.forEach(l => pm.expect(l).to.have.property('amount')));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
           "name": "Cocktails — search by name",
           "request": {
             "method": "GET",

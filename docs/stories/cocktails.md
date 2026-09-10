@@ -4,8 +4,8 @@
 > recipe collection every household reads, and the household's own rows that live in the same tables
 > beside it. Design decision + the shape's constraints in **JJ-031** (read with platform ADR-003 and
 > ADR-020); entity-by-entity detail in `docs/DATA_MODEL.md`. Stories use Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — CKTL-1 (domain model + tenancy walls) ✅, CKTL-2 (browse) ✅; detail
-> and filtering to follow.
+> **Status: 🚧 IN PROGRESS** — CKTL-1 (domain model + tenancy walls) ✅, CKTL-2 (browse) ✅,
+> CKTL-3 (detail) ✅. Filtering is the `FILTER` epic.
 
 **Epic key:** `CKTL`
 
@@ -207,12 +207,79 @@ catalog rather than fixtures — ordering, paging and search are all things only
 > that is what a person expects from an alphabetical list — so the test now asserts the order is
 > stable rather than re-deriving it with a comparer that disagrees with the query.
 
-### CKTL-3 — Cocktail detail 📋 PLANNED
+### CKTL-3 — Cocktail detail
+
+**Status: ✅ Implemented.** `GET /api/cocktails/{id}` and the `/cocktails/{id}` screen.
 
 **As a** member of a household
 **I want** to open a cocktail and see its recipe
 **So that** I can make it
 
-Lines in `display_order` with role grouping, glass, method, serving type and instructions. Amounts
-render in the viewing user's `preferred_unit_system`, converted at display only, with neutral units
-passing through unchanged (JJ-007, JJ-008).
+**Context / notes.** Lines in display order, the glass and method when there are any, the
+instructions, and the credit. The query is unremarkable; **amount display is the whole slice**, and
+it is where JJ-007 and JJ-008 stop being sentences in a decision log.
+
+**The arithmetic lives in Core, in `AmountDisplay`, with no database or HTTP near it.** Every rule is
+a judgement worth being able to test on its own, and there are eleven tests doing exactly that.
+
+| Rule | Why |
+|---|---|
+| Neutral units never convert | Rendering "1 barspoon" as "5 ml" invents a precision the recipe never had |
+| Metric never uses fractions | "22 1/2 ml" is not something anyone has written; metric is decimal by construction |
+| Ounces and parts always do | "0.75 oz" reads like a spreadsheet, "3/4 oz" reads like a recipe |
+| Imperial → metric rounds to 2.5 ml | 1.5 oz is 44.36 ml, and every metric recipe in the world says 45 |
+| Metric → imperial rounds to 1/4 oz | A jigger is marked in quarters; "0.68 oz" is not pourable |
+| Rounding never reaches zero | A 2 ml dash becoming "0 oz" reads as *none*, which is worse than any rounding error |
+| No preference means as authored | `PreferredUnitSystem` is nullable and null means "never chose" |
+| An unrecognisable decimal stays a decimal | 0.37 is not a fraction anyone writes, and inventing "3/8" would misstate the recipe |
+
+**Conversion happens on the server, and the authored values ride along anyway.** Each line carries
+`amount` and `unit` exactly as stored plus a `display` string already rendered for the reader. One
+implementation to get right rather than one per client, which matters more once there is a second
+front end — and a client that wants to format its own still has everything it needs.
+
+**A cocktail belonging to another household is a 404, not a 403.** The query filter simply does not
+return the row; "forbidden" would be a claim the endpoint is in no position to make, and saying it
+would confirm the row exists.
+
+**The preference has no UI yet.** `PreferredUnitSystem` is read but nothing sets it, so today every
+reader sees recipes as authored. The switcher belongs beside the language and theme controls in
+Settings and is `PREFS` work, not this slice's.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: Opening a drink shows its recipe
+  When I open a cocktail from the list
+  Then I see its ingredients in the order the recipe writes them
+  And I see its method and the book it came from
+
+Scenario: Amounts follow my preference
+  Given a recipe written in millilitres
+  When I read it having asked for imperial
+  Then the amounts are shown in ounces
+  And the recipe itself is unchanged
+
+Scenario: A proportional recipe keeps its fractions
+  Given a 1930 recipe written in proportions
+  When I read it having asked for metric
+  Then it still reads "2/3 part"
+
+Scenario: With no preference I see the recipe as written
+  Given I have never chosen a unit system
+  Then amounts are shown exactly as the book wrote them
+
+Scenario: Someone else's cocktail is not found
+  When I open a cocktail belonging to another household
+  Then I am told it is not in my catalog
+```
+
+**Tests.** `tests/Core.Tests/AmountDisplayTests.cs` (eleven, pure), plus
+`tests/Api.Tests/Catalog/CocktailDetailTests.cs` (eight) and two more journeys in
+`tests/E2E.Tests/CocktailBrowseJourneyTests.cs` (suite 36 → 38).
+
+> **Two things the gates caught before review did.** The first draft reached for
+> `IRepository<User>.QueryAllTenants()` to read the preference, and the architecture test that bans
+> the cross-tenant escape hatch outside a data contributor failed it — correctly. `User` is a
+> platform entity with its own repository, which is what the handler uses now. Separately, a Core
+> test caught "22 1/2 ml" before any of this reached a screen.

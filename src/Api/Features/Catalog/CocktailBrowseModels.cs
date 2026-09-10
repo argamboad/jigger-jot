@@ -51,3 +51,39 @@ public record CocktailSummary(
     string? Source,
     bool IsOwn,
     int IngredientCount);
+
+/// <summary>
+/// One cocktail, whole (CKTL-3). Everything the detail screen shows and nothing it does not.
+/// </summary>
+/// <param name="Source">The book or list, with the credit owed to it (JJ-032). Null for a cocktail
+/// the household wrote.</param>
+public record CocktailDetail(
+    Guid Id,
+    string Name,
+    string? Glass,
+    string? Method,
+    string ServingType,
+    string? Instructions,
+    CocktailSourceView? Source,
+    bool IsOwn,
+    IReadOnlyList<RecipeLineView> Lines);
+
+/// <param name="Attribution">Written out per source, because the sources are not on the same footing
+/// and a template would flatten that.</param>
+public record CocktailSourceView(string Name, int? Year, string? Url, string? Attribution);
+
+/// <summary>
+/// A recipe line as the reader sees it. Both forms are here on purpose: <paramref name="Amount"/> and
+/// <paramref name="Unit"/> are what the author wrote and never change, while
+/// <paramref name="Display"/> is that same amount rendered into the reader's preferred system
+/// (JJ-007, JJ-008). A client that wants to do its own formatting still can.
+/// </summary>
+/// <param name="IsRequired">False for a garnish, and optional lines never block makeability (JJ-009).</param>
+public record RecipeLineView(
+    string Ingredient,
+    decimal? Amount,
+    string? Unit,
+    string Display,
+    bool IsRequired,
+    string Role,
+    string? Notes);

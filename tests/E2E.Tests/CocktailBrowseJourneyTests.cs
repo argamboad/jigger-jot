@@ -51,4 +51,43 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         await Page.GetByTestId("cocktail-search").FillAsync(string.Empty);
         await Expect(Page.GetByTestId("cocktail-list")).ToBeVisibleAsync(new() { Timeout = 15_000 });
     }
+
+    [Test]
+    public async Task OpeningADrink_ShowsItsRecipe_ItsMethodAndItsCredit()
+    {
+        await Mailpit.ClearAsync();
+        await SignInAsync(Page, UniqueEmail("detail"));
+
+        await Page.GetByTestId("nav-cocktails").ClickAsync();
+        await Page.GetByTestId("cocktail-search").FillAsync("negroni");
+        await Expect(Page.GetByTestId("cocktail-list")).ToContainTextAsync("Negroni", new() { Timeout = 15_000 });
+
+        await Page.GetByTestId("cocktail-list").GetByText("Negroni", new() { Exact = true }).First.ClickAsync();
+
+        await Expect(Page.GetByTestId("cocktail-name")).ToContainTextAsync("Negroni", new() { Timeout = 15_000 });
+
+        // The three lines, with amounts rendered — the reader has no stored preference, so the recipe
+        // reads exactly as the IBA wrote it (JJ-007).
+        var lines = Page.GetByTestId("cocktail-lines").Locator("li");
+        await Expect(lines).ToHaveCountAsync(3);
+        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("30 ml");
+        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("Campari");
+
+        await Expect(Page.GetByTestId("cocktail-instructions")).ToContainTextAsync("Stir");
+
+        // The credit is on the drink, not in a footer (JJ-032).
+        await Expect(Page.GetByTestId("cocktail-source")).ToContainTextAsync("IBA");
+    }
+
+    [Test]
+    public async Task ADrinkThatIsNotYours_IsNotFound()
+    {
+        await Mailpit.ClearAsync();
+        await SignInAsync(Page, UniqueEmail("missing"));
+
+        // A well-formed id that no household of ours owns: the page says so rather than erroring or
+        // hanging on a spinner.
+        await Page.GotoAsync($"{BaseUrl}/cocktails/{Guid.NewGuid()}");
+        await Expect(Page.GetByTestId("cocktail-notfound")).ToBeVisibleAsync(new() { Timeout = 30_000 });
+    }
 }

@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using JiggerJot.Api.Authentication;
 using JiggerJot.Api.Endpoints;
 
 namespace JiggerJot.Api.Features.Catalog;
@@ -29,6 +31,19 @@ public static class CocktailEndpoints
                 pageSize ?? CocktailBrowseRequest.DefaultPageSize);
 
             return Results.Ok(await handler.BrowseAsync(request, ct));
+        });
+
+        group.MapGet("/{id:guid}", async (
+            Guid id,
+            ClaimsPrincipal principal,
+            CocktailDetailHandler handler,
+            CancellationToken ct) =>
+        {
+            // A cocktail the caller may not see is a 404, not a 403. The query filter simply does not
+            // return another household's rows, so "forbidden" would be a claim this endpoint is in no
+            // position to make — and saying it would confirm the row exists.
+            var detail = await handler.GetAsync(id, principal.GetUserId(), ct);
+            return detail is null ? Results.NotFound() : Results.Ok(detail);
         });
 
         return app;
