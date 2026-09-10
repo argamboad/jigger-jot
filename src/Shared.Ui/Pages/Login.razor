@@ -18,7 +18,15 @@
                 <img src="_content/JiggerJot.Shared.Ui/brand/lockup_light_1520.png" alt="JiggerJot"
                      class="login-lockup mb-3" />
                 <h1 class="h5 fw-bold mb-0">@Localizer["Login_Title"]</h1>
-                <p class="text-muted small mt-1">@Localizer["Login_Subtitle"]</p>
+            </div>
+
+            @* MARGA-1, proposal screen 3... 8. Login_Subtitle described the BUTTONS below it
+               ("choose how you'd like to continue"), which the buttons already say for themselves.
+               Her line says what the product is for instead, on the one screen that gets seen
+               before anyone has any data at all. Left-aligned rather than centred: she is speaking,
+               not labelling. *@
+            <div class="mb-4">
+                <MargaSays Size="40">@Localizer["Marga_LoginLine"]</MargaSays>
             </div>
 
             @if (!string.IsNullOrEmpty(Error))

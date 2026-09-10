@@ -92,9 +92,22 @@ public class MakeableJourneyTests : E2ETestBase
         await Page.GetByTestId("cocktail-search").FillAsync("White Lady");
 
         // FEATURES §9. Being told you can make a drink and finding the bottle missing at the shelf is
-        // worse than not being told at all.
+        // worse than not being told at all. MARGA-1 moved this out of a washed-out caveat and into
+        // her voice — same data, same test id, and it still has to name the bottle.
         await Expect(Page.GetByTestId("cocktail-substitution").First)
             .ToContainTextAsync("Curaçao", new() { Timeout = 30_000 });
+
+        // ...and she is the one saying it now.
+        await Expect(Page.GetByTestId("cocktail-substitution").First.GetByTestId("marga"))
+            .ToBeVisibleAsync();
+
+        // On the recipe itself she says it once at the top, as the reason the drink qualified at
+        // all, while the per-line "(you'd pour X)" marker stays to answer WHICH line (MARGA-1,
+        // proposal screen 3).
+        await Page.GetByTestId("cocktail-list").Locator("a").First.ClickAsync();
+        await Expect(Page.GetByTestId("cocktail-marga")).ToBeVisibleAsync(new() { Timeout = 30_000 });
+        await Expect(Page.GetByTestId("cocktail-marga")).ToContainTextAsync("Curaçao");
+        await Expect(Page.GetByTestId("cocktail-line-substitute").First).ToContainTextAsync("Curaçao");
     }
 
     /// <summary>

@@ -345,6 +345,8 @@
   <data name="Make_FillYourShelf" xml:space="preserve"><value>Tick what you have</value></data>
   <data name="Cocktails_MakeableNow" xml:space="preserve"><value>I can make now</value></data>
   <data name="Cocktails_Using" xml:space="preserve"><value>Using {0} in place of {1}</value></data>
+  <data name="Marga_Swap" xml:space="preserve"><value>No {0}? {1}&apos;s fine — that&apos;s what I&apos;d pour.</value></data>
+  <data name="Marga_LoginLine" xml:space="preserve"><value>Tell me what&apos;s on your shelf and I&apos;ll tell you what you can pour tonight.</value></data>
   <data name="Cocktails_OneAway" xml:space="preserve"><value>One ingredient away</value></data>
   <data name="Cocktails_Missing" xml:space="preserve"><value>Add {0} and you can make this</value></data>
   <data name="Cocktails_UnlocksHeadline" xml:space="preserve"><value>{0} unlocks {1}</value></data>
