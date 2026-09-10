@@ -1,0 +1,175 @@
+@page "/cocktails"
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject IStringLocalizer<AppStrings> Localizer
+
+<PageTitle>@Localizer["Nav_Cocktails"]</PageTitle>
+
+<h1 class="h4 fw-bold mb-1">@Localizer["Nav_Cocktails"]</h1>
+<p class="text-muted mb-4">@Localizer["Cocktails_Subtitle"]</p>
+
+<div class="input-group mb-3" style="max-width:420px">
+    <span class="input-group-text" aria-hidden="true">🔎</span>
+    <input class="form-control"
+           placeholder="@Localizer["Cocktails_SearchPlaceholder"]"
+           aria-label="@Localizer["Cocktails_SearchPlaceholder"]"
+           data-testid="cocktail-search"
+           value="@_search"
+           @oninput="OnSearchInput" />
+</div>
+
+@if (_error is not null)
+{
+    <div class="alert alert-danger py-2" data-testid="cocktail-error">@_error</div>
+}
+
+@if (_loading)
+{
+    <div class="p-4 text-center text-muted">
+        <span class="spinner-border spinner-border-sm me-2"></span> @Localizer["Common_Loading"]
+    </div>
+}
+else if (_page is null || _page.Total == 0)
+{
+    <div class="p-4 text-center text-muted" data-testid="cocktail-empty">@Localizer["Cocktails_NoMatches"]</div>
+}
+else
+{
+    <p class="text-muted small" data-testid="cocktail-count">@Localizer["Cocktails_Count", _page.Total]</p>
+
+    <div class="list-group shadow-sm mb-3" data-testid="cocktail-list">
+        @foreach (var c in _page.Items)
+        {
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                        <span class="fw-medium">@c.Name</span>
+                        @if (c.IsOwn)
+                        {
+                            <span class="badge text-bg-primary ms-2">@Localizer["Cocktails_Yours"]</span>
+                        }
+                        <div class="text-muted small">
+                            @* Glass and method are optional (JJ-034): a recipe that never said which
+                               glass shows nothing here rather than a guess or an "unknown" chip. *@
+                            @string.Join(" · ", Facets(c))
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(c.Source))
+                    {
+                        @* Load-bearing, not decoration: four names appear in both books and one
+                           appears twice in the Savoy alone, so without the source two rows in this
+                           list are indistinguishable. *@
+                        <span class="text-muted small text-nowrap">@c.Source</span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-outline-secondary btn-sm"
+                data-testid="cocktail-prev"
+                disabled="@(_page.Page <= 1)"
+                @onclick="() => GoToAsync(_page.Page - 1)">@Localizer["Common_Previous"]</button>
+        <span class="text-muted small" data-testid="cocktail-page">@Localizer["Cocktails_PageOf", _page.Page, LastPage]</span>
+        <button class="btn btn-outline-secondary btn-sm"
+                data-testid="cocktail-next"
+                disabled="@(_page.Page >= LastPage)"
+                @onclick="() => GoToAsync(_page.Page + 1)">@Localizer["Common_Next"]</button>
+    </div>
+}
+
+@code {
+    private const int PageSize = 20;
+
+    // Long enough that typing a name does not fire a request per keystroke, short enough that the
+    // list feels attached to the box. The catalog is nearly a thousand rows, so the request is not
+    // free.
+    private static readonly TimeSpan SearchDebounce = TimeSpan.FromMilliseconds(300);
+
+    private PagedResponse<CocktailSummary>? _page;
+    private string _search = string.Empty;
+    private bool _loading = true;
+    private string? _error;
+
+    // Guards against the out-of-order response: a slow request for "gin" must not overwrite the list
+    // a later request for "gimlet" already painted. Every load takes a ticket, and only the newest
+    // ticket is allowed to render.
+    private int _requestTicket;
+    private CancellationTokenSource? _debounce;
+
+    private int LastPage => _page is null || _page.Total == 0
+        ? 1
+        : (_page.Total + _page.PageSize - 1) / _page.PageSize;
+
+    protected override Task OnInitializedAsync() => LoadAsync(1);
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        _search = e.Value?.ToString() ?? string.Empty;
+
+        _debounce?.Cancel();
+        _debounce?.Dispose();
+        _debounce = new CancellationTokenSource();
+        var token = _debounce.Token;
+
+        try
+        {
+            await Task.Delay(SearchDebounce, token);
+            await LoadAsync(1);   // a new search always starts at the first page
+        }
+        catch (TaskCanceledException)
+        {
+            // Superseded by a later keystroke; the newer delay owns the next load.
+        }
+    }
+
+    private Task GoToAsync(int page) => LoadAsync(page);
+
+    private async Task LoadAsync(int page)
+    {
+        var ticket = ++_requestTicket;
+        _loading = true;
+        _error = null;
+        StateHasChanged();
+
+        try
+        {
+            var url = $"/api/cocktails?page={page}&pageSize={PageSize}";
+            if (!string.IsNullOrWhiteSpace(_search))
+                url += $"&search={Uri.EscapeDataString(_search.Trim())}";
+
+            var result = await Http.GetFromJsonAsync<PagedResponse<CocktailSummary>>(url);
+            if (ticket != _requestTicket) return;
+            _page = result;
+        }
+        catch (Exception)
+        {
+            if (ticket != _requestTicket) return;
+            _error = Localizer["Cocktails_LoadFailed"];
+        }
+        finally
+        {
+            if (ticket == _requestTicket)
+            {
+                _loading = false;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private IEnumerable<string> Facets(CocktailSummary c)
+    {
+        if (!string.IsNullOrWhiteSpace(c.Glass)) yield return c.Glass!;
+        if (!string.IsNullOrWhiteSpace(c.Method)) yield return c.Method!;
+        yield return Localizer["Cocktails_IngredientCount", c.IngredientCount];
+    }
+
+    public void Dispose() => _debounce?.Dispose();
+
+    private record PagedResponse<T>(IReadOnlyList<T> Items, int Page, int PageSize, int Total);
+
+    private record CocktailSummary(
+        Guid Id, string Name, string? Glass, string? Method,
+        string ServingType, string? Source, bool IsOwn, int IngredientCount);
+}

@@ -302,4 +302,15 @@
   <data name="Household_ConfirmRemove" xml:space="preserve"><value>Remove {0} from this household?</value></data>
   <data name="Household_ConfirmLeave" xml:space="preserve"><value>Leave this household?</value></data>
   <data name="Household_ConfirmDissolve" xml:space="preserve"><value>This permanently deletes the household and its data. Continue?</value></data>
+  <data name="Nav_Cocktails" xml:space="preserve"><value>Cocktails</value></data>
+  <data name="Cocktails_Subtitle" xml:space="preserve"><value>Browse the shared catalog and anything your household has added.</value></data>
+  <data name="Cocktails_SearchPlaceholder" xml:space="preserve"><value>Search by name</value></data>
+  <data name="Cocktails_NoMatches" xml:space="preserve"><value>No cocktails match that.</value></data>
+  <data name="Cocktails_Count" xml:space="preserve"><value>{0} cocktails</value></data>
+  <data name="Cocktails_Yours" xml:space="preserve"><value>Yours</value></data>
+  <data name="Cocktails_IngredientCount" xml:space="preserve"><value>{0} ingredients</value></data>
+  <data name="Cocktails_PageOf" xml:space="preserve"><value>Page {0} of {1}</value></data>
+  <data name="Cocktails_LoadFailed" xml:space="preserve"><value>Could not load the catalog. Try again.</value></data>
+  <data name="Common_Previous" xml:space="preserve"><value>Previous</value></data>
+  <data name="Common_Next" xml:space="preserve"><value>Next</value></data>
 </root>

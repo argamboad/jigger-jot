@@ -302,4 +302,15 @@
   <data name="Household_ConfirmRemove" xml:space="preserve"><value>¿Eliminar a {0} de este hogar?</value></data>
   <data name="Household_ConfirmLeave" xml:space="preserve"><value>¿Salir de este hogar?</value></data>
   <data name="Household_ConfirmDissolve" xml:space="preserve"><value>Esto eliminará permanentemente el hogar y sus datos. ¿Continuar?</value></data>
+  <data name="Nav_Cocktails" xml:space="preserve"><value>Cócteles</value></data>
+  <data name="Cocktails_Subtitle" xml:space="preserve"><value>Explora el catálogo compartido y lo que tu hogar haya añadido.</value></data>
+  <data name="Cocktails_SearchPlaceholder" xml:space="preserve"><value>Buscar por nombre</value></data>
+  <data name="Cocktails_NoMatches" xml:space="preserve"><value>Ningún cóctel coincide.</value></data>
+  <data name="Cocktails_Count" xml:space="preserve"><value>{0} cócteles</value></data>
+  <data name="Cocktails_Yours" xml:space="preserve"><value>Tuyo</value></data>
+  <data name="Cocktails_IngredientCount" xml:space="preserve"><value>{0} ingredientes</value></data>
+  <data name="Cocktails_PageOf" xml:space="preserve"><value>Página {0} de {1}</value></data>
+  <data name="Cocktails_LoadFailed" xml:space="preserve"><value>No se pudo cargar el catálogo. Inténtalo de nuevo.</value></data>
+  <data name="Common_Previous" xml:space="preserve"><value>Anterior</value></data>
+  <data name="Common_Next" xml:space="preserve"><value>Siguiente</value></data>
 </root>
