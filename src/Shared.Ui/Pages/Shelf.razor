@@ -5,38 +5,12 @@
 
 <PageTitle>@Localizer["Nav_Shelf"]</PageTitle>
 
-<h1 class="h4 fw-bold mb-1">@Localizer["Nav_Shelf"]</h1>
-<p class="text-muted mb-3">@Localizer["Shelf_Subtitle"]</p>
-
-<div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-    <div class="input-group" style="max-width:360px">
-        <span class="input-group-text" aria-hidden="true">🔎</span>
-        <input class="form-control"
-               placeholder="@Localizer["Shelf_SearchPlaceholder"]"
-               aria-label="@Localizer["Shelf_SearchPlaceholder"]"
-               data-testid="shelf-search"
-               @bind="_search" @bind:event="oninput" />
-    </div>
-    <div class="form-check form-switch">
-        <input class="form-check-input" type="checkbox" id="shelf-only-mine"
-               data-testid="shelf-only-available" @bind="_onlyAvailable" />
-        <label class="form-check-label small" for="shelf-only-mine">@Localizer["Shelf_OnlyMine"]</label>
-    </div>
-    <span class="text-muted small ms-auto" data-testid="shelf-count">
-        @Localizer["Shelf_Count", _items.Count(i => i.IsAvailable)]
-    </span>
-
-    @* FEATURES §8: adding a custom ingredient is an affordance OF the checklist, not a separate
-       screen — the person is standing at their shelf holding a bottle the catalog does not know. *@
-    <button class="btn btn-outline-primary btn-sm" data-testid="shelf-add-toggle" @onclick="ToggleAddAsync">
-        @Localizer["Shelf_AddYourOwn"]
-    </button>
-</div>
-
-@if (_adding)
-{
-    <div class="card shadow-sm mb-3">
-        <div class="card-body py-3">
+@* The add form appears in one of two places and is written once. Inside the category card it was
+   opened from, which is where INV-2's flow belongs; or here at the top when it has no category
+   context — the empty state, and the moment a duplicate name sends the list somewhere else. *@
+@{
+    RenderFragment addForm =
+        @<div class="card-body py-3 px-0">
             <div class="row g-2 align-items-end">
                 <div class="col-12 col-md-4">
                     <label class="form-label small mb-1" for="add-name">@Localizer["Shelf_AddName"]</label>
@@ -74,15 +48,38 @@
             <div class="d-flex gap-2 align-items-center mt-3">
                 <button class="btn btn-primary btn-sm text-nowrap" data-testid="shelf-add-submit"
                         disabled="@_saving" @onclick="AddAsync">@Localizer["Shelf_AddSubmit"]</button>
-                <button class="btn btn-link btn-sm px-1" @onclick="() => _adding = false">@Localizer["Common_Cancel"]</button>
+                <button class="btn btn-link btn-sm px-1" @onclick="CloseAdd">@Localizer["Common_Cancel"]</button>
             </div>
 
             @if (_addError is not null)
             {
                 <div class="alert alert-warning py-2 mt-3 mb-0" data-testid="shelf-add-error">@_addError</div>
             }
-        </div>
+        </div>;
+}
+
+<h1 class="h4 fw-bold mb-1">@Localizer["Nav_Shelf"]</h1>
+<p class="text-muted mb-3">@Localizer["Shelf_Subtitle"]</p>
+
+<div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+    <div class="input-group" style="max-width:360px">
+        <span class="input-group-text" aria-hidden="true">🔎</span>
+        <input class="form-control"
+               placeholder="@Localizer["Shelf_SearchPlaceholder"]"
+               aria-label="@Localizer["Shelf_SearchPlaceholder"]"
+               data-testid="shelf-search"
+               @bind="_search" @bind:event="oninput" />
     </div>
+    <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="shelf-only-mine"
+               data-testid="shelf-only-available" @bind="_onlyAvailable" />
+        <label class="form-check-label small" for="shelf-only-mine">@Localizer["Shelf_OnlyMine"]</label>
+    </div>
+</div>
+
+@if (_adding && _addingIn is null)
+{
+    <div class="card shadow-sm mb-3 px-3">@addForm</div>
 }
 
 @if (_error is not null)
@@ -96,56 +93,129 @@
         <span class="spinner-border spinner-border-sm me-2"></span> @Localizer["Common_Loading"]
     </div>
 }
-else if (!Visible.Any())
+else if (!Grouped.Any())
 {
-    <div class="p-4 text-center text-muted" data-testid="shelf-empty">@Localizer["Shelf_NoMatches"]</div>
+    <div class="p-4 text-center" data-testid="shelf-empty">
+        <p class="text-muted">@Localizer["Shelf_NoMatches"]</p>
+        @* The one moment someone most needs to add their own bottle is right after searching for it
+           and being told the catalog has never heard of it. *@
+        <button class="btn btn-outline-primary btn-sm" data-testid="shelf-add-toggle" @onclick="OpenAddUnfiledAsync">
+            @Localizer["Shelf_AddYourOwn"]
+        </button>
+    </div>
 }
 else
 {
+    @* A scrollable bar of real links, so the keyboard and the browser's own history do the work.
+       Sixteen categories is a long way to scroll past to reach the one bottle you came for. *@
+    <nav class="shelf-jump mb-3" aria-label="@Localizer["Shelf_JumpLabel"]" data-testid="shelf-jump">
+        @foreach (var group in Grouped)
+        {
+            @* The path is spelled out, not left as a bare fragment. index.html carries
+               <base href="/">, and a fragment-only href resolves against the BASE rather than the
+               current URL — so "#cat-gin" is "/#cat-gin", which is the home page. Found in the
+               browser: every jump link left the shelf. *@
+            <a class="shelf-jump-link" href="/shelf#cat-@Slug(group.Key)" data-testid="shelf-jump-@Slug(group.Key)">
+                @group.Key
+                <span class="shelf-jump-count">@CountFor(group.Key)</span>
+            </a>
+        }
+    </nav>
+
     @* Grouped by category, because 191 ingredients is far too many to tick down a flat list — a shelf
        nobody can fill in is a shelf nobody fills in, and then the whole app has nothing to work with.
        The API returns the category so every client groups the same way. *@
-    @foreach (var group in Visible.GroupBy(i => i.Category))
+    @foreach (var group in Grouped)
     {
-        <div class="card shadow-sm mb-3">
+        <div class="card shadow-sm mb-3" id="cat-@Slug(group.Key)" data-testid="shelf-cat-@Slug(group.Key)">
             <div class="card-body py-3">
-                <h2 class="h6 text-uppercase text-muted mb-2">@group.Key</h2>
-                <div class="row g-1">
+                <div class="d-flex justify-content-between align-items-baseline gap-2 mb-2">
+                    <h2 class="h6 text-uppercase text-muted mb-0">@group.Key</h2>
+                    @* The count is over the WHOLE category, never over what search has left on screen.
+                       It measures progress against the shelf, and a number that changed meaning when
+                       someone typed in the search box would measure nothing. *@
+                    <span class="small text-muted text-nowrap" data-testid="shelf-cat-count-@Slug(group.Key)">
+                        @CountFor(group.Key)
+                    </span>
+                </div>
+
+                <div class="shelf-pills">
                     @foreach (var item in group)
                     {
-                        <div class="col-12 col-sm-6 col-lg-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox"
-                                       id="@($"ing-{item.Id}")"
-                                       data-testid="@($"shelf-item-{item.Id}")"
-                                       checked="@item.IsAvailable"
-                                       @onchange="e => ToggleAsync(item, e)" />
-                                <label class="form-check-label" for="@($"ing-{item.Id}")">
-                                    @item.Name
-                                    @if (item.IsOwn)
-                                    {
-                                        <span class="badge text-bg-primary ms-1">@Localizer["Cocktails_Yours"]</span>
-                                    }
-                                </label>
-                            </div>
-                        </div>
+                        @* Bootstrap's .btn-check is a real checkbox, visually hidden and styled
+                           through its label — so the semantics, the keyboard and the screen-reader
+                           announcement are the browser's, not ours. The gain is density: the old
+                           three-column grid gave "Gin" exactly as much room as "Crème de cacao". *@
+                        <input class="btn-check" type="checkbox" autocomplete="off"
+                               id="@($"ing-{item.Id}")"
+                               data-testid="@($"shelf-item-{item.Id}")"
+                               checked="@item.IsAvailable"
+                               @onchange="e => ToggleAsync(item, e)" />
+                        <label class="btn btn-sm btn-outline-secondary shelf-pill" for="@($"ing-{item.Id}")">
+                            @item.Name
+                            @if (item.IsOwn)
+                            {
+                                <span class="shelf-own">@Localizer["Cocktails_Yours"]</span>
+                            }
+                        </label>
                     }
+
+                    @* FEATURES §8: adding a custom ingredient is an affordance OF the checklist, not a
+                       separate screen — and it belongs beside the bottles it files itself among
+                       rather than in a toolbar detached from them. *@
+                    <button class="btn btn-sm shelf-add-pill" data-testid="shelf-add-in-@Slug(group.Key)"
+                            @onclick="() => OpenAddInAsync(group.Key)">
+                        + @Localizer["Shelf_AddYourOwn"]
+                    </button>
                 </div>
+
+                @if (_adding && _addingIn == group.Key)
+                {
+                    @addForm
+                }
             </div>
         </div>
     }
 }
 
+@* The payoff, and the change that makes filling in a shelf feel like something adding up rather than
+   data entry. Bottles are counted here; drinks are asked of the server, because makeable is derived
+   from the catalog and this screen has no business deriving it a second time. *@
+<div class="shelf-payoff" data-testid="shelf-payoff">
+    <div class="shelf-payoff-text">
+        <strong data-testid="shelf-count">@Localizer["Shelf_Count", AvailableCount]</strong>
+        <span class="text-body-secondary" data-testid="shelf-payoff-drinks">@PayoffDrinks</span>
+    </div>
+    @if (_makeableTotal > 0)
+    {
+        <a class="btn btn-sm btn-primary text-nowrap" href="/cocktails?makeable=true"
+           data-testid="shelf-payoff-show">@Localizer["Shelf_PayoffShow"]</a>
+    }
+</div>
+
 @code {
+    /// <summary>
+    /// How long the payoff waits after a tick before asking the server what the shelf is now worth.
+    /// Someone filling in a shelf for the first time clicks straight down it, and a request per
+    /// checkbox is a request per checkbox. Long enough to swallow a burst, short enough that the
+    /// number arrives while they are still looking at what they ticked.
+    /// </summary>
+    private const int PayoffQuietMs = 400;
+
     private List<ShelfItemView> _items = [];
     private string _search = string.Empty;
     private bool _onlyAvailable;
     private bool _loading = true;
     private string? _error;
 
+    private int? _makeableTotal;
+    private bool _counting;
+    private CancellationTokenSource? _countCts;
+
     // INV-2. The category tree is fetched the first time someone opens the form rather than on every
     // page load, because most visits to this screen are ticking boxes.
     private bool _adding;
+    private string? _addingIn;
     private bool _saving;
     private string? _addError;
     private string _newName = string.Empty;
@@ -156,11 +226,46 @@ else
     private IEnumerable<CategoryOptionView> Subcategories =>
         _categories.FirstOrDefault(c => c.Id.ToString() == _newCategory)?.Subcategories ?? [];
 
+    private int AvailableCount => _items.Count(i => i.IsAvailable);
+
     private IEnumerable<ShelfItemView> Visible =>
         _items.Where(i => !_onlyAvailable || i.IsAvailable)
               .Where(i => string.IsNullOrWhiteSpace(_search)
                        || i.Name.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase)
                        || i.Category.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    private IEnumerable<IGrouping<string, ShelfItemView>> Grouped => Visible.GroupBy(i => i.Category);
+
+    /// <summary>
+    /// "3 of 10" for a category — read by the card and by its jump link, so the two cannot disagree.
+    /// </summary>
+    private string CountFor(string category)
+    {
+        var have = 0;
+        var total = 0;
+        foreach (var item in _items)
+        {
+            if (!string.Equals(item.Category, category, StringComparison.Ordinal)) continue;
+            total++;
+            if (item.IsAvailable) have++;
+        }
+        return Localizer["Shelf_CategoryCount", have, total];
+    }
+
+    private string PayoffDrinks => (_counting, _makeableTotal) switch
+    {
+        (true, _) => Localizer["Shelf_PayoffCounting"],
+        (_, null) => string.Empty,
+        (_, 0) => Localizer["Shelf_PayoffNoDrinks"],
+        // The first drink a shelf reaches is the one this footer exists to announce, so it is the one
+        // case worth writing out rather than letting a format string say "1 drinks".
+        (_, 1) => Localizer["Shelf_PayoffOneDrink"],
+        (_, var total) => Localizer["Shelf_PayoffDrinks", total],
+    };
+
+    /// <summary>An id and an anchor for a category name. Ordinary text, made safe for both.</summary>
+    private static string Slug(string category) =>
+        string.Concat(category.ToLowerInvariant().Select(c => char.IsLetterOrDigit(c) ? c : '-'));
 
     protected override async Task OnInitializedAsync()
     {
@@ -176,6 +281,60 @@ else
         {
             _loading = false;
         }
+
+        await RefreshPayoffAsync(quiet: false);
+    }
+
+    /// <summary>
+    /// Re-ask what this shelf is worth. The write cannot answer it: a feature slice may not reach
+    /// into another slice's code, and copying the makeability query in here to get around that would
+    /// leave the app with two definitions of makeable — the one thing the whole engine is built to
+    /// have only once (JJ-003). So the screen asks the browse endpoint for its total, and pays for
+    /// that by asking only once the ticking stops: each tick cancels the one before it, and an answer
+    /// overtaken by a later tick is discarded rather than written over a fresher one.
+    /// </summary>
+    private async Task RefreshPayoffAsync(bool quiet = true)
+    {
+        var previous = _countCts;
+        var cts = new CancellationTokenSource();
+        _countCts = cts;
+        if (previous is not null)
+        {
+            await previous.CancelAsync();
+            previous.Dispose();
+        }
+
+        _counting = true;
+
+        try
+        {
+            if (quiet) await Task.Delay(PayoffQuietMs, cts.Token);
+
+            var page = await Http.GetFromJsonAsync<MakeableCount>(
+                "/api/cocktails?makeable=true&page=1&pageSize=1", cts.Token);
+
+            _makeableTotal = page?.Total;
+        }
+        catch (OperationCanceledException)
+        {
+            return; // a later tick owns the answer now
+        }
+        catch (Exception)
+        {
+            // The footer is an encouragement, not a fact the screen depends on. If it cannot be had,
+            // the bottle count still stands on its own.
+            _makeableTotal = null;
+        }
+        finally
+        {
+            if (ReferenceEquals(_countCts, cts))
+            {
+                _counting = false;
+                _countCts = null;
+                cts.Dispose();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
     }
 
     private async Task ToggleAsync(ShelfItemView item, ChangeEventArgs e)
@@ -183,7 +342,7 @@ else
         var wanted = e.Value is bool b && b;
 
         // Optimistic: 191 checkboxes should feel like checkboxes, not like form submissions. The
-        // rollback below is what makes that honest rather than a lie the user finds out about later.
+        // rollback below is what makes that honest rather than a lie the household finds out about later.
         var index = _items.IndexOf(item);
         _items[index] = item with { IsAvailable = wanted };
         _error = null;
@@ -197,23 +356,57 @@ else
         {
             _items[index] = item with { IsAvailable = !wanted };
             _error = Localizer["Shelf_SaveFailed"];
+            return;
+        }
+
+        await RefreshPayoffAsync();
+    }
+
+    private Task OpenAddInAsync(string category) => OpenAddAsync(category);
+
+    private Task OpenAddUnfiledAsync() => OpenAddAsync(null);
+
+    private async Task OpenAddAsync(string? category)
+    {
+        _adding = true;
+        _addingIn = category;
+        _addError = null;
+
+        // Pre-fill from wherever the person already said what they meant: the card they opened the
+        // form from, or the search that just came back with nothing.
+        if (category is null && !string.IsNullOrWhiteSpace(_search) && string.IsNullOrWhiteSpace(_newName))
+        {
+            _newName = _search.Trim();
+        }
+
+        if (_categories.Count == 0)
+        {
+            try
+            {
+                _categories = await Http.GetFromJsonAsync<List<CategoryOptionView>>("/api/inventory/categories") ?? [];
+            }
+            catch (Exception)
+            {
+                _addError = Localizer["Shelf_AddFailed"];
+                return;
+            }
+        }
+
+        if (category is not null)
+        {
+            // Matched by name, which is what the inventory rows carry. The categories are global and
+            // curated (JJ-022), so both lists are naming the same rows.
+            var match = _categories.FirstOrDefault(c => string.Equals(c.Name, category, StringComparison.Ordinal));
+            _newCategory = match?.Id.ToString() ?? string.Empty;
+            _newSubcategory = string.Empty;
         }
     }
 
-    private async Task ToggleAddAsync()
+    private void CloseAdd()
     {
-        _adding = !_adding;
+        _adding = false;
+        _addingIn = null;
         _addError = null;
-        if (!_adding || _categories.Count > 0) return;
-
-        try
-        {
-            _categories = await Http.GetFromJsonAsync<List<CategoryOptionView>>("/api/inventory/categories") ?? [];
-        }
-        catch (Exception)
-        {
-            _addError = Localizer["Shelf_AddFailed"];
-        }
     }
 
     private void OnCategoryChanged(ChangeEventArgs e)
@@ -254,7 +447,12 @@ else
                 // Not an error so much as a redirection: the thing exists, so point at it instead of
                 // leaving someone to hunt for a name they just typed. Searching for it is a change to
                 // what they are looking at, never a write they did not ask for.
+                //
+                // The form comes back up top at the same time. It was opened from a category card,
+                // and the search about to be applied may well leave that card off the screen — which
+                // would take this message with it.
                 _addError = Localizer["Shelf_AddExists", _newName.Trim()];
+                _addingIn = null;
                 _search = _newName.Trim();
                 return;
             }
@@ -273,19 +471,27 @@ else
             _newName = string.Empty;
             _newSubcategory = string.Empty;
             _adding = false;
+            _addingIn = null;
         }
         catch (Exception)
         {
             _addError = Localizer["Shelf_AddFailed"];
+            return;
         }
         finally
         {
             _saving = false;
         }
+
+        // A bottle you just added is a bottle you have, so it counts towards the payoff like any tick.
+        await RefreshPayoffAsync();
     }
 
     private record ShelfItemView(
         Guid Id, string Name, string Category, string? Subcategory, bool IsAvailable, bool IsOwn);
 
     private record CategoryOptionView(Guid Id, string Name, List<CategoryOptionView> Subcategories);
+
+    /// <summary>Only the total is read; the page of one row it comes with is the cheapest way to ask.</summary>
+    private record MakeableCount(int Total);
 }

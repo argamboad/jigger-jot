@@ -345,6 +345,13 @@
   <data name="Shelf_AddCategoryRequired" xml:space="preserve"><value>Elige una categoría para que quede archivado.</value></data>
   <data name="Shelf_AddExists" xml:space="preserve"><value>{0} ya está en la lista: aparece arriba.</value></data>
   <data name="Shelf_AddFailed" xml:space="preserve"><value>No se pudo añadir. Inténtalo de nuevo.</value></data>
+  <data name="Shelf_CategoryCount" xml:space="preserve"><value>{0} de {1}</value></data>
+  <data name="Shelf_JumpLabel" xml:space="preserve"><value>Ir a una categoría</value></data>
+  <data name="Shelf_PayoffDrinks" xml:space="preserve"><value>— ya van {0} tragos</value></data>
+  <data name="Shelf_PayoffOneDrink" xml:space="preserve"><value>— ya va un trago</value></data>
+  <data name="Shelf_PayoffNoDrinks" xml:space="preserve"><value>— aún ningún trago</value></data>
+  <data name="Shelf_PayoffCounting" xml:space="preserve"><value>— contando…</value></data>
+  <data name="Shelf_PayoffShow" xml:space="preserve"><value>Verlos</value></data>
   <data name="Nav_Make" xml:space="preserve"><value>Hacer ahora</value></data>
   <data name="Make_Subtitle" xml:space="preserve"><value>Todo lo que tu estantería puede preparar ahora, sustituciones incluidas.</value></data>
   <data name="Make_NothingYet" xml:space="preserve"><value>Nada todavía: tu estantería no cubre ninguna receta completa.</value></data>
