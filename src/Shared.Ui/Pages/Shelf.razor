@@ -1,0 +1,134 @@
+@page "/shelf"
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject IStringLocalizer<AppStrings> Localizer
+
+<PageTitle>@Localizer["Nav_Shelf"]</PageTitle>
+
+<h1 class="h4 fw-bold mb-1">@Localizer["Nav_Shelf"]</h1>
+<p class="text-muted mb-3">@Localizer["Shelf_Subtitle"]</p>
+
+<div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+    <div class="input-group" style="max-width:360px">
+        <span class="input-group-text" aria-hidden="true">🔎</span>
+        <input class="form-control"
+               placeholder="@Localizer["Shelf_SearchPlaceholder"]"
+               aria-label="@Localizer["Shelf_SearchPlaceholder"]"
+               data-testid="shelf-search"
+               @bind="_search" @bind:event="oninput" />
+    </div>
+    <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="shelf-only-mine"
+               data-testid="shelf-only-available" @bind="_onlyAvailable" />
+        <label class="form-check-label small" for="shelf-only-mine">@Localizer["Shelf_OnlyMine"]</label>
+    </div>
+    <span class="text-muted small ms-auto" data-testid="shelf-count">
+        @Localizer["Shelf_Count", _items.Count(i => i.IsAvailable)]
+    </span>
+</div>
+
+@if (_error is not null)
+{
+    <div class="alert alert-danger py-2" data-testid="shelf-error">@_error</div>
+}
+
+@if (_loading)
+{
+    <div class="p-4 text-center text-muted">
+        <span class="spinner-border spinner-border-sm me-2"></span> @Localizer["Common_Loading"]
+    </div>
+}
+else if (!Visible.Any())
+{
+    <div class="p-4 text-center text-muted" data-testid="shelf-empty">@Localizer["Shelf_NoMatches"]</div>
+}
+else
+{
+    @* Grouped by category, because 191 ingredients is far too many to tick down a flat list — a shelf
+       nobody can fill in is a shelf nobody fills in, and then the whole app has nothing to work with.
+       The API returns the category so every client groups the same way. *@
+    @foreach (var group in Visible.GroupBy(i => i.Category))
+    {
+        <div class="card shadow-sm mb-3">
+            <div class="card-body py-3">
+                <h2 class="h6 text-uppercase text-muted mb-2">@group.Key</h2>
+                <div class="row g-1">
+                    @foreach (var item in group)
+                    {
+                        <div class="col-12 col-sm-6 col-lg-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       id="@($"ing-{item.Id}")"
+                                       data-testid="@($"shelf-item-{item.Id}")"
+                                       checked="@item.IsAvailable"
+                                       @onchange="e => ToggleAsync(item, e)" />
+                                <label class="form-check-label" for="@($"ing-{item.Id}")">
+                                    @item.Name
+                                    @if (item.IsOwn)
+                                    {
+                                        <span class="badge text-bg-primary ms-1">@Localizer["Cocktails_Yours"]</span>
+                                    }
+                                </label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private List<ShelfItemView> _items = [];
+    private string _search = string.Empty;
+    private bool _onlyAvailable;
+    private bool _loading = true;
+    private string? _error;
+
+    private IEnumerable<ShelfItemView> Visible =>
+        _items.Where(i => !_onlyAvailable || i.IsAvailable)
+              .Where(i => string.IsNullOrWhiteSpace(_search)
+                       || i.Name.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase)
+                       || i.Category.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _items = await Http.GetFromJsonAsync<List<ShelfItemView>>("/api/inventory") ?? [];
+        }
+        catch (Exception)
+        {
+            _error = Localizer["Shelf_LoadFailed"];
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task ToggleAsync(ShelfItemView item, ChangeEventArgs e)
+    {
+        var wanted = e.Value is bool b && b;
+
+        // Optimistic: 191 checkboxes should feel like checkboxes, not like form submissions. The
+        // rollback below is what makes that honest rather than a lie the user finds out about later.
+        var index = _items.IndexOf(item);
+        _items[index] = item with { IsAvailable = wanted };
+        _error = null;
+
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"/api/inventory/{item.Id}", new { isAvailable = wanted });
+            if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
+        }
+        catch (Exception)
+        {
+            _items[index] = item with { IsAvailable = !wanted };
+            _error = Localizer["Shelf_SaveFailed"];
+        }
+    }
+
+    private record ShelfItemView(
+        Guid Id, string Name, string Category, string? Subcategory, bool IsAvailable, bool IsOwn);
+}

@@ -115,6 +115,7 @@ builder.Services.AddScoped<ITenantDataContributor, NotesDataContributor>();
 builder.Services.AddScoped<ITenantDataContributor, CatalogDataContributor>();
 builder.Services.AddScoped<CocktailBrowseHandler>();
 builder.Services.AddScoped<CocktailDetailHandler>();
+builder.Services.AddScoped<InventoryHandler>();
 builder.Services.AddScoped<ITenantDataContributor, InventoryDataContributor>();
 
 // Caches + session (LinkTokenService uses IMemoryCache; session backed by distributed cache).
@@ -334,6 +335,7 @@ app.MapGet("/api/version", () => Results.Ok(new
 // 🗑️ DELETE-ME: sample feature slice endpoints (remove with Features/Notes).
 app.MapNotes();
 app.MapCocktails();
+app.MapInventory();
 // Billing is a platform controller (BillingController) — auto-mapped by MapControllers above.
 
 // PUBAPI (ADR-015): map key management + the public routes only when enabled — off ⇒ they don't exist.

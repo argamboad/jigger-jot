@@ -968,6 +968,91 @@
           ], "type": "text/javascript" } }]
         }
       ]
+    },
+    {
+      "name": "12 • Shelf (inventory)",
+      "description": "What a household has on its shelf (INV) — the checklist \"what can I make right now\" reads. Ordinary tenant-scoped data: the platform's global filter, write stamping and RLS policy all apply, so nothing here re-spells tenancy.",
+      "item": [
+        {
+          "name": "Shelf — list",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory"
+              ]
+            },
+            "description": "The WHOLE catalog this household can see — shared plus its own — each row carrying `isAvailable`. The full list rather than only what is ticked, because you cannot tick what you cannot see, and absence of an inventory row is exactly what \"not available\" means (JJ-023).\n\nEvery row carries its `category` so each client groups the same way; 191 ingredients is far too many to tick down a flat list.\n\nIce and water are absent by construction — always available, never modelled as blocking inventory (JJ-020)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"catalog is listed\", () => pm.expect(body.length).to.be.above(0));",
+                  "pm.test(\"every row is categorised\", () =>",
+                  "  body.forEach(i => pm.expect(i.category).to.be.a('string').and.not.empty));",
+                  "if (body.length) { pm.collectionVariables.set('ingredientId', body[0].id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Shelf — tick an ingredient",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/{{ingredientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "{{ingredientId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isAvailable\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Ticks or unticks one ingredient → 204. {{ingredientId}} is captured by \"Shelf — list\", so run that first.\n\nUnticking UPDATES the row rather than deleting it: \"I checked and I do not have it\" is worth keeping apart from \"I never looked\", and everything that reads the shelf filters on `isAvailable` so absence and false behave identically.\n\n**404, not 403**, for an ingredient this household cannot see. A different answer would let someone probe ids to discover another household's custom ingredients."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

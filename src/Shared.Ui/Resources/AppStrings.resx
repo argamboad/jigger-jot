@@ -322,4 +322,12 @@
   <data name="Units_Metric" xml:space="preserve"><value>Metric (ml)</value></data>
   <data name="Units_Imperial" xml:space="preserve"><value>Imperial (oz)</value></data>
   <data name="Units_Hint" xml:space="preserve"><value>Dashes, barspoons and proportions always read as the recipe wrote them.</value></data>
+  <data name="Nav_Shelf" xml:space="preserve"><value>Shelf</value></data>
+  <data name="Shelf_Subtitle" xml:space="preserve"><value>Tick what your household has. Everything else counts as missing.</value></data>
+  <data name="Shelf_SearchPlaceholder" xml:space="preserve"><value>Search ingredients</value></data>
+  <data name="Shelf_OnlyMine" xml:space="preserve"><value>Only what I have</value></data>
+  <data name="Shelf_Count" xml:space="preserve"><value>{0} on the shelf</value></data>
+  <data name="Shelf_NoMatches" xml:space="preserve"><value>No ingredients match that.</value></data>
+  <data name="Shelf_LoadFailed" xml:space="preserve"><value>Could not load your shelf. Try again.</value></data>
+  <data name="Shelf_SaveFailed" xml:space="preserve"><value>That change did not save. Try again.</value></data>
 </root>
