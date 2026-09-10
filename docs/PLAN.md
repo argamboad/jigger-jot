@@ -61,13 +61,16 @@ onboarding wizard, has never been built.
 The same stylesheet fixes went upstream the same day: `perezosoft-platform` #222 and `vuelto` #57.
 All three apps inherited the defect from the platform's `app.css`.
 
-**Built, verified, uncommitted** on `feat/ALMOST-2-unlocking-bottle` (branched from `develop`):
+**Built, verified, uncommitted** on `feat/MARGA-1-the-character` (branched from `develop`):
 
-- **ALMOST-2** (**JJ-035**): `GET /api/cocktails/unlocks` and the summary card on the one-away list.
-  It runs ALMOST-1's predicate character-for-character, so the two readings of the set cannot drift,
-  and a test walks both to prove it.
-- **Measured**: a shelf holding gin and Campari leaves 81 drinks one bottle away, and dry vermouth
-  alone accounts for 13 of them. That is the slice in one number.
+- **MARGA-1**: her two optimized assets, one shared component, and three copy replacements over data
+  already on their pages — the substitution line in the catalog, a card on the recipe, and her line
+  in place of the login subtitle that described the buttons.
+- **The illustration went from 2 MB to 134 KB across both assets**, 7% of what the design bundle
+  delivered, with nothing visible lost — flat colour quantizes almost for free. That matters for
+  `SHELL-2`, which puts her in the boot path.
+- The component takes a **finished** sentence and renders it. It never builds one, picks one or
+  fetches anything, which is what keeps "not an assistant" true in code rather than only in a doc.
 
 ## The UI wave — 2026-09-10
 
@@ -98,14 +101,13 @@ Each is one branch off `develop`, one PR, after the previous one is merged.
 
 | # | Slice | Flow / screen | What it is |
 |---|---|---|---|
-| 1 | **ALMOST-2** | screen 4 | The uncommitted work above. Waiting on C+P+PR. |
-| 2 | **MARGA-1** | screens 2, 3, 8 | The character: her asset optimized into the brand folder, one shared component, and three fixed lines over data already on their pages. No new queries. |
-| 3 | **MARGA-2** | screen 1 | The home screen. Needs both of the above. Closes the `Home.razor` TODO — the only screen in the wave with room rather than a rework. |
-| 4 | **INV-3** | screen 5 | The shelf rework. Pills, per-category counts, a jump bar, and a sticky footer showing the payoff as you tick. The biggest, and the one that gates the product. |
-| 5 | **MARGA-3** | screens 6, 7 | The two empty states. ⚠️ blocked on an open question — see below. |
-| 6 | **SHELL-1** | all, below `lg` | Bottom tab bar for the app's three destinations; account furniture stays on top. ⚠️ must keep the `nav-shelf` and `nav-cocktails` test ids. |
-| 7 | **SHELL-2** | screen 9 | The boot state. Smallest of the wave, and it lands in **two** `index.html` files, not one. |
-| 8 | **ONBOARD-1** | §7 | The last unbuilt flow, and the only one predating the wave. Sits after it because a wizard that lands on a reworked shelf should be built against the reworked shelf. |
+| 1 | **MARGA-1** | screens 2, 3, 8 | The uncommitted work above. Waiting on C+P+PR. |
+| 2 | **MARGA-2** | screen 1 | The home screen. Needs ALMOST-2 and MARGA-1, both now merged. Closes the `Home.razor` TODO — the only screen in the wave with room rather than a rework. |
+| 3 | **INV-3** | screen 5 | The shelf rework. Pills, per-category counts, a jump bar, and a sticky footer showing the payoff as you tick. The biggest, and the one that gates the product. |
+| 4 | **MARGA-3** | screens 6, 7 | The two empty states. ⚠️ blocked on an open question — see below. |
+| 5 | **SHELL-1** | all, below `lg` | Bottom tab bar for the app's three destinations; account furniture stays on top. ⚠️ must keep the `nav-shelf` and `nav-cocktails` test ids. |
+| 6 | **SHELL-2** | screen 9 | The boot state. Smallest of the wave, and it lands in **two** `index.html` files, not one. |
+| 7 | **ONBOARD-1** | §7 | The last unbuilt flow, and the only one predating the wave. Sits after it because a wizard that lands on a reworked shelf should be built against the reworked shelf. |
 
 **Three questions to settle before the slices that need them.**
 

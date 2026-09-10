@@ -168,10 +168,15 @@ else
                         </div>
                         @* FEATURES §9: a drink that qualified only because of a substitute has to say
                            what you would actually pour, or the shelf is a nasty surprise. *@
+                        @* MARGA-1, proposal screen 2. Same swap, same data, out of a washed-out
+                           caveat and into her voice: a substitution is bartender judgement, so it
+                           should read as advice rather than as a system disclaimer. *@
                         @foreach (var swap in c.Substitutions)
                         {
-                            <div class="small text-warning-emphasis" data-testid="cocktail-substitution">
-                                @Localizer["Cocktails_Using", swap.YouHave, swap.AsksFor]
+                            <div class="mt-1" data-testid="cocktail-substitution">
+                                <MargaSays Size="24" Compact="true">
+                                    @Localizer["Marga_Swap", swap.AsksFor, swap.YouHave]
+                                </MargaSays>
                             </div>
                         }
                         @* FEATURES §10: the row's reason for existing. "One away" without the bottle

@@ -58,6 +58,20 @@ else if (_recipe is not null)
         <div class="mb-4"></div>
     }
 
+    @* MARGA-1, proposal screen 3. A substitution is the reason this drink qualified at all, so she
+       says it once at the top as a recommendation. The line-level "(you'd pour X)" marker stays —
+       that one answers WHICH line, and this one answers WHY the drink is here. *@
+    @if (Swaps.Count > 0)
+    {
+        <div class="card shadow-sm mb-3" data-testid="cocktail-marga">
+            <div class="card-body py-3">
+                <MargaSays Size="44">
+                    @string.Join(" ", Swaps.Select(l => Localizer["Marga_Swap", l.Ingredient, l.SubstituteWith!].Value))
+                </MargaSays>
+            </div>
+        </div>
+    }
+
     <div class="mb-3">
         @* FEATURES §13: from ANY cocktail, including one you already forked — a household may well
            want a second version. *@
@@ -210,6 +224,15 @@ else if (_recipe is not null)
             _forking = false;
         }
     }
+
+    /// <summary>
+    /// The lines this household would pour something else for (MARGA-1). The API already decided
+    /// which those are; this only reads them back so her card and the per-line markers can never
+    /// disagree about the same recipe.
+    /// </summary>
+    private List<LineView> Swaps => _recipe is null
+        ? []
+        : [.. _recipe.Lines.Where(l => l.Availability == "Substitute" && l.SubstituteWith is not null)];
 
     /// <summary>
     /// The wording and the colour both key off the status the API derived. Switching on it here

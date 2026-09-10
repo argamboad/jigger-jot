@@ -6,7 +6,7 @@
 > placeholders, filled from queries that already exist or from `ALMOST-2`.
 > Read with the design proposal (`JiggerJot Proposal.dc.html`, nine screens at three widths, both
 > themes) and **JJ-029** (brand). Stories use Gherkin acceptance criteria.
-> **Status: 📋 PLANNED.**
+> **Status: 🚧 IN PROGRESS** — MARGA-1 shipped; MARGA-2 and MARGA-3 planned.
 
 **Epic key:** `MARGA`
 
@@ -27,9 +27,17 @@ The proposal shows her speaking, and the temptation is to read that as an assist
   the `substitutions` already on every makeable row, and the bottle from `ALMOST-2`.
 - **She is not a new source of truth.** If her sentence and the list under it disagree, the bug is that
   they came from two queries. Every screen below takes one.
-- **She is drawn once.** A single 1254×1254 illustration, cropped by each screen and shown uncropped
-  only in the empty states. It ships at 2 MB from the design bundle and **must be optimized before
-  it goes near the WASM payload** — that is part of MARGA-1, not an afterthought.
+- **She is drawn once.** A single 1254×1254 illustration at 2 MB in the design bundle, now shipped as
+  two optimized assets. Flat colour with a limited palette, so quantizing costs nothing visible:
+
+  | Asset | Use | Size |
+  |---|---|---|
+  | `marga_avatar_160.png` | head and shoulders, for the inline component | 19 KB |
+  | `marga_scene_512.png` | the whole scene, for the empty states and `SHELL-2` | 115 KB |
+
+  Together that is **7% of what the bundle delivered**. The source PNG is deliberately not committed:
+  these are delivered brand assets like the lockups, not generated ones, and a 2 MB original in git
+  buys nothing.
 
 **Her Spanish is a writing job, not a translation.** Her lines are voiced, and a literal translation
 of a voiced line reads like a machine. The placeholders have to survive being rewritten.
@@ -38,8 +46,8 @@ of a voiced line reads like a machine. The placeholders have to survive being re
 
 ### MARGA-1 — The character
 
-**Status: 📋 Planned.** Her asset, one shared component, and the three lines that need no new data.
-Covers proposal screens **2**, **3** and **8**.
+**Status: ✅ Implemented.** Her asset, one shared component, and the three lines that need no new
+data. Covers proposal screens **2**, **3** and **8**.
 
 **As a** member of a household
 **I want** the app to talk to me like the person behind a bar would
@@ -55,7 +63,21 @@ Then three copy replacements, each over data already on its page:
 | Cocktail detail | the `(you'd pour X)` line-level marker | a card explaining why it qualified, marker kept |
 | Login | `Login_Subtitle`, which describes the buttons | a line about the product |
 
+**What her component does and does not do.** It takes a *finished* sentence and renders her beside
+it at a given size. It never builds a sentence, never picks a string and never fetches anything — the
+screen decides what she says. That is what keeps "she is not an assistant" true in code rather than
+only in this file.
+
+**She is decorative to a screen reader.** `alt=""` and `aria-hidden`, because the line beside her
+carries the whole meaning and "photo of a bartender" ahead of it would only get in the way.
+
 **Out of scope:** anything that names a bottle to buy — that is `ALMOST-2` and lands in `MARGA-2`.
+
+**Tests.** Covered through the existing substitution journey in
+`tests/E2E.Tests/MakeableJourneyTests.cs`, which now also asserts she is the one saying it in the
+list and that her card and the per-line marker agree on the recipe page. No new unit tests: this
+slice adds no logic, and asserting that a component renders a string it was handed would test Blazor
+rather than JiggerJot.
 
 ---
 

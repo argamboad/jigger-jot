@@ -1,0 +1,36 @@
+@* Marga, saying something (MARGA-1).
+
+   She is a CHARACTER, not an assistant: every line she says is a localized resource string with
+   real data in its placeholders. There is no model behind her and nothing here generates text —
+   callers pass the finished sentence in.
+
+   One component so no screen re-spells how she sits beside a line. Give it a size; the rest follows.
+*@
+
+<div class="marga @(Compact ? "marga-compact" : null)" data-testid="marga">
+    @* Decorative: the sentence beside her carries the whole meaning, and a screen reader reading
+       "photo of a bartender" before it would only get in the way. *@
+    <img src="_content/JiggerJot.Shared.Ui/brand/marga_avatar_160.png" alt="" aria-hidden="true"
+         class="marga-face" width="@Size" height="@Size" />
+    <div class="marga-line">
+        @ChildContent
+        @if (!string.IsNullOrWhiteSpace(Aside))
+        {
+            <span class="marga-aside">@Aside</span>
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>The sentence she says — already localized, already filled in.</summary>
+    [Parameter, EditorRequired] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Rendered small and quiet under the line: who said it, or when.</summary>
+    [Parameter] public string? Aside { get; set; }
+
+    /// <summary>Her size in pixels. 24 in a list row, 40 on a card.</summary>
+    [Parameter] public int Size { get; set; } = 40;
+
+    /// <summary>Tighter spacing and smaller text, for use inside a row rather than as a card.</summary>
+    [Parameter] public bool Compact { get; set; }
+}

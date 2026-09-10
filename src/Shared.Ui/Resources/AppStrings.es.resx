@@ -345,6 +345,8 @@
   <data name="Make_FillYourShelf" xml:space="preserve"><value>Marca lo que tienes</value></data>
   <data name="Cocktails_MakeableNow" xml:space="preserve"><value>Puedo prepararlo ahora</value></data>
   <data name="Cocktails_Using" xml:space="preserve"><value>Usando {0} en lugar de {1}</value></data>
+  <data name="Marga_Swap" xml:space="preserve"><value>¿No hay {0}? Con {1} va perfecto: es lo que yo serviría.</value></data>
+  <data name="Marga_LoginLine" xml:space="preserve"><value>Dime qué tienes en la estantería y yo te digo qué puedes preparar esta noche.</value></data>
   <data name="Cocktails_OneAway" xml:space="preserve"><value>A un ingrediente</value></data>
   <data name="Cocktails_Missing" xml:space="preserve"><value>Añade {0} y ya puedes prepararlo</value></data>
   <data name="Cocktails_UnlocksHeadline" xml:space="preserve"><value>{0} te desbloquea {1}</value></data>
