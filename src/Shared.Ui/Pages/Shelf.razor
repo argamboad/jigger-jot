@@ -25,7 +25,65 @@
     <span class="text-muted small ms-auto" data-testid="shelf-count">
         @Localizer["Shelf_Count", _items.Count(i => i.IsAvailable)]
     </span>
+
+    @* FEATURES §8: adding a custom ingredient is an affordance OF the checklist, not a separate
+       screen — the person is standing at their shelf holding a bottle the catalog does not know. *@
+    <button class="btn btn-outline-primary btn-sm" data-testid="shelf-add-toggle" @onclick="ToggleAddAsync">
+        @Localizer["Shelf_AddYourOwn"]
+    </button>
 </div>
+
+@if (_adding)
+{
+    <div class="card shadow-sm mb-3">
+        <div class="card-body py-3">
+            <div class="row g-2 align-items-end">
+                <div class="col-12 col-md-4">
+                    <label class="form-label small mb-1" for="add-name">@Localizer["Shelf_AddName"]</label>
+                    <input class="form-control" id="add-name" data-testid="shelf-add-name" @bind="_newName" />
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small mb-1" for="add-category">@Localizer["Shelf_AddCategory"]</label>
+                    <select class="form-select" id="add-category" data-testid="shelf-add-category"
+                            value="@_newCategory" @onchange="OnCategoryChanged">
+                        <option value="">—</option>
+                        @foreach (var c in _categories)
+                        {
+                            <option value="@c.Id">@c.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-4">
+                    @* Two levels, always (JJ-015), and only the children of the chosen category —
+                       a parent matches all its children when filtering, so a mismatched pair would
+                       file the bottle where nobody looks for it. *@
+                    <label class="form-label small mb-1" for="add-subcategory">@Localizer["Shelf_AddSubcategory"]</label>
+                    <select class="form-select" id="add-subcategory" data-testid="shelf-add-subcategory"
+                            disabled="@(!Subcategories.Any())" @bind="_newSubcategory">
+                        <option value="">—</option>
+                        @foreach (var s in Subcategories)
+                        {
+                            <option value="@s.Id">@s.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            @* The buttons get their own line: "Add to my shelf" wrapped to two lines beside three
+               fields at every width worth having. *@
+            <div class="d-flex gap-2 align-items-center mt-3">
+                <button class="btn btn-primary btn-sm text-nowrap" data-testid="shelf-add-submit"
+                        disabled="@_saving" @onclick="AddAsync">@Localizer["Shelf_AddSubmit"]</button>
+                <button class="btn btn-link btn-sm px-1" @onclick="() => _adding = false">@Localizer["Common_Cancel"]</button>
+            </div>
+
+            @if (_addError is not null)
+            {
+                <div class="alert alert-warning py-2 mt-3 mb-0" data-testid="shelf-add-error">@_addError</div>
+            }
+        </div>
+    </div>
+}
 
 @if (_error is not null)
 {
@@ -85,6 +143,19 @@ else
     private bool _loading = true;
     private string? _error;
 
+    // INV-2. The category tree is fetched the first time someone opens the form rather than on every
+    // page load, because most visits to this screen are ticking boxes.
+    private bool _adding;
+    private bool _saving;
+    private string? _addError;
+    private string _newName = string.Empty;
+    private string _newCategory = string.Empty;
+    private string _newSubcategory = string.Empty;
+    private List<CategoryOptionView> _categories = [];
+
+    private IEnumerable<CategoryOptionView> Subcategories =>
+        _categories.FirstOrDefault(c => c.Id.ToString() == _newCategory)?.Subcategories ?? [];
+
     private IEnumerable<ShelfItemView> Visible =>
         _items.Where(i => !_onlyAvailable || i.IsAvailable)
               .Where(i => string.IsNullOrWhiteSpace(_search)
@@ -129,6 +200,92 @@ else
         }
     }
 
+    private async Task ToggleAddAsync()
+    {
+        _adding = !_adding;
+        _addError = null;
+        if (!_adding || _categories.Count > 0) return;
+
+        try
+        {
+            _categories = await Http.GetFromJsonAsync<List<CategoryOptionView>>("/api/inventory/categories") ?? [];
+        }
+        catch (Exception)
+        {
+            _addError = Localizer["Shelf_AddFailed"];
+        }
+    }
+
+    private void OnCategoryChanged(ChangeEventArgs e)
+    {
+        _newCategory = e.Value?.ToString() ?? string.Empty;
+        // The old choice belongs to the old category, and sending the pair as-is would be rejected.
+        _newSubcategory = string.Empty;
+    }
+
+    private async Task AddAsync()
+    {
+        _addError = null;
+
+        if (string.IsNullOrWhiteSpace(_newName))
+        {
+            _addError = Localizer["Shelf_AddNameRequired"];
+            return;
+        }
+
+        if (!Guid.TryParse(_newCategory, out var categoryId))
+        {
+            _addError = Localizer["Shelf_AddCategoryRequired"];
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("/api/inventory/ingredients", new
+            {
+                name = _newName.Trim(),
+                categoryId,
+                subcategoryId = Guid.TryParse(_newSubcategory, out var sub) ? sub : (Guid?)null,
+            });
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                // Not an error so much as a redirection: the thing exists, so point at it instead of
+                // leaving someone to hunt for a name they just typed. Searching for it is a change to
+                // what they are looking at, never a write they did not ask for.
+                _addError = Localizer["Shelf_AddExists", _newName.Trim()];
+                _search = _newName.Trim();
+                return;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _addError = Localizer["Shelf_AddFailed"];
+                return;
+            }
+
+            var added = await response.Content.ReadFromJsonAsync<ShelfItemView>();
+            if (added is null) return;
+
+            _items.Add(added);
+            _items = [.. _items.OrderBy(i => i.Category, StringComparer.Ordinal).ThenBy(i => i.Name, StringComparer.Ordinal)];
+            _newName = string.Empty;
+            _newSubcategory = string.Empty;
+            _adding = false;
+        }
+        catch (Exception)
+        {
+            _addError = Localizer["Shelf_AddFailed"];
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
     private record ShelfItemView(
         Guid Id, string Name, string Category, string? Subcategory, bool IsAvailable, bool IsOwn);
+
+    private record CategoryOptionView(Guid Id, string Name, List<CategoryOptionView> Subcategories);
 }

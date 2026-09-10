@@ -47,6 +47,7 @@ public sealed class AlmostMakeableTests(PostgresFixture fixture) : PostgresTestB
         var inventory = new InventoryHandler(
             new EfRepository<TenantInventory>(db),
             new EfRepository<Ingredient>(db),
+            new EfRepository<IngredientCategory>(db),
             new TestCurrentTenant { TenantId = _household },
             new FakeTimeProvider(DateTimeOffset.UtcNow));
 
@@ -199,6 +200,7 @@ public sealed class AlmostMakeableTests(PostgresFixture fixture) : PostgresTestB
             var inventory = new InventoryHandler(
                 new EfRepository<TenantInventory>(db),
                 new EfRepository<Ingredient>(db),
+                new EfRepository<IngredientCategory>(db),
                 new TestCurrentTenant { TenantId = stranger },
                 new FakeTimeProvider(DateTimeOffset.UtcNow));
             foreach (var name in new[] { "London dry gin", "Campari" })

@@ -28,6 +28,7 @@ public sealed class InventoryTests(PostgresFixture fixture) : PostgresTestBase(f
     private static InventoryHandler Handler(AppDbContext db, Guid tenantId, TimeProvider? clock = null) =>
         new(new EfRepository<TenantInventory>(db),
             new EfRepository<Ingredient>(db),
+            new EfRepository<IngredientCategory>(db),
             new TestCurrentTenant { TenantId = tenantId },
             clock ?? new FakeTimeProvider(Now));
 
