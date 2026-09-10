@@ -34,6 +34,7 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
     private const string LookupsResource = "JiggerJot.Infrastructure.Persistence.Seed.lookups.json";
     private const string IngredientsResource = "JiggerJot.Infrastructure.Persistence.Seed.ingredients.json";
     private const string CocktailsResource = "JiggerJot.Infrastructure.Persistence.Seed.cocktails.json";
+    private const string SubstitutionsResource = "JiggerJot.Infrastructure.Persistence.Seed.substitutions.json";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -65,6 +66,7 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
         // created, and they all land in the same SaveChanges below.
         added += await SeedIngredientsAsync(cancellationToken);
         added += await SeedCocktailsAsync(cancellationToken);
+        added += await SeedSubstitutionsAsync(cancellationToken);
 
         if (added > 0)
         {
@@ -288,6 +290,51 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
         return added;
     }
 
+    /// <summary>
+    /// The substitution graph (JJ-004): what a household may pour when a recipe asks for something it
+    /// does not have. Global only — both ends are shared catalog ingredients, so a household's own
+    /// ingredient satisfies a line by exact match and never through this graph (JJ-005, JJ-018).
+    /// <para>
+    /// Both shapes in the file expand to <b>directed</b> rows (JJ-006): an interchangeable group of
+    /// three becomes six, and a one-way entry becomes one. Storing the direction rather than a
+    /// symmetry flag is what keeps the makeable query a plain join instead of an OR across two
+    /// columns — and it is also what lets the file say that cognac stands in for brandy without
+    /// claiming the reverse.
+    /// </para>
+    /// </summary>
+    private async Task<int> SeedSubstitutionsAsync(CancellationToken ct)
+    {
+        var file = LoadSubstitutions();
+
+        var pairs = new List<(string AskedFor, string Poured)>();
+        foreach (var group in file.Interchangeable)
+        {
+            foreach (var askedFor in group.Members)
+            foreach (var poured in group.Members)
+                if (askedFor != poured)
+                    pairs.Add((askedFor, poured));
+        }
+        pairs.AddRange(file.OneWay.Select(o => (o.RecipeAsksFor, o.YouMayPour)));
+
+        var existing = await db.IngredientSubstitutions.Select(x => x.Id).ToHashSetAsync(ct);
+        var added = 0;
+        foreach (var (askedFor, poured) in pairs)
+        {
+            var id = SeedId.For("substitution", $"{askedFor}->{poured}");
+            if (existing.Contains(id)) continue;
+
+            db.IngredientSubstitutions.Add(new IngredientSubstitution
+            {
+                Id = id,
+                IngredientId = SeedId.For("ingredient", askedFor),
+                SubstituteIngredientId = SeedId.For("ingredient", poured),
+            });
+            existing.Add(id);
+            added++;
+        }
+        return added;
+    }
+
     /// <summary>Reads the embedded seed file. A missing or malformed file is a build error, not a runtime
     /// condition to tolerate — the app has no catalog vocabulary without it.</summary>
     public static LookupFile Load() => Read<LookupFile>(LookupsResource);
@@ -297,6 +344,9 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
 
     /// <summary>Reads the embedded recipe catalog. Same contract as <see cref="Load"/>.</summary>
     public static CocktailFile LoadCocktails() => Read<CocktailFile>(CocktailsResource);
+
+    /// <summary>Reads the embedded substitution graph. Same contract as <see cref="Load"/>.</summary>
+    public static SubstitutionFile LoadSubstitutions() => Read<SubstitutionFile>(SubstitutionsResource);
 
     private static T Read<T>(string resource)
     {
@@ -338,6 +388,14 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
         string ServingType,
         string? Instructions,
         IReadOnlyList<SeedLine> Lines);
+
+    public sealed record SubstitutionFile(
+        IReadOnlyList<SeedSubstitutionGroup> Interchangeable,
+        IReadOnlyList<SeedOneWaySubstitution> OneWay);
+
+    public sealed record SeedSubstitutionGroup(string? Note, IReadOnlyList<string> Members);
+
+    public sealed record SeedOneWaySubstitution(string RecipeAsksFor, string YouMayPour, string? Note);
 
     public sealed record SeedLine(
         string Ingredient,

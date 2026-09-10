@@ -4,8 +4,8 @@
 > owns, then the ingredients, then the recipes. Read with **JJ-022** (lookups are curated and global),
 > **JJ-031** (how a shared row coexists with tenant isolation) and `docs/DATA_MODEL.md`. Stories use
 > Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — SEED-1 (lookups) ✅, the IBA extraction ✅, SEED-2 (ingredients) ✅,
-> SEED-3 (recipes) ✅. Sources settled by JJ-032. Only the substitution graph (SEED-4) remains.
+> **Status: ✅ COMPLETE for MVP** — SEED-1 (lookups), the IBA extraction, SEED-2 (ingredients),
+> SEED-3 (recipes) and SEED-4 (substitutions) all done. Sources settled by JJ-032.
 
 **Epic key:** `SEED`
 
@@ -327,9 +327,73 @@ Scenario: Garnishes are optional and nothing else is
 and a grapefruit juice; an allspice dram and a lime juice) and are excluded rather than guessed at.
 Splitting them is a hand-fix on the extraction, not on the curated output.
 
-### SEED-4 — The substitution graph 📋 PLANNED
+### SEED-4 — The substitution graph
 
-Global and ingredient-level, both directions stored as separate rows (JJ-004, JJ-005, JJ-006). Both
-ends must be shared ingredients — a household's own ingredient satisfies a line by exact match only
-(JJ-018). Small and hand-curated: this is the file that decides whether "I have no Cointreau" ends the
-search or suggests triple sec.
+**Status: ✅ Implemented.** 17 interchangeable groups and 12 one-way entries, expanding to 88
+directed rows.
+
+**As a** member of a household
+**I want** the app to know that Curaçao will do when a recipe asks for Cointreau
+**So that** a nearly-stocked shelf still gets me a drink
+
+**Context / notes.** This is the file that decides whether "no Cointreau" ends the search or offers
+the Curaçao already on the shelf, so it is hand-written and deliberately conservative. The bar for
+inclusion is *a bartender would pour this without comment*, not *these are both brown*. Bourbon for
+rye, yes. Mezcal for tequila, no — it changes the drink, and someone who wants that can fork the
+recipe.
+
+**Global only.** Both ends are shared catalog ingredients (JJ-005), which is structural rather than
+enforced: the table has no tenant column at all. A household's own ingredient satisfies a recipe line
+by exact match and never through this graph (JJ-018).
+
+**Two shapes, because substitution is not always mutual.** This is the part worth arguing with:
+
+- **`interchangeable`** — every member stands in for every other, both ways. Seventeen groups: the
+  orange liqueurs, the dry gins, the American whiskeys, the aged rums, the anise spirits, the
+  sparkling wines, and so on.
+- **`oneWay`** — a recipe asking for brandy is happy with cognac; one asking for cognac is **not**
+  happy with any brandy. A symmetric graph would recommend drinks the household cannot actually make
+  well, which is worse than recommending nothing.
+
+Both expand to **directed rows** (JJ-006), so a group of three becomes six. Storing the direction
+rather than a symmetry flag is what keeps the makeable query a plain join instead of an OR across two
+columns — and it is what lets the file say cognac stands in for brandy without claiming the reverse.
+
+**Every entry carries its reasoning**, in a `note` beside it, because these are judgement calls and a
+future reader should be able to disagree with a specific one rather than the whole file.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: The graph is seeded as directed rows
+  Given the ingredient catalog has been seeded
+  When the app starts
+  Then every substitution names two real catalog ingredients
+  And no ingredient substitutes for itself
+
+Scenario: Interchangeable ingredients work in both directions
+  Given the graph has been seeded
+  Then a recipe asking for Cointreau accepts Curaçao
+  And a recipe asking for Curaçao accepts Cointreau
+
+Scenario: A one-way substitution does not run backwards
+  Given the graph has been seeded
+  Then a recipe asking for brandy accepts cognac
+  But a recipe asking for cognac does not accept brandy
+```
+
+**Tests.** `tests/Api.Tests/Catalog/CatalogSeederTests.cs` (eighteen across the whole epic). The
+one-way assertion is the load-bearing one: it is the only thing standing between a considered graph
+and a symmetric one that quietly over-promises.
+
+---
+
+## What is left
+
+The epic is complete for MVP. Two threads stay open and neither blocks anything:
+
+- **The Savoy transcription path.** The extraction came from a website rather than the book;
+  re-deriving from a public-domain scan would close the last rights question (JJ-032).
+- **Two merged lines.** The scrape ran a lemon and a grapefruit juice together, and an allspice dram
+  and a lime juice, in one recipe each. Both are excluded rather than guessed at, and splitting them
+  is a hand-fix on the extraction.
