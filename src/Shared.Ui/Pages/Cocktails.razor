@@ -142,14 +142,41 @@
 }
 else if (_page is null || _page.Total == 0)
 {
-    <div class="p-4 text-center text-muted" data-testid="cocktail-empty">
-        @Localizer[EmptyMessage]
-        @if (_makeableOnly || _almostOnly)
-        {
-            @* An empty makeable list is almost always an empty shelf, so point at the fix rather
-               than leaving someone to conclude the catalog is broken. *@
-            <div class="mt-2"><a href="/shelf">@Localizer["Make_FillYourShelf"]</a></div>
-        }
+    @* MARGA-3, proposal screens 6 and 7. Both of these used to state a problem and stop. An empty
+       makeable list is almost always an empty shelf, so it points at the fix; an empty ALMOST list
+       is the stronger signal — not one drink within reach of a single bottle — and that is where a
+       purchase is worth naming. *@
+    <div class="card shadow-sm" data-testid="cocktail-empty">
+        <div class="card-body p-4 text-center">
+            @if (_makeableOnly || _almostOnly)
+            {
+                @* Her whole scene rather than the MargaSays component: she IS the illustration here,
+                   at 512 rather than beside a line at 40, and rendering the component under this
+                   would put her face on the screen twice. *@
+                <img src="_content/JiggerJot.Shared.Ui/brand/marga_scene_512.png"
+                     alt="" aria-hidden="true" class="empty-scene mb-3" />
+            }
+
+            <p class="text-body-secondary mb-3">@Localizer[EmptyMessage]</p>
+
+            @if (StartingFromNothing && _starter is not null)
+            {
+                @* The one line in the app that names a bottle WITHOUT promising drinks. ALMOST-2's
+                   card can say "buy this and four open up" because it measured that; here there is
+                   nothing within reach to measure, so she says what is true instead — how many of
+                   these recipes ask for it. *@
+                <p class="empty-starter mb-3" data-testid="cocktail-empty-starter">
+                    @Localizer["Marga_StarterBottle", _starter.Ingredient, _starter.Appears]
+                </p>
+            }
+
+            @if (_makeableOnly || _almostOnly)
+            {
+                <a class="btn btn-primary btn-lg" href="/shelf" data-testid="cocktail-empty-shelf">
+                    @Localizer["Make_FillYourShelf"]
+                </a>
+            }
+        </div>
     </div>
 }
 else
@@ -267,12 +294,30 @@ else
     // reloads: the shelf can change under it, and a stale "buy triple sec" is worse than none.
     private List<UnlockView> _unlocks = [];
 
+    // MARGA-3. The other end of the same shelf: `_unlocks` says what to buy when something is within
+    // reach, this says where to start when nothing is. Only one of the two can ever have anything to
+    // say, because one needs a non-empty one-away list and the other needs an empty one.
+    private StarterView? _starter;
+
     /// <summary>How many filters are narrowing the list, so the button can say so while closed.</summary>
     private int ActiveFilters =>
         (string.IsNullOrWhiteSpace(_ingredient) ? 0 : 1)
         + (_method.Length == 0 ? 0 : 1)
         + (_glass.Length == 0 ? 0 : 1)
         + (_serving.Length == 0 ? 0 : 1);
+
+    /// <summary>
+    /// Whether an empty one-away list means "this household is starting from nothing" — the only
+    /// reading under which naming a first bottle is honest.
+    /// </summary>
+    /// <remarks>
+    /// Found in the browser: with a search or a filter also applied, an empty list means the SEARCH
+    /// found nothing, and answering that with "starting from nothing? get gin" tells someone who may
+    /// own forty bottles to go shopping. The one-away filter has to be the only thing narrowing the
+    /// list for its emptiness to say anything about the shelf.
+    /// </remarks>
+    private bool StartingFromNothing =>
+        _almostOnly && ActiveFilters == 0 && string.IsNullOrWhiteSpace(_search);
 
     private int LastPage => _page is null || _page.Total == 0
         ? 1
@@ -418,6 +463,22 @@ else
                 ? await Http.GetFromJsonAsync<List<UnlockView>>("/api/cocktails/unlocks?limit=1") ?? []
                 : [];
             if (ticket != _requestTicket) return;
+
+            // MARGA-3. Asked for only in the one case that needs it: the one-away list came back
+            // EMPTY, which means nothing is within a single bottle and the unlocks summary above has
+            // nothing to say either. Anywhere else this would be a request for an answer no screen
+            // is going to show.
+            if (StartingFromNothing && _page is { Total: 0 })
+            {
+                var starters = await Http.GetFromJsonAsync<List<StarterView>>(
+                    "/api/cocktails/starters?limit=1");
+                if (ticket != _requestTicket) return;
+                _starter = starters is { Count: > 0 } ? starters[0] : null;
+            }
+            else
+            {
+                _starter = null;
+            }
         }
         catch (Exception)
         {
@@ -457,6 +518,10 @@ else
     private record SubstitutionInPlay(string AsksFor, string YouHave);
 
     private record UnlockView(Guid IngredientId, string Ingredient, int Unlocks, List<string> Cocktails);
+
+    /// <param name="Appears">How many recipes ASK for it — not how many it would make makeable, which
+    /// with an empty shelf is very nearly none. The sentence built on it says so.</param>
+    private record StarterView(Guid IngredientId, string Ingredient, int Appears);
 
     private record FilterOptionView(Guid Id, string Name);
 

@@ -75,6 +75,19 @@ public static class CocktailEndpoints
             return Results.Ok(await handler.UnlockingBottlesAsync(wanted, ct));
         });
 
+        // MARGA-3: where to start when the shelf is empty. A THIRD reading of the same catalog, and
+        // not a variant of /unlocks — that one ranks the almost-makeable set, which is empty for a
+        // household that has ticked nothing. This one needs no shelf to answer.
+        group.MapGet("/starters", async (
+            int? limit,
+            CocktailBrowseHandler handler,
+            CancellationToken ct) =>
+        {
+            // Clamped, not rejected — same as /unlocks and every other paging number on this surface.
+            var wanted = Math.Clamp(limit ?? 3, 1, 25);
+            return Results.Ok(await handler.StarterBottlesAsync(wanted, ct));
+        });
+
         // Everything the authoring form may offer. Deliberately NOT the same list as /filters above:
         // that one is derived from the catalog so a filter never offers a dead end, while this is the
         // whole curated lookup, because someone writing down what they pour must be able to reach a

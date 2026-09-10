@@ -121,6 +121,28 @@ public record UnlockingBottle(
     int Unlocks,
     IReadOnlyList<string> Cocktails);
 
+/// <summary>
+/// A bottle to start with (MARGA-3) — the catalog's own answer to "I have nothing, what do I buy?".
+/// <para>
+/// This is deliberately NOT <see cref="UnlockingBottle"/>, and the difference is the whole reason it
+/// exists. ALMOST-2 ranks the almost-makeable set, and a household with an empty shelf is not one
+/// bottle away from anything: the set is empty, so there is nothing to rank. This asks a question
+/// that needs no shelf at all — <b>which bottle do these recipes lean on most</b> — and then removes
+/// the ones the household already has.
+/// </para>
+/// <para>
+/// The two must not be confused in the copy either. An unlocking bottle promises drinks: buy this and
+/// four become makeable. A starter bottle promises nothing of the kind — one bottle alone makes almost
+/// nothing — so <paramref name="Appears"/> is how many recipes ASK for it, and the sentence built on
+/// it says exactly that.
+/// </para>
+/// </summary>
+/// <param name="Appears">How many cocktails this household can see have a REQUIRED line naming it.
+/// Optional lines are excluded (JJ-009): a garnish never blocks a drink, so an ingredient that only
+/// ever garnishes is not one the catalog leans on, and counting it would send someone out for a
+/// lemon twist.</param>
+public record StarterBottle(Guid IngredientId, string Ingredient, int Appears);
+
 /// <summary>One lookup value the catalog actually uses, for a filter dropdown.</summary>
 public record FilterOption(Guid Id, string Name);
 

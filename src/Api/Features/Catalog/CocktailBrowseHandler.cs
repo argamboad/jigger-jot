@@ -190,6 +190,56 @@ public class CocktailBrowseHandler(
     }
 
     /// <summary>
+    /// Where to start when the shelf is empty (MARGA-3): the bottles these recipes lean on most,
+    /// minus the ones this household already has.
+    /// </summary>
+    /// <remarks>
+    /// A different question from <see cref="UnlockingBottlesAsync"/>, deliberately. That one ranks the
+    /// almost-makeable set, and a household with nothing ticked is not one bottle away from anything —
+    /// the set is empty and there is nothing to rank, which is exactly what its own test asserts. This
+    /// one needs no shelf to work: it counts how many recipes ASK for each ingredient.
+    /// <para>
+    /// Three decisions worth stating, because each could reasonably have gone the other way:
+    /// <b>required lines only</b> (JJ-009 — an optional line never blocks a drink, so a garnish is not
+    /// a bottle the catalog leans on); <b>substitutions ignored</b> (a first bottle should be the one
+    /// the recipes name, and with an empty shelf there is nothing to substitute FROM, which is the
+    /// case this exists for); and <b>what the household already has is removed</b>, so the answer
+    /// stays useful as the shelf fills rather than only on the first day.
+    /// </para>
+    /// <para>
+    /// <c>Query()</c> carries the shared-or-tenant filter, so a household's own recipes count towards
+    /// its own suggestion and never towards anyone else's.
+    /// </para>
+    /// </remarks>
+    public async Task<IReadOnlyList<StarterBottle>> StarterBottlesAsync(
+        int limit, CancellationToken cancellationToken)
+    {
+        var available = inventory.Query().Where(i => i.IsAvailable).Select(i => i.IngredientId);
+
+        // Grouped in SQL rather than in memory: this walks every required line in the catalog, which
+        // is three and a half thousand rows today and rather more once the full catalog is switched
+        // on. Distinct on the cocktail, because one recipe naming an ingredient twice — "2 oz gin"
+        // for the build and "1 dash" to rinse — is one recipe asking for gin, not two.
+        var counted = await cocktails.Query()
+            .SelectMany(c => c.Lines
+                .Where(l => l.IsRequired && !available.Contains(l.IngredientId))
+                .Select(l => new { l.IngredientId, Ingredient = l.Ingredient!.Name, Cocktail = c.Id }))
+            .Distinct()
+            .GroupBy(r => new { r.IngredientId, r.Ingredient })
+            .Select(g => new { g.Key.IngredientId, g.Key.Ingredient, Appears = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        return [.. counted
+            // Most first, then by name — the same tie-break as the unlocks card, and for the same
+            // reason: two bottles named by the same number of recipes must not swap places between
+            // requests with nothing behind it.
+            .OrderByDescending(r => r.Appears)
+            .ThenBy(r => r.Ingredient, StringComparer.Ordinal)
+            .Take(limit < 1 ? 1 : limit)
+            .Select(r => new StarterBottle(r.IngredientId, r.Ingredient, r.Appears))];
+    }
+
+    /// <summary>
     /// What the filter dropdowns offer (FILTER-1) — read off the catalog rather than off the lookup
     /// tables, so every option returns at least one drink.
     /// </summary>

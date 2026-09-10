@@ -207,6 +207,7 @@
   <data name="Marga_HomeBottle" xml:space="preserve"><value>Pick up {0} and I can make you {1} more.</value></data>
   <data name="Marga_HomeNoBottle" xml:space="preserve"><value>That is everything your shelf reaches, for now.</value></data>
   <data name="Marga_HomeEmpty" xml:space="preserve"><value>Nothing yet. Tell me what is on your shelf and I will take it from there.</value></data>
+  <data name="Marga_StarterBottle" xml:space="preserve"><value>Starting from nothing? Get {0}. More of these recipes ask for it than for any other bottle — {1} of them.</value></data>
   <data name="AuthCallback_Processing" xml:space="preserve"><value>Processing sign-in…</value></data>
   <data name="AuthError_Title" xml:space="preserve"><value>Sign-in failed</value></data>
   <data name="AuthError_Heading" xml:space="preserve"><value>Authentication failed</value></data>

@@ -6,7 +6,7 @@
 > placeholders, filled from queries that already exist or from `ALMOST-2`.
 > Read with the design proposal (`JiggerJot Proposal.dc.html`, nine screens at three widths, both
 > themes) and **JJ-029** (brand). Stories use Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — MARGA-1 and MARGA-2 shipped; MARGA-3 planned.
+> **Status: ✅ COMPLETE for MVP** — MARGA-1, MARGA-2 and MARGA-3 all shipped.
 
 **Epic key:** `MARGA`
 
@@ -126,17 +126,63 @@ against what that filter reports.
 
 ### MARGA-3 — The two empty states
 
-**Status: 📋 Planned.** Proposal screens **6** and **7**.
+**Status: ✅ Implemented.** Proposal screens **6** and **7**.
 
-Today both state a problem and stop. `Make_NothingYet` reads as a broken catalog rather than an empty
-shelf, and `Almost_NothingYet` gives a verdict with no next action. Both gain the uncropped
-illustration, and `Make_FillYourShelf` is promoted from a text link to a primary button.
+**As a** household with nothing on its shelf
+**I want** the empty screens to tell me what to do next
+**So that** the app's first impression is a starting point rather than a verdict
 
-> **⚠️ Open question, and it is a real one.** Screen 7 offers a concrete first purchase to a household
-> that is one bottle away from *nothing*. `ALMOST-2` cannot answer that: with an empty shelf there is
-> no almost-makeable set to rank. Suggesting a first bottle means asking a different question —
-> which ingredient appears in the most recipes outright — which is a second query and a second
-> decision about what "best first bottle" means. **Settle this before building MARGA-3.**
+Both states used to state a problem and stop. `Make_NothingYet` read as a broken catalog rather than
+an empty shelf, and `Almost_NothingYet` gave a verdict with no next action. Both now carry the
+uncropped illustration, and `Make_FillYourShelf` is a primary button rather than a text link.
+
+**The two states get different next actions, and that is the design.** Nothing makeable means the
+action is *tell me what you have* — with nothing ticked, sending someone shopping is premature.
+Nothing one bottle away is the stronger signal, and the only state where naming a purchase is honest.
+
+#### The open question, settled
+
+`ALMOST-2` cannot answer "what should I buy first?" for an empty shelf: it ranks the
+almost-makeable set, and a household that owns nothing is not one bottle away from anything, so the
+set is empty and there is nothing to rank. Its own test asserts exactly that and points here.
+
+Three readings were on the table:
+
+| Reading | Verdict |
+|---|---|
+| The bottle the most recipes **ask for** | **chosen** |
+| The bottle that would make the most drinks makeable **on its own** | useless — one bottle alone makes very nearly nothing, so every candidate scores nought or one |
+| A **starter set** — "these four get you eleven drinks" | better advice, but that is the onboarding wizard (`ONBOARD-1`), not an empty state |
+
+So `GET /api/cocktails/starters` counts, per ingredient, how many cocktails this household can see
+have a **required** line naming it, drops what the household already has, and ranks. Three decisions
+inside that, each of which could have gone the other way:
+
+- **Required lines only** (JJ-009). An optional line never blocks a drink, so an ingredient that only
+  ever garnishes is not one the catalog leans on — counting it would send someone out for a lemon twist.
+- **Substitutions ignored.** A first bottle should be the one the recipes name, and with an empty
+  shelf there is nothing to substitute *from*, which is the case this exists for.
+- **What the household already has is removed**, so the answer stays useful as the shelf fills rather
+  than only on the first day.
+
+**The honesty constraint falls out of the choice.** `appears` is how many recipes ASK for the bottle,
+not how many it would unlock, so her line says exactly that. `ALMOST-2`'s card may promise drinks
+because it measured them; this one may not, and reading `appears` as "drinks you could make" is the
+single way this endpoint could mislead.
+
+> **Found in the browser, not by a test.** With the one-away filter on *and a search typed*, an empty
+> list means the **search** found nothing — and answering that with "starting from nothing? get gin"
+> tells someone who may own forty bottles to go shopping. The one-away filter now has to be the only
+> thing narrowing the list before its emptiness is allowed to say anything about the shelf.
+
+**Tested as components, not as a journey.** The state itself is a cold start: an empty one-away list
+means the catalog holds no recipe within one bottle of this household, and the development database
+cannot produce that. It was seeded before the shipped catalog was cut to its starter set and still
+holds single-ingredient recipes, so an empty shelf there is one bottle away from fourteen drinks.
+`tests/Ui.Tests/CocktailsEmptyStateTests.cs` renders the real page against stubbed responses instead.
+
+**She is the illustration here, not beside it.** The empty states show the 512px scene and state her
+line beneath it, rather than nesting `MargaSays` — which would put her face on the screen twice.
 
 ---
 

@@ -1,0 +1,19 @@
+/* MARGA-3, proposal screens 6 and 7. Both empty states used to be a line of grey text in the middle
+   of a blank page, which reads as a broken catalog rather than as an empty shelf. */
+
+.empty-scene {
+    /* Her whole scene, uncropped. Capped rather than fixed: on a phone the illustration must not be
+       the only thing on the screen, or the sentence explaining it falls below the fold. */
+    width: 100%;
+    max-width: 260px;
+    height: auto;
+}
+
+.empty-starter {
+    /* The one sentence on this screen that names something to go and buy, so it carries the accent
+       while the verdict above it stays quiet. */
+    color: var(--bs-primary-text-emphasis);
+    font-weight: 500;
+    max-width: 46ch;
+    margin-inline: auto;
+}

@@ -188,6 +188,11 @@ Behavior:
 - Lists cocktails where **exactly one** required line is unsatisfied (after substitutions).
 - Each result names the single missing ingredient — the "buy this, unlock these drinks" hook.
 - Presented as its own view or section adjacent to "what can I make."
+- When **nothing** is one bottle away — the cold start, an empty shelf — the screen names a bottle to
+  start from instead of stating a verdict: the ingredient the most recipes ask for, among those the
+  household does not already have. It says how many recipes **ask for** it, never how many it would
+  unlock; one bottle on an empty shelf makes very nearly nothing, and promising otherwise would be
+  the one dishonest number in the app.
 
 ### 11. Browsing & filtering
 **Goal:** explore the whole catalog, not just what's makeable.
