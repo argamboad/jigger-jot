@@ -52,35 +52,75 @@
 
 ## Where things stand — 2026-09-10
 
-**Merged into `develop`** (PRs #1–#17): the domain model and both tenancy walls, the seed catalog,
+**Merged into `develop`** (PRs #1–#19): the domain model and both tenancy walls, the seed catalog,
 browse, detail, the measurement preference, the shelf, the makeable engine, one-ingredient-away, the
-recipe's own makeability, custom ingredients, the catalog filters, and forking. Staging deploys on
-every merge. The shipped seed is a **starter catalog** of 31 recipes; `python
-seed/build_cocktails.py --full` emits all 969.
+recipe's own makeability, custom ingredients, the catalog filters, forking, authoring, and the
+brand-token stylesheet fixes. **Every flow in `FEATURES.md` §8–§15 is covered.** Only §7, the
+onboarding wizard, has never been built.
 
-**Built, verified, uncommitted** on `feat/AUTHORING-1-write-a-cocktail` (branched from `develop`):
+The same stylesheet fixes went upstream the same day: `perezosoft-platform` #222 and `vuelto` #57.
+All three apps inherited the defect from the platform's `app.css`.
 
-- **AUTHORING-1** to `FEATURES.md` §14: `POST /api/cocktails`, `GET /api/cocktails/lookups` and the
-  `/cocktails/new` form. A written drink joins makeable and filtering immediately and for free.
-- **Two lookup endpoints that must not be merged**: `/filters` is catalog-derived so no filter is a
-  dead end; `/lookups` is the whole curated set so a form can reach a glass no recipe uses (JJ-022).
-- **A bug the twenty handler tests all passed through**: request enums could not bind, because
-  nothing had ever sent this API an enum before. Found in the browser, fixed with a per-property
-  converter, and now covered by an HTTP-level test — the second time this project has needed
-  reminding that a handler test cannot see model binding.
-- One gap **logged, not folded in**: AUTHORING-2, editing a cocktail (including a fork).
+**Nothing is uncommitted.** The tree is clean.
+
+## The UI wave — 2026-09-10
+
+A design proposal arrived as three Claude Design documents: the current UI recreated, a bug list
+(implemented, PR #19), and **nine screens at three widths in both themes**, which introduce a
+character called **Marga**.
+
+**Read this before planning around her.** Marga is a drawn bartender who says **fixed lines with real
+data in them**. There is no model behind her, she generates nothing, and every sentence is a localized
+resource string with placeholders. Reading her as an assistant makes the wave look four times larger
+than it is.
+
+Sorted by what the data has to supply, only one thing in the whole proposal is new engine work:
+
+| Her line | Where the data comes from |
+|---|---|
+| "Twelve tonight" | exists — `makeable=true` already returns the total |
+| "Kahlúa's fine, that's what I'd pour" | exists since MAKE-1, reworded |
+| "Pick up triple sec and I can make you four more" | **new** — `ALMOST-2` |
+
+Everything else is presentation over data already on the page. **Eight of the nine screens already
+exist and ship today**; the proposal changes them. `Home.razor` is the exception at 34 lines, and it
+still carries `<!-- TODO: app-specific content goes here -->`.
 
 ## What is next, in order
 
 Each is one branch off `develop`, one PR, after the previous one is merged.
 
-| # | Slice | Flow | What it is |
+| # | Slice | Flow / screen | What it is |
 |---|---|---|---|
-| 1 | **AUTHORING-1** | §14 | The uncommitted work above. Waiting on C+P+PR. |
-| 2 | **ONBOARD-1** | §7 | New-household wizard: tick a starter shelf, land on what you can make. |
+| 1 | **ALMOST-2** | screen 4 | The bottle that unlocks the most. The only new query in the wave: the almost-makeable set grouped by missing ingredient instead of by cocktail, ranked. Gates screens 1, 4 and 7. Small. |
+| 2 | **MARGA-1** | screens 2, 3, 8 | The character: her asset optimized into the brand folder, one shared component, and three fixed lines over data already on their pages. No new queries. |
+| 3 | **MARGA-2** | screen 1 | The home screen. Needs both of the above. Closes the `Home.razor` TODO — the only screen in the wave with room rather than a rework. |
+| 4 | **INV-3** | screen 5 | The shelf rework. Pills, per-category counts, a jump bar, and a sticky footer showing the payoff as you tick. The biggest, and the one that gates the product. |
+| 5 | **MARGA-3** | screens 6, 7 | The two empty states. ⚠️ blocked on an open question — see below. |
+| 6 | **SHELL-1** | all, below `lg` | Bottom tab bar for the app's three destinations; account furniture stays on top. ⚠️ must keep the `nav-shelf` and `nav-cocktails` test ids. |
+| 7 | **SHELL-2** | screen 9 | The boot state. Smallest of the wave, and it lands in **two** `index.html` files, not one. |
+| 8 | **ONBOARD-1** | §7 | The last unbuilt flow, and the only one predating the wave. Sits after it because a wizard that lands on a reworked shelf should be built against the reworked shelf. |
 
-Also open, and not scheduled: **AUTHORING-2**, editing a cocktail (including a fork) — it
-needs the write form again in an edit shape.
+**Three questions to settle before the slices that need them.**
+
+1. **What is the best first bottle for an empty shelf?** `MARGA-3` screen 7 offers a concrete first
+   purchase to a household that is one bottle away from nothing. `ALMOST-2` cannot answer it — with an
+   empty shelf there is no almost-makeable set to rank. It needs a different query and a decision
+   about what "best first bottle" means.
+2. **How does the shelf footer stay current?** `INV-3`'s payoff count refreshes on every tick. Either
+   the tick response carries the new makeable total or the screen re-asks for it, and a request per
+   checkbox is a lot for a screen someone clicks down.
+3. **Do wide screens change too?** `SHELL-1` moves the destinations to a tab bar below `lg`. At wide
+   widths the app's own links stay at 55% opacity beside the platform's at full strength, which the
+   bug list called a hierarchy question rather than a defect. Answering it at one width only moves it.
+
+**One thing that is already decided.** Selected shelf pills are **filled**, not outlined: the catalog
+screen already uses outlined pills for filters, and the same shape one screen apart must not mean two
+different things.
+
+**One number worth watching.** The illustration is 2 MB as delivered, at 1254×1254. It must be
+optimized in `MARGA-1`, before `SHELL-2` puts it in the boot path where it is fetched before the app
+is usable.
 
 Not on this list, deliberately: the Savoy transcription-source question (JJ-032, open, blocks
 nothing), the two scrape-merged recipe lines, and restoring the 969-recipe catalog — that is a

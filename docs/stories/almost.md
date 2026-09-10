@@ -4,7 +4,7 @@
 > required line short of, each one naming the bottle that would unlock it. Read with **JJ-019**
 > (derived, never stored), **JJ-004**/**JJ-006** (substitutions, directed) and **JJ-009** (optional
 > lines never block). Stories use Gherkin acceptance criteria.
-> **Status: ✅ COMPLETE for MVP** — ALMOST-1 shipped.
+> **Status: 🚧 IN PROGRESS** — ALMOST-1 shipped; ALMOST-2 (the bottle that unlocks the most) planned.
 
 **Epic key:** `ALMOST`
 
@@ -117,3 +117,59 @@ the drink cross from one list to the other.
 and two away is a wish list rather than a shopping list. A real shopping list that ranks bottles by
 how many drinks each unlocks is a plausible follow-up and is not in `PROJECT_BRIEF`. Showing this
 status on the **detail** page is `CKTL-4`.
+
+---
+
+### ALMOST-2 — The bottle that unlocks the most
+
+**Status: 📋 Planned.** The inverse of ALMOST-1, and the only new engine work in the UI wave.
+Proposal screen **4**.
+
+**As a** member of a household
+**I want** to know which single bottle unlocks the most drinks
+**So that** one trip to the shop is worth making
+
+**Context / notes.** ALMOST-1 answers per drink: *this cocktail is missing that bottle*. Ask it
+eighty-one times and you get a list nobody reads. Marga asks the inverse — *which bottle unlocks the
+most, and which drinks* — which is the same set grouped the other way and ranked by count.
+
+Every grouping in the catalog today is per cocktail. This is the first one that groups by ingredient.
+
+**It was deliberately left out twice**, in this file and in `FORK`, on the grounds that a ranked
+shopping list is not in `PROJECT_BRIEF`. The proposal puts it back, and it earns its place: "buy this
+one thing and four drinks open up" is a far stronger hook than the same per-row line repeated down a
+long list. Log the decision rather than quietly reversing the earlier one.
+
+**The summary and the rows must agree.** The card says a number and names drinks; the rows beneath it
+say the same thing one at a time. Both come from one query or they drift.
+
+**Ties need a rule.** Two bottles that each unlock three drinks have to order deterministically, or
+the card changes on refresh with nothing behind it.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: The bottle that opens the most
+  Given I am one ingredient short of several drinks
+  Then the top result is the ingredient that unlocks the most of them
+  And it names those drinks
+
+Scenario: It agrees with the list
+  Then the count in the summary equals the number of rows it names
+
+Scenario: Substitutions are already applied
+  Given a drink is short only of something I can substitute
+  Then that drink is not counted toward any bottle
+
+Scenario: Ties are stable
+  Given two bottles each unlock the same number
+  Then the order does not change between requests
+
+Scenario: An empty shelf ranks nothing
+  Given nothing is one ingredient away
+  Then the result is empty rather than a guess
+```
+
+**Out of scope, deliberately:** a full shopping list, multi-bottle combinations ("these two unlock
+nine"), and the cold-start recommendation for a household that is one away from nothing — that last
+one is a different query and is the open question logged in `MARGA-3`.
