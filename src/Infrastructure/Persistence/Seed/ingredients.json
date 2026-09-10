@@ -40,6 +40,11 @@
       "subcategory": "Herbal liqueur"
     },
     {
+      "name": "Almond",
+      "category": "Herb and spice",
+      "subcategory": "Nut"
+    },
+    {
       "name": "Amaretto",
       "category": "Liqueur",
       "subcategory": "Nut liqueur"
@@ -73,6 +78,11 @@
       "name": "Apple brandy",
       "category": "Brandy",
       "subcategory": "Apple brandy"
+    },
+    {
+      "name": "Apricot",
+      "category": "Fruit",
+      "subcategory": "Stone fruit"
     },
     {
       "name": "Apricot brandy",
@@ -155,6 +165,11 @@
       "subcategory": "Quinquina"
     },
     {
+      "name": "Capillaire",
+      "category": "Syrup",
+      "subcategory": "Floral syrup"
+    },
+    {
       "name": "Chamomile cordial",
       "category": "Syrup",
       "subcategory": "Floral syrup"
@@ -163,6 +178,11 @@
       "name": "Champagne",
       "category": "Wine",
       "subcategory": "Champagne"
+    },
+    {
+      "name": "Cherry",
+      "category": "Garnish",
+      "subcategory": "Cherry"
     },
     {
       "name": "Cherry brandy",
@@ -285,9 +305,19 @@
       "subcategory": "Floral liqueur"
     },
     {
+      "name": "Cucumber",
+      "category": "Herb and spice",
+      "subcategory": "Botanical"
+    },
+    {
       "name": "Curaçao",
       "category": "Liqueur",
       "subcategory": "Orange liqueur"
+    },
+    {
+      "name": "Currant",
+      "category": "Fruit",
+      "subcategory": "Berries"
     },
     {
       "name": "Cynar",
@@ -375,6 +405,11 @@
       "subcategory": "Nut liqueur"
     },
     {
+      "name": "Fruit preserve",
+      "category": "Sweetener",
+      "subcategory": "Jam or preserve"
+    },
+    {
       "name": "Ginger",
       "category": "Herb and spice",
       "subcategory": "Ginger"
@@ -413,6 +448,11 @@
       "name": "Gomme syrup",
       "category": "Syrup",
       "subcategory": "Rich syrup"
+    },
+    {
+      "name": "Gooseberry syrup",
+      "category": "Syrup",
+      "subcategory": "Fruit syrup"
     },
     {
       "name": "Grand Marnier",
@@ -473,6 +513,11 @@
       "name": "Irish whiskey",
       "category": "Whisky",
       "subcategory": "Irish whiskey"
+    },
+    {
+      "name": "Juniper berry",
+      "category": "Herb and spice",
+      "subcategory": "Botanical"
     },
     {
       "name": "Kirsch",
@@ -585,6 +630,11 @@
       "subcategory": "Old Tom gin"
     },
     {
+      "name": "Olive",
+      "category": "Garnish",
+      "subcategory": "Olive"
+    },
+    {
       "name": "Orange",
       "category": "Fruit",
       "subcategory": "Citrus"
@@ -620,6 +670,11 @@
       "subcategory": "Citrus peel"
     },
     {
+      "name": "Orange shrub",
+      "category": "Syrup",
+      "subcategory": "Fruit syrup"
+    },
+    {
       "name": "Orange wheel",
       "category": "Garnish",
       "subcategory": "Citrus wheel"
@@ -653,6 +708,11 @@
       "name": "Pastis",
       "category": "Absinthe and pastis",
       "subcategory": "Pastis"
+    },
+    {
+      "name": "Peach",
+      "category": "Fruit",
+      "subcategory": "Stone fruit"
     },
     {
       "name": "Peach bitters",
@@ -725,6 +785,16 @@
       "subcategory": "Stone fruit liqueur"
     },
     {
+      "name": "Raspberry",
+      "category": "Fruit",
+      "subcategory": "Berries"
+    },
+    {
+      "name": "Raspberry brandy",
+      "category": "Liqueur",
+      "subcategory": "Berry liqueur"
+    },
+    {
       "name": "Raspberry syrup",
       "category": "Syrup",
       "subcategory": "Fruit syrup"
@@ -770,6 +840,11 @@
       "subcategory": "Scotch whisky"
     },
     {
+      "name": "Secrestat bitters",
+      "category": "Bitters",
+      "subcategory": "Aromatic bitters"
+    },
+    {
       "name": "Sherry",
       "category": "Fortified wine",
       "subcategory": "Sherry"
@@ -793,6 +868,11 @@
       "name": "Sparkling mineral water",
       "category": "Soda and mixer",
       "subcategory": "Sparkling mineral water"
+    },
+    {
+      "name": "Sparkling wine",
+      "category": "Wine",
+      "subcategory": "Sparkling wine"
     },
     {
       "name": "Stout",

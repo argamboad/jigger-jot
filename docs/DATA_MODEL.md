@@ -175,8 +175,10 @@ Single table for both shared and custom cocktails (JJ-012).
   "Create my own version" of another. **A fork is a full snapshot copy** — changes to the
   original never propagate (JJ-013).
 - `name`
-- `glass_type_id` → GlassType
-- `method_id` → Method
+- `glass_type_id` → GlassType — **nullable** (JJ-034): a recipe may not say, and 259 of the 969
+  seeded ones either say nothing or say something that is not a glass type
+- `method_id` → Method — **nullable**, for the same reason (94 seeded recipes)
+- `source_id` → RecipeSource — nullable; set for seeded recipes, null for a household's own
 - `serving_type` — enum: `shot` | `full_drink`
 - `instructions` — free text (preparation steps / notes)
 
@@ -216,6 +218,21 @@ The availability checklist. Sparse — a row exists only for ingredients the hou
 - `ingredient_id` → Ingredient (shared or this household's custom)
 - `is_available` — boolean. (Absence of a row = not available.) Boolean only — JJ-023.
 
+### RecipeSource
+Where a seeded recipe came from, and the credit owed to it (JJ-032). Curated global lookup, no
+tenant column.
+- `id`
+- `name` — shown wherever a recipe is credited, e.g. "The Savoy Cocktail Book"
+- `year` — nullable; the edition the recipes were taken from, null for a living list
+- `url` — nullable; where the material came from, so a reader can check it
+- `attribution` — nullable; the one-line credit and rights note, written out per source rather than
+  templated, because the sources are not on the same footing
+
+> A credit has to be a property of the row. The catalog mixes sources, so a flat attribution page
+> cannot say which drink came from where, and pulling a source later would mean re-deriving which
+> rows to remove. `cocktail.source_id` is null for a cocktail a household wrote itself — provenance
+> from OUTSIDE the app, as against `forked_from_cocktail_id`, which is provenance from inside it.
+
 ### GlassType / Method / Unit
 Curated lookup tables (no tenant additions in MVP — JJ-022).
 - **GlassType:** `id`, `name` (coupe, rocks, highball, …)
@@ -251,7 +268,8 @@ Not tables, but they live in `src/Core/Entities/` and the schema is written in t
 - Cocktail 1 — N CocktailIngredient (recipe lines); Ingredient 1 — N CocktailIngredient
 - Ingredient N — N Ingredient via IngredientSubstitution (both directions stored)
 - IngredientCategory self-referencing (parent / subcategory)
-- Cocktail → GlassType, Method; CocktailIngredient → Unit; Ingredient → IngredientCategory ×2
+- Cocktail → GlassType, Method (both optional), RecipeSource; CocktailIngredient → Unit;
+  Ingredient → IngredientCategory ×2
 
 ### ER diagram — identity & auth foundation
 

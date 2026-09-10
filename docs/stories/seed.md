@@ -4,8 +4,8 @@
 > owns, then the ingredients, then the recipes. Read with **JJ-022** (lookups are curated and global),
 > **JJ-031** (how a shared row coexists with tenant isolation) and `docs/DATA_MODEL.md`. Stories use
 > Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — SEED-1 (lookups) ✅, the IBA extraction ✅, SEED-2 (the ingredient
-> catalog) ✅. Sources settled by JJ-032; recipes and the substitution graph to follow.
+> **Status: 🚧 IN PROGRESS** — SEED-1 (lookups) ✅, the IBA extraction ✅, SEED-2 (ingredients) ✅,
+> SEED-3 (recipes) ✅. Sources settled by JJ-032. Only the substitution graph (SEED-4) remains.
 
 **Epic key:** `SEED`
 
@@ -234,20 +234,98 @@ Scenario: Curation refuses to ship with a name nobody decided about
 load-bearing case: the seeder counts only shared rows as already-seeded, so a household adding
 "Absinthe" neither suppresses the shared row nor gets counted as one.
 
-### SEED-3 — Recipes and their lines 📋 PLANNED
+### SEED-3 — Recipes and their lines
+
+**Status: ✅ Implemented.** 969 cocktails, 3526 recipe lines, credited to their sources.
 
 **As a** member of a household
 **I want** a library of cocktails on first run
 **So that** the app can answer "what can I make" before I have added anything
 
-Normalizes raw lines into `CocktailIngredient` rows: amount, unit, role, `is_required`,
-`display_order` (JJ-007, JJ-009, JJ-010). **Adds per-cocktail provenance to the model first** — source
-name, year and a licence note — so a credit is a property of the row rather than a promise in a footer;
-`Cocktail` has nowhere to record it today.
+**Context / notes.** `seed/build_cocktails.py` resolves both extractions against SEED-2's curation
+and emits the shipped `cocktails.json`. Every line must resolve to a curated ingredient and a known
+unit, or be dropped for a reason the script names — a recipe that quietly loses a line is a recipe
+that quietly stops being makeable.
 
-Three known shapes: the Savoy's proportional recipes, which take the `part` unit; the 92 Savoy recipes
-and 3 IBA ones whose method the scrape could not determine; and the IBA's garnish field, which is a
-sentence of prose rather than a line, and becomes an optional line with the `garnish` role.
+| | |
+|---|---|
+| cocktails | 969 |
+| recipe lines | 3526 |
+| lines dropped (ice, water, the SEED-2 exclusions) | 74 |
+| lines the scrape left blank | 13 |
+| recipes recovered from tag lists | 60 |
+| glass null: unstated / too vague | 96 / 163 |
+| method null | 94 |
+
+**Provenance landed first, as promised.** A new `RecipeSource` lookup and a nullable
+`Cocktail.SourceId`, so a credit is a property of the row (JJ-032). The catalog mixes sources; a flat
+attribution page cannot say which drink came from where, and pulling a source later would mean
+re-deriving which rows to remove.
+
+**Sixty prose recipes were recovered rather than dropped.** The Savoy writes some entries as
+narrative — *"Put on the fire in a saucepan one quart of Ale"* — and the line parser found nothing in
+them. The site's own ingredient **tags** did. Since makeability is a question about which ingredients
+a drink needs and not how much of each (JJ-003), those recipes work fully with unmeasured lines, and
+their quantities remain readable in the instructions. Dropping 60 real cocktails to avoid an empty
+amount column would have been the worse trade. One recipe, `Common Highball`, has no ingredients in
+any form and is genuinely dropped.
+
+**Identity is the source plus that source's slug, never the name.** Four names appear in both books,
+and the Savoy alone carries *Mr. Manhattan Cocktail* twice — once in the main chapter and once among
+the Prohibition cocktails, with mint and sugar the second time. Keyed on the name, one of each pair
+would silently replace the other, and the loss would surface as a missing drink rather than an error.
+The build fails outright if two recipes from one source ever share a slug.
+
+**Glass and method became optional (JJ-034).** 259 of 969 recipes state no glass or state something
+that is not one; the Savoy's "medium size glass" and bare "glass" are 108 between them. Filling those
+in would put a fact in the database that nobody wrote down, and afterwards it would be
+indistinguishable from a fact somebody did.
+
+**Roles are derived, never tagged.** The first spirit in a drink is its base and later spirits are
+modifiers; bitters, juice, syrup and mixers come from the ingredient's category. A garnish is simply
+an optional line, so optional lines never block makeability (JJ-009) — invert that one bit and every
+drink with a mint sprig becomes unmakeable without mint.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: The recipe catalog is seeded as shared rows
+  Given a database with the ingredients seeded
+  When the app starts
+  Then every curated cocktail and its lines exist
+  And neither the cocktails nor their lines belong to a household
+
+Scenario: Every seeded recipe is credited
+  Given the catalog has been seeded
+  Then each cocktail names a source
+  And each source carries an attribution
+
+Scenario: Two sources may share a recipe name
+  Given the catalog has been seeded
+  When I look up "Gin Fizz"
+  Then I find two recipes, one from each source
+
+Scenario: A recipe that did not state a glass has none
+  Given the catalog has been seeded
+  Then some cocktails have no glass and no method
+  And most still do
+
+Scenario: Proportional amounts keep the fraction the book wrote
+  Given the catalog has been seeded
+  Then the proportional lines carry the neutral "part" unit
+  And that unit never converts
+
+Scenario: Garnishes are optional and nothing else is
+  Given the catalog has been seeded
+  Then every garnish line is optional
+  And every other line is required
+```
+
+**Tests.** `tests/Api.Tests/Catalog/CatalogSeederTests.cs` (sixteen in total across SEED-1 to 3).
+
+**Known data debt, deliberately left visible.** Two Savoy lines were merged by the scrape (a lemon
+and a grapefruit juice; an allspice dram and a lime juice) and are excluded rather than guessed at.
+Splitting them is a hand-fix on the extraction, not on the curated output.
 
 ### SEED-4 — The substitution graph 📋 PLANNED
 

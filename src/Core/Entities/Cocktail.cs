@@ -26,11 +26,26 @@ public class Cocktail : ISharedOrTenantScoped
 
     public required string Name { get; set; }
 
-    public Guid GlassTypeId { get; set; }
+    /// <summary>
+    /// Nullable because a recipe may simply not say (JJ-034). A quarter of the seeded catalog either
+    /// states no glass or states one that is not a glass type — the Savoy's "medium size glass" and
+    /// plain "glass" are 165 recipes on their own — and picking one for them would be inventing a
+    /// fact. Null reads as "not specified" and filters as such.
+    /// </summary>
+    public Guid? GlassTypeId { get; set; }
     public GlassType? GlassType { get; set; }
 
-    public Guid MethodId { get; set; }
+    /// <summary>Nullable for the same reason as <see cref="GlassTypeId"/> (JJ-034).</summary>
+    public Guid? MethodId { get; set; }
     public Method? Method { get; set; }
+
+    /// <summary>
+    /// The book or list this recipe came from, and the credit owed to it (JJ-032). Null for a cocktail
+    /// a household wrote itself — provenance from OUTSIDE the app, unlike
+    /// <see cref="ForkedFromCocktailId"/>, which is provenance from inside it.
+    /// </summary>
+    public Guid? SourceId { get; set; }
+    public RecipeSource? Source { get; set; }
 
     public ServingType ServingType { get; set; }
 

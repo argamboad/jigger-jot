@@ -90,6 +90,7 @@ public class AppDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<GlassType> GlassTypes => Set<GlassType>();
     public DbSet<Method> Methods => Set<Method>();
     public DbSet<Unit> Units => Set<Unit>();
+    public DbSet<RecipeSource> RecipeSources => Set<RecipeSource>();
 
     // Global-only substitution graph, both directions stored (JJ-005, JJ-006).
     public DbSet<IngredientSubstitution> IngredientSubstitutions => Set<IngredientSubstitution>();

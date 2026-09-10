@@ -13,6 +13,7 @@
     <EmbeddedResource Include="Email\Assets\logo.png" />
     <EmbeddedResource Include="Persistence\Seed\lookups.json" />
     <EmbeddedResource Include="Persistence\Seed\ingredients.json" />
+    <EmbeddedResource Include="Persistence\Seed\cocktails.json" />
   </ItemGroup>
 
   <ItemGroup>
