@@ -330,4 +330,10 @@
   <data name="Shelf_NoMatches" xml:space="preserve"><value>No ingredients match that.</value></data>
   <data name="Shelf_LoadFailed" xml:space="preserve"><value>Could not load your shelf. Try again.</value></data>
   <data name="Shelf_SaveFailed" xml:space="preserve"><value>That change did not save. Try again.</value></data>
+  <data name="Nav_Make" xml:space="preserve"><value>Make now</value></data>
+  <data name="Make_Subtitle" xml:space="preserve"><value>Everything your shelf can make right now, substitutions included.</value></data>
+  <data name="Make_NothingYet" xml:space="preserve"><value>Nothing yet — your shelf does not cover a whole recipe.</value></data>
+  <data name="Make_FillYourShelf" xml:space="preserve"><value>Tick what you have</value></data>
+  <data name="Cocktails_MakeableNow" xml:space="preserve"><value>I can make now</value></data>
+  <data name="Cocktails_Using" xml:space="preserve"><value>Using {0} in place of {1}</value></data>
 </root>

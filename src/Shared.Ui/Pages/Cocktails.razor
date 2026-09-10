@@ -6,16 +6,25 @@
 <PageTitle>@Localizer["Nav_Cocktails"]</PageTitle>
 
 <h1 class="h4 fw-bold mb-1">@Localizer["Nav_Cocktails"]</h1>
-<p class="text-muted mb-4">@Localizer["Cocktails_Subtitle"]</p>
+<p class="text-muted mb-3">@Localizer["Cocktails_Subtitle"]</p>
 
-<div class="input-group mb-3" style="max-width:420px">
-    <span class="input-group-text" aria-hidden="true">🔎</span>
-    <input class="form-control"
-           placeholder="@Localizer["Cocktails_SearchPlaceholder"]"
-           aria-label="@Localizer["Cocktails_SearchPlaceholder"]"
-           data-testid="cocktail-search"
-           value="@_search"
-           @oninput="OnSearchInput" />
+<div class="d-flex flex-wrap gap-3 align-items-center mb-3">
+    <div class="input-group" style="max-width:360px">
+        <span class="input-group-text" aria-hidden="true">🔎</span>
+        <input class="form-control"
+               placeholder="@Localizer["Cocktails_SearchPlaceholder"]"
+               aria-label="@Localizer["Cocktails_SearchPlaceholder"]"
+               data-testid="cocktail-search"
+               value="@_search"
+               @oninput="OnSearchInput" />
+    </div>
+
+    @* FEATURES §11: "makeable now" is one combinable filter on this list, not a separate screen. *@
+    <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="makeable-now"
+               data-testid="cocktail-makeable" checked="@_makeableOnly" @onchange="OnMakeableChanged" />
+        <label class="form-check-label small" for="makeable-now">@Localizer["Cocktails_MakeableNow"]</label>
+    </div>
 </div>
 
 @if (_error is not null)
@@ -31,7 +40,15 @@
 }
 else if (_page is null || _page.Total == 0)
 {
-    <div class="p-4 text-center text-muted" data-testid="cocktail-empty">@Localizer["Cocktails_NoMatches"]</div>
+    <div class="p-4 text-center text-muted" data-testid="cocktail-empty">
+        @Localizer[_makeableOnly ? "Make_NothingYet" : "Cocktails_NoMatches"]
+        @if (_makeableOnly)
+        {
+            @* An empty makeable list is almost always an empty shelf, so point at the fix rather
+               than leaving someone to conclude the catalog is broken. *@
+            <div class="mt-2"><a href="/shelf">@Localizer["Make_FillYourShelf"]</a></div>
+        }
+    </div>
 }
 else
 {
@@ -53,6 +70,14 @@ else
                                glass shows nothing here rather than a guess or an "unknown" chip. *@
                             @string.Join(" · ", Facets(c))
                         </div>
+                        @* FEATURES §9: a drink that qualified only because of a substitute has to say
+                           what you would actually pour, or the shelf is a nasty surprise. *@
+                        @foreach (var swap in c.Substitutions)
+                        {
+                            <div class="small text-warning-emphasis" data-testid="cocktail-substitution">
+                                @Localizer["Cocktails_Using", swap.YouHave, swap.AsksFor]
+                            </div>
+                        }
                     </div>
                     @if (!string.IsNullOrWhiteSpace(c.Source))
                     {
@@ -81,6 +106,12 @@ else
 
 @code {
     private const int PageSize = 20;
+
+    /// <summary>
+    /// FEATURES §11 makes "makeable now" one combinable filter on this list rather than a separate
+    /// view — the same screen, a narrower question. Off by default, which is the whole catalog.
+    /// </summary>
+    private bool _makeableOnly;
 
     // Long enough that typing a name does not fire a request per keystroke, short enough that the
     // list feels attached to the box. The catalog is nearly a thousand rows, so the request is not
@@ -124,6 +155,12 @@ else
         }
     }
 
+    private Task OnMakeableChanged(ChangeEventArgs e)
+    {
+        _makeableOnly = e.Value is bool on && on;
+        return LoadAsync(1);   // narrowing the list always starts again at the first page
+    }
+
     private Task GoToAsync(int page) => LoadAsync(page);
 
     private async Task LoadAsync(int page)
@@ -136,6 +173,7 @@ else
         try
         {
             var url = $"/api/cocktails?page={page}&pageSize={PageSize}";
+            if (_makeableOnly) url += "&makeable=true";
             if (!string.IsNullOrWhiteSpace(_search))
                 url += $"&search={Uri.EscapeDataString(_search.Trim())}";
 
@@ -171,5 +209,8 @@ else
 
     private record CocktailSummary(
         Guid Id, string Name, string? Glass, string? Method,
-        string ServingType, string? Source, bool IsOwn, int IngredientCount);
+        string ServingType, string? Source, bool IsOwn, int IngredientCount,
+        IReadOnlyList<SubstitutionInPlay> Substitutions);
+
+    private record SubstitutionInPlay(string AsksFor, string YouHave);
 }

@@ -909,6 +909,61 @@
           ], "type": "text/javascript" } }]
         },
         {
+          "name": "Cocktails — makeable now (filter)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails?makeable=true&page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cocktails"
+              ],
+              "query": [
+                {
+                  "key": "makeable",
+                  "value": "true",
+                  "description": "One combinable filter on the browse list (FEATURES §11), not a separate view. Absent or false is the whole catalog."
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                },
+                {
+                  "key": "search",
+                  "value": "negroni",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Everything this household can make RIGHT NOW, from its shelf.\n\n**Derived at query time, never stored** (JJ-003, JJ-019). There is no is_makeable column and there must never be one: the answer changes the instant a shelf changes or a recipe is edited, and a cached flag would be wrong in between with nothing to say so.\n\nA drink qualifies when every REQUIRED line is satisfied — by the exact ingredient, or by anything the substitution graph allows IN THAT DIRECTION (JJ-004, JJ-006). Optional lines never block (JJ-009); ice and water never appear (JJ-020).\n\nEach result carries `substitutions`: \"using Curaçao in place of Cointreau\" (FEATURES §9). Empty when the household can pour the drink as written, and empty on an unfiltered browse, where a row makes no makeability claim at all.\n\nTick a shelf first with the Shelf folder, or this is correctly empty."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"paged shape\", () => pm.expect(body).to.have.property(\"total\"));",
+                  "pm.test(\"every row can explain itself\", () =>",
+                  "  body.items.forEach(i => pm.expect(i).to.have.property('substitutions')));",
+                  "body.items.filter(i => i.substitutions.length).forEach(i =>",
+                  "  console.log(i.name + ':', i.substitutions.map(x => x.youHave + ' for ' + x.asksFor).join('; ')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Cocktails — detail",
           "request": {
             "method": "GET",

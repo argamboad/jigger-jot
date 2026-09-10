@@ -14,7 +14,10 @@ namespace JiggerJot.Api.Features.Catalog;
 /// wrong.
 /// </para>
 /// </summary>
-public class CocktailBrowseHandler(IRepository<Cocktail> cocktails)
+public class CocktailBrowseHandler(
+    IRepository<Cocktail> cocktails,
+    IRepository<TenantInventory> inventory,
+    IRepository<IngredientSubstitution> substitutions)
 {
     public async Task<PagedResponse<CocktailSummary>> BrowseAsync(
         CocktailBrowseRequest request, CancellationToken cancellationToken)
@@ -23,6 +26,27 @@ public class CocktailBrowseHandler(IRepository<Cocktail> cocktails)
         var pageSize = request.SafePageSize;
 
         var query = cocktails.Query();
+
+        // The household's shelf, tenant-filtered by the platform.
+        var available = inventory.Query().Where(i => i.IsAvailable).Select(i => i.IngredientId);
+
+        // Directed (JJ-006): a row says "when a recipe asks for Ingredient you may pour Substitute".
+        // Reading it in that direction is what keeps a one-way substitution one-way — cognac stands in
+        // for brandy, brandy does not stand in for cognac, and a household with only brandy must not be
+        // offered a drink it cannot actually make well.
+        var subs = substitutions.Query();
+
+        if (request.MakeableOnly)
+        {
+            // Makeable = every REQUIRED line satisfied, by the exact ingredient or by a valid
+            // substitute (DATA_MODEL derived rules, JJ-003). Optional lines never block (JJ-009),
+            // which is why a garnish is a line rather than a special case.
+            query = query.Where(c => !c.Lines.Any(l =>
+                l.IsRequired
+                && !available.Contains(l.IngredientId)
+                && !subs.Any(s => s.IngredientId == l.IngredientId
+                                  && available.Contains(s.SubstituteIngredientId))));
+        }
 
         if (request.SafeSearch is { } search)
         {
@@ -51,9 +75,64 @@ public class CocktailBrowseHandler(IRepository<Cocktail> cocktails)
                 c.ServingType.ToString(),
                 c.Source!.Name,
                 c.TenantId != null,
-                c.Lines.Count))
+                c.Lines.Count,
+                Array.Empty<SubstitutionInPlay>()))
             .ToListAsync(cancellationToken);
 
+        if (request.MakeableOnly && items.Count > 0)
+            items = await WithSubstitutionsAsync(items, available, subs, cancellationToken);
+
         return new PagedResponse<CocktailSummary>(items, page, pageSize, total);
+    }
+
+    /// <summary>
+    /// Fills in "using X in place of Y" for the rows on this page (FEATURES §9). A drink that
+    /// qualified only because the household owns a substitute has to say so, or someone is told they
+    /// can make a Margarita and finds out at the shelf that they cannot.
+    /// </summary>
+    /// <remarks>
+    /// A second query over the page's ids rather than a join in the first: the page is at most 100
+    /// rows, and folding this into the paged projection would multiply rows and make the paging
+    /// arithmetic wrong.
+    /// </remarks>
+    private async Task<List<CocktailSummary>> WithSubstitutionsAsync(
+        List<CocktailSummary> items,
+        IQueryable<Guid> available,
+        IQueryable<IngredientSubstitution> subs,
+        CancellationToken cancellationToken)
+    {
+        var ids = items.Select(i => i.Id).ToList();
+
+        var inPlay = await cocktails.Query()
+            .Where(c => ids.Contains(c.Id))
+            .SelectMany(c => c.Lines
+                // Exactly the lines the household cannot pour as written. Every one of these is
+                // covered by a substitute, or the cocktail would not be on this page at all.
+                .Where(l => l.IsRequired && !available.Contains(l.IngredientId))
+                .SelectMany(l => subs
+                    .Where(s => s.IngredientId == l.IngredientId
+                                && available.Contains(s.SubstituteIngredientId))
+                    .Select(s => new
+                    {
+                        CocktailId = c.Id,
+                        AsksFor = l.Ingredient!.Name,
+                        YouHave = s.SubstituteIngredient!.Name,
+                    })))
+            .ToListAsync(cancellationToken);
+
+        var byCocktail = inPlay
+            .GroupBy(x => x.CocktailId)
+            .ToDictionary(
+                g => g.Key,
+                // One suggestion per asked-for ingredient: several bottles may qualify, and listing
+                // them all turns a helpful line into a paragraph. First by name, so it is stable.
+                g => (IReadOnlyList<SubstitutionInPlay>)[.. g
+                    .GroupBy(x => x.AsksFor)
+                    .Select(a => new SubstitutionInPlay(a.Key, a.OrderBy(x => x.YouHave).First().YouHave))
+                    .OrderBy(x => x.AsksFor)]);
+
+        return [.. items.Select(i => byCocktail.TryGetValue(i.Id, out var subsFor)
+            ? i with { Substitutions = subsFor }
+            : i)];
     }
 }

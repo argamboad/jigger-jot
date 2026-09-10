@@ -88,5 +88,18 @@ Scenario: Water and ice are never on the shelf
 the only way to see that an optimistic checkbox actually reached the database rather than just the
 screen.
 
-**Out of scope, deliberately:** quantities and "running low" are not in MVP (JJ-023), and adding a
-household's own ingredient is the `INGREDIENT` epic.
+**Out of scope, deliberately:** quantities and "running low" are not in MVP (JJ-023).
+
+> ### ⚠️ INV-2 — Add a custom ingredient inline (SHIPPED INCOMPLETE)
+>
+> **FEATURES §8 puts this in this flow**, and INV-1 shipped without it: *"Add a custom ingredient
+> inline (name + category + subcategory) → creates a tenant-owned `Ingredient` and is immediately
+> checkable."*
+>
+> INV-1 declared it out of scope and called it the `INGREDIENT` epic. That was a guess, made without
+> reading the flow, and it is wrong: a household that owns something the seeded catalog does not list
+> currently has no way to say so, which is a hole in the middle of the feature the shelf exists for.
+>
+> It is a small slice — a form, a `POST /api/inventory/ingredients`, and a tenant-owned `Ingredient`
+> row (`TenantId` set explicitly, since nothing stamps it — JJ-031). The row then appears on the shelf
+> like any other and satisfies recipe lines by exact match only (JJ-018).

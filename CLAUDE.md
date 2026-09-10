@@ -13,6 +13,10 @@ filter a shared, seeded catalog, fork any cocktail into their own editable copy,
 own. Full context in `docs/PROJECT_BRIEF.md`; tagline "Mix what you have." (JJ-029).
 
 ## Read before you act
+- **Every session → `docs/PLAN.md` first.** The three gates (branch only from `develop`; no next
+  slice until the user says "merged"; no commit/push/PR until the user says "C+P+PR"), the slice
+  ritual, the editing rules, and the sequenced backlog. It exists because a session broke all
+  three gates in one day.
 - **Writing or modifying ANY code → `docs/audits/v3-2026-07/FOUNDATION_RULES_v2.md` (v2.0: R1–R35
   carried from v1.0 + R36–R76) is binding.** It encodes the post-audit invariants (tenancy incl. the
   RLS backstop parity, second-factor/event replay, SSRF, fail-closed normalization, atomic quotas +
@@ -69,7 +73,10 @@ own. Full context in `docs/PROJECT_BRIEF.md`; tagline "Mix what you have." (JJ-0
 
 ## Golden rules — app-specific
 1. **Makeable and almost-makeable are always derived** from inventory + recipe lines +
-   substitutions at query time; never persisted as a flag (JJ-003, JJ-019).
+   substitutions at query time; never persisted as a flag (JJ-003, JJ-019). The one implementation is
+   `MakeableHandler`. **Read the substitution graph directionally** — a row says "when a recipe asks
+   for X you may pour Y", and reading it the other way would offer drinks a household cannot actually
+   make (cognac stands in for brandy; brandy does not stand in for cognac).
 2. **The shared catalog is read-only and referenced, never mutated.** Households personalize by
    **forking** — a full snapshot copy with `forked_from_cocktail_id` as provenance only; edits to the
    original never propagate (JJ-002, JJ-013).
@@ -194,7 +201,12 @@ deferred items without an explicit decision.
   **Done (SEED-2):** the ingredient catalog — 175 curated ingredients from 395 raw names, in
   `ingredients.json`, seeded as shared rows; `seed/build_ingredients.py` fails the build while any raw
   name is neither mapped nor explicitly excluded. **Done (SEED-3):** 969 cocktails and 3526 recipe
-  lines in `cocktails.json`, each credited to a `RecipeSource` (JJ-032). **Done (SEED-4):** the substitution graph — 17
+  lines extracted, each credited to a `RecipeSource` (JJ-032). **The SHIPPED catalog is a 31-recipe
+  starter set** chosen to cover every shape the model handles (metric and proportional amounts,
+  duplicate names within and across sources, missing glass/method, an optional garnish, a substitution
+  in play, modern spirits); `python seed/build_cocktails.py --full` emits all 969. Developing against
+  nine hundred rows made every test assertion a claim about the catalog rather than about behaviour.
+  **Never hard-code the catalog's size in a test** — derive it from `CatalogSeeder.LoadCocktails()`. **Done (SEED-4):** the substitution graph — 17
   interchangeable groups and 12 one-way entries, 88 directed rows. **The seed epic is complete for
   MVP.** Two threads stay open and neither blocks anything: the Savoy extraction came from a
   transcription website rather than the book, and two scrape-merged recipe lines are excluded rather
@@ -209,6 +221,7 @@ deferred items without an explicit decision.
 | File | Purpose |
 |------|---------|
 | `CLAUDE.md` (root) | This file — operating manual, auto-loaded |
+| `docs/PLAN.md` | **Read first, every session** — the three gates, the slice ritual, the editing rules, where things stand, and the sequenced backlog (MAKE-1 → ALMOST-1 → CKTL-4 → INV-2 → FILTER-1 → FORK-1 → AUTHORING-1 → ONBOARD-1) |
 | `docs/NEW_APP_GUIDE.md` | **The onboarding spine** — every phase from idea to production, in order, linking the detailed doc per step |
 | `docs/OVERVIEW.md` | Friendly platform tour (PM/power-user/developer/architect) — no codebase knowledge assumed |
 | `docs/PROJECT_BRIEF.md` | Why/what/scope (lean PRD) + OUT list |
@@ -231,8 +244,9 @@ deferred items without an explicit decision.
 | `docs/PLATFORM_BACKLOG.md` | Per-item design sketches for the future foundation slices (the detail behind ROADMAP) |
 | `docs/stories/` | User stories per epic — generated at build time |
 | `docs/stories/seed.md` | epic `SEED` 🚧 IN PROGRESS — SEED-1 ✅ the curated global lookups (19 glasses, 10 methods, 22 units, 25 categories with 154 subcategories) in one embedded `lookups.json`, written at startup by an idempotent `CatalogSeeder` behind `Seed:Catalog:Enabled`; ids derive from names (`SeedId`) so they are stable across environments and a rename is a data migration; the seeder refuses to run under a household because only a system context may write a shared row (JJ-031). plus the IBA extraction ✅ (`seed/scrape_iba.py`, 102 drinks, sitemap-driven, three-groups-of-34 used as a parse check). Sources settled by **JJ-032**: Savoy plus the IBA list, the two 1930s bar books dropped. SEED-2 ✅ the ingredient catalog (175 curated from 395 raw names; coverage enforced by `seed/build_ingredients.py`, brand-name rule in **JJ-033**). SEED-3 ✅ 969 cocktails + 3526 lines, credited to a `RecipeSource`; identity is the source plus its slug, glass and method optional (**JJ-034**), 60 prose recipes recovered from tag lists. SEED-4 ✅ the substitution graph (17 interchangeable groups + 12 one-way entries → 88 directed rows, each carrying its reasoning). **Epic complete for MVP** |
-| `docs/stories/inventory.md` | epic `INV` ✅ COMPLETE for MVP — INV-1 the shelf: `GET /api/inventory` (the WHOLE catalog with an availability flag, since you cannot tick what you cannot see) + `PUT /api/inventory/{id}` + the `/shelf` screen, grouped by category with search and an only-what-I-have filter. Unticking updates rather than deletes, so "checked and don't have it" stays distinguishable from "never looked"; ticking is optimistic and rolls back. The one plainly `ITenantScoped` entity, so tenancy is entirely the platform's |
-| `docs/stories/cocktails.md` | epic `CKTL` 🚧 IN PROGRESS — CKTL-1 ✅ the nine domain entities, their configurations, the one migration that creates them, and the two walls that make the dual-natured catalog tables safe (app-level query filter + four command-scoped RLS policies, JJ-031) plus the three app-level tests that replace the platform guarantees those tables do not inherit; CKTL-2 ✅ browse — `GET /api/cocktails` (paged, name search, clamped rather than 400) + the `/cocktails` screen in the RCL; ordered name-then-id because name alone is not a total order in this catalog, and the source is shown per row because four names appear in both books. CKTL-3 ✅ detail — `GET /api/cocktails/{id}` + the `/cocktails/{id}` screen; amount display lives in Core's `AmountDisplay` (neutral units never convert, metric never uses fractions, ounces always do, rounding never reaches zero) and conversion happens server-side with the authored values riding along. A cocktail from another household is a 404, never a 403 |
+| `docs/stories/makeable.md` | epic `MAKE` 🚧 — MAKE-1 ✅ `GET /api/cocktails?makeable=true` + a toggle on the catalog screen (FEATURES §11 makes it a combinable filter, not a separate view). Each result carries the substitutions in play — "using Curaçao in place of Cointreau" (FEATURES §9). Derived at query time, never stored (JJ-003): a required line is satisfied by the exact ingredient or by anything the substitution graph allows **in that direction**, so a one-way substitution stays one-way. Closed the EF warning about `Ingredient`'s filter vs `IngredientSubstitution`'s required navigations by making JJ-005 a query filter |
+| `docs/stories/inventory.md` | epic `INV` ✅ COMPLETE for MVP — INV-1 the shelf: `GET /api/inventory` (the WHOLE catalog with an availability flag, since you cannot tick what you cannot see) + `PUT /api/inventory/{id}` + the `/shelf` screen, grouped by category with search and an only-what-I-have filter. Unticking updates rather than deletes, so "checked and don't have it" stays distinguishable from "never looked"; ticking is optimistic and rolls back. The one plainly `ITenantScoped` entity, so tenancy is entirely the platform's. ⚠️ **INV-2 outstanding** — FEATURES §8 also asks for adding a custom ingredient inline, which INV-1 shipped without |
+| `docs/stories/cocktails.md` | epic `CKTL` 🚧 IN PROGRESS — CKTL-1 ✅ the nine domain entities, their configurations, the one migration that creates them, and the two walls that make the dual-natured catalog tables safe (app-level query filter + four command-scoped RLS policies, JJ-031) plus the three app-level tests that replace the platform guarantees those tables do not inherit; CKTL-2 ✅ browse — `GET /api/cocktails` (paged, name search, clamped rather than 400) + the `/cocktails` screen in the RCL; ordered name-then-id because name alone is not a total order in this catalog, and the source is shown per row because four names appear in both books. CKTL-3 ✅ detail — `GET /api/cocktails/{id}` + the `/cocktails/{id}` screen; amount display lives in Core's `AmountDisplay` (neutral units never convert, metric never uses fractions, ounces always do, rounding never reaches zero) and conversion happens server-side with the authored values riding along. A cocktail from another household is a 404, never a 403. ⚠️ **CKTL-4 outstanding** — FEATURES §12 also asks the detail view to show makeable status and any substitution in play |
 | `docs/stories/ui.md` | epic `UI` ✅ COMPLETE — **retrospective** (v3 T59, closing v2 DOC-22): the four 2026-07 web-UI slices that shipped without a story file — UI-1 GDPR export/erasure UI, UI-2 MFA UI, UI-3 notification bell/prefs UI, UI-4 staff `/admin` console; defines what QA §2 + the traceability matrix cite |
 | `docs/stories/billing.md` | epic `BILLING` ✅ COMPLETE — entitlements + Checkout + webhook + Portal (1–4) + seat/usage quotas (5, `IQuotaService`) + trial/dunning (6, `IBillingNotifier` + lapse sweep via NOTIFY) + dissolve cleanup (7, `BillingDataContributor` cancels the provider sub + wipes the projection) + billing page (8, `GET /api/billing` summary + `/billing` UI, fake-provider E2E upgrade loop) + seat re-check at invitation accept (9, 2026-07-14: downgrade left stale invites joinable past the cap → 402 `seat_limit_reached` + `/join` "household full" state, self-heals on upgrade); ADR-006 |
 | `docs/stories/async-jobs.md` | epic `JOBS` ✅ COMPLETE — outbox+dispatcher, inbox, scheduler (ADR-007) |

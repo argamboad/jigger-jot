@@ -250,8 +250,9 @@ that quietly stops being makeable.
 
 | | |
 |---|---|
-| cocktails | 969 |
-| recipe lines | 3526 |
+| cocktails extracted | 969 |
+| **cocktails shipped (starter set)** | **31** |
+| recipe lines extracted | 3526 |
 | lines dropped (ice, water, the SEED-2 exclusions) | 74 |
 | lines the scrape left blank | 13 |
 | recipes recovered from tag lists | 60 |
@@ -323,6 +324,18 @@ Scenario: Garnishes are optional and nothing else is
 ```
 
 **Tests.** `tests/Api.Tests/Catalog/CatalogSeederTests.cs` (sixteen in total across SEED-1 to 3).
+
+**The shipped catalog is a starter set, not the whole extraction.** 969 recipes is the right eventual
+catalog and the wrong thing to develop against: every test assertion ends up being a claim about nine
+hundred rows rather than about behaviour, and a change to the data breaks tests that had nothing to do
+with it. `build_cocktails.py` therefore emits 31 by default and all 969 behind `--full`.
+
+The picks are not arbitrary — between them they cover every **shape** the model handles: metric and
+absolute amounts, proportional fractions and whole "parts", unmeasured lines recovered from a tag
+list, one name in two books, one name twice in a single book, a recipe with no glass or method
+recorded, an optional garnish line, a substitution in play, and the modern spirits the Savoy never
+had. Enough to page, few enough to reason about. The build fails if a named slug stops existing,
+rather than quietly shipping a smaller catalog.
 
 **Known data debt, deliberately left visible.** Two Savoy lines were merged by the scrape (a lemon
 and a grapefruit juice; an allspice dram and a lime juice) and are excluded rather than guessed at.

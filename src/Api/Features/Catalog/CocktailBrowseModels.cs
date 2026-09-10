@@ -11,7 +11,10 @@ namespace JiggerJot.Api.Features.Catalog;
 /// <see cref="DefaultPageSize"/> when the caller omits it, so there is no second default here to
 /// drift from that one. The cap is the endpoint's only protection against a single request walking
 /// the whole catalog, and the catalog is nearly a thousand recipes.</param>
-public record CocktailBrowseRequest(string? Search, int Page, int PageSize)
+/// <param name="MakeableOnly">FEATURES §11 lists "makeable now" as an on/off filter alongside
+/// ingredient, method, glass and serving type — combinable, on one screen — rather than as a
+/// separate view. It is a filter here for the same reason.</param>
+public record CocktailBrowseRequest(string? Search, int Page, int PageSize, bool MakeableOnly = false)
 {
     public const int DefaultPageSize = 20;
     public const int MaxPageSize = 100;
@@ -42,6 +45,9 @@ public record PagedResponse<T>(IReadOnlyList<T> Items, int Page, int PageSize, i
 /// Load-bearing in a list, not decoration — four names appear in both books and one appears twice in
 /// the Savoy alone, so without it the browse shows duplicate rows and no way to tell them apart.</param>
 /// <param name="IsOwn">True when this row belongs to the household rather than the shared catalog.</param>
+/// <param name="Substitutions">Why this drink qualified when the household does not have exactly
+/// what the recipe asks for (FEATURES §9). Empty unless the makeable filter is on, because outside it
+/// a row makes no claim about being makeable and a stray "using X instead of Y" would imply one.</param>
 public record CocktailSummary(
     Guid Id,
     string Name,
@@ -50,7 +56,17 @@ public record CocktailSummary(
     string ServingType,
     string? Source,
     bool IsOwn,
-    int IngredientCount);
+    int IngredientCount,
+    IReadOnlyList<SubstitutionInPlay> Substitutions);
+
+/// <summary>
+/// "Using Kahlúa in place of Tia Maria." A result shown thanks to a substitution has to say so, or
+/// the household is told it can make something and finds the bottle missing when it reaches the shelf
+/// (FEATURES §9).
+/// </summary>
+/// <param name="AsksFor">What the recipe calls for.</param>
+/// <param name="YouHave">What the household actually has, and would pour.</param>
+public record SubstitutionInPlay(string AsksFor, string YouHave);
 
 /// <summary>
 /// One cocktail, whole (CKTL-3). Everything the detail screen shows and nothing it does not.
