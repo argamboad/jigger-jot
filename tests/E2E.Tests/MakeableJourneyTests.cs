@@ -155,7 +155,14 @@ public class MakeableJourneyTests : E2ETestBase
 
         await Page.GetByTestId("nav-cocktails").ClickAsync();
         await Expect(Page.GetByTestId("cocktail-list")).ToBeVisibleAsync(new() { Timeout = 30_000 });
-        await Page.GetByTestId("cocktail-search").FillAsync("Negroni");
+        // Wait for the SEARCH to come back before clicking a row. The box is debounced, so a click
+        // that follows the keystroke straight away opens whatever was already on screen — which is
+        // how this test first opened the Absinthe (Special) Cocktail and asked it about vermouth.
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("cocktail-search").FillAsync("Negroni"),
+            r => r.Url.Contains("search=Negroni") && r.Status == 200);
+        await Expect(Page.GetByTestId("cocktail-list")).ToContainTextAsync("Negroni", new() { Timeout = 30_000 });
+
         await Page.GetByTestId("cocktail-list").Locator("a").First.ClickAsync();
 
         await Expect(Page.GetByTestId("cocktail-name")).ToContainTextAsync("Negroni", new() { Timeout = 30_000 });
