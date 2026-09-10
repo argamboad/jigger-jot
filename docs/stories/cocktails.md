@@ -4,8 +4,9 @@
 > recipe collection every household reads, and the household's own rows that live in the same tables
 > beside it. Design decision + the shape's constraints in **JJ-031** (read with platform ADR-003 and
 > ADR-020); entity-by-entity detail in `docs/DATA_MODEL.md`. Stories use Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — CKTL-1 (domain model + tenancy walls) ✅, CKTL-2 (browse) ✅,
-> CKTL-3 (detail) ✅. Filtering is the `FILTER` epic.
+> **Status: ✅ COMPLETE for MVP** — CKTL-1 (domain model + tenancy walls) ✅, CKTL-2 (browse) ✅,
+> CKTL-3 (detail) ✅, CKTL-4 (makeable status on the recipe) ✅. Filtering is the `FILTER` epic;
+> forking is `FORK`.
 
 **Epic key:** `CKTL`
 
@@ -274,16 +275,6 @@ Scenario: Someone else's cocktail is not found
   Then I am told it is not in my catalog
 ```
 
-> ### ⚠️ CKTL-4 — Show makeable status on the recipe (SHIPPED INCOMPLETE)
->
-> **FEATURES §12 asks for it** and CKTL-3 shipped without it: the detail view should *"indicate
-> makeable / almost-makeable status and any substitution in play."*
->
-> Today the screen shows the recipe and says nothing about whether the household can pour it — so a
-> drink reached from the catalog gives no hint, while the same drink reached through the makeable
-> filter does. The engine to answer it exists (MAKE-1); this is the detail view asking it and
-> rendering the answer, alongside the same "using X in place of Y" line the list carries.
-
 **Tests.** `tests/Core.Tests/AmountDisplayTests.cs` (eleven, pure), plus
 `tests/Api.Tests/Catalog/CocktailDetailTests.cs` (eight) and two more journeys in
 `tests/E2E.Tests/CocktailBrowseJourneyTests.cs` (suite 36 → 38).
@@ -293,3 +284,93 @@ Scenario: Someone else's cocktail is not found
 > the cross-tenant escape hatch outside a data contributor failed it — correctly. `User` is a
 > platform entity with its own repository, which is what the handler uses now. Separately, a Core
 > test caught "22 1/2 ml" before any of this reached a screen.
+
+---
+
+### CKTL-4 — The recipe says where it stands
+
+**Status: ✅ Implemented.** The `/cocktails/{id}` screen shows makeable / almost-makeable status and,
+on each line, what the household would actually pour. Implements the last sentence of
+**FEATURES §12**, which CKTL-3 shipped without and which was logged here rather than folded in.
+
+**As a** member of a household
+**I want** a recipe to tell me whether I can pour it, and which line I cannot
+**So that** a drink reached from the catalog is as informative as one reached through the filter
+
+**Context / notes.** Almost no new arithmetic — MAKE-1 and ALMOST-1 already answered this question
+for lists. What this slice decided is where the answer lives and how the two views stay honest with
+each other.
+
+**The rule moved into Core.** `Core/Catalog/Makeability.cs` now states it once, for one cocktail at a
+time: how a line stands against a shelf, and what a whole drink's status is given its lines. It sits
+beside `AmountDisplay` for the same reason — small, fiddly, load-bearing judgements that every front
+end and every slice should inherit rather than re-derive (golden rule 4).
+
+**Two spellings of one rule, and a test that holds them together.** The browse filters stay set-based
+SQL, because a filter over a paged catalog cannot be a loop; the detail view walks one drink's lines
+in memory, because it needs to explain each one. That is two implementations, which is how a rule
+drifts — so `TheDetailViewAndTheListFilters_NeverDisagree` stocks a partial shelf and walks the entire
+catalog, asserting the detail's verdict matches the filters' membership for every single cocktail.
+
+**Per line, not only per drink.** A badge saying "one ingredient away" on a five-line recipe leaves
+the reader comparing the page against their memory of the shelf. The line itself carries the answer:
+*not on your shelf*, or *you'd pour Curaçao*. Only those two are said out loud — a line the household
+can pour as written stays silent, because marking every line turns a recipe into a checklist and
+buries the one that needs attention.
+
+**The exact bottle always beats a substitute**, even when both are on the shelf. Being told to pour
+Curaçao while the Cointreau sits beside it would read as a bug.
+
+**Derived at query time, never stored** (JJ-003, JJ-019). The journey ticks the missing bottle,
+returns to the same URL, and the same page says something different.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: A recipe I can pour says so
+  Given I have every ingredient
+  When I open the recipe
+  Then it says I can make this
+  And no line is marked
+
+Scenario: A recipe I am one bottle short of marks that line
+  Given I have gin and Campari
+  When I open the Negroni
+  Then it says I am one ingredient away
+  And the sweet vermouth line says it is not on my shelf
+
+Scenario: More than one short says so too
+  Given I have gin only
+  Then the Negroni says I am more than one bottle away
+
+Scenario: A substituted line says what I would pour
+  Given the recipe asks for Cointreau
+  And I have Curaçao
+  Then that line says I would pour Curaçao
+
+Scenario: The exact bottle beats a substitute
+  Given I have both Cointreau and Curaçao
+  Then the line is not marked at all
+
+Scenario: An unstocked garnish never blocks the drink
+  Given I have every required ingredient but not the garnish
+  Then the recipe says I can make it
+  And the garnish line still says it is not on my shelf
+
+Scenario: Another household's shelf changes nothing here
+  Given another household has everything
+  And mine is empty
+  Then the recipe says I am more than one bottle away
+
+Scenario: The recipe and the lists never disagree
+  Given a partial shelf
+  Then every cocktail's status on its own page matches its membership of the two filters
+```
+
+**Tests.** `tests/Core.Tests/MakeabilityTests.cs` (eleven, pure),
+`tests/Api.Tests/Catalog/CocktailDetailMakeabilityTests.cs` (eight, one of them walking the whole
+catalog) and one journey in `tests/E2E.Tests/MakeableJourneyTests.cs` (suite 43 → 44).
+
+**Out of scope, deliberately:** forking the recipe into an editable copy is `FORK-1`, and filtering by
+spirit or category is `FILTER-1`. The detail page names what is missing on the line rather than
+offering to add it to a shopping list — there is no shopping list in `PROJECT_BRIEF`.

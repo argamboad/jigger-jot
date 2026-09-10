@@ -339,4 +339,9 @@
   <data name="Cocktails_OneAway" xml:space="preserve"><value>One ingredient away</value></data>
   <data name="Cocktails_Missing" xml:space="preserve"><value>Add {0} and you can make this</value></data>
   <data name="Almost_NothingYet" xml:space="preserve"><value>Nothing is one ingredient away — your shelf is more than one bottle short of every recipe.</value></data>
+  <data name="Cocktail_Makeable" xml:space="preserve"><value>You can make this</value></data>
+  <data name="Cocktail_AlmostMakeable" xml:space="preserve"><value>One ingredient away</value></data>
+  <data name="Cocktail_NotMakeable" xml:space="preserve"><value>More than one bottle away</value></data>
+  <data name="Cocktail_YoudPour" xml:space="preserve"><value>you'd pour {0}</value></data>
+  <data name="Cocktail_LineMissing" xml:space="preserve"><value>not on your shelf</value></data>
 </root>

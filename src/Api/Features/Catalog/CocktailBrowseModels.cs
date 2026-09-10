@@ -89,6 +89,10 @@ public record SubstitutionInPlay(string AsksFor, string YouHave);
 /// </summary>
 /// <param name="Source">The book or list, with the credit owed to it (JJ-032). Null for a cocktail
 /// the household wrote.</param>
+/// <param name="Makeability">Where this drink stands against the household's shelf right now —
+/// <c>Makeable</c>, <c>AlmostMakeable</c> or <c>NotMakeable</c> (FEATURES §12, CKTL-4). Derived at
+/// query time and never stored (JJ-003, JJ-019). Sent as a name rather than a number so the wire
+/// format survives anyone reordering the enum.</param>
 public record CocktailDetail(
     Guid Id,
     string Name,
@@ -98,7 +102,8 @@ public record CocktailDetail(
     string? Instructions,
     CocktailSourceView? Source,
     bool IsOwn,
-    IReadOnlyList<RecipeLineView> Lines);
+    IReadOnlyList<RecipeLineView> Lines,
+    string Makeability);
 
 /// <param name="Attribution">Written out per source, because the sources are not on the same footing
 /// and a template would flatten that.</param>
@@ -111,6 +116,12 @@ public record CocktailSourceView(string Name, int? Year, string? Url, string? At
 /// (JJ-007, JJ-008). A client that wants to do its own formatting still can.
 /// </summary>
 /// <param name="IsRequired">False for a garnish, and optional lines never block makeability (JJ-009).</param>
+/// <param name="Availability">Whether the household can pour this line — <c>Have</c>,
+/// <c>Substitute</c> or <c>Missing</c> (FEATURES §12). Per line rather than only per drink, because a
+/// reader looking at a recipe wants to know <i>which</i> line to do something about, not merely that
+/// one of them needs attention.</param>
+/// <param name="SubstituteWith">The bottle actually reached for, set only when
+/// <paramref name="Availability"/> is <c>Substitute</c> — "any substitution in play", named.</param>
 public record RecipeLineView(
     string Ingredient,
     decimal? Amount,
@@ -118,4 +129,6 @@ public record RecipeLineView(
     string Display,
     bool IsRequired,
     string Role,
-    string? Notes);
+    string? Notes,
+    string Availability,
+    string? SubstituteWith = null);

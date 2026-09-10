@@ -138,4 +138,49 @@ public class MakeableJourneyTests : E2ETestBase
         await Expect(Page.GetByTestId("cocktail-almost")).Not.ToBeCheckedAsync();
         await Expect(Page.GetByTestId("cocktail-list")).ToContainTextAsync("Negroni", new() { Timeout = 30_000 });
     }
+
+    /// <summary>
+    /// CKTL-4 (FEATURES §12): the recipe itself says where it stands. Opening a drink you are one
+    /// bottle short of should mark the badge AND the line, so the reader knows what to do without
+    /// counting the lines themselves.
+    /// </summary>
+    [Test]
+    public async Task ARecipeSaysWhereItStands_AndWhichLineIsShort()
+    {
+        await Mailpit.ClearAsync();
+        await SignInAsync(Page, UniqueEmail("detail"));
+
+        await Page.GetByTestId("nav-shelf").ClickAsync();
+        foreach (var ingredient in new[] { "London dry gin", "Campari" }) await StockAsync(ingredient);
+
+        await Page.GetByTestId("nav-cocktails").ClickAsync();
+        await Expect(Page.GetByTestId("cocktail-list")).ToBeVisibleAsync(new() { Timeout = 30_000 });
+        // Wait for the SEARCH to come back before clicking a row. The box is debounced, so a click
+        // that follows the keystroke straight away opens whatever was already on screen — which is
+        // how this test first opened the Absinthe (Special) Cocktail and asked it about vermouth.
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("cocktail-search").FillAsync("Negroni"),
+            r => r.Url.Contains("search=Negroni") && r.Status == 200);
+        await Expect(Page.GetByTestId("cocktail-list")).ToContainTextAsync("Negroni", new() { Timeout = 30_000 });
+
+        await Page.GetByTestId("cocktail-list").Locator("a").First.ClickAsync();
+
+        await Expect(Page.GetByTestId("cocktail-name")).ToContainTextAsync("Negroni", new() { Timeout = 30_000 });
+        await Expect(Page.GetByTestId("cocktail-makeability")).ToContainTextAsync("One ingredient away");
+
+        // The badge says how far; the line says which one. Both, or the reader is left comparing the
+        // recipe against their own memory of the shelf.
+        await Expect(Page.GetByTestId("cocktail-line-missing")).ToHaveCountAsync(1);
+        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("Sweet vermouth");
+
+        // Buy it, come back, and the same page says something different — because it was never stored.
+        var recipeUrl = Page.Url;
+        await Page.GetByTestId("nav-shelf").ClickAsync();
+        await StockAsync("Sweet vermouth");
+        await Page.GotoAsync(recipeUrl);
+
+        await Expect(Page.GetByTestId("cocktail-makeability"))
+            .ToContainTextAsync("You can make this", new() { Timeout = 30_000 });
+        await Expect(Page.GetByTestId("cocktail-line-missing")).ToHaveCountAsync(0);
+    }
 }

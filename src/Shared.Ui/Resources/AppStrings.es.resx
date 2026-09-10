@@ -339,4 +339,9 @@
   <data name="Cocktails_OneAway" xml:space="preserve"><value>A un ingrediente</value></data>
   <data name="Cocktails_Missing" xml:space="preserve"><value>Añade {0} y ya puedes prepararlo</value></data>
   <data name="Almost_NothingYet" xml:space="preserve"><value>Nada está a un solo ingrediente: a tu estantería le falta más de una botella para cada receta.</value></data>
+  <data name="Cocktail_Makeable" xml:space="preserve"><value>Puedes prepararlo</value></data>
+  <data name="Cocktail_AlmostMakeable" xml:space="preserve"><value>A un ingrediente</value></data>
+  <data name="Cocktail_NotMakeable" xml:space="preserve"><value>A más de una botella</value></data>
+  <data name="Cocktail_YoudPour" xml:space="preserve"><value>usarías {0}</value></data>
+  <data name="Cocktail_LineMissing" xml:space="preserve"><value>no está en tu estantería</value></data>
 </root>
