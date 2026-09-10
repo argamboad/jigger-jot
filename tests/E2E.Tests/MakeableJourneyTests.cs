@@ -96,4 +96,46 @@ public class MakeableJourneyTests : E2ETestBase
         await Expect(Page.GetByTestId("cocktail-substitution").First)
             .ToContainTextAsync("Curaçao", new() { Timeout = 30_000 });
     }
+
+    /// <summary>
+    /// ALMOST-1 (FEATURES §10): the shopping driver. Two thirds of a Negroni on the shelf should put
+    /// the Negroni on the "one ingredient away" list, naming the vermouth — and buying the vermouth
+    /// should move it to the other list. That last move is the journey; either half alone proves
+    /// nothing about the two filters agreeing.
+    /// </summary>
+    [Test]
+    public async Task OneIngredientAway_NamesTheBottle_AndBuyingItMovesTheDrink()
+    {
+        await Mailpit.ClearAsync();
+        await SignInAsync(Page, UniqueEmail("almost"));
+
+        await Page.GetByTestId("nav-shelf").ClickAsync();
+        foreach (var ingredient in new[] { "London dry gin", "Campari" }) await StockAsync(ingredient);
+
+        await Page.GetByTestId("nav-cocktails").ClickAsync();
+        await Expect(Page.GetByTestId("cocktail-list")).ToBeVisibleAsync(new() { Timeout = 30_000 });
+        await Page.GetByTestId("cocktail-almost").CheckAsync();
+        await Page.GetByTestId("cocktail-search").FillAsync("Negroni");
+
+        // The name is the feature. A row that only said "you cannot make this" would be the catalog.
+        await Expect(Page.GetByTestId("cocktail-missing").First)
+            .ToContainTextAsync("Sweet vermouth", new() { Timeout = 30_000 });
+
+        await Page.GetByTestId("nav-shelf").ClickAsync();
+        await StockAsync("Sweet vermouth");
+
+        // Bought it: gone from "one away", arrived in "makeable". The two lists are adjacent and
+        // never overlap, and nothing was recomputed or invalidated to make that true (JJ-003).
+        await Page.GetByTestId("nav-cocktails").ClickAsync();
+        await Expect(Page.GetByTestId("cocktail-list")).ToBeVisibleAsync(new() { Timeout = 30_000 });
+        await Page.GetByTestId("cocktail-almost").CheckAsync();
+        await Page.GetByTestId("cocktail-search").FillAsync("Negroni");
+        await Expect(Page.GetByTestId("cocktail-empty")).ToBeVisibleAsync(new() { Timeout = 30_000 });
+
+        // Ticking "makeable now" unticks "one ingredient away": no drink is both, so the pair behaves
+        // like a choice rather than two boxes that can contradict each other.
+        await Page.GetByTestId("cocktail-makeable").CheckAsync();
+        await Expect(Page.GetByTestId("cocktail-almost")).Not.ToBeCheckedAsync();
+        await Expect(Page.GetByTestId("cocktail-list")).ToContainTextAsync("Negroni", new() { Timeout = 30_000 });
+    }
 }

@@ -25,6 +25,14 @@
                data-testid="cocktail-makeable" checked="@_makeableOnly" @onchange="OnMakeableChanged" />
         <label class="form-check-label small" for="makeable-now">@Localizer["Cocktails_MakeableNow"]</label>
     </div>
+
+    @* FEATURES §10: "adjacent to what you can make" — the next switch along, not the next page.
+       Turning one on turns the other off, because no drink is both zero short and one short. *@
+    <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="almost-makeable"
+               data-testid="cocktail-almost" checked="@_almostOnly" @onchange="OnAlmostChanged" />
+        <label class="form-check-label small" for="almost-makeable">@Localizer["Cocktails_OneAway"]</label>
+    </div>
 </div>
 
 @if (_error is not null)
@@ -41,8 +49,8 @@
 else if (_page is null || _page.Total == 0)
 {
     <div class="p-4 text-center text-muted" data-testid="cocktail-empty">
-        @Localizer[_makeableOnly ? "Make_NothingYet" : "Cocktails_NoMatches"]
-        @if (_makeableOnly)
+        @Localizer[EmptyMessage]
+        @if (_makeableOnly || _almostOnly)
         {
             @* An empty makeable list is almost always an empty shelf, so point at the fix rather
                than leaving someone to conclude the catalog is broken. *@
@@ -76,6 +84,14 @@ else
                         {
                             <div class="small text-warning-emphasis" data-testid="cocktail-substitution">
                                 @Localizer["Cocktails_Using", swap.YouHave, swap.AsksFor]
+                            </div>
+                        }
+                        @* FEATURES §10: the row's reason for existing. "One away" without the bottle
+                           named is just a drink you cannot make. *@
+                        @if (!string.IsNullOrWhiteSpace(c.MissingIngredient))
+                        {
+                            <div class="small text-primary-emphasis" data-testid="cocktail-missing">
+                                @Localizer["Cocktails_Missing", c.MissingIngredient!]
                             </div>
                         }
                     </div>
@@ -112,6 +128,14 @@ else
     /// view — the same screen, a narrower question. Off by default, which is the whole catalog.
     /// </summary>
     private bool _makeableOnly;
+
+    /// <summary>
+    /// FEATURES §10 puts "one ingredient away" adjacent to "what I can make", so it is the switch
+    /// next door rather than a second screen. Exclusive with <see cref="_makeableOnly"/>: nothing is
+    /// both zero short and one short, and leaving both on would show an empty list with no
+    /// explanation.
+    /// </summary>
+    private bool _almostOnly;
 
     // Long enough that typing a name does not fire a request per keystroke, short enough that the
     // list feels attached to the box. The catalog is nearly a thousand rows, so the request is not
@@ -158,8 +182,24 @@ else
     private Task OnMakeableChanged(ChangeEventArgs e)
     {
         _makeableOnly = e.Value is bool on && on;
+        if (_makeableOnly) _almostOnly = false;
         return LoadAsync(1);   // narrowing the list always starts again at the first page
     }
+
+    private Task OnAlmostChanged(ChangeEventArgs e)
+    {
+        _almostOnly = e.Value is bool on && on;
+        if (_almostOnly) _makeableOnly = false;
+        return LoadAsync(1);
+    }
+
+    /// <summary>
+    /// An empty list means something different under each filter, and "no cocktails match that" under
+    /// "one ingredient away" reads as a broken catalog rather than a full shelf.
+    /// </summary>
+    private string EmptyMessage => _almostOnly
+        ? "Almost_NothingYet"
+        : _makeableOnly ? "Make_NothingYet" : "Cocktails_NoMatches";
 
     private Task GoToAsync(int page) => LoadAsync(page);
 
@@ -174,6 +214,7 @@ else
         {
             var url = $"/api/cocktails?page={page}&pageSize={PageSize}";
             if (_makeableOnly) url += "&makeable=true";
+            if (_almostOnly) url += "&almost=true";
             if (!string.IsNullOrWhiteSpace(_search))
                 url += $"&search={Uri.EscapeDataString(_search.Trim())}";
 
@@ -210,7 +251,7 @@ else
     private record CocktailSummary(
         Guid Id, string Name, string? Glass, string? Method,
         string ServingType, string? Source, bool IsOwn, int IngredientCount,
-        IReadOnlyList<SubstitutionInPlay> Substitutions);
+        IReadOnlyList<SubstitutionInPlay> Substitutions, string? MissingIngredient);
 
     private record SubstitutionInPlay(string AsksFor, string YouHave);
 }

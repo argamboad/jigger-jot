@@ -4,7 +4,8 @@
 > (derived, never stored), **JJ-004**/**JJ-006** (substitutions, directed), **JJ-009** (optional lines
 > never block) and **JJ-020** (ice and water are always available). Stories use Gherkin acceptance
 > criteria.
-> **Status: 🚧 IN PROGRESS** — MAKE-1 shipped; `ALMOST` is the sibling epic.
+> **Status: ✅ COMPLETE for MVP** — MAKE-1 shipped; the sibling epic `ALMOST` shipped alongside it
+> (`docs/stories/almost.md`).
 
 **Epic key:** `MAKE`
 
@@ -119,5 +120,5 @@ Scenario: Another household's shelf changes nothing here
 > without reading `FEATURES.md` — which specifies both. The engine was right; the shape and the
 > surfacing were not. Read the flow first.
 
-**Out of scope, deliberately:** one-ingredient-short is `ALMOST`, and filtering by spirit or category
-is `FILTER`.
+**Out of scope, deliberately:** one-ingredient-short is `ALMOST` (now shipped — it reuses this
+predicate, counted rather than negated), and filtering by spirit or category is `FILTER`.

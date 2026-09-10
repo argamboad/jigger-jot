@@ -48,6 +48,23 @@ public class CocktailBrowseHandler(
                                   && available.Contains(s.SubstituteIngredientId))));
         }
 
+        if (request.AlmostMakeableOnly)
+        {
+            // Almost makeable = exactly ONE required line unsatisfied, after substitutions
+            // (FEATURES §10, JJ-019). Same predicate as above, counted rather than negated — which is
+            // what keeps the two lists adjacent and non-overlapping: zero short is makeable, one short
+            // is a shopping list, and no drink is both.
+            //
+            // Counted over LINES, not over ingredients, because that is what the requirement says and
+            // a recipe that asks for the same bottle twice is short of one thing, not two — the count
+            // and the name below have to agree, and they do because they run the same filter.
+            query = query.Where(c => c.Lines.Count(l =>
+                l.IsRequired
+                && !available.Contains(l.IngredientId)
+                && !subs.Any(s => s.IngredientId == l.IngredientId
+                                  && available.Contains(s.SubstituteIngredientId))) == 1);
+        }
+
         if (request.SafeSearch is { } search)
         {
             // ILike rather than ToLower().Contains(): it is the Postgres operator for exactly this,
@@ -79,8 +96,18 @@ public class CocktailBrowseHandler(
                 Array.Empty<SubstitutionInPlay>()))
             .ToListAsync(cancellationToken);
 
-        if (request.MakeableOnly && items.Count > 0)
-            items = await WithSubstitutionsAsync(items, available, subs, cancellationToken);
+        if (items.Count > 0)
+        {
+            // Both lists claim a drink is within reach, so both owe the household the truth about
+            // what it would actually pour (FEATURES §9). "One lemon juice away, and the Cointreau
+            // will be Curaçao" is one useful row; the same row without the second half sends someone
+            // to the shop and still leaves them short.
+            if (request.MakeableOnly || request.AlmostMakeableOnly)
+                items = await WithSubstitutionsAsync(items, available, subs, cancellationToken);
+
+            if (request.AlmostMakeableOnly)
+                items = await WithMissingIngredientAsync(items, available, subs, cancellationToken);
+        }
 
         return new PagedResponse<CocktailSummary>(items, page, pageSize, total);
     }
@@ -133,6 +160,44 @@ public class CocktailBrowseHandler(
 
         return [.. items.Select(i => byCocktail.TryGetValue(i.Id, out var subsFor)
             ? i with { Substitutions = subsFor }
+            : i)];
+    }
+
+    /// <summary>
+    /// Names the one bottle each row is short of (FEATURES §10). Without this the almost-makeable
+    /// list is just a list of drinks you cannot make, which is most of the catalog — the name is what
+    /// turns it into "buy this, unlock these".
+    /// </summary>
+    /// <remarks>
+    /// The predicate here is character-for-character the one the filter counted, so every row on the
+    /// page yields exactly one unsatisfied line. That is why a second query is safe: it cannot
+    /// disagree with the filter about which lines count, and re-deriving it by hand somewhere else is
+    /// how the two would eventually drift apart.
+    /// </remarks>
+    private async Task<List<CocktailSummary>> WithMissingIngredientAsync(
+        List<CocktailSummary> items,
+        IQueryable<Guid> available,
+        IQueryable<IngredientSubstitution> subs,
+        CancellationToken cancellationToken)
+    {
+        var ids = items.Select(i => i.Id).ToList();
+
+        var missing = await cocktails.Query()
+            .Where(c => ids.Contains(c.Id))
+            .SelectMany(c => c.Lines
+                .Where(l => l.IsRequired
+                            && !available.Contains(l.IngredientId)
+                            && !subs.Any(s => s.IngredientId == l.IngredientId
+                                              && available.Contains(s.SubstituteIngredientId)))
+                .Select(l => new { CocktailId = c.Id, Name = l.Ingredient!.Name }))
+            .ToListAsync(cancellationToken);
+
+        var byCocktail = missing
+            .GroupBy(x => x.CocktailId)
+            .ToDictionary(g => g.Key, g => g.First().Name);
+
+        return [.. items.Select(i => byCocktail.TryGetValue(i.Id, out var name)
+            ? i with { MissingIngredient = name }
             : i)];
     }
 }
