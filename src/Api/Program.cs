@@ -114,6 +114,7 @@ builder.Services.AddScoped<ITenantDataContributor, NotesDataContributor>();
 // TenantId, so it cannot see the ISharedOrTenantScoped tables at all (JJ-031).
 builder.Services.AddScoped<ITenantDataContributor, CatalogDataContributor>();
 builder.Services.AddScoped<CocktailBrowseHandler>();
+builder.Services.AddScoped<CocktailDetailHandler>();
 builder.Services.AddScoped<ITenantDataContributor, InventoryDataContributor>();
 
 // Caches + session (LinkTokenService uses IMemoryCache; session backed by distributed cache).

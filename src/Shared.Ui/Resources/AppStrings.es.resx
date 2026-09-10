@@ -313,4 +313,13 @@
   <data name="Cocktails_LoadFailed" xml:space="preserve"><value>No se pudo cargar el catálogo. Inténtalo de nuevo.</value></data>
   <data name="Common_Previous" xml:space="preserve"><value>Anterior</value></data>
   <data name="Common_Next" xml:space="preserve"><value>Siguiente</value></data>
+  <data name="Cocktail_Ingredients" xml:space="preserve"><value>Ingredientes</value></data>
+  <data name="Cocktail_Method" xml:space="preserve"><value>Preparación</value></data>
+  <data name="Cocktail_Optional" xml:space="preserve"><value>opcional</value></data>
+  <data name="Cocktail_NotFound" xml:space="preserve"><value>Ese cóctel no está en tu catálogo.</value></data>
+  <data name="Units_Label" xml:space="preserve"><value>Medidas</value></data>
+  <data name="Units_AsWritten" xml:space="preserve"><value>Como en la receta</value></data>
+  <data name="Units_Metric" xml:space="preserve"><value>Métrico (ml)</value></data>
+  <data name="Units_Imperial" xml:space="preserve"><value>Imperial (oz)</value></data>
+  <data name="Units_Hint" xml:space="preserve"><value>Los golpes, las cucharillas y las proporciones siempre se leen como los escribió la receta.</value></data>
 </root>

@@ -51,4 +51,77 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         await Page.GetByTestId("cocktail-search").FillAsync(string.Empty);
         await Expect(Page.GetByTestId("cocktail-list")).ToBeVisibleAsync(new() { Timeout = 15_000 });
     }
+
+    [Test]
+    public async Task OpeningADrink_ShowsItsRecipe_ItsMethodAndItsCredit()
+    {
+        await Mailpit.ClearAsync();
+        await SignInAsync(Page, UniqueEmail("detail"));
+
+        await Page.GetByTestId("nav-cocktails").ClickAsync();
+        await Page.GetByTestId("cocktail-search").FillAsync("negroni");
+        await Expect(Page.GetByTestId("cocktail-list")).ToContainTextAsync("Negroni", new() { Timeout = 15_000 });
+
+        await Page.GetByTestId("cocktail-list").GetByText("Negroni", new() { Exact = true }).First.ClickAsync();
+
+        await Expect(Page.GetByTestId("cocktail-name")).ToContainTextAsync("Negroni", new() { Timeout = 15_000 });
+
+        // The three lines, with amounts rendered — the reader has no stored preference, so the recipe
+        // reads exactly as the IBA wrote it (JJ-007).
+        var lines = Page.GetByTestId("cocktail-lines").Locator("li");
+        await Expect(lines).ToHaveCountAsync(3);
+        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("30 ml");
+        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("Campari");
+
+        await Expect(Page.GetByTestId("cocktail-instructions")).ToContainTextAsync("Stir");
+
+        // The credit is on the drink, not in a footer (JJ-032).
+        await Expect(Page.GetByTestId("cocktail-source")).ToContainTextAsync("IBA");
+    }
+
+    [Test]
+    public async Task ChoosingImperial_ChangesWhatTheRecipeSays_AndChoosingAsWrittenPutsItBack()
+    {
+        await Mailpit.ClearAsync();
+        await SignInAsync(Page, UniqueEmail("units"));
+
+        // The Negroni is authored in millilitres, so it is the drink that shows the difference.
+        await Page.GotoAsync($"{BaseUrl}/cocktails");
+        await Page.GetByTestId("cocktail-search").FillAsync("negroni");
+        await Expect(Page.GetByTestId("cocktail-list")).ToContainTextAsync("Negroni", new() { Timeout = 15_000 });
+        await Page.GetByTestId("cocktail-list").GetByText("Negroni", new() { Exact = true }).First.ClickAsync();
+        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("30 ml", new() { Timeout = 15_000 });
+        var recipeUrl = Page.Url;
+
+        // Settings, and the switcher saves server-side like the language and theme ones.
+        await Page.GotoAsync($"{BaseUrl}/settings");
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("unit-switcher").SelectOptionAsync("Imperial"),
+            r => r.Url.EndsWith("/api/auth/unit-system") && r.Request.Method == "PUT");
+
+        // Same recipe, read in ounces. The stored 30 ml has not moved — only the reading of it.
+        await Page.GotoAsync(recipeUrl);
+        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("1 oz", new() { Timeout = 15_000 });
+
+        // ...and "as written" is a choice a reader can come back to, not just where they started.
+        await Page.GotoAsync($"{BaseUrl}/settings");
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("unit-switcher").SelectOptionAsync(""),
+            r => r.Url.EndsWith("/api/auth/unit-system") && r.Request.Method == "PUT");
+
+        await Page.GotoAsync(recipeUrl);
+        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("30 ml", new() { Timeout = 15_000 });
+    }
+
+    [Test]
+    public async Task ADrinkThatIsNotYours_IsNotFound()
+    {
+        await Mailpit.ClearAsync();
+        await SignInAsync(Page, UniqueEmail("missing"));
+
+        // A well-formed id that no household of ours owns: the page says so rather than erroring or
+        // hanging on a spinner.
+        await Page.GotoAsync($"{BaseUrl}/cocktails/{Guid.NewGuid()}");
+        await Expect(Page.GetByTestId("cocktail-notfound")).ToBeVisibleAsync(new() { Timeout = 30_000 });
+    }
 }

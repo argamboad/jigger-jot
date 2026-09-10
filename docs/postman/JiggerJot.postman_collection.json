@@ -257,6 +257,51 @@
           "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"2xx\", () => pm.expect(pm.response.code).to.be.below(300));"], "type": "text/javascript" } }]
         },
         {
+          "name": "Preferences — set measurements",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/unit-system",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "unit-system"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unitSystem\": \"Metric\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "How this reader wants recipe amounts shown (JJ-008). \"Metric\" or \"Imperial\", case-insensitive.\n\n**null or omitted clears the preference** back to \"never chose\", which shows every recipe as its book wrote it. That is a choice a reader can return to, not merely where they start — it is the only way to read the 1930 recipes in the book's own words.\n\n**\"Neutral\" is rejected with 400.** Neutral is a property of a UNIT, not something a reader can prefer: \"show me everything in dashes\" is not a request anyone can act on, and accepting it would silently do nothing.\n\n403 from an impersonation session — staff must not mutate the target's preferences (ADR-022). The value comes back on GET /api/auth/me."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Set theme",
           "request": {
             "method": "PUT",
@@ -862,6 +907,42 @@
             "pm.test(\"catalog is seeded\", () => pm.expect(body.total).to.be.above(0));",
             "if (body.items.length) { pm.collectionVariables.set('cocktailId', body.items[0].id); }"
           ], "type": "text/javascript" } }]
+        },
+        {
+          "name": "Cocktails — detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails/{{cocktailId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cocktails",
+                "{{cocktailId}}"
+              ]
+            },
+            "description": "One cocktail, whole (CKTL-3). {{cocktailId}} is captured by \"Cocktails — browse\", so run that first.\n\nEvery line carries BOTH the authored amount/unit and a `display` string already converted to the caller's PreferredUnitSystem (JJ-007, JJ-008). Converting server-side means one implementation to get right rather than one per client; the authored values are still there for a client that wants to do its own formatting.\n\nNeutral units never convert — a proportional 1930 recipe reads \"2/3 part\" for every reader, because inventing millilitres for it would state a precision the book never had.\n\n**404, not 403**, for a cocktail belonging to another household: the query filter simply does not return it, and \"forbidden\" would confirm the row exists."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"has lines\", () => pm.expect(body.lines).to.be.an('array').that.is.not.empty);",
+                  "pm.test(\"every line is rendered for the reader\", () =>",
+                  "  body.lines.forEach(l => pm.expect(l).to.have.property('display')));",
+                  "pm.test(\"authored values survive\", () =>",
+                  "  body.lines.forEach(l => pm.expect(l).to.have.property('amount')));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Cocktails — search by name",

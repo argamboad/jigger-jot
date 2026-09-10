@@ -1,0 +1,61 @@
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject IStringLocalizer<AppStrings> Localizer
+
+<select class="form-select form-select-sm" value="@_current" data-testid="unit-switcher"
+        @onchange="OnChange" aria-label="@Localizer["Units_Label"]">
+    @* "As written" is a real choice, not an absence of one. A reader who wants the 1930 book in the
+       book's own words picks it deliberately, and it is also where everyone starts. *@
+    <option value="">@Localizer["Units_AsWritten"]</option>
+    <option value="Metric">@Localizer["Units_Metric"]</option>
+    <option value="Imperial">@Localizer["Units_Imperial"]</option>
+</select>
+@if (_syncFailed)
+{
+    <span class="text-warning small ms-1" data-testid="unit-sync-failed"
+          title="@Localizer["Pref_SyncFailed"]" role="status">&#9888;</span>
+}
+
+@code {
+    private string _current = string.Empty;
+    private bool _syncFailed;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Unlike theme and language, this has no device-local copy to read back: nothing renders
+        // differently until a recipe is opened, and the server does the conversion. So the server is
+        // the only source, and the select simply reflects it.
+        try
+        {
+            var profile = await Http.GetFromJsonAsync<Profile>("/api/auth/me");
+            _current = profile?.PreferredUnitSystem ?? string.Empty;
+        }
+        catch
+        {
+            // Leave it on "As written" — which is also what the server does with no preference, so a
+            // failed read shows the truth rather than a guess.
+        }
+    }
+
+    private async Task OnChange(ChangeEventArgs e)
+    {
+        var chosen = e.Value?.ToString() ?? string.Empty;
+        _current = chosen;
+        _syncFailed = false;
+
+        try
+        {
+            // Empty string clears the preference back to "never chose". The endpoint reads null and
+            // empty the same way, so the option needs no special case on the way out.
+            var response = await Http.PutAsJsonAsync("/api/auth/unit-system",
+                new { unitSystem = string.IsNullOrEmpty(chosen) ? null : chosen });
+            _syncFailed = !response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            _syncFailed = true;
+        }
+    }
+
+    private record Profile(string? PreferredUnitSystem);
+}
