@@ -18,7 +18,10 @@ namespace JiggerJot.Api.Tests.Catalog;
 public sealed class CocktailDetailTests(PostgresFixture fixture) : PostgresTestBase(fixture)
 {
     private static CocktailDetailHandler Handler(AppDbContext db) =>
-        new(new EfRepository<Cocktail>(db), new UserRepository(db));
+        new(new EfRepository<Cocktail>(db),
+            new UserRepository(db),
+            new EfRepository<TenantInventory>(db),
+            new EfRepository<IngredientSubstitution>(db));
 
     private async Task SeedAsync()
     {

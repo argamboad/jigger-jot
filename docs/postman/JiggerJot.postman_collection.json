@@ -1038,7 +1038,7 @@
                 "{{cocktailId}}"
               ]
             },
-            "description": "One cocktail, whole (CKTL-3). {{cocktailId}} is captured by \"Cocktails — browse\", so run that first.\n\nEvery line carries BOTH the authored amount/unit and a `display` string already converted to the caller's PreferredUnitSystem (JJ-007, JJ-008). Converting server-side means one implementation to get right rather than one per client; the authored values are still there for a client that wants to do its own formatting.\n\nNeutral units never convert — a proportional 1930 recipe reads \"2/3 part\" for every reader, because inventing millilitres for it would state a precision the book never had.\n\n**404, not 403**, for a cocktail belonging to another household: the query filter simply does not return it, and \"forbidden\" would confirm the row exists."
+            "description": "One cocktail, whole (CKTL-3). {{cocktailId}} is captured by \"Cocktails — browse\", so run that first.\n\nEvery line carries BOTH the authored amount/unit and a `display` string already converted to the caller's PreferredUnitSystem (JJ-007, JJ-008). Converting server-side means one implementation to get right rather than one per client; the authored values are still there for a client that wants to do its own formatting.\n\nNeutral units never convert — a proportional 1930 recipe reads \"2/3 part\" for every reader, because inventing millilitres for it would state a precision the book never had.\n\n**404, not 403**, for a cocktail belonging to another household: the query filter simply does not return it, and \"forbidden\" would confirm the row exists.\n\n**Where it stands against your shelf (CKTL-4, FEATURES §12).** `makeability` is `Makeable`, `AlmostMakeable` or `NotMakeable`, and every line carries `availability` (`Have` / `Substitute` / `Missing`) plus `substituteWith` — the bottle you would actually reach for. Sent as names rather than numbers so the wire format survives anyone reordering the enum.\n\nDerived at query time and never stored (JJ-003, JJ-019): tick something in the Shelf folder and this same request answers differently, with nothing to invalidate. It is the same rule the `makeable` and `almost` filters apply, so a drink can never be makeable in the list and not on its own page."
           },
           "response": [],
           "event": [
@@ -1052,7 +1052,12 @@
                   "pm.test(\"every line is rendered for the reader\", () =>",
                   "  body.lines.forEach(l => pm.expect(l).to.have.property('display')));",
                   "pm.test(\"authored values survive\", () =>",
-                  "  body.lines.forEach(l => pm.expect(l).to.have.property('amount')));"
+                  "  body.lines.forEach(l => pm.expect(l).to.have.property('amount')));",
+                  "pm.test(\"says where it stands\", () =>",
+                  "  pm.expect(['Makeable','AlmostMakeable','NotMakeable']).to.include(body.makeability));",
+                  "pm.test(\"every line says how you would pour it\", () =>",
+                  "  body.lines.forEach(l => pm.expect(['Have','Substitute','Missing']).to.include(l.availability)));",
+                  "console.log(body.name + ':', body.makeability);"
                 ],
                 "type": "text/javascript"
               }

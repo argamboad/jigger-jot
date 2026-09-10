@@ -35,8 +35,14 @@ else if (_recipe is not null)
        no "unknown", which would read as a fact about the drink rather than a gap in the book. *@
     @if (Facets().Any())
     {
-        <p class="text-muted mb-4" data-testid="cocktail-facets">@string.Join(" · ", Facets())</p>
+        <p class="text-muted mb-2" data-testid="cocktail-facets">@string.Join(" · ", Facets())</p>
     }
+
+    @* FEATURES §12: the detail view indicates where this drink stands against the shelf. Derived at
+       query time by the API and never stored (JJ-003, JJ-019) — this only paints the answer. *@
+    <p class="mb-4">
+        <span class="badge @MakeabilityClass" data-testid="cocktail-makeability">@Localizer[MakeabilityLabel]</span>
+    </p>
 
     <div class="card shadow-sm mb-3">
         <div class="card-body">
@@ -57,6 +63,25 @@ else if (_recipe is not null)
                             @if (!string.IsNullOrWhiteSpace(line.Notes))
                             {
                                 <span class="text-muted small ms-1">@line.Notes</span>
+                            }
+                            @* Only the two answers worth saying out loud. A line the household can
+                               pour as written says nothing, because marking every line would turn a
+                               recipe into a checklist and bury the one line that needs attention. *@
+                            @* Parenthesised rather than merely spaced: Razor collapses the whitespace
+                               between an expression and the next element, which ran the ingredient
+                               and its mark together into one word on the page and in a screen
+                               reader. The brackets also read as the aside this is. *@
+                            @if (line.Availability == "Substitute" && line.SubstituteWith is { } pour)
+                            {
+                                <span class="small text-warning-emphasis ms-2" data-testid="cocktail-line-substitute">
+                                    (@Localizer["Cocktail_YoudPour", pour])
+                                </span>
+                            }
+                            else if (line.Availability == "Missing")
+                            {
+                                <span class="small text-danger-emphasis ms-2" data-testid="cocktail-line-missing">
+                                    (@Localizer["Cocktail_LineMissing"])
+                                </span>
                             }
                         </span>
                     </li>
@@ -129,6 +154,25 @@ else if (_recipe is not null)
         }
     }
 
+    /// <summary>
+    /// The wording and the colour both key off the status the API derived. Switching on it here
+    /// rather than sending a colour keeps the presentation on this side of the boundary, where a
+    /// second front end can disagree about the badge without disagreeing about the drink.
+    /// </summary>
+    private string MakeabilityLabel => _recipe?.Makeability switch
+    {
+        "Makeable" => "Cocktail_Makeable",
+        "AlmostMakeable" => "Cocktail_AlmostMakeable",
+        _ => "Cocktail_NotMakeable",
+    };
+
+    private string MakeabilityClass => _recipe?.Makeability switch
+    {
+        "Makeable" => "text-bg-success",
+        "AlmostMakeable" => "text-bg-warning",
+        _ => "text-bg-secondary",
+    };
+
     private IEnumerable<string> Facets()
     {
         if (_recipe is null) yield break;
@@ -138,11 +182,13 @@ else if (_recipe is not null)
 
     private record CocktailDetailView(
         Guid Id, string Name, string? Glass, string? Method, string ServingType,
-        string? Instructions, SourceView? Source, bool IsOwn, IReadOnlyList<LineView> Lines);
+        string? Instructions, SourceView? Source, bool IsOwn, IReadOnlyList<LineView> Lines,
+        string Makeability);
 
     private record SourceView(string Name, int? Year, string? Url, string? Attribution);
 
     private record LineView(
         string Ingredient, decimal? Amount, string? Unit, string Display,
-        bool IsRequired, string Role, string? Notes);
+        bool IsRequired, string Role, string? Notes,
+        string Availability, string? SubstituteWith);
 }

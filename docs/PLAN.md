@@ -52,25 +52,24 @@
 
 ## Where things stand — 2026-09-10
 
-**Merged into `develop`** (PRs #1–#12): CKTL-1 domain model and both tenancy walls; SEED-1 to
+**Merged into `develop`** (PRs #1–#13): CKTL-1 domain model and both tenancy walls; SEED-1 to
 SEED-4 (lookups, 191 ingredients, recipes, 88-row substitution graph); CKTL-2 browse; CKTL-3
-detail + PREFS-2 measurement preference; INV-1 the shelf; MAKE-1 the makeable engine. Staging
-deploys on every merge and the seeder runs there against the enforcing RLS role. The shipped seed is
-a **starter catalog** of 31 recipes chosen to cover every shape the model handles;
-`python seed/build_cocktails.py --full` emits all 969.
+detail + PREFS-2 measurement preference; INV-1 the shelf; MAKE-1 the makeable engine; ALMOST-1 the
+one-ingredient-away filter and the header's app/platform split. Staging deploys on every merge and
+the seeder runs there against the enforcing RLS role. The shipped seed is a **starter catalog** of 31
+recipes chosen to cover every shape the model handles; `python seed/build_cocktails.py --full` emits
+all 969.
 
-**Built, verified, uncommitted** on `feat/ALMOST-1-almost-makeable` (branched from `develop`):
+**Built, verified, uncommitted** on `feat/CKTL-4-detail-makeability` (branched from `develop`):
 
-- **ALMOST-1** to `FEATURES.md` §10: `GET /api/cocktails?almost=true` and a second toggle on the
-  catalog list, exclusive with the makeable one. Exactly one required line unsatisfied **after
-  substitutions**, and every row names the bottle. Same predicate as MAKE-1's, counted rather than
-  negated, so the two lists are adjacent and never overlap.
-- **The header separated platform from app**, after comparing it against Vuelto's: `Shelf` and
-  `Cocktails` had been sitting in the right-hand cluster as outline buttons next to Billing and Sign
-  out, which put "what can I make" on the same footing as "cancel my subscription". They are plain
-  nav links on the left now, beside Home, where the template's own
-  `<!-- TODO: add app-specific nav links here -->` had been left untouched. Test ids unchanged.
-- Two gaps in merged slices still **logged, not folded in**: INV-2 and CKTL-4 below.
+- **CKTL-4** to `FEATURES.md` §12: the recipe page says where it stands — a status badge plus, on
+  each line, whether the household would pour the bottle named or something the graph allows. Closes
+  the last sentence of §12, which CKTL-3 shipped without.
+- The derived rule now lives **once in Core** (`Core/Catalog/Makeability.cs`, beside `AmountDisplay`).
+  The browse filters stay set-based SQL because a filter over a paged catalog cannot be a loop, so a
+  test stocks a partial shelf and walks the entire catalog asserting the detail view and the two
+  filters never disagree.
+- One gap in a merged slice still **logged, not folded in**: INV-2 below.
 
 ## What is next, in order
 
@@ -78,13 +77,12 @@ Each is one branch off `develop`, one PR, after the previous one is merged.
 
 | # | Slice | Flow | What it is |
 |---|---|---|---|
-| 1 | **ALMOST-1** | §10 | The uncommitted work above. Waiting on C+P+PR. |
-| 2 | **CKTL-4** | §12 | The detail page shows makeable / almost-makeable status and any substitution in play. Both engines exist now; this is the detail view asking them. Small. |
-| 3 | **INV-2** | §8 | Add a custom ingredient inline (name, category, subcategory) → tenant-owned `Ingredient`, `TenantId` set explicitly (nothing stamps it, JJ-031), immediately tickable, satisfies lines by exact match only (JJ-018). Small. |
-| 4 | **FILTER-1** | §11 | By ingredient / category (parent matches all children, JJ-016), method, glass, serving type. Combinable with search and the makeable toggles. This is where the toggle-not-screen decision pays off. |
-| 5 | **FORK-1** | §13 | "Create my own version": full snapshot copy with `ForkedFromCocktailId` as provenance only (JJ-013). |
-| 6 | **AUTHORING-1** | §14 | A household writes a cocktail from scratch. Glass and method optional (JJ-034). |
-| 7 | **ONBOARD-1** | §7 | New-household wizard: tick a starter shelf, land on what you can make. |
+| 1 | **CKTL-4** | §12 | The uncommitted work above. Waiting on C+P+PR. |
+| 2 | **INV-2** | §8 | Add a custom ingredient inline (name, category, subcategory) → tenant-owned `Ingredient`, `TenantId` set explicitly (nothing stamps it, JJ-031), immediately tickable, satisfies lines by exact match only (JJ-018). Small. |
+| 3 | **FILTER-1** | §11 | By ingredient / category (parent matches all children, JJ-016), method, glass, serving type. Combinable with search and the makeable toggles. This is where the toggle-not-screen decision pays off. |
+| 4 | **FORK-1** | §13 | "Create my own version": full snapshot copy with `ForkedFromCocktailId` as provenance only (JJ-013). |
+| 5 | **AUTHORING-1** | §14 | A household writes a cocktail from scratch. Glass and method optional (JJ-034). |
+| 6 | **ONBOARD-1** | §7 | New-household wizard: tick a starter shelf, land on what you can make. |
 
 Not on this list, deliberately: the Savoy transcription-source question (JJ-032, open, blocks
 nothing), the two scrape-merged recipe lines, and restoring the 969-recipe catalog — that is a
