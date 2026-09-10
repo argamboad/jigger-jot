@@ -3,7 +3,8 @@
 > One file per epic. What a household has on hand: the checklist every "what can I make" answer is
 > computed from. Read with **JJ-020** (ice and water are always available), **JJ-023** (boolean only,
 > absence means not available) and `docs/DATA_MODEL.md`. Stories use Gherkin acceptance criteria.
-> **Status: ✅ COMPLETE for MVP** — INV-1 (the shelf) and INV-2 (custom ingredients) shipped.
+> **Status: 🚧 IN PROGRESS** — INV-1 (the shelf) and INV-2 (custom ingredients) shipped; INV-3
+> (the shelf rework) planned.
 
 **Epic key:** `INV`
 
@@ -187,3 +188,68 @@ bottle, reloads to prove it was written rather than drawn, and then tries to add
 substitution must be shared rows (JJ-005, JJ-018), and the query filter on `IngredientSubstitution`
 enforces it — plus editing or deleting a custom ingredient, which nothing has asked for yet, and
 household additions to the curated lookups (JJ-022).
+
+---
+
+### INV-3 — The shelf, reworked
+
+**Status: 📋 Planned.** Proposal screen **5**. A rework of the existing screen, not a rebuild.
+
+**As a** member of a household
+**I want** to fill in my shelf without giving up halfway
+**So that** the rest of the app has something to work with
+
+**Context / notes.** This is the screen that gates the product. Nothing else works until it is filled,
+and 191 checkboxes in a fixed three-column grid is a form nobody finishes. The tick behaviour, the
+optimistic write with rollback, the search, the only-what-I-have filter and the INV-2 custom-ingredient
+flow all stay exactly as they are. What changes is the control and the chrome around it.
+
+**Four changes, and they are independent of each other** — if the first is rejected the other three
+still stand on their own:
+
+1. **Checkboxes become pills.** Bootstrap's `.btn-check` is a real `input[type=checkbox]`, visually
+   hidden and styled through its label, so the semantics, the keyboard and the screen-reader
+   announcement are unchanged and it carries its own `:focus-visible` rule. The gain is density: the
+   grid today is fixed at three columns, so "Gin" occupies exactly as much room as "Crème de cacao".
+   Pills wrap to content width.
+   > **Decided:** selected pills are **filled**, not outlined. The catalog screen already uses
+   > outlined pills for filters, and the same shape one screen apart must not mean two things.
+2. **Each category card states its count**, "3 of 10".
+3. **A scrollable jump bar** of real links carrying the same counts.
+4. **A sticky footer showing the payoff as you tick** — "23 bottles, that's twelve drinks so far".
+   Nothing on the screen does this today, and it is the change that makes filling the shelf feel like
+   progress rather than data entry.
+
+**The footer is the only part with a technical question.** It needs the makeable count refreshed on
+every tick, so either it re-asks `makeable=true` for the total after each write, or the write returns
+it. Decide before building: a request per checkbox is a lot of requests for a screen someone is
+clicking down.
+
+**`+ Add your own` moves inside the category card**, where INV-2's flow belongs, rather than sitting
+in the toolbar detached from what it adds to.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: A pill is still a checkbox
+  Then it is announced as a checkbox, toggles with the keyboard, and shows a focus ring
+
+Scenario: Selected reads as owned
+  Then a selected pill is filled, so it cannot be mistaken for a catalog filter
+
+Scenario: Counts are honest
+  Then each category's count matches the pills selected inside it
+  And the jump bar shows the same numbers as the cards
+
+Scenario: The payoff moves as I tick
+  When I tick a bottle that completes a drink
+  Then the footer count goes up
+
+Scenario: Everything INV-1 and INV-2 did still works
+  Then ticking is optimistic and rolls back on failure
+  And unticking updates the row rather than deleting it
+  And a custom ingredient can still be added, from inside its category
+```
+
+**Out of scope, deliberately:** quantities and "running low" stay out (JJ-023), and reordering or
+hiding categories is not asked for.
