@@ -829,6 +829,64 @@
           "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"204/404\", () => pm.expect(pm.response.code).to.be.oneOf([204, 404]));"], "type": "text/javascript" } }]
         }
       ]
+    },
+    {
+      "name": "11 • Cocktail catalog",
+      "description": "Browsing the shared cocktail catalog (CKTL-2). Reads return the seeded catalog PLUS anything the caller's household has added, and never another household's rows — that scoping is the query filter's job, not a parameter here (JJ-031).",
+      "item": [
+        {
+          "name": "Cocktails — browse",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cocktails"],
+              "query": [
+                { "key": "page", "value": "1", "description": "1-based. Out of range is CLAMPED, not rejected — a read does not 400 over a typo." },
+                { "key": "pageSize", "value": "20", "description": "Default 20, capped at 100. The cap is what stops one request walking the whole catalog." },
+                { "key": "search", "value": "martini", "disabled": true, "description": "Matches anywhere in the name, case-insensitively. Omit to browse everything." }
+              ]
+            },
+            "description": "Requires a signed-in caller with a household (tenant API policy) → 401 without a token. Returns { items, page, pageSize, total }.\n\nEach item carries name, glass, method, servingType, source, isOwn and ingredientCount. **glass and method may be null** — a quarter of the seeded catalog never stated one, and JJ-034 says null rather than a guess. **source** is load-bearing rather than decoration: four names appear in both source books and one appears twice in the Savoy alone, so two rows are otherwise indistinguishable.\n\nOrdering is by name then id. Name alone is not a total order in this catalog, and a non-total order lets pages overlap."
+          },
+          "response": [],
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test(\"200\", () => pm.response.to.have.status(200));",
+            "const body = pm.response.json();",
+            "pm.test(\"paged shape\", () => {",
+            "  pm.expect(body).to.have.property('items');",
+            "  pm.expect(body).to.have.property('total');",
+            "  pm.expect(body.page).to.eql(1);",
+            "});",
+            "pm.test(\"catalog is seeded\", () => pm.expect(body.total).to.be.above(0));",
+            "if (body.items.length) { pm.collectionVariables.set('cocktailId', body.items[0].id); }"
+          ], "type": "text/javascript" } }]
+        },
+        {
+          "name": "Cocktails — search by name",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails?search=martini&page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cocktails"],
+              "query": [
+                { "key": "search", "value": "martini" },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            },
+            "description": "Substring match, not a prefix match: \"martini\" finds \"Dry Martini\". Percent and underscore are escaped, so searching for a literal % searches for a %, not for everything."
+          },
+          "response": [],
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test(\"200\", () => pm.response.to.have.status(200));",
+            "const body = pm.response.json();",
+            "pm.test(\"every hit contains the term\", () => body.items.forEach(i => pm.expect(i.name.toLowerCase()).to.include('martini')));"
+          ], "type": "text/javascript" } }]
+        }
+      ]
     }
   ]
 }

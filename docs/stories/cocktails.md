@@ -4,7 +4,8 @@
 > recipe collection every household reads, and the household's own rows that live in the same tables
 > beside it. Design decision + the shape's constraints in **JJ-031** (read with platform ADR-003 and
 > ADR-020); entity-by-entity detail in `docs/DATA_MODEL.md`. Stories use Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — CKTL-1 (domain model + tenancy walls) ✅; browse/detail/filter to follow.
+> **Status: 🚧 IN PROGRESS** — CKTL-1 (domain model + tenancy walls) ✅, CKTL-2 (browse) ✅; detail
+> and filtering to follow.
 
 **Epic key:** `CKTL`
 
@@ -116,14 +117,95 @@ safe; filling and reading them is `SEED` and the browse slices below.
 
 ---
 
-### CKTL-2 — Browse the catalog 📋 PLANNED
+### CKTL-2 — Browse the catalog
+
+**Status: ✅ Implemented.** `GET /api/cocktails` and the `/cocktails` screen — the first slice that
+reads what CKTL-1 modelled and SEED-1 to SEED-4 filled.
 
 **As a** member of a household
 **I want** a paged, searchable list of cocktails
 **So that** I can find a drink without knowing its name in advance
 
-Reads shared + household rows through the filter established in CKTL-1. Name search, stable ordering,
-paging. No filtering by ingredient or category yet — that is `FILTER`.
+**Context / notes.** A handler, an endpoint, a page in the shared component library, and nothing
+clever. What is worth reading is the four places the real data forced a decision.
+
+**There is no tenant predicate in the query, and that is the point.** `Query()` carries the
+shared-or-tenant filter, so the handler sees the shared catalog plus the household's own rows and can
+no more leak across households than a platform slice can (JJ-031). A slice that re-spelled the
+predicate by hand would be the one that eventually got it wrong.
+
+**Ordering is name then id, because name alone is not a total order here.** Four names appear in both
+source books and *Mr. Manhattan Cocktail* appears twice in the Savoy alone. Under a non-total order
+Postgres is free to return page two overlapping page one, and it will do it intermittently — the
+worst kind of bug to chase. There is a test that pages twice and counts distinct ids.
+
+**Source is in the browse row, and it is load-bearing rather than decoration.** Without it the list
+shows two rows called "Gin Fizz" and no way to tell which is which.
+
+**Glass and method render as nothing when the recipe never said** (JJ-034). No "unknown" chip, no
+guess. A quarter of the catalog is in that position.
+
+**Two things the browser needed that the handler did not.** The search box is debounced at 300 ms, so
+typing a name is one request rather than six. And every load takes a ticket that is checked before it
+renders, because a slow response for "gin" must not overwrite the list a later request for "gimlet"
+already painted. That race is invisible to a unit test and is the reason the journey test exists.
+
+**Out of scope, deliberately:** filtering by ingredient, category or spirit is the `FILTER` epic, and
+opening a drink is CKTL-3. This slice ends at a list.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: The catalog is browsable on first sign-in
+  Given a household that has added nothing
+  When I open the cocktails page
+  Then I see a page of drinks from the shared catalog
+  And I am told how many there are in total
+
+Scenario: Paging does not repeat or skip
+  Given the catalog has more than one page
+  When I read the first page and then the second
+  Then no drink appears on both
+
+Scenario: Search matches anywhere in the name
+  When I search for "martini"
+  Then "Dry Martini" is among the results
+  And every result contains "martini"
+
+Scenario: A search with no hits is an empty state
+  When I search for something no drink is called
+  Then I am told nothing matches
+  And I am not shown an error
+
+Scenario: I see the shared catalog and my own, never another household's
+  Given another household has added a cocktail
+  When I browse
+  Then I see the shared catalog and my household's own
+  And I do not see theirs
+
+Scenario: Two books may share a drink's name
+  When I search for "Gin Fizz"
+  Then I see both, each showing which book it came from
+
+Scenario: A recipe that never stated a glass shows none
+  When I browse
+  Then drinks with no recorded glass or method simply show neither
+
+Scenario: An unreasonable page or page size is clamped
+  When I ask for page 0, or for 5000 rows
+  Then I get the first page, and at most 100 rows
+```
+
+**Tests.** `tests/Api.Tests/Catalog/CocktailBrowseTests.cs` (twelve, run against the real seeded
+catalog rather than fixtures — ordering, paging and search are all things only volume exposes) and
+`tests/E2E.Tests/CocktailBrowseJourneyTests.cs` (suite 35 → 36).
+
+> **One test here was wrong before the code was.** The first ordering assertion re-derived the
+> expected order with `StringComparer.OrdinalIgnoreCase` and disagreed with the database: Postgres
+> files "Absinthe (Special) Cocktail" among the other Absinthes because its collation looks past the
+> punctuation, while an ordinal comparer sorts "(" ahead of every letter. The database is right —
+> that is what a person expects from an alphabetical list — so the test now asserts the order is
+> stable rather than re-deriving it with a comparer that disagrees with the query.
 
 ### CKTL-3 — Cocktail detail 📋 PLANNED
 
