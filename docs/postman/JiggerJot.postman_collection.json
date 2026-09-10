@@ -964,6 +964,66 @@
           ]
         },
         {
+          "name": "Cocktails — one ingredient away (filter)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails?almost=true&page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cocktails"
+              ],
+              "query": [
+                {
+                  "key": "almost",
+                  "value": "true",
+                  "description": "Exactly one required line unsatisfied, after substitutions (FEATURES §10). Absent or false is the whole catalog."
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                },
+                {
+                  "key": "search",
+                  "value": "negroni",
+                  "disabled": true
+                },
+                {
+                  "key": "makeable",
+                  "value": "true",
+                  "description": "Enable to see the contradiction: nothing is both zero short and one short, so the page comes back empty.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Everything this household is EXACTLY ONE required ingredient short of — the shopping driver (FEATURES §10, JJ-019).\n\nEach result names that one bottle in `missingIngredient`. That name is the feature: without it the response is a list of drinks you cannot make, which is most of the catalog.\n\n\"One short\" is counted AFTER substitutions (JJ-004, JJ-006), so a line the household can cover with something else on its shelf is not missing. A White Lady with gin and Curaçao on the shelf is one LEMON JUICE away, not two ingredients away — and buying Cointreau would be wasted money.\n\nOptional lines never count (JJ-009): an unstocked garnish cannot be the thing you are short of.\n\nAdjacent to `makeable=true` and never overlapping it — zero short is makeable, one short is this. Sending BOTH asks for drinks that are both, and correctly returns an empty page rather than one flag quietly winning.\n\nRows here still carry `substitutions` (FEATURES §9): buy the missing bottle and you still need to know the rest pours as Curaçao.\n\nDerived at query time, never stored. Tick a partial shelf with the Shelf folder first."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"paged shape\", () => pm.expect(body).to.have.property(\"total\"));",
+                  "pm.test(\"every row names the one bottle\", () =>",
+                  "  body.items.forEach(i => pm.expect(i.missingIngredient, i.name).to.be.a('string')));",
+                  "body.items.forEach(i => console.log('buy ' + i.missingIngredient + ' \\u2192 ' + i.name));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Cocktails — detail",
           "request": {
             "method": "GET",

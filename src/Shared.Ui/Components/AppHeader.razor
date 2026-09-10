@@ -23,10 +23,20 @@
 
         <div class="collapse navbar-collapse @(_menuOpen ? "show" : "")">
             <ul class="navbar-nav me-auto ms-lg-4 mt-2 mt-lg-0">
+                <!-- The app's own screens, left of the fold: this is where someone spends their time.
+                     The cluster on the right is the platform's account furniture (household, billing,
+                     settings, sign out) and reads as such — plain links here, outline buttons there.
+                     Shelf and Cocktails sat in that right-hand cluster until now, which put "what can
+                     I make" on the same footing as "cancel my subscription". -->
                 <li class="nav-item">
                     <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">@Localizer["Nav_Home"]</NavLink>
                 </li>
-                <!-- TODO: add app-specific nav links here -->
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/shelf" data-testid="nav-shelf">@Localizer["Nav_Shelf"]</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/cocktails" data-testid="nav-cocktails">@Localizer["Nav_Cocktails"]</NavLink>
+                </li>
             </ul>
 
             <div class="header-user d-flex flex-column flex-lg-row align-items-lg-center gap-2 gap-lg-3 mt-3 mt-lg-0 pb-2 pb-lg-0">
@@ -40,8 +50,6 @@
                 {
                     <NavLink class="btn btn-outline-warning btn-sm" href="/admin" data-testid="nav-admin">@Localizer["Nav_Admin"]</NavLink>
                 }
-                <NavLink class="btn btn-outline-light btn-sm" href="/shelf" data-testid="nav-shelf">@Localizer["Nav_Shelf"]</NavLink>
-                <NavLink class="btn btn-outline-light btn-sm" href="/cocktails" data-testid="nav-cocktails">@Localizer["Nav_Cocktails"]</NavLink>
                 <NavLink class="btn btn-outline-light btn-sm" href="/household">@Localizer["Nav_Household"]</NavLink>
                 <NavLink class="btn btn-outline-light btn-sm" href="/billing" data-testid="nav-billing">@Localizer["Nav_Billing"]</NavLink>
                 <NavLink class="btn btn-outline-light btn-sm" href="/settings">@Localizer["Nav_Settings"]</NavLink>

@@ -336,4 +336,7 @@
   <data name="Make_FillYourShelf" xml:space="preserve"><value>Tick what you have</value></data>
   <data name="Cocktails_MakeableNow" xml:space="preserve"><value>I can make now</value></data>
   <data name="Cocktails_Using" xml:space="preserve"><value>Using {0} in place of {1}</value></data>
+  <data name="Cocktails_OneAway" xml:space="preserve"><value>One ingredient away</value></data>
+  <data name="Cocktails_Missing" xml:space="preserve"><value>Add {0} and you can make this</value></data>
+  <data name="Almost_NothingYet" xml:space="preserve"><value>Nothing is one ingredient away — your shelf is more than one bottle short of every recipe.</value></data>
 </root>

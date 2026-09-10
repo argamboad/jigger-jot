@@ -14,7 +14,18 @@ namespace JiggerJot.Api.Features.Catalog;
 /// <param name="MakeableOnly">FEATURES §11 lists "makeable now" as an on/off filter alongside
 /// ingredient, method, glass and serving type — combinable, on one screen — rather than as a
 /// separate view. It is a filter here for the same reason.</param>
-public record CocktailBrowseRequest(string? Search, int Page, int PageSize, bool MakeableOnly = false)
+/// <param name="AlmostMakeableOnly">Exactly one required line unsatisfied, after substitutions
+/// (FEATURES §10, JJ-019). "Adjacent to what you can make" is one more filter on the same list, not a
+/// second screen, for the same reason as above. Setting this <i>and</i>
+/// <paramref name="MakeableOnly"/> asks for drinks that are both zero short and one short: the
+/// handler applies both predicates and the page comes back empty, rather than one flag quietly
+/// winning over the other.</param>
+public record CocktailBrowseRequest(
+    string? Search,
+    int Page,
+    int PageSize,
+    bool MakeableOnly = false,
+    bool AlmostMakeableOnly = false)
 {
     public const int DefaultPageSize = 20;
     public const int MaxPageSize = 100;
@@ -46,8 +57,12 @@ public record PagedResponse<T>(IReadOnlyList<T> Items, int Page, int PageSize, i
 /// the Savoy alone, so without it the browse shows duplicate rows and no way to tell them apart.</param>
 /// <param name="IsOwn">True when this row belongs to the household rather than the shared catalog.</param>
 /// <param name="Substitutions">Why this drink qualified when the household does not have exactly
-/// what the recipe asks for (FEATURES §9). Empty unless the makeable filter is on, because outside it
-/// a row makes no claim about being makeable and a stray "using X instead of Y" would imply one.</param>
+/// what the recipe asks for (FEATURES §9). Empty unless a makeability filter is on, because outside
+/// one a row makes no claim about being makeable and a stray "using X instead of Y" would imply one.</param>
+/// <param name="MissingIngredient">The one bottle standing between this household and this drink
+/// (FEATURES §10, JJ-019) — the whole point of the almost-makeable list, since "you cannot make this"
+/// on its own is not a shopping list. Null unless the almost-makeable filter is on: a makeable row is
+/// missing nothing, and an unfiltered row was never measured.</param>
 public record CocktailSummary(
     Guid Id,
     string Name,
@@ -57,7 +72,8 @@ public record CocktailSummary(
     string? Source,
     bool IsOwn,
     int IngredientCount,
-    IReadOnlyList<SubstitutionInPlay> Substitutions);
+    IReadOnlyList<SubstitutionInPlay> Substitutions,
+    string? MissingIngredient = null);
 
 /// <summary>
 /// "Using Kahlúa in place of Tia Maria." A result shown thanks to a substitution has to say so, or

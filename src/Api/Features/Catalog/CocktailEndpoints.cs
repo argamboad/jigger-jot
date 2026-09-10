@@ -20,6 +20,7 @@ public static class CocktailEndpoints
             int? page,
             int? pageSize,
             bool? makeable,
+            bool? almost,
             CocktailBrowseHandler handler,
             CancellationToken ct) =>
         {
@@ -32,7 +33,11 @@ public static class CocktailEndpoints
                 pageSize ?? CocktailBrowseRequest.DefaultPageSize,
                 // FEATURES §11: "makeable now" is one combinable filter on this list, not a separate
                 // view. Absent means off, which is the whole catalog.
-                makeable ?? false);
+                makeable ?? false,
+                // FEATURES §10: one required line short, after substitutions. Adjacent to the filter
+                // above and never overlapping it, so asking for both returns nothing — which is the
+                // honest answer rather than a precedence rule invented here.
+                almost ?? false);
 
             return Results.Ok(await handler.BrowseAsync(request, ct));
         });
