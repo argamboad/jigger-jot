@@ -1,3 +1,5 @@
+using JiggerJot.Core.Entities;
+
 namespace JiggerJot.Api.Features.Catalog;
 
 /// <summary>
@@ -20,12 +22,26 @@ namespace JiggerJot.Api.Features.Catalog;
 /// <paramref name="MakeableOnly"/> asks for drinks that are both zero short and one short: the
 /// handler applies both predicates and the page comes back empty, rather than one flag quietly
 /// winning over the other.</param>
+/// <param name="Ingredient">"Everything with vodka" (FEATURES §11, FILTER-1). Matched against the
+/// recipe lines rather than any stored classification — there is no "main spirit" field and there
+/// never will be, because a drink with two spirits or none makes that field a lie (JJ-014). The text
+/// is compared against the ingredient's <b>name, its category and its subcategory</b> at once, so a
+/// parent catches every child: "rum" finds the dark and the white, "dark rum" finds only the dark,
+/// and "elderflower" finds a thing no editor would have thought to tag (JJ-015, JJ-016).</param>
+/// <param name="MethodId">Shake, stir, build. From <c>GET /api/cocktails/filters</c>.</param>
+/// <param name="GlassTypeId">Likewise. A recipe that never stated a glass (JJ-034) is not swept into
+/// whichever glass was asked for — it simply does not match.</param>
+/// <param name="ServingType">Shot or full drink.</param>
 public record CocktailBrowseRequest(
     string? Search,
     int Page,
     int PageSize,
     bool MakeableOnly = false,
-    bool AlmostMakeableOnly = false)
+    bool AlmostMakeableOnly = false,
+    string? Ingredient = null,
+    Guid? MethodId = null,
+    Guid? GlassTypeId = null,
+    ServingType? ServingType = null)
 {
     public const int DefaultPageSize = 20;
     public const int MaxPageSize = 100;
@@ -40,6 +56,9 @@ public record CocktailBrowseRequest(
     };
 
     public string? SafeSearch => string.IsNullOrWhiteSpace(Search) ? null : Search.Trim();
+
+    /// <summary>Blank is no filter at all, not a filter for nothing.</summary>
+    public string? SafeIngredient => string.IsNullOrWhiteSpace(Ingredient) ? null : Ingredient.Trim();
 }
 
 /// <summary>One page of results, with the total so a caller can show how far the list runs.</summary>
@@ -83,6 +102,20 @@ public record CocktailSummary(
 /// <param name="AsksFor">What the recipe calls for.</param>
 /// <param name="YouHave">What the household actually has, and would pour.</param>
 public record SubstitutionInPlay(string AsksFor, string YouHave);
+
+/// <summary>One lookup value the catalog actually uses, for a filter dropdown.</summary>
+public record FilterOption(Guid Id, string Name);
+
+/// <summary>
+/// What the filter dropdowns on the browse screen offer (FILTER-1, FEATURES §11). Drawn from the
+/// cocktails this household can see rather than from the curated lookup tables: most of the nineteen
+/// glasses and ten methods go unused by any given catalog, and a filter that returns nothing looks
+/// broken. It also means the lists grow by themselves when the full catalog is switched on.
+/// </summary>
+public record CatalogFilterOptions(
+    IReadOnlyList<FilterOption> Methods,
+    IReadOnlyList<FilterOption> Glasses,
+    IReadOnlyList<string> ServingTypes);
 
 /// <summary>
 /// One cocktail, whole (CKTL-3). Everything the detail screen shows and nothing it does not.

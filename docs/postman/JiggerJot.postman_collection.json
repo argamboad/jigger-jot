@@ -1086,6 +1086,117 @@
             "const body = pm.response.json();",
             "pm.test(\"every hit contains the term\", () => body.items.forEach(i => pm.expect(i.name.toLowerCase()).to.include('martini')));"
           ], "type": "text/javascript" } }]
+        },
+        {
+          "name": "Cocktails — filter options",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails/filters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cocktails",
+                "filters"
+              ]
+            },
+            "description": "What the filter dropdowns offer (FILTER-1, FEATURES §11): methods, glasses and serving types.\n\nDrawn from the cocktails this household can SEE, not from the curated lookup tables. Those hold nineteen glasses and ten methods and any given catalog uses a fraction of them — a filter whose options mostly return nothing reads as broken rather than as precise. It also means the lists grow by themselves when the full 969-recipe catalog is switched on, and that a household's own cocktails contribute their glasses while another household's never do.\n\nCaptures `methodId` and `glassId` for the next request."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"has options to offer\", () => {",
+                  "  pm.expect(body.methods).to.be.an('array').that.is.not.empty;",
+                  "  pm.expect(body.glasses).to.be.an('array').that.is.not.empty;",
+                  "});",
+                  "pm.collectionVariables.set(\"methodId\", body.methods[0].id);",
+                  "pm.collectionVariables.set(\"glassId\", body.glasses[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cocktails — filter the catalog",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails?ingredient=gin&page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cocktails"
+              ],
+              "query": [
+                {
+                  "key": "ingredient",
+                  "value": "gin",
+                  "description": "Matched against the ingredient's NAME, its CATEGORY and its SUBCATEGORY at once, so a parent catches every child (JJ-015, JJ-016)."
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                },
+                {
+                  "key": "method",
+                  "value": "{{methodId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "glass",
+                  "value": "{{glassId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "serving",
+                  "value": "FullDrink",
+                  "description": "Shot or FullDrink, case-insensitive. Anything else is treated as no filter rather than a 400.",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "negroni",
+                  "disabled": true
+                },
+                {
+                  "key": "makeable",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Exploring the catalog rather than searching it (FILTER-1, FEATURES §11). Every parameter here combines — with each other, with `search`, and with the `makeable` and `almost` toggles. Enable the disabled ones above to see it: each is an AND, never a last-one-wins.\n\n**`ingredient` is read off the recipe lines**, because there is no \"main spirit\" column and there never will be — a drink with two spirits or none makes that field a lie (JJ-014). The text is compared against the ingredient's name, its category and its subcategory at once: \"rum\" finds the dark and the white, \"dark rum\" finds only the dark, and \"elderflower\" finds a thing no editor would have thought to tag.\n\n`method` and `glass` take ids from \"Cocktails — filter options\". A recipe that never stated a glass (JJ-034) does not match a glass filter: no glass is not a glass.\n\nAn id nobody recognises matches nothing and returns an empty page — a read with a bad id is a caller's typo, not a reason to hand back a 400. Wildcards in `ingredient` are escaped, so `%` looks for a percent sign rather than returning the whole catalog and looking for all the world like a working filter."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"narrower than the whole catalog\", () =>",
+                  "  pm.expect(body.total).to.be.above(0));",
+                  "console.log(body.total + ' made with gin');"
+                ]
+              }
+            }
+          ]
         }
       ]
     },

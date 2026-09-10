@@ -79,6 +79,48 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         await Expect(Page.GetByTestId("cocktail-source")).ToContainTextAsync("IBA");
     }
 
+    /// <summary>
+    /// FILTER-1 (FEATURES §11): exploring the catalog rather than searching it. "Made with gin" is
+    /// the filter someone actually wants, and it has to be wider than a name search — nobody types
+    /// "London dry gin" when they mean gin (JJ-016).
+    /// </summary>
+    [Test]
+    public async Task FilteringByIngredient_IsWiderThanSearching_AndCombinesWithTheRest()
+    {
+        await Mailpit.ClearAsync();
+        await SignInAsync(Page, UniqueEmail("filter"));
+
+        await Page.GetByTestId("nav-cocktails").ClickAsync();
+        await Expect(Page.GetByTestId("cocktail-list")).ToBeVisibleAsync(new() { Timeout = 30_000 });
+        var everything = await Page.GetByTestId("cocktail-count").InnerTextAsync();
+
+        // Opening the panel fetches the dropdown options, so wait on that rather than on the markup.
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("cocktail-filters-toggle").ClickAsync(),
+            r => r.Url.Contains("/api/cocktails/filters") && r.Status == 200);
+
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("cocktail-filter-ingredient").FillAsync("gin"),
+            r => r.Url.Contains("ingredient=gin") && r.Status == 200);
+
+        // The catalog holds no drink CALLED gin, so every one of these came from a recipe line —
+        // matched on the ingredient's name, its category or its subcategory.
+        await Expect(Page.GetByTestId("cocktail-list")).ToContainTextAsync("Negroni", new() { Timeout = 30_000 });
+        var withGin = await Page.GetByTestId("cocktail-count").InnerTextAsync();
+        Assert.That(withGin, Is.Not.EqualTo(everything));
+
+        // Combinable, which is the whole claim of §11: stack a method on top and the list narrows
+        // again rather than starting over.
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("cocktail-filter-method").SelectOptionAsync(new SelectOptionValue { Index = 1 }),
+            r => r.Url.Contains("method=") && r.Status == 200);
+        await Expect(Page.GetByTestId("cocktail-filters-toggle")).ToContainTextAsync("(2)");
+
+        // And clearing puts the whole catalog back, which is the half a one-way test never notices.
+        await Page.GetByTestId("cocktail-filter-clear").ClickAsync();
+        await Expect(Page.GetByTestId("cocktail-count")).ToHaveTextAsync(everything, new() { Timeout = 30_000 });
+    }
+
     [Test]
     public async Task ChoosingImperial_ChangesWhatTheRecipeSays_AndChoosingAsWrittenPutsItBack()
     {
