@@ -197,10 +197,16 @@
   <data name="Billing_CheckoutSuccess" xml:space="preserve"><value>Payment received. Your plan updates as soon as the provider confirms it — usually within a few seconds.</value></data>
   <data name="Billing_CheckoutCancelled" xml:space="preserve"><value>Checkout cancelled — nothing changed.</value></data>
   <data name="Nav_SignOut" xml:space="preserve"><value>Sign out</value></data>
-  <data name="Home_WelcomeBack" xml:space="preserve"><value>Welcome back, {0}!</value></data>
-  <data name="Home_SignedInTo" xml:space="preserve"><value>Signed in to the {0} household.</value></data>
   <data name="Home_HeroSubtitle" xml:space="preserve"><value>Sign in to get started with your household.</value></data>
   <data name="Home_SignInCta" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Home_MakeableLabel" xml:space="preserve"><value>drinks you can pour right now</value></data>
+  <data name="Home_ShowMakeable" xml:space="preserve"><value>Show me them</value></data>
+  <data name="Home_UpdateShelf" xml:space="preserve"><value>Update the shelf</value></data>
+  <data name="Home_ShowAlmost" xml:space="preserve"><value>See what else is close</value></data>
+  <data name="Marga_HomeAside" xml:space="preserve"><value>Marga · checked your shelf a moment ago</value></data>
+  <data name="Marga_HomeBottle" xml:space="preserve"><value>Pick up {0} and I can make you {1} more.</value></data>
+  <data name="Marga_HomeNoBottle" xml:space="preserve"><value>That is everything your shelf reaches, for now.</value></data>
+  <data name="Marga_HomeEmpty" xml:space="preserve"><value>Nothing yet. Tell me what is on your shelf and I will take it from there.</value></data>
   <data name="AuthCallback_Processing" xml:space="preserve"><value>Processing sign-in…</value></data>
   <data name="AuthError_Title" xml:space="preserve"><value>Sign-in failed</value></data>
   <data name="AuthError_Heading" xml:space="preserve"><value>Authentication failed</value></data>
@@ -350,6 +356,7 @@
   <data name="Cocktails_OneAway" xml:space="preserve"><value>One ingredient away</value></data>
   <data name="Cocktails_Missing" xml:space="preserve"><value>Add {0} and you can make this</value></data>
   <data name="Cocktails_UnlocksHeadline" xml:space="preserve"><value>{0} unlocks {1}</value></data>
+  <data name="Cocktails_UnlocksMore" xml:space="preserve"><value>and {0} more</value></data>
   <data name="Almost_NothingYet" xml:space="preserve"><value>Nothing is one ingredient away — your shelf is more than one bottle short of every recipe.</value></data>
   <data name="Cocktail_Makeable" xml:space="preserve"><value>You can make this</value></data>
   <data name="Cocktail_AlmostMakeable" xml:space="preserve"><value>One ingredient away</value></data>

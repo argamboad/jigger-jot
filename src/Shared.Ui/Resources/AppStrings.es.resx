@@ -197,10 +197,16 @@
   <data name="Billing_CheckoutSuccess" xml:space="preserve"><value>Pago recibido. Tu plan se actualiza en cuanto el proveedor lo confirma; normalmente en unos segundos.</value></data>
   <data name="Billing_CheckoutCancelled" xml:space="preserve"><value>Pago cancelado: no cambió nada.</value></data>
   <data name="Nav_SignOut" xml:space="preserve"><value>Cerrar sesión</value></data>
-  <data name="Home_WelcomeBack" xml:space="preserve"><value>¡Bienvenido de nuevo, {0}!</value></data>
-  <data name="Home_SignedInTo" xml:space="preserve"><value>Has iniciado sesión en el hogar {0}.</value></data>
   <data name="Home_HeroSubtitle" xml:space="preserve"><value>Inicia sesión para empezar con tu hogar.</value></data>
   <data name="Home_SignInCta" xml:space="preserve"><value>Iniciar sesión</value></data>
+  <data name="Home_MakeableLabel" xml:space="preserve"><value>tragos que puedes preparar ahora mismo</value></data>
+  <data name="Home_ShowMakeable" xml:space="preserve"><value>Muéstramelos</value></data>
+  <data name="Home_UpdateShelf" xml:space="preserve"><value>Actualizar la estantería</value></data>
+  <data name="Home_ShowAlmost" xml:space="preserve"><value>Ver qué más está cerca</value></data>
+  <data name="Marga_HomeAside" xml:space="preserve"><value>Marga · revisó tu estantería hace un momento</value></data>
+  <data name="Marga_HomeBottle" xml:space="preserve"><value>Consigue {0} y te preparo {1} más.</value></data>
+  <data name="Marga_HomeNoBottle" xml:space="preserve"><value>Eso es todo lo que alcanza tu estantería, por ahora.</value></data>
+  <data name="Marga_HomeEmpty" xml:space="preserve"><value>Nada todavía. Dime qué tienes en la estantería y yo me encargo.</value></data>
   <data name="AuthCallback_Processing" xml:space="preserve"><value>Procesando el inicio de sesión…</value></data>
   <data name="AuthError_Title" xml:space="preserve"><value>Error de inicio de sesión</value></data>
   <data name="AuthError_Heading" xml:space="preserve"><value>Error de autenticación</value></data>
@@ -350,6 +356,7 @@
   <data name="Cocktails_OneAway" xml:space="preserve"><value>A un ingrediente</value></data>
   <data name="Cocktails_Missing" xml:space="preserve"><value>Añade {0} y ya puedes prepararlo</value></data>
   <data name="Cocktails_UnlocksHeadline" xml:space="preserve"><value>{0} te desbloquea {1}</value></data>
+  <data name="Cocktails_UnlocksMore" xml:space="preserve"><value>y {0} más</value></data>
   <data name="Almost_NothingYet" xml:space="preserve"><value>Nada está a un solo ingrediente: a tu estantería le falta más de una botella para cada receta.</value></data>
   <data name="Cocktail_Makeable" xml:space="preserve"><value>Puedes prepararlo</value></data>
   <data name="Cocktail_AlmostMakeable" xml:space="preserve"><value>A un ingrediente</value></data>

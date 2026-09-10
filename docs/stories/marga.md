@@ -6,7 +6,7 @@
 > placeholders, filled from queries that already exist or from `ALMOST-2`.
 > Read with the design proposal (`JiggerJot Proposal.dc.html`, nine screens at three widths, both
 > themes) and **JJ-029** (brand). Stories use Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — MARGA-1 shipped; MARGA-2 and MARGA-3 planned.
+> **Status: 🚧 IN PROGRESS** — MARGA-1 and MARGA-2 shipped; MARGA-3 planned.
 
 **Epic key:** `MARGA`
 
@@ -83,7 +83,7 @@ rather than JiggerJot.
 
 ### MARGA-2 — The home screen
 
-**Status: 📋 Planned.** Proposal screen **1**. Depends on `ALMOST-2` and `MARGA-1`.
+**Status: ✅ Implemented.** Proposal screen **1**. Needed `ALMOST-2` and `MARGA-1`, both merged first.
 
 **As a** member of a household
 **I want** the front page to answer the question the app exists for
@@ -94,8 +94,33 @@ rather than JiggerJot.
 The signed-in half becomes the count as a headline, Marga's line naming the one purchase that extends
 it, three makeable drinks, and the one-bottle-away summary.
 
-**The count in her sentence and the list beneath it come from one query**, or they drift the first
-time the catalog changes.
+**Two calls, each internally consistent** — that is how the one-query rule actually lands here. The
+headline count and the three drinks under it come from one response, so they can never disagree; the
+bottle and the drinks it opens come from another, where the count is the length of the names by
+construction (`ALMOST-2`). Her sentence quotes one number from each, and **each half agrees with the
+list beneath it**.
+
+**Her line is picked, never assembled.** Three whole resource strings — one for an empty shelf, one
+when a bottle is worth naming, one when nothing is close — and the screen chooses which. No sentence
+is built from fragments at runtime.
+
+**The buttons are deep-linked.** `/cocktails?makeable=true` and `?almost=true` pre-set the toggles,
+so "show me them" lands on the list that produced the number it quotes. Without that, the front page
+would hand someone a number and then make them find the filter behind it. That query-string read is a
+small addition to `Cocktails.razor` beyond the literal story, and it is the reason the button is
+honest.
+
+**The signed-out half is untouched.** It already had a hero and a working sign-in call to action.
+
+> **Found while building, fixed here.** The unlocks card named **thirteen** drinks on a real shelf,
+> which is a wall rather than a list. The DISPLAY now stops at four and counts the rest — "and 9
+> more" — in both places that show it. The DATA stays whole: `unlocks` is the length of the names, so
+> truncating those would break the number shown beside them.
+
+**Tests.** One journey in `tests/E2E.Tests/MakeableJourneyTests.cs` (suite 49 → 50): an empty shelf
+gets her pointing at the shelf rather than a count of nothing; a stocked one gets the headline; and
+both buttons land on the filter that produced the number they quote, with the headline compared
+against what that filter reports.
 
 ---
 
