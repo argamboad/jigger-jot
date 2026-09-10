@@ -101,8 +101,8 @@ Scenario: Dissolving my household takes the copy and its lines
 `tests/E2E.Tests/CocktailBrowseJourneyTests.cs` (suite 46 → 47), which forks a drink, checks the copy
 opens with its lines and its provenance, and goes back to find the original untouched.
 
-**Out of scope, deliberately:** **editing** the copy is `AUTHORING`, which needs the same form a
-from-scratch cocktail needs — a fork you cannot yet edit is still worth having, because it is the
+**Out of scope, deliberately:** **editing** the copy is `AUTHORING-2` (still open — AUTHORING-1
+shipped the write form, not an edit one) — a fork you cannot yet edit is still worth having, because it is the
 household's and the catalog can no longer change it underneath them. Deleting a household cocktail is
 likewise unasked-for. Nothing walks the fork chain: provenance is one hop, and a lineage view is not
 in `PROJECT_BRIEF`.

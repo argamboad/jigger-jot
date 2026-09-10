@@ -366,4 +366,32 @@
   <data name="Cocktail_Fork" xml:space="preserve"><value>Crear mi propia versión</value></data>
   <data name="Cocktail_BasedOn" xml:space="preserve"><value>Basado en</value></data>
   <data name="Cocktail_ForkFailed" xml:space="preserve"><value>No se pudo copiar. Inténtalo de nuevo.</value></data>
+  <data name="Cocktail_New" xml:space="preserve"><value>Escribe un cóctel</value></data>
+  <data name="Cocktail_NewSubtitle" xml:space="preserve"><value>Tu propia receta, con tus palabras. Entra en el catálogo y en lo que puedes preparar de inmediato.</value></data>
+  <data name="Cocktail_FieldName" xml:space="preserve"><value>Nombre</value></data>
+  <data name="Cocktail_FieldGlass" xml:space="preserve"><value>Copa</value></data>
+  <data name="Cocktail_FieldMethod" xml:space="preserve"><value>Método</value></data>
+  <data name="Cocktail_FieldServing" xml:space="preserve"><value>Se sirve como</value></data>
+  <data name="Cocktail_FieldInstructions" xml:space="preserve"><value>Instrucciones</value></data>
+  <data name="Cocktail_NotStated" xml:space="preserve"><value>Sin indicar</value></data>
+  <data name="Cocktail_LineIngredient" xml:space="preserve"><value>Ingrediente</value></data>
+  <data name="Cocktail_LineAmount" xml:space="preserve"><value>Cantidad</value></data>
+  <data name="Cocktail_LineUnit" xml:space="preserve"><value>Unidad</value></data>
+  <data name="Cocktail_LineRole" xml:space="preserve"><value>Papel</value></data>
+  <data name="Cocktail_LineRequired" xml:space="preserve"><value>Obligatorio</value></data>
+  <data name="Cocktail_AddLine" xml:space="preserve"><value>Añadir un ingrediente</value></data>
+  <data name="Cocktail_Save" xml:space="preserve"><value>Guardar la receta</value></data>
+  <data name="Cocktail_ErrName" xml:space="preserve"><value>Ponle nombre al trago.</value></data>
+  <data name="Cocktail_ErrNoLines" xml:space="preserve"><value>Un cóctel necesita al menos un ingrediente.</value></data>
+  <data name="Cocktail_ErrIngredient" xml:space="preserve"><value>Alguno de esos ingredientes no está en tu catálogo.</value></data>
+  <data name="Cocktail_ErrLine" xml:space="preserve"><value>Revisa las cantidades y las unidades. Una unidad necesita una cantidad.</value></data>
+  <data name="Cocktail_ErrLookup" xml:space="preserve"><value>Esa copa o ese método no existen.</value></data>
+  <data name="Cocktail_RoleBase" xml:space="preserve"><value>Base</value></data>
+  <data name="Cocktail_RoleModifier" xml:space="preserve"><value>Modificador</value></data>
+  <data name="Cocktail_RoleJuice" xml:space="preserve"><value>Zumo</value></data>
+  <data name="Cocktail_RoleSyrup" xml:space="preserve"><value>Sirope</value></data>
+  <data name="Cocktail_RoleBitters" xml:space="preserve"><value>Amargos</value></data>
+  <data name="Cocktail_RoleGarnish" xml:space="preserve"><value>Decoración</value></data>
+  <data name="Cocktail_RoleMixer" xml:space="preserve"><value>Refresco</value></data>
+  <data name="Cocktail_RoleOther" xml:space="preserve"><value>Otro</value></data>
 </root>

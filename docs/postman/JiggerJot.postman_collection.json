@@ -1100,6 +1100,87 @@
           ]
         },
         {
+          "name": "Cocktails — authoring lookups",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails/lookups",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cocktails",
+                "lookups"
+              ]
+            },
+            "description": "Everything a household may choose while writing a cocktail (AUTHORING-1, FEATURES §14): glasses, methods, units, serving types and recipe-line roles.\n\n**Not the same list as \"Cocktails — filter options\", on purpose.** That one is derived from the catalog, so a filter never offers a glass that returns nothing. This one is the whole curated lookup (JJ-022), because someone writing down what they actually pour must be able to reach a glass no seeded recipe happens to use.\n\nUnits keep their curated order rather than being alphabetised: it runs from what a person pours most to what they pour least, which is the order a picker wants.\n\nCaptures `glassTypeId`, `methodId` and `unitId` for the request below."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"everything a form needs\", () => {",
+                  "  ['glasses','methods','units','servingTypes','roles']",
+                  "    .forEach(k => pm.expect(body[k]).to.be.an('array').that.is.not.empty);",
+                  "});",
+                  "pm.collectionVariables.set(\"glassTypeId\", body.glasses[0].id);",
+                  "pm.collectionVariables.set(\"methodId\", body.methods[0].id);",
+                  "pm.collectionVariables.set(\"unitId\", (body.units.find(u => u.name === \"ml\") || body.units[0]).id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cocktails — write one from scratch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"House Negroni\",\n  \"glassTypeId\": \"{{glassTypeId}}\",\n  \"methodId\": \"{{methodId}}\",\n  \"servingType\": \"FullDrink\",\n  \"instructions\": \"Stir over ice and garnish with orange.\",\n  \"lines\": [\n    {\n      \"ingredientId\": \"{{ingredientId}}\",\n      \"amount\": 30,\n      \"unitId\": \"{{unitId}}\",\n      \"isRequired\": true,\n      \"role\": \"Base\",\n      \"notes\": null\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cocktails"
+              ]
+            },
+            "description": "A household writes its own cocktail (AUTHORING-1, FEATURES §14). **201** with the new id.\n\n**It participates in makeable and in filtering immediately**, and that costs nothing: both are derived from the recipe lines at query time (JJ-003, JJ-014), so a drink written a second ago is exactly as visible to the engine as one seeded from a 1930 book. There is no index to rebuild and no tag to remember to set.\n\n`glassTypeId` and `methodId` are **optional** and meant to stay that way (JJ-034): a quarter of the seeded catalog never states a glass. Omit them and the recipe simply does not say.\n\nLine order is the array's — `display_order` is assigned from position, so a client never numbers them. The same ingredient may appear on several lines; there is deliberately no unique index on (cocktail, ingredient), because a split pour is a real thing to write down.\n\n`tenant_id` is set by the handler on the cocktail AND every line (JJ-031, nothing stamps them). No `source_id` and no `forked_from_cocktail_id`: this was written here, not transcribed from a book (JJ-032) and not copied from another recipe (JJ-013).\n\n**Errors, all 400 with a code:** `invalid_name` (blank or over 200), `no_lines` (a cocktail with none would count as *makeable*, since makeability counts unsatisfied REQUIRED lines — it would sit in tonight's list made of nothing), `unknown_ingredient` (a line names something this household cannot see — a reference to an invisible row is how one household learns another exists), `invalid_line` (an amount of zero or less, an unknown unit, or a unit with no amount, which renders as nothing at all and would be a line its author could never see), and `unknown_lookup` (no such glass or method).\n\nRun \"Cocktails — authoring lookups\" and any ingredient-bearing request first to fill the variables."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201\", () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"hands back the new id\", () => pm.expect(body.id).to.be.a(\"string\"));",
+                  "pm.collectionVariables.set(\"cocktailId\", body.id);",
+                  "console.log('wrote ' + body.id + ' \\u2014 read it back with Cocktails \\u2014 detail');"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Cocktails — search by name",
           "request": {
             "method": "GET",

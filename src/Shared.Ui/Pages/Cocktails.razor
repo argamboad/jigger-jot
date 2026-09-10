@@ -41,6 +41,12 @@
             @onclick="ToggleFiltersAsync">
         @Localizer["Cocktails_Filters"]@(ActiveFilters > 0 ? $" ({ActiveFilters})" : "")
     </button>
+
+    @* FEATURES §14. Next to the catalog rather than hidden in a menu: a household's own drinks live
+       in this list beside everything else, so this is where you would look to add one. *@
+    <a class="btn btn-outline-primary btn-sm" href="/cocktails/new" data-testid="cocktail-write">
+        @Localizer["Cocktail_New"]
+    </a>
 </div>
 
 @if (_filtersOpen)
