@@ -121,6 +121,54 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         await Expect(Page.GetByTestId("cocktail-count")).ToHaveTextAsync(everything, new() { Timeout = 30_000 });
     }
 
+    /// <summary>
+    /// FORK-1 (FEATURES §13): "create my own version". The copy opens, says what it was based on,
+    /// carries every line, and is marked as the household's — and the original is untouched beside it.
+    /// </summary>
+    [Test]
+    public async Task ForkingADrink_OpensMyOwnCopy_AndLeavesTheOriginalAlone()
+    {
+        await Mailpit.ClearAsync();
+        await SignInAsync(Page, UniqueEmail("fork"));
+
+        await Page.GotoAsync($"{BaseUrl}/cocktails");
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("cocktail-search").FillAsync("negroni"),
+            r => r.Url.Contains("search=negroni") && r.Status == 200);
+        await Expect(Page.GetByTestId("cocktail-list")).ToContainTextAsync("Negroni", new() { Timeout = 30_000 });
+        await Page.GetByTestId("cocktail-list").Locator("a").First.ClickAsync();
+
+        await Expect(Page.GetByTestId("cocktail-name")).ToContainTextAsync("Negroni", new() { Timeout = 30_000 });
+        var originalUrl = Page.Url;
+        var lines = await Page.GetByTestId("cocktail-lines").Locator("li").CountAsync();
+
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("cocktail-fork").ClickAsync(),
+            r => r.Url.Contains("/fork") && r.Request.Method == "POST" && r.Status == 201);
+
+        // Landing on the copy is the point: someone forks a drink because they want to change it.
+        await Expect(Page).Not.ToHaveURLAsync(originalUrl);
+        await Expect(Page.GetByTestId("cocktail-name")).ToContainTextAsync("Negroni", new() { Timeout = 30_000 });
+        await Expect(Page.GetByTestId("cocktail-lines").Locator("li")).ToHaveCountAsync(lines);
+
+        // Provenance, not credit (JJ-013): "based on", never "written by".
+        await Expect(Page.GetByTestId("cocktail-forked-from")).ToContainTextAsync("Negroni");
+        await Expect(Page.GetByTestId("cocktail-source")).Not.ToBeVisibleAsync();
+
+        // The original is still the book's, unchanged, right where it was.
+        await Page.GotoAsync(originalUrl);
+        await Expect(Page.GetByTestId("cocktail-source")).ToContainTextAsync("IBA", new() { Timeout = 30_000 });
+        await Expect(Page.GetByTestId("cocktail-forked-from")).Not.ToBeVisibleAsync();
+
+        // And the copy sits in the catalog beside it, marked as the household's own.
+        await Page.GotoAsync($"{BaseUrl}/cocktails");
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("cocktail-search").FillAsync("negroni"),
+            r => r.Url.Contains("search=negroni") && r.Status == 200);
+        await Expect(Page.GetByTestId("cocktail-list").GetByText("Yours").First)
+            .ToBeVisibleAsync(new() { Timeout = 30_000 });
+    }
+
     [Test]
     public async Task ChoosingImperial_ChangesWhatTheRecipeSays_AndChoosingAsWrittenPutsItBack()
     {

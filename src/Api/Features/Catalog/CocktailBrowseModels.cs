@@ -136,7 +136,18 @@ public record CocktailDetail(
     CocktailSourceView? Source,
     bool IsOwn,
     IReadOnlyList<RecipeLineView> Lines,
-    string Makeability);
+    string Makeability,
+    ForkOriginView? ForkedFrom = null);
+
+/// <summary>
+/// What this cocktail was copied from (FORK-1, JJ-013) — provenance only. Null for anything that was
+/// not forked, and null again once the original is gone: the link is not a foreign key, so a deleted
+/// original leaves the copy standing and simply stops it being able to say where it came from.
+/// </summary>
+public record ForkOriginView(Guid Id, string Name);
+
+/// <summary>The new cocktail's id, so the caller can go straight to it.</summary>
+public record ForkedCocktailResponse(Guid Id);
 
 /// <param name="Attribution">Written out per source, because the sources are not on the same footing
 /// and a template would flatten that.</param>

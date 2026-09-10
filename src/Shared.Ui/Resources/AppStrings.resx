@@ -363,4 +363,7 @@
   <data name="Cocktails_FilterClear" xml:space="preserve"><value>Clear filters</value></data>
   <data name="Cocktails_ServingShot" xml:space="preserve"><value>Shot</value></data>
   <data name="Cocktails_ServingFullDrink" xml:space="preserve"><value>Full drink</value></data>
+  <data name="Cocktail_Fork" xml:space="preserve"><value>Create my own version</value></data>
+  <data name="Cocktail_BasedOn" xml:space="preserve"><value>Based on</value></data>
+  <data name="Cocktail_ForkFailed" xml:space="preserve"><value>Could not copy that. Try again.</value></data>
 </root>
