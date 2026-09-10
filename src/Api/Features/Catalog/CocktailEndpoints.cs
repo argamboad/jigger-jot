@@ -73,6 +73,22 @@ public static class CocktailEndpoints
             return detail is null ? Results.NotFound() : Results.Ok(detail);
         });
 
+        // FEATURES §13: "create my own version". A POST because it creates a row, under the cocktail
+        // it copies because that is the only thing it needs to know.
+        group.MapPost("/{id:guid}/fork", async (
+            Guid id,
+            CocktailForkHandler handler,
+            CancellationToken ct) =>
+        {
+            var forkId = await handler.ForkAsync(id, ct);
+
+            // 404 for a cocktail this household cannot see, for the same reason the read is: the
+            // filter does not return it, and "forbidden" would confirm the row exists.
+            return forkId is { } created
+                ? Results.Created($"/api/cocktails/{created}", new ForkedCocktailResponse(created))
+                : Results.NotFound();
+        });
+
         return app;
     }
 }

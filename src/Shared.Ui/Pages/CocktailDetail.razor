@@ -1,6 +1,7 @@
 @page "/cocktails/{Id:guid}"
 @using System.Net.Http.Json
 @inject HttpClient Http
+@inject NavigationManager Nav
 @inject IStringLocalizer<AppStrings> Localizer
 
 <PageTitle>@(_recipe?.Name ?? Localizer["Nav_Cocktails"])</PageTitle>
@@ -40,9 +41,33 @@ else if (_recipe is not null)
 
     @* FEATURES §12: the detail view indicates where this drink stands against the shelf. Derived at
        query time by the API and never stored (JJ-003, JJ-019) — this only paints the answer. *@
-    <p class="mb-4">
+    <p class="mb-2">
         <span class="badge @MakeabilityClass" data-testid="cocktail-makeability">@Localizer[MakeabilityLabel]</span>
     </p>
+
+    @* FORK-1: provenance, not credit (JJ-013). A copy says what it was based on; it does not claim
+       the book wrote it. Absent once the original is deleted, because the link is not a foreign key. *@
+    @if (_recipe.ForkedFrom is { } origin)
+    {
+        <p class="text-muted small mb-4" data-testid="cocktail-forked-from">
+            @Localizer["Cocktail_BasedOn"] <a href="/cocktails/@origin.Id">@origin.Name</a>
+        </p>
+    }
+    else
+    {
+        <div class="mb-4"></div>
+    }
+
+    <div class="mb-3">
+        @* FEATURES §13: from ANY cocktail, including one you already forked — a household may well
+           want a second version. *@
+        <button class="btn btn-outline-primary btn-sm" data-testid="cocktail-fork"
+                disabled="@_forking" @onclick="ForkAsync">@Localizer["Cocktail_Fork"]</button>
+        @if (_forkError is not null)
+        {
+            <span class="text-danger small ms-2" data-testid="cocktail-fork-error">@_forkError</span>
+        }
+    </div>
 
     <div class="card shadow-sm mb-3">
         <div class="card-body">
@@ -123,6 +148,8 @@ else if (_recipe is not null)
     private bool _loading = true;
     private bool _notFound;
     private string? _error;
+    private bool _forking;
+    private string? _forkError;
 
     // OnParametersSetAsync rather than OnInitializedAsync: Blazor reuses the component when the route
     // parameter changes, so initialising once would leave the old recipe on screen.
@@ -155,6 +182,36 @@ else if (_recipe is not null)
     }
 
     /// <summary>
+    /// Copies this recipe into the household and opens the copy. Landing on the fork rather than
+    /// staying here is the point: the button exists because someone wants to change something, and
+    /// leaving them looking at the original would be the one screen where they cannot.
+    /// </summary>
+    private async Task ForkAsync()
+    {
+        _forking = true;
+        _forkError = null;
+
+        try
+        {
+            var response = await Http.PostAsync($"/api/cocktails/{Id}/fork", null);
+            response.EnsureSuccessStatusCode();
+
+            var created = await response.Content.ReadFromJsonAsync<ForkedView>();
+            if (created is null) return;
+
+            Nav.NavigateTo($"/cocktails/{created.Id}");
+        }
+        catch (Exception)
+        {
+            _forkError = Localizer["Cocktail_ForkFailed"];
+        }
+        finally
+        {
+            _forking = false;
+        }
+    }
+
+    /// <summary>
     /// The wording and the colour both key off the status the API derived. Switching on it here
     /// rather than sending a colour keeps the presentation on this side of the boundary, where a
     /// second front end can disagree about the badge without disagreeing about the drink.
@@ -183,7 +240,11 @@ else if (_recipe is not null)
     private record CocktailDetailView(
         Guid Id, string Name, string? Glass, string? Method, string ServingType,
         string? Instructions, SourceView? Source, bool IsOwn, IReadOnlyList<LineView> Lines,
-        string Makeability);
+        string Makeability, ForkOriginViewModel? ForkedFrom);
+
+    private record ForkOriginViewModel(Guid Id, string Name);
+
+    private record ForkedView(Guid Id);
 
     private record SourceView(string Name, int? Year, string? Url, string? Attribution);
 

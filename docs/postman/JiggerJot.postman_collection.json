@@ -1038,7 +1038,7 @@
                 "{{cocktailId}}"
               ]
             },
-            "description": "One cocktail, whole (CKTL-3). {{cocktailId}} is captured by \"Cocktails — browse\", so run that first.\n\nEvery line carries BOTH the authored amount/unit and a `display` string already converted to the caller's PreferredUnitSystem (JJ-007, JJ-008). Converting server-side means one implementation to get right rather than one per client; the authored values are still there for a client that wants to do its own formatting.\n\nNeutral units never convert — a proportional 1930 recipe reads \"2/3 part\" for every reader, because inventing millilitres for it would state a precision the book never had.\n\n**404, not 403**, for a cocktail belonging to another household: the query filter simply does not return it, and \"forbidden\" would confirm the row exists.\n\n**Where it stands against your shelf (CKTL-4, FEATURES §12).** `makeability` is `Makeable`, `AlmostMakeable` or `NotMakeable`, and every line carries `availability` (`Have` / `Substitute` / `Missing`) plus `substituteWith` — the bottle you would actually reach for. Sent as names rather than numbers so the wire format survives anyone reordering the enum.\n\nDerived at query time and never stored (JJ-003, JJ-019): tick something in the Shelf folder and this same request answers differently, with nothing to invalidate. It is the same rule the `makeable` and `almost` filters apply, so a drink can never be makeable in the list and not on its own page."
+            "description": "One cocktail, whole (CKTL-3). {{cocktailId}} is captured by \"Cocktails — browse\", so run that first.\n\nEvery line carries BOTH the authored amount/unit and a `display` string already converted to the caller's PreferredUnitSystem (JJ-007, JJ-008). Converting server-side means one implementation to get right rather than one per client; the authored values are still there for a client that wants to do its own formatting.\n\nNeutral units never convert — a proportional 1930 recipe reads \"2/3 part\" for every reader, because inventing millilitres for it would state a precision the book never had.\n\n**404, not 403**, for a cocktail belonging to another household: the query filter simply does not return it, and \"forbidden\" would confirm the row exists.\n\n**Where it stands against your shelf (CKTL-4, FEATURES §12).** `makeability` is `Makeable`, `AlmostMakeable` or `NotMakeable`, and every line carries `availability` (`Have` / `Substitute` / `Missing`) plus `substituteWith` — the bottle you would actually reach for. Sent as names rather than numbers so the wire format survives anyone reordering the enum.\n\nDerived at query time and never stored (JJ-003, JJ-019): tick something in the Shelf folder and this same request answers differently, with nothing to invalidate. It is the same rule the `makeable` and `almost` filters apply, so a drink can never be makeable in the list and not on its own page.\n\n**`forkedFrom`** names the cocktail this one was copied from (FORK-1, JJ-013), or is null. Provenance only — and null again once the original is deleted, because the link is deliberately not a foreign key: the copy survives and simply stops being able to say where it came from."
           },
           "response": [],
           "event": [
@@ -1060,6 +1060,41 @@
                   "console.log(body.name + ':', body.makeability);"
                 ],
                 "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cocktails — create my own version (fork)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails/{{cocktailId}}/fork",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cocktails",
+                "{{cocktailId}}",
+                "fork"
+              ]
+            },
+            "description": "Copies any cocktail this household can see into the household (FORK-1, FEATURES §13). **201** with the new id.\n\n**A snapshot, never a reference** (JJ-002, JJ-013). A new tenant-owned `Cocktail` plus copies of every recipe line, amounts exactly as authored. The shared catalog is read-only and stays that way; the copy is wholly the household's, and later edits to the original never propagate to it.\n\n**`tenant_id` is set by the handler on the cocktail AND on every line.** Nothing stamps either — the interceptor keys off `ITenantScoped` and these tables deliberately are not (JJ-031). A line written without one would land in the shared catalog attached to a household's recipe.\n\n**`forked_from_cocktail_id` is provenance and nothing else**, and deliberately not a foreign key: deleting the original neither blocks nor cascades, and the copy simply stops being able to say where it came from.\n\n**The source credit is NOT copied.** The book wrote the original, not this household's version of it (JJ-032) — carrying it across would attribute whatever the household does next to Craddock or the IBA. Read the fork back with \"Cocktails — detail\" and compare: `source` is null, `forkedFrom` names the original.\n\nForking a fork is fine and records the one it came from, not the root. **404** for a cocktail belonging to another household — not 403, which would confirm the row exists."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201\", () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"hands back the new id\", () => pm.expect(body.id).to.be.a(\"string\"));",
+                  "pm.collectionVariables.set(\"forkedCocktailId\", body.id);",
+                  "console.log('forked to ' + body.id);"
+                ]
               }
             }
           ]

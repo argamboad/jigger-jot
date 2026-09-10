@@ -46,6 +46,7 @@ public class CocktailDetailHandler(
                 c.ServingType,
                 c.Instructions,
                 c.TenantId,
+                c.ForkedFromCocktailId,
                 Source = c.Source == null
                     ? null
                     : new CocktailSourceView(c.Source.Name, c.Source.Year, c.Source.Url, c.Source.Attribution),
@@ -110,7 +111,28 @@ public class CocktailDetailHandler(
             cocktail.Source,
             cocktail.TenantId != null,
             lines,
-            status.ToString());
+            status.ToString(),
+            await ForkOriginAsync(cocktail.ForkedFromCocktailId, cancellationToken));
+    }
+
+    /// <summary>
+    /// What this cocktail was copied from, by name (FORK-1). A second small query rather than a join,
+    /// because the link is not a foreign key and EF has no navigation to follow.
+    /// </summary>
+    /// <remarks>
+    /// Null when the original has been deleted, and that is the point of it not being a foreign key
+    /// (JJ-013): the copy survives, and only loses the ability to say where it came from. Null too
+    /// when the original belongs to a household this one cannot see — <c>Query()</c> decides that,
+    /// not a predicate written here.
+    /// </remarks>
+    private async Task<ForkOriginView?> ForkOriginAsync(Guid? originalId, CancellationToken cancellationToken)
+    {
+        if (originalId is not { } id) return null;
+
+        return await cocktails.Query()
+            .Where(c => c.Id == id)
+            .Select(c => new ForkOriginView(c.Id, c.Name))
+            .SingleOrDefaultAsync(cancellationToken);
     }
 
     /// <summary>

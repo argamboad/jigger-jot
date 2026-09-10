@@ -52,23 +52,21 @@
 
 ## Where things stand — 2026-09-10
 
-**Merged into `develop`** (PRs #1–#15): CKTL-1 domain model and both tenancy walls; SEED-1 to
+**Merged into `develop`** (PRs #1–#16): CKTL-1 domain model and both tenancy walls; SEED-1 to
 SEED-4; CKTL-2 browse; CKTL-3 detail + PREFS-2 measurement preference; INV-1 the shelf; MAKE-1 the
-makeable engine; ALMOST-1 the one-ingredient-away filter and the header's app/platform split; CKTL-4
-the recipe's own makeability; INV-2 custom ingredients. Staging deploys on every merge and the seeder
-runs there against the enforcing RLS role. The shipped seed is a **starter catalog** of 31 recipes;
-`python seed/build_cocktails.py --full` emits all 969.
+makeable engine; ALMOST-1 one-ingredient-away and the header's app/platform split; CKTL-4 the
+recipe's own makeability; INV-2 custom ingredients; FILTER-1 the catalog filters. Staging deploys on
+every merge and the seeder runs there against the enforcing RLS role. The shipped seed is a **starter
+catalog** of 31 recipes; `python seed/build_cocktails.py --full` emits all 969.
 
-**Built, verified, uncommitted** on `feat/FILTER-1-catalog-filters` (branched from `develop`):
+**Built, verified, uncommitted** on `feat/FORK-1-create-my-own-version` (branched from `develop`):
 
-- **FILTER-1** to `FEATURES.md` §11: filter by ingredient or category, method, glass and serving
-  type, all combinable with the search box and both makeability toggles. Plus
-  `GET /api/cocktails/filters` for the dropdowns and a filter panel on the catalog screen.
-- The ingredient filter reads the **recipe lines**, matching the ingredient's name, category and
-  subcategory at once — there is no main-spirit column and never will be (JJ-014), and one box has to
-  make a parent catch every child (JJ-016).
-- Dropdown options are derived from the catalog rather than the curated lookups, so every option
-  returns at least one drink and the lists grow by themselves when the full catalog is switched on.
+- **FORK-1** to `FEATURES.md` §13: `POST /api/cocktails/{id}/fork` and a button on the recipe page.
+  A snapshot copy, never a reference (JJ-013) — half the tests exist to prove the copy stays put when
+  the original is edited, deleted or forked again.
+- The source credit is deliberately **not** copied: the book wrote the original, not the household's
+  version of it (JJ-032). Provenance rides on `ForkedFromCocktailId` and reads as "Based on X".
+- `TenantId` set by hand on the cocktail **and** every line — nothing stamps either (JJ-031).
 
 ## What is next, in order
 
@@ -76,10 +74,9 @@ Each is one branch off `develop`, one PR, after the previous one is merged.
 
 | # | Slice | Flow | What it is |
 |---|---|---|---|
-| 1 | **FILTER-1** | §11 | The uncommitted work above. Waiting on C+P+PR. |
-| 2 | **FORK-1** | §13 | "Create my own version": full snapshot copy with `ForkedFromCocktailId` as provenance only (JJ-013). |
-| 3 | **AUTHORING-1** | §14 | A household writes a cocktail from scratch. Glass and method optional (JJ-034). |
-| 4 | **ONBOARD-1** | §7 | New-household wizard: tick a starter shelf, land on what you can make. |
+| 1 | **FORK-1** | §13 | The uncommitted work above. Waiting on C+P+PR. |
+| 2 | **AUTHORING-1** | §14 | A household writes a cocktail from scratch. Glass and method optional (JJ-034). |
+| 3 | **ONBOARD-1** | §7 | New-household wizard: tick a starter shelf, land on what you can make. |
 
 Not on this list, deliberately: the Savoy transcription-source question (JJ-032, open, blocks
 nothing), the two scrape-merged recipe lines, and restoring the 969-recipe catalog — that is a
