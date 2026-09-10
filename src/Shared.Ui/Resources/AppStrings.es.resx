@@ -330,4 +330,10 @@
   <data name="Shelf_NoMatches" xml:space="preserve"><value>Ningún ingrediente coincide.</value></data>
   <data name="Shelf_LoadFailed" xml:space="preserve"><value>No se pudo cargar tu estantería. Inténtalo de nuevo.</value></data>
   <data name="Shelf_SaveFailed" xml:space="preserve"><value>Ese cambio no se guardó. Inténtalo de nuevo.</value></data>
+  <data name="Nav_Make" xml:space="preserve"><value>Hacer ahora</value></data>
+  <data name="Make_Subtitle" xml:space="preserve"><value>Todo lo que tu estantería puede preparar ahora, sustituciones incluidas.</value></data>
+  <data name="Make_NothingYet" xml:space="preserve"><value>Nada todavía: tu estantería no cubre ninguna receta completa.</value></data>
+  <data name="Make_FillYourShelf" xml:space="preserve"><value>Marca lo que tienes</value></data>
+  <data name="Cocktails_MakeableNow" xml:space="preserve"><value>Puedo prepararlo ahora</value></data>
+  <data name="Cocktails_Using" xml:space="preserve"><value>Usando {0} en lugar de {1}</value></data>
 </root>

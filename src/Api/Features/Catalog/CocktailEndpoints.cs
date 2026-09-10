@@ -19,6 +19,7 @@ public static class CocktailEndpoints
             string? search,
             int? page,
             int? pageSize,
+            bool? makeable,
             CocktailBrowseHandler handler,
             CancellationToken ct) =>
         {
@@ -28,7 +29,10 @@ public static class CocktailEndpoints
             var request = new CocktailBrowseRequest(
                 search,
                 page ?? 1,
-                pageSize ?? CocktailBrowseRequest.DefaultPageSize);
+                pageSize ?? CocktailBrowseRequest.DefaultPageSize,
+                // FEATURES §11: "makeable now" is one combinable filter on this list, not a separate
+                // view. Absent means off, which is the whole catalog.
+                makeable ?? false);
 
             return Results.Ok(await handler.BrowseAsync(request, ct));
         });

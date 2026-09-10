@@ -274,6 +274,16 @@ Scenario: Someone else's cocktail is not found
   Then I am told it is not in my catalog
 ```
 
+> ### ⚠️ CKTL-4 — Show makeable status on the recipe (SHIPPED INCOMPLETE)
+>
+> **FEATURES §12 asks for it** and CKTL-3 shipped without it: the detail view should *"indicate
+> makeable / almost-makeable status and any substitution in play."*
+>
+> Today the screen shows the recipe and says nothing about whether the household can pour it — so a
+> drink reached from the catalog gives no hint, while the same drink reached through the makeable
+> filter does. The engine to answer it exists (MAKE-1); this is the detail view asking it and
+> rendering the answer, alongside the same "using X in place of Y" line the list carries.
+
 **Tests.** `tests/Core.Tests/AmountDisplayTests.cs` (eleven, pure), plus
 `tests/Api.Tests/Catalog/CocktailDetailTests.cs` (eight) and two more journeys in
 `tests/E2E.Tests/CocktailBrowseJourneyTests.cs` (suite 36 → 38).

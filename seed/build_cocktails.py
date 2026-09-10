@@ -44,6 +44,47 @@ MAP_PATH = ROOT / "seed/ingredient_map.json"
 LOOKUPS_PATH = ROOT / "src/Infrastructure/Persistence/Seed/lookups.json"
 OUT_PATH = ROOT / "src/Infrastructure/Persistence/Seed/cocktails.json"
 
+
+# ── the starter set ─────────────────────────────────────────────────────────────────────────────
+# The extraction produces 969 recipes. That is the right eventual catalog and the wrong thing to
+# develop against: every test assertion ends up being a claim about nine hundred rows rather than
+# about behaviour, seeding costs seconds on every run, and a change to the data breaks tests that had
+# nothing to do with it. So the shipped catalog is a small set by default, and the full one is a flag
+# away:
+#
+#     python seed/build_cocktails.py --full
+#
+# The picks are not arbitrary. Between them they cover every SHAPE the model has to handle, which is
+# what the tests actually need:
+#
+#   metric, absolute amounts ................. every IBA drink
+#   proportional 1930 amounts ("2/3") ........ absinthe-special-cocktail
+#   ...and whole ones ("4 Parts") ............ hawaiian-cocktail
+#   unmeasured lines from a tag list ......... alfonso-cocktail
+#   one name in two books .................... gin-fizz (IBA + Savoy)
+#   one name twice in ONE book ............... mr-manhattan-cocktail + -2
+#   no glass and no method recorded .......... martini-special-cocktail
+#   an optional garnish line ................. mojito, old-fashioned
+#   a substitution in play ................... white-lady (Cointreau ↔ Curaçao)
+#   modern spirits Savoy never had ........... margarita, espresso-martini, cosmopolitan
+#
+# Enough drinks to page (20 per page) and few enough to reason about.
+STARTER_SET = {
+    "iba": [
+        "negroni", "dry-martini", "white-lady", "daiquiri", "margarita", "espresso-martini",
+        "mojito", "manhattan", "whiskey-sour", "cosmopolitan", "boulevardier", "last-word",
+        "gin-fizz", "old-fashioned", "americano", "aviation", "sidecar", "mai-tai",
+        "caipirinha", "paloma", "bloody-mary", "french-75", "sazerac", "tommys-margarita",
+    ],
+    "savoy": [
+        "gin-fizz", "mr-manhattan-cocktail", "mr-manhattan-cocktail-2",
+        "absinthe-special-cocktail", "alfonso-cocktail", "martini-special-cocktail",
+        "hawaiian-cocktail",
+    ],
+}
+
+FULL = "--full" in sys.argv
+
 SOURCES = [
     {
         "key": "savoy",
@@ -238,6 +279,16 @@ def assign_roles(lines):
 
 def build(source, lookup, excluded, report):
     raw = json.loads(source["path"].read_text(encoding="utf-8"))["cocktails"]
+
+    if not FULL:
+        keep = set(STARTER_SET[source["key"]])
+        raw = [c for c in raw if c["slug"] in keep]
+        missing = keep - {c["slug"] for c in raw}
+        if missing:
+            # A slug that stopped existing would silently shrink the catalog and take a test's
+            # premise with it, so say so rather than quietly emitting fewer rows.
+            report["missing_starters"].extend(f"{source['key']}:{m}" for m in sorted(missing))
+
     out = []
 
     for c in raw:
@@ -303,7 +354,7 @@ def build(source, lookup, excluded, report):
 def main():
     lookup, excluded = load_ingredient_lookup()
     report = {
-        "excluded_lines": 0, "blank_lines": 0, "from_tags": 0,
+        "excluded_lines": 0, "blank_lines": 0, "from_tags": 0, "missing_starters": [],
         "unresolved": collections.Counter(),
         "unknown_units": collections.Counter(), "empty": [],
         "no_glass": 0, "vague_glass": 0, "unknown_glass": 0, "no_method": 0,
@@ -320,7 +371,13 @@ def main():
               f"would become one: {collisions}")
         return 1
 
+    if report["missing_starters"]:
+        print("STARTER SLUGS NOT FOUND in the extraction — the set names recipes that no longer "
+              f"exist: {', '.join(report['missing_starters'])}")
+        return 1
+
     total_lines = sum(len(c["lines"]) for c in cocktails)
+    print(f"catalog          {'FULL' if FULL else 'starter set'}")
     print(f"cocktails        {len(cocktails)}")
     print(f"recipe lines     {total_lines}")
     print(f"lines dropped    {report['excluded_lines']} (ice, water, the deliberate exclusions)"
@@ -356,6 +413,10 @@ def main():
             "Glass and method are null where the source did not say, or said something that is not a",
             "glass (JJ-034). Amounts are as authored, so a proportional 1930 recipe carries fractions",
             "against the neutral 'part' unit rather than invented millilitres (JJ-007).",
+            "",
+            "This is the STARTER SET, not the whole extraction: a small catalog chosen to cover every",
+            "shape the model handles, so that slice work is about behaviour rather than about nine",
+            "hundred rows. `python seed/build_cocktails.py --full` emits all of them.",
         ],
         "sources": [
             {k: v for k, v in s.items() if k in ("name", "year", "url", "attribution")}

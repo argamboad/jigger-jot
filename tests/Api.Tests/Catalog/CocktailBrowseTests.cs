@@ -20,8 +20,18 @@ public sealed class CocktailBrowseTests(PostgresFixture fixture) : PostgresTestB
 {
     private readonly Guid _household = Guid.CreateVersion7();
 
+    /// <summary>
+    /// How many cocktails the seed file actually holds. Read from the file rather than written down,
+    /// because a test that hard-codes the catalog's size is a test about the catalog — it breaks when
+    /// the seed changes for reasons that have nothing to do with browsing, which is exactly what
+    /// happened when the shipped catalog went from 969 recipes to a starter set.
+    /// </summary>
+    private static int SeededCount => CatalogSeeder.LoadCocktails().Cocktails.Count;
+
     private static CocktailBrowseHandler Handler(AppDbContext db) =>
-        new(new EfRepository<Cocktail>(db));
+        new(new EfRepository<Cocktail>(db),
+            new EfRepository<TenantInventory>(db),
+            new EfRepository<IngredientSubstitution>(db));
 
     private async Task SeedAsync()
     {
@@ -37,9 +47,9 @@ public sealed class CocktailBrowseTests(PostgresFixture fixture) : PostgresTestB
         await using var db = Fixture.CreateContext(_household);
         var page = await Handler(db).BrowseAsync(new CocktailBrowseRequest(null, 1, 20), default);
 
-        Assert.Equal(20, page.Items.Count);
+        Assert.Equal(Math.Min(20, SeededCount), page.Items.Count);
         Assert.Equal(1, page.Page);
-        Assert.True(page.Total > 900);
+        Assert.Equal(SeededCount, page.Total);
 
         // Ordering is Postgres's linguistic collation, and it is NOT .NET's ordinal one. They differ
         // on real catalog data: the database files "Absinthe (Special) Cocktail" among the other
@@ -60,15 +70,18 @@ public sealed class CocktailBrowseTests(PostgresFixture fixture) : PostgresTestB
         await using var db = Fixture.CreateContext(_household);
         var handler = Handler(db);
 
-        var first = await handler.BrowseAsync(new CocktailBrowseRequest(null, 1, 50), default);
-        var second = await handler.BrowseAsync(new CocktailBrowseRequest(null, 2, 50), default);
+        // Half the catalog, rounded UP, so two pages cover it exactly however many there are. Rounding
+        // down leaves an orphan on page three and the assertion below counts one short.
+        var pageSize = Math.Max(1, (SeededCount + 1) / 2);
+        var first = await handler.BrowseAsync(new CocktailBrowseRequest(null, 1, pageSize), default);
+        var second = await handler.BrowseAsync(new CocktailBrowseRequest(null, 2, pageSize), default);
 
-        // The catalog holds four names twice over and one name twice within a single book, so an
-        // ordering keyed on name alone is not a total order and pages would quietly overlap. This is
-        // the assertion that catches it.
+        // The catalog holds a name that appears in both books and one that appears twice within a
+        // single book, so an ordering keyed on name alone is not a total order and pages would
+        // quietly overlap. This is the assertion that catches it.
         var ids = first.Items.Concat(second.Items).Select(i => i.Id).ToList();
-        Assert.Equal(100, ids.Count);
-        Assert.Equal(100, ids.Distinct().Count());
+        Assert.Equal(SeededCount, ids.Count);
+        Assert.Equal(SeededCount, ids.Distinct().Count());
     }
 
     [Fact]
@@ -80,7 +93,7 @@ public sealed class CocktailBrowseTests(PostgresFixture fixture) : PostgresTestB
         var page = await Handler(db).BrowseAsync(new CocktailBrowseRequest(null, 9999, 20), default);
 
         Assert.Empty(page.Items);
-        Assert.True(page.Total > 900);   // the count still tells the caller where the end was
+        Assert.Equal(SeededCount, page.Total);   // the count still tells the caller where the end was
     }
 
     [Fact]
@@ -185,7 +198,7 @@ public sealed class CocktailBrowseTests(PostgresFixture fixture) : PostgresTestB
         // A caller asking for 5000 rows gets a page, not a database dump — the cap is the endpoint's
         // only protection against one request walking the whole catalog.
         Assert.Equal(expected, page.PageSize);
-        Assert.Equal(expected, page.Items.Count);
+        Assert.Equal(Math.Min(expected, SeededCount), page.Items.Count);
     }
 
     private async Task SeedHouseholdCocktailAsync(Guid tenantId, string name)
