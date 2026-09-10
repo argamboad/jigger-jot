@@ -3,8 +3,8 @@
 > One file per epic. What a household has on hand: the checklist every "what can I make" answer is
 > computed from. Read with **JJ-020** (ice and water are always available), **JJ-023** (boolean only,
 > absence means not available) and `docs/DATA_MODEL.md`. Stories use Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — INV-1 (the shelf) and INV-2 (custom ingredients) shipped; INV-3
-> (the shelf rework) planned.
+> **Status: ✅ COMPLETE for MVP** — INV-1 (the shelf), INV-2 (custom ingredients) and INV-3 (the
+> shelf rework) all shipped.
 
 **Epic key:** `INV`
 
@@ -193,7 +193,9 @@ household additions to the curated lookups (JJ-022).
 
 ### INV-3 — The shelf, reworked
 
-**Status: 📋 Planned.** Proposal screen **5**. A rework of the existing screen, not a rebuild.
+**Status: ✅ Implemented.** Proposal screen **5**. A rework of the existing screen, not a rebuild — no
+API change, no migration, no new endpoint. Everything here is presentation over data the screen already
+had, plus one number it asks the browse endpoint for.
 
 **As a** member of a household
 **I want** to fill in my shelf without giving up halfway
@@ -220,13 +222,40 @@ still stand on their own:
    Nothing on the screen does this today, and it is the change that makes filling the shelf feel like
    progress rather than data entry.
 
-**The footer is the only part with a technical question.** It needs the makeable count refreshed on
-every tick, so either it re-asks `makeable=true` for the total after each write, or the write returns
-it. Decide before building: a request per checkbox is a lot of requests for a screen someone is
-clicking down.
+**The footer's question, answered: the screen re-asks, and it waits for the clicking to stop.** The
+write cannot carry the total. A feature slice may not reference another slice's namespace (R7/TR-9),
+so the inventory endpoint cannot call the browse handler — and copying the makeability query into it
+to get around that would leave the app with **two** definitions of makeable, which is the one thing the
+whole engine exists to have only once (JJ-003). So the browser asks `?makeable=true&pageSize=1` and
+reads the total off the page it comes with. It pays for that by asking once per *burst* rather than
+once per tick: each tick cancels the pending ask, and an answer overtaken by a later tick is discarded
+rather than written over a fresher one. Someone filling a shelf for the first time clicks straight
+down it, and that is one request instead of forty.
+
+**The category counts are over the whole category, never over what search has left on screen.** The
+number measures progress against the shelf, and one that changed meaning when someone typed in the
+search box would measure nothing. "1 of 3" beside a filtered card is also the more useful reading: it
+says there are two more you do not have.
+
+**One number, rendered twice.** The card's count and its jump-link count come from the same call, so
+they cannot drift — which is what the "counts are honest" scenario is really asking for.
 
 **`+ Add your own` moves inside the category card**, where INV-2's flow belongs, rather than sitting
-in the toolbar detached from what it adds to.
+in the toolbar detached from what it adds to, and the card it was opened from pre-selects the category.
+Two consequences worth writing down:
+
+- The form is **written once and rendered in one of two places** — inside its card, or at the top of
+  the page when it has no category context. The empty state is the second place, and it matters: the
+  moment someone most needs to add a bottle is right after searching for it and being told the catalog
+  has never heard of it, so that state offers the button with the search text already in the name field.
+- **A duplicate name moves the form back to the top.** INV-2 answers a 409 by searching for the name
+  that already exists, and that search can leave the hosting card off the screen — taking the message
+  with it. So the 409 detaches the form as it sets the search.
+
+**Found in the browser, not by a test: every jump link left the page.** `index.html` carries
+`<base href="/">`, and a fragment-only `href` resolves against the **base**, not the current URL — so
+`#cat-gin` means `/#cat-gin`, which is the home page. The links spell out `/shelf#cat-gin`, and a test
+now holds that fixed.
 
 **Acceptance criteria**
 
@@ -238,12 +267,25 @@ Scenario: Selected reads as owned
   Then a selected pill is filled, so it cannot be mistaken for a catalog filter
 
 Scenario: Counts are honest
-  Then each category's count matches the pills selected inside it
-  And the jump bar shows the same numbers as the cards
+  Then each category's count is over the whole category, not over what search left visible
+  And the jump bar shows the same numbers as the cards, because it reads the same value
+
+Scenario: A jump link stays on the shelf
+  When I follow a jump link
+  Then I am on the shelf, at that category — not on the home page
 
 Scenario: The payoff moves as I tick
   When I tick a bottle that completes a drink
-  Then the footer count goes up
+  Then the footer says how many drinks the shelf now reaches
+
+Scenario: Ticking down the shelf does not cost a request per tick
+  When I tick several ingredients in a row
+  Then the makeable total is asked for once, after the ticking stops
+
+Scenario: Adding my own starts from where I am standing
+  When I open the add form from inside a category
+  Then that category is already chosen
+  And when a name already exists, the form returns to the top with the list searched for it
 
 Scenario: Everything INV-1 and INV-2 did still works
   Then ticking is optimistic and rolls back on failure

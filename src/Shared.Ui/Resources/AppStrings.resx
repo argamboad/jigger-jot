@@ -345,6 +345,13 @@
   <data name="Shelf_AddCategoryRequired" xml:space="preserve"><value>Choose a category so it files somewhere.</value></data>
   <data name="Shelf_AddExists" xml:space="preserve"><value>{0} is already in the list — it is showing above.</value></data>
   <data name="Shelf_AddFailed" xml:space="preserve"><value>Could not add that. Try again.</value></data>
+  <data name="Shelf_CategoryCount" xml:space="preserve"><value>{0} of {1}</value></data>
+  <data name="Shelf_JumpLabel" xml:space="preserve"><value>Jump to a category</value></data>
+  <data name="Shelf_PayoffDrinks" xml:space="preserve"><value>— that's {0} drinks so far</value></data>
+  <data name="Shelf_PayoffOneDrink" xml:space="preserve"><value>— that's one drink so far</value></data>
+  <data name="Shelf_PayoffNoDrinks" xml:space="preserve"><value>— no drinks yet</value></data>
+  <data name="Shelf_PayoffCounting" xml:space="preserve"><value>— counting…</value></data>
+  <data name="Shelf_PayoffShow" xml:space="preserve"><value>Show them</value></data>
   <data name="Nav_Make" xml:space="preserve"><value>Make now</value></data>
   <data name="Make_Subtitle" xml:space="preserve"><value>Everything your shelf can make right now, substitutions included.</value></data>
   <data name="Make_NothingYet" xml:space="preserve"><value>Nothing yet — your shelf does not cover a whole recipe.</value></data>

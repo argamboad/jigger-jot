@@ -31,6 +31,13 @@
 8. Run: Release build of API and Web (zero warnings), then `Core.Tests`, `Api.Tests`, `Ui.Tests`.
 9. Report: what flow it implements, what was decided and why, what is deliberately out, the test
    counts. Then **wait**.
+10. **On "merged", update the Slice Board** before anything else — it is the only view of this
+    project the maintainer has that is not a diff, and a board that lags is worse than no board.
+    `https://claude.ai/code/artifact/a9fed2f8-60e9-478e-9030-864170fab1d7`; read it first, then
+    republish to the same URL. Move the slice out of "next up", add what it shipped, and re-run the
+    three counts in the footer: merged PRs (`gh pr list --state merged`), unit tests (Core + Api +
+    Ui), and browser journeys (`[Test]` in `E2E.Tests`). If a slice answered one of the three open
+    questions, mark it answered there too.
 
 ## Editing rules that came out of this review
 
@@ -61,19 +68,21 @@ onboarding wizard, has never been built.
 The same stylesheet fixes went upstream the same day: `perezosoft-platform` #222 and `vuelto` #57.
 All three apps inherited the defect from the platform's `app.css`.
 
-**Built, verified, uncommitted** on `feat/MARGA-2-home-screen` (branched from `develop`):
+**Merged since** (PRs #20–#24): the UI wave's plan, ALMOST-2's ranking query, Marga's component, and
+**MARGA-2**, the signed-in home screen — which closed the `<!-- TODO -->` the platform's welcome card
+had carried since day one.
 
-- **MARGA-2**: the signed-in home screen, closing the `<!-- TODO -->` the platform's welcome card has
-  carried since day one. The makeable count as the headline, her line naming the one purchase that
-  extends it, three drinks, and the one-bottle-away summary.
-- **Two calls, each internally consistent.** The headline and the three drinks come from one
-  response; the bottle and its drinks from another. Her sentence quotes one number from each, and
-  each half agrees with the list beneath it.
-- **The buttons are deep-linked** (`?makeable=true`, `?almost=true`), so "show me them" lands on the
-  list that produced the number it quotes. A small addition to `Cocktails.razor` beyond the story,
-  and the reason the button is honest.
-- **Found and fixed while building:** the unlocks card named thirteen drinks on a real shelf. The
-  display now stops at four and counts the rest, in both places that show it; the data stays whole.
+**Built, verified, uncommitted** on `feat/INV-3-shelf-rework` (branched from `develop`):
+
+- **INV-3**: the shelf rework, and the screen that gates the product. Pills instead of a fixed
+  three-column checkbox grid, a count on every category card, a jump bar carrying the same numbers,
+  a sticky footer showing the payoff, and `+ Add your own` moved inside the card it files into.
+- **No API change, no migration, no new endpoint.** Presentation over data the screen already had,
+  plus one number asked of the browse endpoint.
+- **The footer's open question is answered** — see below.
+- **Found in the browser, not by a test:** every jump link left the page. `index.html` carries
+  `<base href="/">`, and a fragment-only `href` resolves against the base, so `#cat-gin` meant
+  `/#cat-gin` — the home page. Now spelled out as `/shelf#cat-gin`, with a test holding it.
 
 ## The UI wave — 2026-09-10
 
@@ -104,22 +113,24 @@ Each is one branch off `develop`, one PR, after the previous one is merged.
 
 | # | Slice | Flow / screen | What it is |
 |---|---|---|---|
-| 1 | **MARGA-2** | screen 1 | The uncommitted work above. Waiting on C+P+PR. |
-| 2 | **INV-3** | screen 5 | The shelf rework. Pills, per-category counts, a jump bar, and a sticky footer showing the payoff as you tick. The biggest, and the one that gates the product. |
-| 3 | **MARGA-3** | screens 6, 7 | The two empty states. ⚠️ blocked on an open question — see below. |
-| 4 | **SHELL-1** | all, below `lg` | Bottom tab bar for the app's three destinations; account furniture stays on top. ⚠️ must keep the `nav-shelf` and `nav-cocktails` test ids. |
-| 5 | **SHELL-2** | screen 9 | The boot state. Smallest of the wave, and it lands in **two** `index.html` files, not one. |
-| 6 | **ONBOARD-1** | §7 | The last unbuilt flow, and the only one predating the wave. Sits after it because a wizard that lands on a reworked shelf should be built against the reworked shelf. |
+| 1 | **INV-3** | screen 5 | The uncommitted work above. Waiting on C+P+PR. |
+| 2 | **MARGA-3** | screens 6, 7 | The two empty states. ⚠️ blocked on an open question — see below. |
+| 3 | **SHELL-1** | all, below `lg` | Bottom tab bar for the app's three destinations; account furniture stays on top. ⚠️ must keep the `nav-shelf` and `nav-cocktails` test ids. |
+| 4 | **SHELL-2** | screen 9 | The boot state. Smallest of the wave, and it lands in **two** `index.html` files, not one. |
+| 5 | **ONBOARD-1** | §7 | The last unbuilt flow, and the only one predating the wave. Sits after it because a wizard that lands on a reworked shelf should be built against the reworked shelf. |
 
-**Three questions to settle before the slices that need them.**
+**Three questions to settle before the slices that need them. One is now settled.**
 
 1. **What is the best first bottle for an empty shelf?** `MARGA-3` screen 7 offers a concrete first
    purchase to a household that is one bottle away from nothing. `ALMOST-2` cannot answer it — with an
    empty shelf there is no almost-makeable set to rank. It needs a different query and a decision
    about what "best first bottle" means.
-2. **How does the shelf footer stay current?** `INV-3`'s payoff count refreshes on every tick. Either
-   the tick response carries the new makeable total or the screen re-asks for it, and a request per
-   checkbox is a lot for a screen someone clicks down.
+2. ~~**How does the shelf footer stay current?**~~ **Answered by `INV-3`.** The write cannot carry the
+   total: a feature slice may not reference another slice (R7/TR-9), and copying the makeability query
+   into the inventory endpoint to get around that would leave the app with two definitions of makeable.
+   So the screen re-asks `?makeable=true&pageSize=1` — but only once the ticking stops. Each tick
+   cancels the pending ask, and an answer overtaken by a later tick is discarded rather than written
+   over a fresher one, so a burst costs one request rather than one per checkbox.
 3. **Do wide screens change too?** `SHELL-1` moves the destinations to a tab bar below `lg`. At wide
    widths the app's own links stay at 55% opacity beside the platform's at full strength, which the
    bug list called a hierarchy question rather than a defect. Answering it at one width only moves it.
@@ -157,3 +168,12 @@ reported and left to the user.
 **Tests that asserted the data.** "Total > 900", "page two of fifty has fifty", "unticking Campari
 leaves nothing makeable" — a household with gin and sweet vermouth can still make seven drinks.
 Assertions about the catalog's contents break the moment the catalog changes for unrelated reasons.
+
+**Changing a control and updating only the fixture named after the screen.** INV-3 turned the shelf
+checkboxes into pills, which are hidden inputs driven through their labels — so `CheckAsync` on the
+input stops working. `ShelfJourneyTests` was updated to click the label; `MakeableJourneyTests` and
+`CocktailBrowseJourneyTests` both stock a shelf before they can test anything of their own, and both
+had their own private copy of "tick an ingredient". Three journeys went red in CI for one change that
+had been made and verified correctly. **Before changing a shared control, grep the E2E project for
+everything that drives it** — and if more than one fixture drives it, the helper belongs in
+`E2ETestBase`, which is where `SetShelfAsync` now lives.
