@@ -18,6 +18,7 @@ namespace JiggerJot.Api.Features.Inventory;
 public class InventoryHandler(
     IRepository<TenantInventory> inventory,
     IRepository<Ingredient> ingredients,
+    IRepository<IngredientCategory> categories,
     ICurrentTenant tenant,
     TimeProvider clock)
 {
@@ -82,5 +83,111 @@ public class InventoryHandler(
 
         await inventory.SaveChangesAsync(cancellationToken);
         return true;
+    }
+
+    /// <summary>
+    /// The two-level category tree, for the picker on the add form (JJ-015). Curated and global —
+    /// no household additions in MVP (JJ-022) — so this is a read and will stay one.
+    /// </summary>
+    public async Task<IReadOnlyList<CategoryOption>> CategoriesAsync(CancellationToken cancellationToken)
+    {
+        var rows = await categories.Query()
+            .OrderBy(c => c.Name)
+            .Select(c => new { c.Id, c.Name, c.ParentId })
+            .ToListAsync(cancellationToken);
+
+        var byParent = rows.Where(c => c.ParentId is not null).ToLookup(c => c.ParentId!.Value);
+
+        return [.. rows
+            .Where(c => c.ParentId is null)
+            .Select(c => new CategoryOption(c.Id, c.Name,
+                [.. byParent[c.Id].Select(s => new CategoryOption(s.Id, s.Name, []))]))];
+    }
+
+    /// <summary>
+    /// Adds an ingredient this household owns, and ticks it (INV-2, FEATURES §8).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Ticked, not merely tickable.</b> Someone adds a bottle to their shelf because it is on their
+    /// shelf; making them add it and then tick it is two actions for one intent. It unticks like any
+    /// other row.
+    /// </para>
+    /// <para>
+    /// <b><c>TenantId</c> is set by hand and that is not an oversight.</b> The stamping interceptor
+    /// keys off <c>ITenantScoped</c>, which this table deliberately is not (JJ-031) — a row written
+    /// without this line would land in the SHARED catalog, visible to every household on the platform.
+    /// The database would allow the insert to be attempted and its policy would refuse it, which is
+    /// the backstop working, but the fix belongs here.
+    /// </para>
+    /// </remarks>
+    public async Task<AddIngredientResult> AddIngredientAsync(
+        AddIngredientRequest request, CancellationToken cancellationToken)
+    {
+        if (tenant.TenantId is not { } tenantId)
+            return new AddIngredientResult(AddIngredientOutcome.InvalidCategory);
+
+        var name = request.Name?.Trim();
+        if (string.IsNullOrEmpty(name) || name.Length > 200)
+            return new AddIngredientResult(AddIngredientOutcome.InvalidName);
+
+        if (!await IsValidPlacementAsync(request.CategoryId, request.SubcategoryId, cancellationToken))
+            return new AddIngredientResult(AddIngredientOutcome.InvalidCategory);
+
+        // Case-insensitively, and across everything this household can see — its own rows AND the
+        // shared catalog. The unique index only covers the first of those: it is keyed on
+        // (TenantId, Name), so a household's "campari" and the catalog's "Campari" are different rows
+        // to the database. Two Camparis on one shelf is nobody's intent, and the custom one would
+        // satisfy recipe lines by exact name only (JJ-018) — so it would quietly not do what its
+        // owner expected.
+        var existing = await ingredients.Query()
+            .Where(i => EF.Functions.ILike(i.Name, name.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_"), "\\"))
+            .Select(i => (Guid?)i.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (existing is { } already)
+            return new AddIngredientResult(AddIngredientOutcome.AlreadyExists, ExistingIngredientId: already);
+
+        var ingredient = new Ingredient
+        {
+            TenantId = tenantId,   // see the remarks — JJ-031, nothing stamps this
+            Name = name,
+            CategoryId = request.CategoryId,
+            SubcategoryId = request.SubcategoryId,
+        };
+        await ingredients.AddAsync(ingredient, cancellationToken);
+        await ingredients.SaveChangesAsync(cancellationToken);
+
+        await SetAsync(ingredient.Id, true, cancellationToken);
+
+        var placement = await categories.Query()
+            .Where(c => c.Id == request.CategoryId || c.Id == request.SubcategoryId)
+            .Select(c => new { c.Id, c.Name })
+            .ToListAsync(cancellationToken);
+
+        return new AddIngredientResult(
+            AddIngredientOutcome.Created,
+            new ShelfItem(
+                ingredient.Id,
+                ingredient.Name,
+                placement.Single(c => c.Id == request.CategoryId).Name,
+                request.SubcategoryId is { } sub ? placement.Single(c => c.Id == sub).Name : null,
+                IsAvailable: true,
+                IsOwn: true));
+    }
+
+    /// <summary>
+    /// A top-level category, and a subcategory that is one of ITS children. The tree is deliberately
+    /// two levels (JJ-015), and a parent matches all its children when filtering (JJ-016), so a
+    /// mismatched pair breaks browsing and filtering both.
+    /// </summary>
+    private async Task<bool> IsValidPlacementAsync(
+        Guid categoryId, Guid? subcategoryId, CancellationToken cancellationToken)
+    {
+        if (!await categories.Query().AnyAsync(c => c.Id == categoryId && c.ParentId == null, cancellationToken))
+            return false;
+
+        return subcategoryId is not { } sub
+            || await categories.Query().AnyAsync(c => c.Id == sub && c.ParentId == categoryId, cancellationToken);
     }
 }

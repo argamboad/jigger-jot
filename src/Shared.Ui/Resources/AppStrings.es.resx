@@ -330,6 +330,15 @@
   <data name="Shelf_NoMatches" xml:space="preserve"><value>Ningún ingrediente coincide.</value></data>
   <data name="Shelf_LoadFailed" xml:space="preserve"><value>No se pudo cargar tu estantería. Inténtalo de nuevo.</value></data>
   <data name="Shelf_SaveFailed" xml:space="preserve"><value>Ese cambio no se guardó. Inténtalo de nuevo.</value></data>
+  <data name="Shelf_AddYourOwn" xml:space="preserve"><value>Añade el tuyo</value></data>
+  <data name="Shelf_AddName" xml:space="preserve"><value>Nombre del ingrediente</value></data>
+  <data name="Shelf_AddCategory" xml:space="preserve"><value>Categoría</value></data>
+  <data name="Shelf_AddSubcategory" xml:space="preserve"><value>Subcategoría (opcional)</value></data>
+  <data name="Shelf_AddSubmit" xml:space="preserve"><value>Añadir a mi estantería</value></data>
+  <data name="Shelf_AddNameRequired" xml:space="preserve"><value>Ponle un nombre.</value></data>
+  <data name="Shelf_AddCategoryRequired" xml:space="preserve"><value>Elige una categoría para que quede archivado.</value></data>
+  <data name="Shelf_AddExists" xml:space="preserve"><value>{0} ya está en la lista: aparece arriba.</value></data>
+  <data name="Shelf_AddFailed" xml:space="preserve"><value>No se pudo añadir. Inténtalo de nuevo.</value></data>
   <data name="Nav_Make" xml:space="preserve"><value>Hacer ahora</value></data>
   <data name="Make_Subtitle" xml:space="preserve"><value>Todo lo que tu estantería puede preparar ahora, sustituciones incluidas.</value></data>
   <data name="Make_NothingYet" xml:space="preserve"><value>Nada todavía: tu estantería no cubre ninguna receta completa.</value></data>

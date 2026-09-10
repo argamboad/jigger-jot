@@ -1171,6 +1171,93 @@
               }
             }
           ]
+        },
+        {
+          "name": "Shelf — category tree",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "categories"
+              ]
+            },
+            "description": "The two-level ingredient category tree, for the picker on the add form (JJ-015): top-level categories, each with its subcategories.\n\nCurated and global — no household additions in MVP (JJ-022) — so this is a read and will stay one. Filtering a parent matches all its children (JJ-016), which is why the pairing matters and why the add below rejects a subcategory belonging to some other category.\n\nCaptures `categoryId` and `subcategoryId` for the next request."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "const tree = pm.response.json();",
+                  "pm.test(\"two levels\", () => pm.expect(tree.some(c => c.subcategories.length)).to.be.true);",
+                  "const parent = tree.find(c => c.subcategories.length) || tree[0];",
+                  "pm.collectionVariables.set(\"categoryId\", parent.id);",
+                  "pm.collectionVariables.set(\"subcategoryId\", (parent.subcategories[0] || {}).id || \"\");"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Shelf — add a custom ingredient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Homemade coffee liqueur\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"subcategoryId\": \"{{subcategoryId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/ingredients",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "ingredients"
+              ]
+            },
+            "description": "The bottle the catalog has never heard of (INV-2, FEATURES §8). Creates a **tenant-owned** `Ingredient` and ticks it, so it comes back ready to pour: someone adds a bottle to their shelf because it is on their shelf, and making them add it and then tick it is two actions for one intent. It unticks like any other row.\n\n**`tenant_id` is set by the handler, by hand.** Nothing stamps it — the stamping interceptor keys off `ITenantScoped` and this table deliberately is not (JJ-031). A row written without it would land in the SHARED catalog, visible to every household; the RLS insert policy would refuse the attempt, which is the backstop doing its job.\n\n**A household ingredient satisfies a recipe line by exact name only** and never joins the substitution graph, whose ends must both be shared rows (JJ-005, JJ-018).\n\n**409 `ingredient_exists`** when the name is already visible to this household — its own or the shared catalog's, compared case-insensitively — carrying `existingIngredientId` so a client can offer to tick that instead. The unique index alone does not catch the second case: it is keyed on (tenant_id, name), so your \"campari\" and the catalog's \"Campari\" are different rows to the database.\n\n**400 `invalid_name`** for a blank name, **400 `invalid_category`** for an unknown category, a subcategory passed where a category belongs (the tree is two levels, JJ-015), or a subcategory belonging to a different parent.\n\nSend `subcategoryId` as an empty string or omit it to file the ingredient at the top level."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 or 409 if you have run this before\", () =>",
+                  "  pm.expect([201, 409]).to.include(pm.response.code));",
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.test(\"mine, and already ticked\", () => {",
+                  "    pm.expect(body.isOwn).to.be.true;",
+                  "    pm.expect(body.isAvailable).to.be.true;",
+                  "  });",
+                  "  pm.collectionVariables.set(\"ingredientId\", body.id);",
+                  "} else {",
+                  "  pm.test(\"points at what is already there\", () =>",
+                  "    pm.expect(pm.response.json().existingIngredientId).to.be.a('string'));",
+                  "}"
+                ]
+              }
+            }
+          ]
         }
       ]
     }

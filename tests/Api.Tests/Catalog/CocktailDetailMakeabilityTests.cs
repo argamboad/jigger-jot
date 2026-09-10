@@ -48,6 +48,7 @@ public sealed class CocktailDetailMakeabilityTests(PostgresFixture fixture) : Po
         var inventory = new InventoryHandler(
             new EfRepository<TenantInventory>(db),
             new EfRepository<Ingredient>(db),
+            new EfRepository<IngredientCategory>(db),
             new TestCurrentTenant { TenantId = household },
             new FakeTimeProvider(DateTimeOffset.UtcNow));
 
