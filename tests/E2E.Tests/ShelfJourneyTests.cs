@@ -21,14 +21,6 @@ namespace JiggerJot.E2E.Tests;
 [TestFixture]
 public class ShelfJourneyTests : E2ETestBase
 {
-    /// <summary>The clickable half of a shelf pill.</summary>
-    private ILocator Pill(string ingredient) =>
-        Page.Locator("label.shelf-pill").Filter(new() { HasText = ingredient });
-
-    /// <summary>The checkbox half, which is what actually holds the state.</summary>
-    private ILocator Box(string ingredient) =>
-        Page.GetByRole(AriaRole.Checkbox, new() { Name = ingredient, Exact = true });
-
     [Test]
     public async Task Shelf_StartsEmpty_TakesATick_AndRemembersIt()
     {
@@ -40,15 +32,15 @@ public class ShelfJourneyTests : E2ETestBase
         // Wait for the LIST, not the counter: the counter renders immediately (as zero) while the
         // catalog is still loading, so asserting on it here would pass before there was anything to
         // tick.
-        await Expect(Pill("London dry gin")).ToBeVisibleAsync(new() { Timeout = 30_000 });
-        await Expect(Box("London dry gin")).Not.ToBeCheckedAsync();
+        await Expect(ShelfPill("London dry gin")).ToBeVisibleAsync(new() { Timeout = 30_000 });
+        await Expect(ShelfBox("London dry gin")).Not.ToBeCheckedAsync();
         await Expect(Page.GetByTestId("shelf-count")).ToContainTextAsync("0 ");
 
         await Page.RunAndWaitForResponseAsync(
-            () => Pill("London dry gin").ClickAsync(),
+            () => ShelfPill("London dry gin").ClickAsync(),
             r => r.Url.Contains("/api/inventory/") && r.Request.Method == "PUT" && r.Status == 204);
 
-        await Expect(Box("London dry gin")).ToBeCheckedAsync();
+        await Expect(ShelfBox("London dry gin")).ToBeCheckedAsync();
         await Expect(Page.GetByTestId("shelf-count")).ToContainTextAsync("1 ");
         await Expect(Page.GetByTestId("shelf-error")).Not.ToBeVisibleAsync();
 
@@ -72,10 +64,10 @@ public class ShelfJourneyTests : E2ETestBase
         // ...and unticking puts it back, which is the half a one-way test would never notice.
         await Page.GetByTestId("shelf-only-available").UncheckAsync();
         await Page.RunAndWaitForResponseAsync(
-            () => Pill("London dry gin").ClickAsync(),
+            () => ShelfPill("London dry gin").ClickAsync(),
             r => r.Url.Contains("/api/inventory/") && r.Request.Method == "PUT" && r.Status == 204);
 
-        await Expect(Box("London dry gin")).Not.ToBeCheckedAsync();
+        await Expect(ShelfBox("London dry gin")).Not.ToBeCheckedAsync();
         await Expect(Page.GetByTestId("shelf-count")).ToContainTextAsync("0 ");
     }
 

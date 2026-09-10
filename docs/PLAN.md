@@ -168,3 +168,12 @@ reported and left to the user.
 **Tests that asserted the data.** "Total > 900", "page two of fifty has fifty", "unticking Campari
 leaves nothing makeable" — a household with gin and sweet vermouth can still make seven drinks.
 Assertions about the catalog's contents break the moment the catalog changes for unrelated reasons.
+
+**Changing a control and updating only the fixture named after the screen.** INV-3 turned the shelf
+checkboxes into pills, which are hidden inputs driven through their labels — so `CheckAsync` on the
+input stops working. `ShelfJourneyTests` was updated to click the label; `MakeableJourneyTests` and
+`CocktailBrowseJourneyTests` both stock a shelf before they can test anything of their own, and both
+had their own private copy of "tick an ingredient". Three journeys went red in CI for one change that
+had been made and verified correctly. **Before changing a shared control, grep the E2E project for
+everything that drives it** — and if more than one fixture drives it, the helper belongs in
+`E2ETestBase`, which is where `SetShelfAsync` now lives.

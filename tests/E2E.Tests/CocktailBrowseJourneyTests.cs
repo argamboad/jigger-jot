@@ -186,10 +186,7 @@ public class CocktailBrowseJourneyTests : E2ETestBase
             .ToBeVisibleAsync(new() { Timeout = 30_000 });
         foreach (var ingredient in new[] { "London dry gin", "Campari" })
         {
-            var box = Page.GetByRole(AriaRole.Checkbox, new() { Name = ingredient, Exact = true });
-            await Page.RunAndWaitForResponseAsync(
-                () => box.CheckAsync(),
-                r => r.Url.Contains("/api/inventory/") && r.Request.Method == "PUT" && r.Status == 204);
+            await SetShelfAsync(ingredient, wanted: true);
         }
 
         await Page.GotoAsync($"{BaseUrl}/cocktails/new");

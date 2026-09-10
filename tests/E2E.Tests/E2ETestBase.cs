@@ -116,4 +116,41 @@ public abstract class E2ETestBase : PageTest
     }
 
     protected static string UniqueEmail(string role) => $"e2e-{role}-{Guid.NewGuid():N}@example.com";
+
+    /// <summary>
+    /// The clickable half of a shelf pill (INV-3). The checkbox is a real one, but it is visually
+    /// hidden and carries <c>pointer-events: none</c> — it is operated through its label, which is
+    /// also how a person uses it. So anything stocking the shelf clicks the LABEL.
+    /// </summary>
+    protected ILocator ShelfPill(string ingredient) =>
+        Page.Locator("label.shelf-pill").Filter(new() { HasText = ingredient });
+
+    /// <summary>The checkbox half, which is what actually holds the state.</summary>
+    protected ILocator ShelfBox(string ingredient) =>
+        Page.GetByRole(AriaRole.Checkbox, new() { Name = ingredient, Exact = true });
+
+    /// <summary>
+    /// Put one shared ingredient on or off the shelf. Lives here rather than in one fixture because
+    /// three journeys stock a shelf before they can test anything else, and when INV-3 turned the
+    /// checkboxes into pills only the one that had its own copy was updated — the other two went red
+    /// in CI. One definition, so the next change to this control lands everywhere at once.
+    /// <para>
+    /// Waits on the WRITE, not the paint: the tick is optimistic, so the pill fills before the
+    /// request returns and waiting on the pill would prove only that the browser re-rendered.
+    /// </para>
+    /// </summary>
+    protected async Task SetShelfAsync(string ingredient, bool wanted)
+    {
+        await Assertions.Expect(ShelfPill(ingredient)).ToBeVisibleAsync(new() { Timeout = 30_000 });
+
+        // The label TOGGLES, where Check/Uncheck were idempotent. Asking first keeps the helper's
+        // contract "leave it in this state" rather than "flip it".
+        if (await ShelfBox(ingredient).IsCheckedAsync() == wanted) return;
+
+        await Page.RunAndWaitForResponseAsync(
+            () => ShelfPill(ingredient).ClickAsync(),
+            r => r.Url.Contains("/api/inventory/") && r.Request.Method == "PUT" && r.Status == 204);
+
+        await Assertions.Expect(ShelfBox(ingredient)).ToBeCheckedAsync(new() { Checked = wanted });
+    }
 }

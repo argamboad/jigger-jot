@@ -29,15 +29,9 @@ public class MakeableJourneyTests : E2ETestBase
         await Page.GetByTestId("cocktail-makeable").CheckAsync();
     }
 
-    /// <summary>Ticks one shared ingredient onto the shelf, waiting for the write rather than the paint.</summary>
-    private async Task StockAsync(string ingredient)
-    {
-        var box = Page.GetByRole(AriaRole.Checkbox, new() { Name = ingredient, Exact = true });
-        await Expect(box).ToBeVisibleAsync(new() { Timeout = 30_000 });
-        await Page.RunAndWaitForResponseAsync(
-            () => box.CheckAsync(),
-            r => r.Url.Contains("/api/inventory/") && r.Request.Method == "PUT" && r.Status == 204);
-    }
+    /// <summary>Ticks one shared ingredient onto the shelf. The how lives in the base, shared with
+    /// every other journey that has to stock a shelf before it can test anything.</summary>
+    private Task StockAsync(string ingredient) => SetShelfAsync(ingredient, wanted: true);
 
     [Test]
     public async Task WhatICanMake_FollowsMyShelf()
@@ -58,11 +52,7 @@ public class MakeableJourneyTests : E2ETestBase
 
         // Take one thing away and the drink goes with it, with nothing to recompute or invalidate.
         await Page.GetByTestId("nav-shelf").ClickAsync();
-        var campari = Page.GetByRole(AriaRole.Checkbox, new() { Name = "Campari", Exact = true });
-        await Expect(campari).ToBeVisibleAsync(new() { Timeout = 30_000 });
-        await Page.RunAndWaitForResponseAsync(
-            () => campari.UncheckAsync(),
-            r => r.Url.Contains("/api/inventory/") && r.Request.Method == "PUT" && r.Status == 204);
+        await SetShelfAsync("Campari", wanted: false);
 
         // The NEGRONI is gone, not the whole list. A household still holding gin and sweet vermouth
         // can make seven other things, including a sweet Martini — asserting an empty list here would
