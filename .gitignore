@@ -34,3 +34,7 @@ out/
 
 # Raw seed source books (large; waldorf.pdf exceeds GitHub's 100 MB limit) — keep local
 seed/sources/
+
+# Python bytecode from the seed extraction scripts
+__pycache__/
+*.pyc

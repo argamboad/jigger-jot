@@ -1654,3 +1654,67 @@ lockfiles, audit logs. *Rationale:* the alternative — remembering to stop one 
 the other — is exactly the kind of friction that gets skipped; a one-time mechanical re-pin, verified by
 the same build and tests, removes it. OAuth redirect URIs are registered per app anyway, so nothing
 breaks upstream.
+
+
+**JJ-032 — Seed sources: the Savoy for depth, the IBA list for the canon; the two 1930s bar books
+are dropped. (decided 2026-09-09)**
+*Closes the rights question raised in `docs/stories/seed.md`. Read with JJ-017 (ingredients are
+generic, never brands) and the PROJECT_BRIEF scope line.*
+
+**The problem.** Four sources were on the table: the scraped 1930 Savoy Cocktail Book, two local
+PDFs (Jerry Thomas's 1862 *Bar-Tender's Guide* and 1931's *Old Waldorf Bar Days*), and whatever
+online database might serve. Two questions had to be answered together, and separating them was the
+mistake that made this look hard.
+
+**The rights question.** The three books sit on different footing. Jerry Thomas is long in the US
+public domain. The Savoy entered it on 1 January 2026. *Old Waldorf Bar Days*, published in 1931,
+does not until **1 January 2027** on the 95-year term. Crediting a source is not the same as being
+licensed by one, so a plan to attribute does not move that date.
+
+**The coverage question, which turned out to be the same question.** Measured against the actual
+Savoy extraction: 868 recipes containing **zero tequila, zero bourbon, zero Aperol, one line of
+Campari and four of vodka**. The product exists to answer "what can I make right now with what I
+actually have"; against a shelf stocked the way shelves are stocked today, a Savoy-only catalog
+answers "nothing". Jerry Thomas is older still and Waldorf is contemporaneous, so **neither book
+closes that gap** — and they cannot, because anything old enough to be free predates the drinks
+people now ask for by name. Adding books buys more of what we already have.
+
+**Options considered.**
+- *A — the three books.* More period depth, the same modern hole, plus the Waldorf timing question.
+- *B — Savoy plus a modern core authored in-house.* Fixes the gap, but invents a house standard for
+  drinks that already have an authoritative one, and puts the burden of being right on us.
+- *C — a public cocktail database.* Surveyed. TheCocktailDB is free and cheap to license but
+  user-contributed, which is the quality problem restated. Kindred Cocktails is genuinely well
+  curated and its terms forbid scraping "without prior authorization and licensing", so it is a
+  conversation rather than a download.
+- *D — Savoy plus the IBA official list (chosen).*
+
+**Decision: D.** The Savoy supplies 868 recipes of vintage depth. The **IBA official list** supplies
+the modern canon: 102 drinks in three groups of 34 — The Unforgettables, Contemporary Classics, New
+Era Drinks — published by the International Bartenders Association, authoritative rather than
+crowd-sourced, and small enough to normalise by hand. It is where the Margarita, the Negroni and the
+Espresso Martini live, and they live in no public-domain book at all.
+
+**Consequences.**
+1. **Waldorf and Jerry Thomas are dropped**, and the PDFs stay local under the gitignored
+   `seed/sources/`. This removes the January 2027 wait and two optical-character-recognition
+   cleanups, one of them rough.
+2. **Specifications only, from every source.** Name, category, ingredient lines, amounts, method,
+   garnish. Prose, headnotes, video and photography are left where they are. A list of ingredients
+   with functional directions is thin ground for copyright in the US; the writing around it is not.
+3. **Attribution ships with the data**, not in a footer — `seed/iba_cocktails.json` carries a
+   `source_note`, and per-cocktail provenance goes into the model before SEED-3 seeds a single
+   recipe, so a credit is a property of the row rather than a promise about the page.
+4. **One thread stays open, narrowed.** The Savoy extraction came from `savoycocktaildatabase.com`,
+   a modern transcription, and a transcriber's selection and arrangement can carry rights the 1930
+   text does not. Re-deriving from a public-domain scan would close it. Not urgent, and no longer
+   entangled with anything else.
+
+**How the IBA extraction was taken.** `seed/scrape_iba.py`, enumerating from the site's own sitemap
+rather than walking paginated HTML, one request per drink with a pause between and an identifying
+User-Agent; `robots.txt` disallows only `/wp-admin/` (checked 2026-09-09). The list being three
+equal groups of 34 is used as a correctness check on the parse, and earned its keep immediately: it
+caught two breadcrumb misreads that would otherwise have shipped every drink under the wrong
+category.
+
+*Decided 2026-09-09. Options A, B and C are recorded so the choice is not re-litigated.*

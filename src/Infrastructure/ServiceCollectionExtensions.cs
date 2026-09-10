@@ -19,6 +19,7 @@ using JiggerJot.Infrastructure.Inbox;
 using JiggerJot.Infrastructure.Outbox;
 using JiggerJot.Infrastructure.Scheduling;
 using JiggerJot.Infrastructure.Persistence;
+using JiggerJot.Infrastructure.Persistence.Seed;
 using JiggerJot.Infrastructure.Repositories;
 using JiggerJot.Infrastructure.Webhooks;
 
@@ -175,6 +176,11 @@ public static class ServiceCollectionExtensions
         // Generic repository for feature/domain entities (vertical slices). Platform/auth
         // entities use their dedicated repositories above.
         services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
+
+        // The curated global lookups (JJ-022). Scoped: it writes through the request-scoped
+        // AppDbContext, and Program.cs runs it once at startup on its own scope with no ambient
+        // household — the only context the RLS insert policy lets write a shared row (JJ-031).
+        services.AddScoped<CatalogSeeder>();
 
         // External OAuth — to add a new provider, append .AddXxx(...) below.
         // Credentials come from config; set them in .env for dev (never commit secrets).

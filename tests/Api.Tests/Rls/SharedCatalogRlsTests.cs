@@ -1,6 +1,8 @@
-﻿using Npgsql;
+﻿using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using JiggerJot.Api.Tests.Catalog;
 using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Entities;
 using JiggerJot.Infrastructure.Persistence;
 
 namespace JiggerJot.Api.Tests.Rls;
@@ -141,6 +143,65 @@ public sealed class SharedCatalogRlsTests(PostgresFixture fixture) : IAsyncLifet
             Assert.Equal(1, await insert.ExecuteNonQueryAsync());
 
         await tx.CommitAsync();
+    }
+
+    [Fact]
+    public async Task TenantLessContext_CanWriteASharedRow_ThroughEf()
+    {
+        // The seeding path, end to end and through the real wiring rather than a hand-set GUC:
+        // RlsSessionInterceptor turns bypass ON for a context with no ambient household, which is the
+        // only thing that gets an INSERT past rls_shared_or_tenant_insert. CatalogSeeder's refusal to
+        // run under a household is the other half of this; together they are why "seed the catalog" and
+        // "run as a system context" are the same statement (JJ-031).
+        var lookups = await LookupIdsAsync();
+
+        await using (var system = RuntimeContext(tenantId: null))
+        {
+            system.Ingredients.Add(new Ingredient
+            {
+                Name = "seeded orgeat",
+                CategoryId = lookups,
+                TenantId = null,
+            });
+            await system.SaveChangesAsync();
+        }
+
+        // Visible to a household afterwards, which is the entire point of a shared row.
+        await using var household = RuntimeContext(_mine);
+        Assert.Contains("seeded orgeat", await household.Ingredients.Select(i => i.Name).ToListAsync());
+    }
+
+    [Fact]
+    public async Task HouseholdContext_CannotWriteASharedRow_ThroughEf()
+    {
+        // The mirror. Without this, the test above would pass on a database where anyone can write a
+        // shared row, which is the failure the four-policy split exists to prevent.
+        var lookups = await LookupIdsAsync();
+
+        await using var household = RuntimeContext(_mine);
+        household.Ingredients.Add(new Ingredient
+        {
+            Name = "smuggled orgeat",
+            CategoryId = lookups,
+            TenantId = null,
+        });
+
+        var error = await Assert.ThrowsAsync<DbUpdateException>(() => household.SaveChangesAsync());
+        Assert.Equal("42501", (error.InnerException as PostgresException)?.SqlState);
+    }
+
+    /// <summary>A context on the RLS-subject runtime role, acting as the given household (null = system).</summary>
+    private TestAppDbContext RuntimeContext(Guid? tenantId)
+    {
+        var options = new DbContextOptionsBuilder<TestAppDbContext>().UseNpgsql(RuntimeCs).Options;
+        return new TestAppDbContext(options, new TestCurrentTenant { TenantId = tenantId });
+    }
+
+    /// <summary>The seeded category id, read back as the superuser.</summary>
+    private async Task<Guid> LookupIdsAsync()
+    {
+        await using var db = fixture.CreateTestContext();
+        return (await db.IngredientCategories.FirstAsync()).Id;
     }
 
     /// <summary>Runs <paramref name="work"/> as the runtime role with the tenant GUC set, in one transaction.</summary>
