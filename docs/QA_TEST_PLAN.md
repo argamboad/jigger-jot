@@ -83,6 +83,15 @@ dotnet run --project src/Api --launch-profile https    # binds https:7260 (web/d
 | **One Microsoft personal account** | for the Microsoft OAuth path (provider pinned to the *consumers* tenant). |
 | **Throwaway email addresses** | any address works for magic-link / OTP — mail is trapped by Mailpit, so the address need not be real. Use distinct ones per test to keep inboxes clean. |
 | **Two browser contexts** | a normal window **and** an incognito/second-profile window. The household invite flow needs two *different* signed-in users at once; incognito gives you an isolated session + cookie jar. |
+| **A brand-new household, unticked** | §10h needs a shelf nobody has touched. Use an email address that has never signed in — the platform provisions a fresh tenant on first sign-in (§6). You cannot get back to this state by unticking, because unticking records a decision rather than erasing one (JJ-023). |
+| **A screen reader** | NVDA (Windows) or VoiceOver (macOS), for QA-SHELF-12 and QA-CHROME-03/05. The shelf's controls are hidden checkboxes styled through their labels, so "does it still announce as a checkbox" is not something you can see. |
+| **A Spanish reader** | QA-CHROME-09 asks whether Marga's lines read as written Spanish rather than as a translation. That is a judgement, not a check. |
+
+> **Which catalog is loaded matters.** The app ships a **31-recipe starter set**; the full 969-recipe
+> extraction is one flag away. Cases in §10d–§10i name specific drinks, which hold either way, but the
+> COUNTS will differ — and **QA-MAKE-10 is unreachable on the full catalog**, because single-ingredient
+> recipes mean an empty shelf is one bottle away from several drinks. Record the catalog size on the
+> sign-off sheet when it is not the starter set.
 
 > **Database reset between full runs (optional but recommended):** to retest "new user" onboarding
 > cleanly, you need users that don't yet exist. Either use fresh email addresses each run, or reset
@@ -133,16 +142,27 @@ smoke blocks — so a broken deploy is caught before manual QA starts. Manual QA
 
 ## 2. Scope
 
-**In scope:** authentication (all methods, all clients), new-user onboarding, household/tenant
-management, invitations & joining, account settings (linked providers), localization (EN/ES),
-transactional emails, cross-cutting security (tenant isolation, auth guards, token lifecycle), and
-**native (MAUI) feature parity** — the shared-RCL feature surface exercised per platform on
-Windows + Android (§12–13) with a first-run iOS/macCatalyst smoke (§13b) and a per-release native
-checklist (§13c).
+**In scope — the platform:** authentication (all methods, all clients), new-user onboarding,
+household/tenant management, invitations & joining, account settings (linked providers), localization
+(EN/ES), transactional emails, cross-cutting security (tenant isolation, auth guards, token
+lifecycle), and **native (MAUI) feature parity** — the shared-RCL feature surface exercised per
+platform on Windows + Android (§12–13) with a first-run iOS/macCatalyst smoke (§13b) and a
+per-release native checklist (§13c).
+
+**In scope — JiggerJot itself (§10d–§10i).** Every flow in `docs/FEATURES.md` §7–§15 is built and
+covered here: the shelf and custom ingredients (§10d), browsing, filtering, a recipe and the
+measurement preference (§10e), the makeable engine, one-ingredient-away and the ranked bottle
+(§10f), forking and authoring (§10g), the onboarding wizard (§10h), and Marga plus the responsive
+chrome (§10i). **§10d comes first among these on purpose** — until a household has told the app what
+it owns, "what can I make right now" has no answer, so a failure there cascades into §10f and §10h.
 
 **Out of scope (per `docs/PROJECT_BRIEF.md` OUT list & current state):** SMS OTP, OAuth providers
 beyond Google/Microsoft, FR/DE/PT languages (scaffolded but not translated — see
-`docs/LOCALIZATION.md`), and any app-specific domain features not yet built on this platform.
+`docs/LOCALIZATION.md`), and the app's own deferred items — publishing household cocktails to a
+community pool, household-specific substitutions, custom ingredients in the substitution graph,
+brand/product granularity, recipe-level substitutions, a manual "primary classification", and
+"running low" inventory. **Editing a cocktail after forking or writing it (`AUTHORING-2`) is not
+built**, so there is no case for it.
 
 **Platform services with no client UI (API-/operational-level, not manually testable through the app
 yet):** the append-only audit log, OpenTelemetry telemetry, the health endpoints, the background
@@ -165,13 +185,19 @@ by QA-ADMIN-01..07. The **public API (PUBAPI)** and **outbound webhooks (HOOKS)*
 UI-less (they're for machines) and **config-gated off** — they have **manual curl/Postman cases in §14b**
 (QA-API-01..06), in addition to automated tests.
 
-**Automated in CI (Web):** a Playwright/NUnit E2E suite (`tests/E2E.Tests`, currently 34 journeys)
+**Automated in CI (Web):** a Playwright/NUnit E2E suite (`tests/E2E.Tests`, currently **52 journeys**)
 runs against the real booted stack on every push — the `e2e` job in `.github/workflows/ci.yml`. Every
-case it covers is marked **⚙️ Automated in CI** on its title (≈35 cases across auth, MFA, i18n,
-household/roster, invitations, notifications, admin, billing, theme, and GDPR — the case titles are
-authoritative; §15 maps the major journeys). Human QA can spot-check those on Web and focus effort on
-the un-automated cases and the native clients — where CI runs two smoke canaries (Android boots the
-real app and drives the OTP journey on an emulator; Windows is a boot-to-login probe only).
+case it covers is marked **⚙️ Automated in CI** on its title (across auth, MFA, i18n,
+household/roster, invitations, notifications, admin, billing, theme and GDPR on the platform side, and
+the shelf, catalog, filters, makeable, one-away, forking, authoring, onboarding and the responsive
+shell on the app side — the case titles are authoritative; §15 maps the major journeys). **17 of those
+journeys are the app's own.** Human QA can spot-check those on Web and focus effort on the
+un-automated cases and the native clients — where CI runs two smoke canaries (Android boots the real
+app and drives the OTP journey on an emulator; Windows is a boot-to-login probe only).
+
+**The app's cases are the least automated part of the plan by design.** What a browser journey cannot
+check is what most of §10d–§10i is for: whether a count is *honest*, whether a suggestion is *useful*,
+whether her Spanish reads as Spanish. Those need a person.
 
 ---
 
@@ -1190,6 +1216,447 @@ And cancelling at the provider returns me to /billing/cancel — the same page w
 
 ---
 
+## 10d. Web — The shelf (INV) 🔴
+
+> **JiggerJot's own flows begin here (§10d–§10i).** Everything above is the platform: sign-in,
+> households, invitations, settings, billing, admin. Everything below is the product — FEATURES §7–§15.
+>
+> **The shelf comes first because nothing else works without it.** Until a household has said what it
+> owns, "what can I make right now" has no answer, so a failure here cascades into §10f and §10h.
+>
+> **The QA shelf.** Several cases below need a known shelf. Unless a case says otherwise, tick
+> **London dry gin**, **Campari** and **Sweet vermouth** — that is a Negroni, and it is the shortest
+> path to a non-empty makeable list. Cases that name a specific drink depend on the shipped 31-recipe
+> starter set; if the full catalog is switched on, the names still work but the counts will differ.
+
+### QA-SHELF-01 — The shelf lists the whole catalog, grouped 🔴 (Web) ⚙️ Automated in CI
+**Gherkin**
+```gherkin
+Given a household that has ticked nothing
+When I open the shelf
+Then I see every ingredient the catalog has, grouped by category
+And nothing is ticked
+```
+**Walkthrough**
+1. **Shelf** in the header (or the bottom tab bar on a narrow window).
+2. **Expected:** cards per category — Gin, Rum, Vermouth, Juice and so on — each holding pills. The
+   footer reads **"0 on the shelf"**.
+3. **Expected:** the list is the WHOLE catalog, not just what you own. You cannot tick what you
+   cannot see.
+
+### QA-SHELF-02 — Ticking is remembered 🔴 (Web) ⚙️ Automated in CI
+**Gherkin**
+```gherkin
+When I tick an ingredient
+And I reload the page
+Then it is still ticked
+```
+**Walkthrough**
+1. Click the **London dry gin** pill. **Expected:** it fills copper immediately, and the footer count
+   goes up before any round trip finishes.
+2. Reload. **Expected:** still filled, count unchanged. *(The tick is optimistic in the browser, so
+   the reload is what proves it reached the database rather than only the screen.)*
+
+### QA-SHELF-03 — Unticking puts it back 🟠 (Web) ⚙️ Automated in CI
+**Walkthrough:** click a filled pill. **Expected:** it returns to the outline style and the count
+drops. Reload — still unticked. *(Under the hood the row is updated rather than deleted, so "checked
+and I do not have it" stays distinguishable from "never looked". Not visible in the UI; see
+`Api.Tests`.)*
+
+### QA-SHELF-04 — A failed save rolls the tick back and says so 🟢 (Web)
+**Walkthrough:** stop the API (`Ctrl-C` in its terminal), then click a pill. **Expected:** the pill
+fills, then reverts, and a red banner appears. *(Optimism is only honest if it is undone — a tick
+that stayed put after a failed write is a lie the household finds out about later, when a drink they
+were promised turns out not to be makeable.)* Restart the API before continuing.
+
+### QA-SHELF-05 — "Only what I have" 🟠 (Web) ⚙️ Automated in CI
+**Walkthrough:** with the QA shelf ticked, switch **Only what I have** on. **Expected:** exactly the
+three ticked ingredients remain, in their own cards. Switch it off — the full catalog returns.
+
+### QA-SHELF-06 — Search narrows by name and by category 🟢 (Web)
+**Walkthrough:** type `verm` in the shelf search. **Expected:** the vermouth pills, and any card whose
+CATEGORY matches. Type something absurd — **Expected:** "No ingredients match that." plus an **Add
+your own** button with the search text already in the name field.
+
+### QA-SHELF-07 — Add a custom ingredient inline 🟠 (Web) ⚙️ Automated in CI
+**Gherkin**
+```gherkin
+Given a bottle the catalog has never heard of
+When I add it from inside a category card
+Then that category is already chosen
+And it appears on my shelf, already ticked
+```
+**Walkthrough**
+1. In any category card, click **+ Add your own**.
+2. **Expected:** a form appears INSIDE that card with the **Category** dropdown already set to it.
+3. Enter a name that cannot exist (`Homemade coffee liqueur <today's date>`), leave the subcategory
+   blank, **Add to my shelf**.
+4. **Expected:** it appears as a filled pill in that category, marked **yours**, and the count went up.
+   You add a bottle to your shelf because it is on your shelf.
+5. Reload — still there, still ticked.
+
+### QA-SHELF-08 — A duplicate name is refused and points at the original 🟠 (Web) ⚙️ Automated in CI
+**Walkthrough:** add the same name again, in any case (`HOMEMADE COFFEE LIQUEUR …`). **Expected:** a
+warning saying it is already in the list, and the shelf search is set to that name so it is showing
+above — rather than leaving you to hunt for a name you just typed. **Expected:** the form reappears at
+the TOP of the page, since the search may have hidden the card it was opened from.
+
+### QA-SHELF-09 — Counts are honest, and the jump bar agrees 🟠 (Web)
+**Walkthrough**
+1. Note a category card's count, e.g. **Gin — 1 of 5**.
+2. **Expected:** the same numbers appear on that category's chip in the scrollable jump bar above.
+3. Tick another gin. **Expected:** BOTH move together — they read one value, so they cannot disagree.
+4. Type a search that hides some of the category. **Expected:** the count still describes the WHOLE
+   category, not what is left on screen. It measures progress against the shelf, and a number that
+   changed meaning when you typed would measure nothing.
+
+### QA-SHELF-10 — The jump bar stays on the shelf 🟠 (Web)
+**Walkthrough:** click a chip in the jump bar. **Expected:** the page scrolls to that category card
+with its heading clear of the header — and you are **still on the shelf**. *(A fragment-only link
+would resolve against `<base href="/">` and land on the home page; this case exists because it did.)*
+
+### QA-SHELF-11 — The payoff footer moves as you tick 🟠 (Web)
+**Walkthrough**
+1. With the QA shelf ticked, look at the sticky footer: **"3 on the shelf — that's N drinks so far"**
+   and a **Show them** button.
+2. Tick **Dry vermouth**. **Expected:** the bottle count moves at once; the drinks figure follows a
+   moment later, once the ticking stops.
+3. Tick three more in quick succession. **Expected:** the drinks figure updates once at the end rather
+   than flickering per tick — the ask is deliberately deferred so clicking down the shelf does not
+   cost a request per checkbox.
+4. **Show them** → the makeable list, with the toggle already on.
+
+### QA-SHELF-12 — A pill is still a checkbox 🟢 (Web, accessibility)
+**Walkthrough:** Tab to a pill. **Expected:** a visible focus ring; **Space** toggles it. With a screen
+reader (NVDA/VoiceOver), **Expected:** it is announced as a checkbox with the ingredient's name and its
+checked state — not as a button. *(The control is a real hidden `input[type=checkbox]` styled through
+its label, precisely so the semantics are the browser's.)*
+
+### QA-SHELF-13 — Ice and water never appear 🟢 (Web)
+**Walkthrough:** search the shelf for `ice`, then `water`. **Expected:** no ingredient row for either
+(matches on other names like "Soda water" are fine — what must not appear is plain ice or plain water
+as something to tick). *(They are always assumed available; a shelf that asks whether you have water is
+a shelf nobody trusts.)*
+
+---
+
+## 10e. Web — Browsing the catalog (CKTL, FILTER, PREFS-2) 🟠
+
+### QA-CAT-01 — The catalog is browsable, searchable and paged 🔴 (Web) ⚙️ Automated in CI
+**Gherkin**
+```gherkin
+When I open the catalog
+Then I see cocktails with a count, ordered by name
+And searching narrows the list
+And paging moves through it
+```
+**Walkthrough**
+1. **Cocktails** in the header. **Expected:** a count ("N cocktails") and a list, each row showing the
+   glass, method, ingredient count and **the book it came from**.
+2. **Expected:** the source is on every row and is load-bearing — several names appear in both books,
+   and one appears twice in the Savoy alone, so without it the list shows duplicate rows with no way to
+   tell them apart.
+3. Search `negroni`. **Expected:** the list narrows and the count follows it.
+4. Clear the search, go to page 2 and back. **Expected:** the list changes and the ordering is stable.
+
+### QA-CAT-02 — A recipe opens with its lines, method and credit 🔴 (Web) ⚙️ Automated in CI
+**Walkthrough:** open any cocktail. **Expected:** every line in the author's order with amounts, the
+method and glass where the recipe states them, the instructions, and the source credited by name —
+written per source rather than from a template.
+
+### QA-CAT-03 — A recipe that never stated a glass says nothing 🟢 (Web)
+**Walkthrough:** find a row whose glass or method is blank in the list and open it. **Expected:** the
+detail page omits that field entirely rather than showing a guess or a placeholder. *(About a quarter
+of the catalog does not state a glass; filling one in would be inventing a fact.)*
+
+### QA-CAT-04 — Filtering by ingredient is wider than searching 🟠 (Web) ⚙️ Automated in CI
+**Gherkin**
+```gherkin
+When I filter by an ingredient
+Then I get drinks that do not have that word in their name
+And a parent category catches its children
+```
+**Walkthrough**
+1. **Filters** → ingredient `gin` → apply.
+2. **Expected:** many more results than searching the NAME for "gin", because it reads the recipe
+   lines. **Expected:** a Negroni appears; its name contains no "gin".
+3. Try a CATEGORY name, e.g. `rum`. **Expected:** drinks using white, dark and spiced rum all appear —
+   a parent matches every child.
+
+### QA-CAT-05 — Filters combine, and a dead end is an empty page 🟠 (Web) ⚙️ Automated in CI
+**Walkthrough:** apply ingredient + method + glass together. **Expected:** the list narrows with each,
+the active-filter count on the button matches, and **Clear** resets everything. Combine filters that
+can have no result. **Expected:** an empty list with a message, never an error.
+
+### QA-CAT-06 — Every filter option returns something 🟢 (Web)
+**Walkthrough:** open each dropdown and pick a few options at random. **Expected:** none returns an
+empty list. *(The options are derived from the catalog rather than the curated lookups, exactly so no
+filter is a dead end.)*
+
+### QA-CAT-07 — Measurement preference changes what the recipe says 🟠 (Web) ⚙️ Automated in CI
+**Walkthrough**
+1. Open a recipe and note an amount. **Settings** → Preferences → **Imperial**.
+2. **Expected:** the recipe now reads in ounces, with fractions — ounces always use them.
+3. Switch to **Metric**. **Expected:** millilitres, and never a fraction.
+4. Switch to **As written**. **Expected:** the book's own words are back. *(That is a real choice you
+   can return to, not merely where you start.)*
+5. **Expected in all three:** neutral units — dash, barspoon, piece, to taste — never convert.
+
+### QA-CAT-08 — Another household's cocktail is not found 🟠 (Web) ⚙️ Automated in CI
+**Walkthrough:** in a second household, fork or write a cocktail and copy its URL. Open that URL as the
+first household. **Expected:** a not-found state, not a permission error. *(The filter simply does not
+return another household's rows, so "forbidden" would be a claim the page is in no position to make —
+and saying it would confirm the row exists.)*
+
+### QA-CAT-09 — A search with no matches 🟢 (Web)
+**Walkthrough:** search the catalog for nonsense with no filters on. **Expected:** "No cocktails match
+that." and **no** illustration, **no** shelf button and **no** bottle suggestion — an unfiltered search
+returning nothing says something about the search, not about the household.
+
+---
+
+## 10f. Web — What I can make (MAKE, ALMOST) 🔴
+
+> **The headline feature.** Run §10d first; these cases assume the QA shelf.
+
+### QA-MAKE-01 — What I can make follows my shelf 🔴 (Web) ⚙️ Automated in CI
+**Gherkin**
+```gherkin
+Given nothing on my shelf
+Then nothing is makeable
+When I tick the three ingredients of a Negroni
+Then the Negroni is makeable
+And when I untick one, it is not
+```
+**Walkthrough**
+1. With an empty shelf: **Cocktails** → **I can make now**. **Expected:** an empty state with her
+   illustration and a **Tick what you have** button — not a bare "no results".
+2. Tick the QA shelf, return, toggle it on. **Expected:** the Negroni is listed.
+3. Untick **Campari**, return. **Expected:** the Negroni is GONE — but the list is **not** empty. A
+   household holding gin and sweet vermouth can still make several things. Nothing was recomputed or
+   invalidated; it is derived at query time.
+
+### QA-MAKE-02 — A drink shown thanks to a substitute says what you would pour 🟠 (Web) ⚙️ Automated in CI
+**Walkthrough:** tick **London dry gin** and **Curaçao** (not Cointreau) plus **Lemon juice**.
+**Expected:** the White Lady appears, with Marga saying which bottle stands in for which. Open it —
+**Expected:** the same swap is marked on the one line it applies to, and the card and the line agree.
+
+### QA-MAKE-03 — One ingredient away names the bottle 🔴 (Web) ⚙️ Automated in CI
+**Walkthrough:** tick **London dry gin** and **Campari** only. **Cocktails** → **One ingredient away**.
+**Expected:** the Negroni appears and the row NAMES **Sweet vermouth**. *("You cannot make this" on its
+own is not a shopping list.)*
+
+### QA-MAKE-04 — Buying it moves the drink across 🟠 (Web) ⚙️ Automated in CI
+**Walkthrough:** from the state above, tick **Sweet vermouth**, then check both lists. **Expected:** the
+Negroni is now under **I can make now** and gone from **One ingredient away**. The two are adjacent and
+can never overlap — the same predicate, counted rather than negated.
+
+### QA-MAKE-05 — Both toggles at once is an empty page, not a winner 🟢 (Web)
+**Walkthrough:** switch **I can make now** and **One ingredient away** on together. **Expected:** an
+empty list — you asked for drinks that are both zero short and one short. Neither flag quietly wins.
+
+### QA-MAKE-06 — The one-away list leads with the bottle that opens the most 🟠 (Web) ⚙️ Automated in CI
+**Walkthrough**
+1. With a partial shelf, open **One ingredient away**.
+2. **Expected:** a card above the list naming ONE bottle and how many drinks it opens, then those
+   drinks by name.
+3. **Expected:** the number and the names agree. If more than four are named, the display stops at four
+   and counts the rest ("and 9 more") — the number still describes them all.
+4. Reload twice. **Expected:** the same bottle each time; ties break on name so the card cannot appear
+   to change its mind.
+
+### QA-MAKE-07 — The recipe says where it stands and which line is short 🟠 (Web) ⚙️ Automated in CI
+**Walkthrough:** with gin and Campari only, open the Negroni. **Expected:** a badge saying it is one
+away, and a mark on the **sweet vermouth** line specifically — a reader wants to know WHICH line to do
+something about, not merely that one of them needs attention. **Expected:** the badge and the browse
+filters never disagree.
+
+### QA-MAKE-08 — The home screen answers the question 🔴 (Web) ⚙️ Automated in CI
+**Walkthrough**
+1. With the QA shelf, open **Home**.
+2. **Expected:** Marga's line naming one purchase, the makeable COUNT as the headline, three of those
+   drinks, and a card for the bottle that would open the most.
+3. **Expected:** her sentence quotes a number from each half and each agrees with the list beneath it.
+4. Click **Show me them** → the makeable list with the toggle already on, and its count matches the
+   headline. Click **See what else is close** → the one-away list, likewise.
+
+### QA-MAKE-09 — Nothing makeable points at the shelf 🟠 (Web)
+**Walkthrough:** with an empty shelf, open **I can make now**. **Expected:** her illustration, a line
+about the shelf rather than the catalog, and **Tick what you have** as a PRIMARY button. **Expected:**
+no bottle is suggested here — with nothing ticked, the next step is telling the app what you have, not
+going shopping.
+
+### QA-MAKE-10 — Nothing one away names a bottle to start from 🟠 (Web)
+**Walkthrough:** with an empty shelf on the **shipped starter catalog**, open **One ingredient away**.
+**Expected:** the empty state names a bottle to start with and says how many recipes ASK for it —
+never how many it would unlock, because one bottle on an empty shelf makes very nearly nothing.
+**Expected:** turn the search box on with the filter still active and the suggestion DISAPPEARS — an
+empty list under a search says the search found nothing, not that you own nothing.
+*(⚠️ If the full 969-recipe catalog is enabled this state is unreachable: single-ingredient recipes mean
+an empty shelf is one bottle away from several drinks. Record **N-A** and note the catalog size.)*
+
+---
+
+## 10g. Web — Making it mine (FORK, AUTHORING) 🟠
+
+### QA-MINE-01 — Forking opens my own copy 🟠 (Web) ⚙️ Automated in CI
+**Gherkin**
+```gherkin
+When I fork a cocktail from the shared catalog
+Then I get my own copy, marked as mine
+And it says what it was based on
+```
+**Walkthrough**
+1. Open any shared cocktail → **Create my own version**.
+2. **Expected:** you land on a NEW cocktail marked **yours**, carrying "Based on <original>".
+3. **Expected:** it has its own copy of every line, with amounts exactly as authored.
+4. **Expected:** it carries **no book credit**. The book wrote the original, not the household's
+   version.
+
+### QA-MINE-02 — The copy is a snapshot, not a reference 🟢 (Web)
+**Walkthrough:** fork a cocktail, then confirm the ORIGINAL still appears unchanged in the catalog and
+still shows its own source. *(Edits to the original never propagate; deleting it leaves the copy
+standing — the provenance link is deliberately not a foreign key. Proven in `Api.Tests`.)*
+
+### QA-MINE-03 — Writing my own cocktail 🟠 (Web) ⚙️ Automated in CI
+**Walkthrough**
+1. **Write a cocktail** from the catalog toolbar.
+2. Give it a name, instructions, and two ingredient lines with amounts and units.
+3. Save. **Expected:** you land on it, marked **yours**, with no source credit.
+4. **Expected:** it appears in the catalog list for your household and NOT for any other.
+
+### QA-MINE-04 — A written drink joins makeable and filtering immediately 🟠 (Web) ⚙️ Automated in CI
+**Walkthrough:** write a cocktail using two ingredients you have ticked. **Expected:** it appears under
+**I can make now** straight away, and filtering by one of its ingredients finds it. *(Both derive from
+the recipe lines at query time, so this is free rather than a second thing to keep in step.)*
+
+### QA-MINE-05 — The form refuses what it cannot store 🟢 (Web)
+**Walkthrough:** try each in turn — save with no ingredient lines; a unit with no amount; a name left
+blank. **Expected:** an inline message for each and nothing written. **Expected:** glass and method can
+both be left blank and it still saves, the same way a quarter of the catalog leaves them unstated.
+
+### QA-MINE-06 — The authoring form's lists are not the filter lists 🟢 (Web)
+**Walkthrough:** compare the **glass** dropdown on the authoring form with the one in the catalog
+filters. **Expected:** the form offers MORE — the whole curated set, so someone writing down what they
+pour can reach a glass no seeded recipe happens to use. The filter offers only what the catalog uses,
+so no filter is a dead end. *(Two endpoints on purpose; they must not be merged.)*
+
+---
+
+## 10h. Web — The first minute (ONBOARD) 🔴
+
+> **Needs a brand-new household.** Sign in with an address that has never been used, so the platform
+> provisions a fresh tenant with an untouched shelf (§6, QA-ONB-01).
+
+### QA-START-01 — A new household is offered the guided route 🔴 (Web) ⚙️ Automated in CI
+**Gherkin**
+```gherkin
+Given a household that has ticked nothing
+When I land on the home page
+Then it leads with setting up my shelf
+And the raw checklist is still reachable
+```
+**Walkthrough**
+1. Sign in as a brand-new user. **Expected:** the home page shows Marga's empty line and **Set up my
+   shelf** as the primary button, with **Tick what you have** below it as a quieter link.
+2. **Expected:** nothing redirects you. A wizard you cannot dismiss is a modal, not an offer.
+
+### QA-START-02 — The suggestions arrive ticked 🔴 (Web) ⚙️ Automated in CI
+**Walkthrough:** click **Set up my shelf**. **Expected:** step 1 of 2, "The usual suspects", about a
+dozen bottles ALREADY filled, and a count reflecting them. *(Answering "which of these is wrong" is far
+faster than picking a dozen bottles out of 191.)* **Expected:** the bottles shown are the ones the most
+recipes ask for — not a hand-curated list.
+
+### QA-START-03 — Nothing is written until Finish 🟠 (Web) ⚙️ Automated in CI
+**Walkthrough**
+1. Untick one suggestion, click **Next**, then — **without finishing** — navigate to **Shelf**.
+2. **Expected:** the shelf is still empty. **"0 on the shelf".**
+3. *(Had the wizard written as it went, it would have recorded a shelf you never confirmed — and left
+   half of one behind for anyone who closed the tab midway.)*
+
+### QA-START-04 — Step two is the rest of the catalog 🟠 (Web)
+**Walkthrough:** back in the wizard, go to step 2. **Expected:** "Anything else on your shelf" — the
+full catalog by category, the **same pill control as the shelf screen**, with a search. **Expected:**
+anything selected on step 1 is still selected here, and **Back** returns without losing anything.
+
+### QA-START-05 — Finish lands on something to pour 🔴 (Web) ⚙️ Automated in CI
+**Walkthrough**
+1. Click **Save my shelf**.
+2. **Expected:** you land on **what I can make**, with the filter already applied rather than on the
+   whole catalog — and, on a shelf built from the suggestions, it is populated.
+3. Open **Shelf**. **Expected:** exactly what you confirmed, with the one you unticked absent.
+4. *(A single request carries the whole shelf, so it either arrives as you left it or not at all.)*
+
+### QA-START-06 — I can leave 🟠 (Web)
+**Walkthrough:** on a fresh household, open the wizard and click **Skip for now**. **Expected:** you are
+in the catalog and the shelf is still empty — nothing was written. **Expected:** the home page still
+offers the wizard; skipping is "later", not "never".
+
+### QA-START-07 — A member joining by invitation never sees it 🟠 (Web)
+**Walkthrough:** have a second user accept an invitation into a household that already has a shelf
+(§8). **Expected:** their home page shows the household's makeable COUNT, not the setup offer. *(The
+household already has an inventory, so there is nothing to seed — handled by the same condition rather
+than by a special case.)*
+
+---
+
+## 10i. Web — Marga and the chrome (MARGA, SHELL) 🟢
+
+> **Marga is a drawn character, not an assistant.** Every sentence she says is a localized resource
+> string with real data in its placeholders. There is no model behind her and nothing generates text.
+> These cases check that the data is real and the wording is fixed.
+
+### QA-CHROME-01 — Her number and the list beneath it agree 🟠 (Web)
+**Walkthrough:** on Home with a partial shelf, read her line, then check each number against the list
+directly under it. **Expected:** they match exactly. *(If her sentence and the list disagree, the bug is
+that they came from two queries.)*
+
+### QA-CHROME-02 — She is optional furniture 🟢 (Web)
+**Walkthrough:** stop the API, then load Home. **Expected:** the screen renders WITHOUT her rather than
+with an empty speech line. Restart the API.
+
+### QA-CHROME-03 — She is decorative to a screen reader 🟢 (Web, accessibility)
+**Walkthrough:** with a screen reader, move through Home. **Expected:** her picture is skipped
+entirely — the sentence beside her carries the whole meaning, and "photo of a bartender" ahead of it
+would only get in the way.
+
+### QA-CHROME-04 — The destinations follow the width 🟠 (Web) ⚙️ Automated in CI
+**Walkthrough**
+1. At a wide window: **Expected:** Home, Shelf and Cocktails sit in the header beside the brand, and
+   they read at least as strongly as Household/Billing/Settings on the right.
+2. Narrow the window below ~990px. **Expected:** they move to a **bottom tab bar**, reachable without
+   opening anything, and the hamburger now holds only the account cluster.
+
+### QA-CHROME-05 — The current destination is obvious and announced 🟢 (Web, accessibility)
+**Walkthrough:** navigate between the three. **Expected:** the current one is **bolder** and carries a
+drawn indicator bar — distinguishable without relying on colour. With a screen reader, **Expected:** it
+is announced as the current page. **Expected:** opening a recipe keeps **Cocktails** current.
+
+### QA-CHROME-06 — The tab bar does not cover the page 🟠 (Web)
+**Walkthrough:** on a narrow window, scroll to the bottom of the **shelf** and of the **catalog**.
+**Expected:** the last thing on each page is fully readable above the bar, and the shelf's payoff footer
+sits clear of it rather than behind it.
+
+### QA-CHROME-07 — The boot state shows real progress 🟢 (Web)
+**Walkthrough:** hard-reload with the cache disabled (DevTools → Network → Disable cache) and watch the
+first second. **Expected:** the illustration, gently rocking, with a brass arc and a percentage.
+**Expected:** the arc's length matches the number printed inside it — a quarter turn at 25%, a full
+ring at 100%. *(Also verify on Desktop and Android; the native hosts show a sweeping arc instead,
+because a WebView has no download to measure.)*
+
+### QA-CHROME-08 — Reduced motion is respected 🟢 (Web, accessibility)
+**Walkthrough:** turn on the OS "reduce motion" setting, then hard-reload. **Expected:** nothing on the
+boot screen moves on its own. *(A boot screen is the one thing nobody can choose to skip.)*
+
+### QA-CHROME-09 — The app speaks Spanish throughout 🟠 (Web)
+**Walkthrough:** switch the language to Español (§10) and walk the app's own screens — shelf, catalog,
+a recipe, makeable, one-away, the wizard, both empty states. **Expected:** no English leaks, and
+**Marga's lines read as written Spanish rather than as a translation** — her lines are voiced, so a
+literal translation reads like a machine. **Expected:** the numbers and names in her placeholders
+survive the rewrite.
+
+---
+
 ## 11. Emails (Mailpit) — branding & content 🟠
 
 > **Delivery is asynchronous** (the outbox dispatcher) — emails land in Mailpit a few seconds after the
@@ -2187,6 +2654,31 @@ app fires no published events. (Published events via `IWebhookPublisher` also lo
 | In-app notifications | **NOTIF-01..04**, **DSK-13** (header bell: list/unread-count/mark-read/delete/clear; Settings delivery-preference switches) + `Api.Tests` (`NotificationServiceTests`, `NotificationFanOutTests`) | `GET /api/notifications` (+ `?before=&limit=`), `/unread-count`, `POST /{id}/read`, `/read-all`, `DELETE /{id}`, `DELETE /api/notifications?read=true|false` (scope REQUIRED — read-only vs all; omitted → 400), and `GET|PUT /api/notifications/preferences` — **per-user** (scoped to the caller). `NotifyAsync` fans out to in-app + email (outbox-backed) per prefs (default both on). |
 | Admin back-office | **ADMIN-01..06**, **DSK-14** (native spot) (staff `/admin` console: tenant list/detail + impersonate w/ banner + stop; targeted/broadcast announce; plan comp/revert) + `Api.Tests` (`PlatformStaffServiceTests`, `AdminControllerTests`) | `GET /api/admin/me` (staff probe, 200 `{is_staff}` for any caller — drives the nav/gate), `GET /api/admin/tenants` (+ `/{id}` — returns `plan_key` + `provider_managed`), `POST /api/admin/impersonate/{userId}`, `POST /api/admin/tenants/{id}/announce` (optional `user_ids[]` subset, intersected with membership), `POST /api/admin/announce-all` (202; outbox fan-out to **every** user), `PUT|DELETE /api/admin/tenants/{id}/subscription` (comp/revert; 409 only for a LIVE provider sub — canceled Stripe-backed subs are comp-able) — **platform-staff only** (config `Admin:StaffEmails`; non-staff → 403). Detail enters the target tenant (filter never loosened); impersonation returns a **short-lived, non-refreshable** token with an `impersonated_by` claim, **audited in the target's tenant**. |
 
+**JiggerJot's own flows (§10d–§10i).** Everything above this block is the platform; everything in it
+is the product. Cited decisions are `JJ-nnn` in `docs/DECISIONS.md`.
+
+| Feature area | Test cases | Key API endpoints |
+|---|---|---|
+| The shelf (INV-1) | **SHELF-01/02/03/05/06** (⚙️ E2E `ShelfJourneyTests`) + SHELF-04/12/13 | `GET /api/inventory` (the WHOLE catalog with an availability flag — you cannot tick what you cannot see), `PUT /api/inventory/{ingredientId}`. Unticking UPDATES the row rather than deleting it, so "checked and I do not have it" stays apart from "never looked" (JJ-023); every reader filters on `is_available`, so absence and false behave identically either way. Ice and water are not in the catalog at all (JJ-020). |
+| Custom ingredients (INV-2) | **SHELF-07/08** (⚙️ E2E) | `POST /api/inventory/ingredients` (created ticked; 409 + `existingIngredientId` on a case-insensitive duplicate against the shared catalog AND the household's own), `GET /api/inventory/categories`. The app's first write to a dual-natured table, so the handler sets `TenantId` by hand — nothing stamps it (JJ-031). |
+| The shelf, reworked (INV-3) | SHELF-09/10/11 | no new endpoint. Counts are over the whole category, never over what search left visible; card and jump bar read ONE value. The payoff total re-asks `GET /api/cocktails?makeable=true&pageSize=1` **once per burst of ticks**, not once per tick — a slice may not reach into another slice (R7/TR-9), and duplicating the query would give the app two definitions of makeable (JJ-003). |
+| Bulk shelf write (ONBOARD-1) | **START-03/05** (⚙️ E2E `OnboardJourneyTests`) + `Api.Tests` (`BulkInventoryTests`) | `PUT /api/inventory` — the whole shelf in one request. State is STATED rather than toggled, safe to send twice, and an id this household cannot see comes back in `unknown` rather than failing the request. |
+| Browse / search / paging (CKTL-2) | **CAT-01** (⚙️ E2E `CocktailBrowseJourneyTests`) | `GET /api/cocktails` (paged; a bad page or size is clamped, never a 400). Ordered name-then-id, because name alone is not a total order in this catalog; the SOURCE is shown per row because four names appear in both books. |
+| Recipe detail (CKTL-3, CKTL-4) | **CAT-02/03/08** (⚙️ E2E) + **MAKE-07** (⚙️ E2E) | `GET /api/cocktails/{id}` — lines in order, `makeability` plus per-line `availability`/`substituteWith`. Another household's cocktail is a **404, never a 403** (JJ-031). Glass and method may be null and are rendered as nothing at all (JJ-034). |
+| Measurement preference (PREFS-2) | **CAT-07** (⚙️ E2E) | `PUT /api/auth/unit-system`; conversion is server-side in Core's `AmountDisplay` with the authored values riding along, so a second front end inherits the rules. Neutral units never convert; metric never uses fractions, ounces always do; null = "never chose" and shows the recipe as written (JJ-007, JJ-008). |
+| Filters (FILTER-1) | **CAT-04/05** (⚙️ E2E) + CAT-06/09 | `GET /api/cocktails?ingredient=&method=&glass=&serving=`, `GET /api/cocktails/filters`. The ingredient filter reads the RECIPE LINES — there is no main-spirit column and never will be (JJ-014) — and matches name, category and subcategory at once, so a parent catches every child (JJ-015, JJ-016). Options are derived from the catalog so no filter is a dead end. |
+| Makeable (MAKE-1) | **MAKE-01/02** (⚙️ E2E `MakeableJourneyTests`) + MAKE-05 | `GET /api/cocktails?makeable=true`. Derived at query time, never stored (JJ-003). A required line is satisfied by the exact ingredient or by a substitute **in that direction** — cognac stands in for brandy, not the reverse (JJ-006). Optional lines never block (JJ-009). Each row carries the swaps in play. |
+| One ingredient away (ALMOST-1) | **MAKE-03/04** (⚙️ E2E) + MAKE-05 | `GET /api/cocktails?almost=true` — exactly ONE required line unsatisfied after substitutions (JJ-019), with `missingIngredient` named on every row. The same predicate as makeable, counted rather than negated, so the two lists are adjacent and can never overlap; asking for both returns an empty page rather than one flag winning. |
+| The unlocking bottle (ALMOST-2) | **MAKE-06/08** (⚙️ E2E) | `GET /api/cocktails/unlocks?limit=` — the almost set grouped by MISSING INGREDIENT and ranked (JJ-035). `unlocks` always equals the length of `cocktails` (one value read twice, which is why the names are never truncated in the DATA); ties break on name; an empty shelf ranks nothing. |
+| Where to start (MARGA-3) | **MAKE-10**, CAT-09 | `GET /api/cocktails/starters?limit=` — a THIRD reading of the catalog, not a variant of `/unlocks`: which bottles the recipes lean on most, minus what the household has. Required lines only (JJ-009), substitutions ignored. **`appears` is how many recipes ASK for it, never how many it would unlock.** |
+| Forking (FORK-1) | **MINE-01** (⚙️ E2E) + MINE-02 | `POST /api/cocktails/{id}/fork` — a SNAPSHOT copy, never a reference (JJ-002, JJ-013): a new tenant-owned `Cocktail` plus copies of every line, `TenantId` set by hand on both tables. The source credit is deliberately NOT copied; provenance rides on `ForkedFromCocktailId`, which is not a foreign key, so deleting the original leaves the copy standing. |
+| Authoring (AUTHORING-1) | **MINE-03/04** (⚙️ E2E) + MINE-05/06 | `POST /api/cocktails`, `GET /api/cocktails/lookups`. **Two lookup endpoints that must not be merged:** `/filters` is catalog-derived so no filter is a dead end, `/lookups` is the whole curated set (JJ-022) so a form can reach a glass no recipe uses. Refuses a lineless recipe, a unit with no amount, and an ingredient the household cannot see. Request enums cross the wire BY NAME. |
+| Onboarding wizard (ONBOARD-1) | **START-01/02/03/05** (⚙️ E2E) + START-04/06/07 | `GET /api/inventory` + `GET /api/cocktails/starters?limit=12` + `PUT /api/inventory`. Offered, never forced: **no redirect and no dismissal flag**, so there is no "has this household been onboarded" fact to store — `Tenant` is the platform's. Members joining by invitation skip it for free, because they already have a shelf (FEATURES §7, JJ-021). |
+| Marga (MARGA-1/2/3) | CHROME-01/02/03, MAKE-08/09/10 | none of her own. **She is a drawn character, not an assistant**: every line is a localized resource string with real data in its placeholders, picked whole rather than assembled, from queries that already exist. Her component takes a FINISHED sentence — it cannot build one, pick one or fetch anything. She is `alt=""`/`aria-hidden`. |
+| The responsive shell (SHELL-1) | **CHROME-04/06** (⚙️ E2E `ShellJourneyTests`) + CHROME-05 | none. ONE element repositioned by CSS, never a second copy hidden at one width — two `nav-shelf` in the DOM fails every journey that clicks it. The current tab is weight plus a drawn indicator, never colour alone, plus `aria-current`. |
+| The boot state (SHELL-2) | CHROME-07/08, and the native legs of §12/§13 | none — it renders before the app exists. It lands in **two** `index.html` files (`NATIVE_PARITY.md`), held by a CI gate; the WebView hosts sweep instead of filling, having no download to measure. A second gate caps the illustration's size, since this is the one place it is fetched before the app is usable. |
+| The app in Spanish | **CHROME-09**, I18N-01..04 | resx only. Her lines are voiced, so the Spanish is a writing job rather than a translation, and the placeholders have to survive the rewrite. |
+
 **Adversarial & tenant-isolation (§14a, QA-ADV-*) — v3-audit hardening probes.** Rows tagged
 **⚠️ v3** were authored against then-broken behaviour and sat **Blocked** until their finding landed;
 **every tagged finding is fixed** (v3 remediation, PRs #147–#191), so ALL rows now expect **Pass**.
@@ -2267,6 +2759,66 @@ Record one row per executed case. Build = API/web commit SHA (`git rev-parse --s
 | QA-SMK-02 | Web | | | | | |
 | … | | | | | | |
 
+**§10d–§10i — JiggerJot's own flows.** All rows **Not-run** (blank) until executed. Run **§10d first**:
+the rest of the app has nothing to work with until a shelf exists, so a failure there will cascade.
+
+| Case ID | Client | Result (P/F/Blocked/N-A) | Tester | Build (SHA) | Date | Notes / defect link |
+|---------|--------|--------------------------|--------|-------------|------|---------------------|
+| QA-SHELF-01 | Web | | | | | |
+| QA-SHELF-02 | Web | | | | | |
+| QA-SHELF-03 | Web | | | | | |
+| QA-SHELF-04 | Web | | | | | Needs the API stopped mid-case |
+| QA-SHELF-05 | Web | | | | | |
+| QA-SHELF-06 | Web | | | | | |
+| QA-SHELF-07 | Web | | | | | |
+| QA-SHELF-08 | Web | | | | | |
+| QA-SHELF-09 | Web | | | | | |
+| QA-SHELF-10 | Web | | | | | |
+| QA-SHELF-11 | Web | | | | | |
+| QA-SHELF-12 | Web | | | | | Screen reader |
+| QA-SHELF-13 | Web | | | | | |
+| QA-CAT-01 | Web | | | | | |
+| QA-CAT-02 | Web | | | | | |
+| QA-CAT-03 | Web | | | | | |
+| QA-CAT-04 | Web | | | | | |
+| QA-CAT-05 | Web | | | | | |
+| QA-CAT-06 | Web | | | | | |
+| QA-CAT-07 | Web | | | | | |
+| QA-CAT-08 | Web | | | | | Needs two households |
+| QA-CAT-09 | Web | | | | | |
+| QA-MAKE-01 | Web | | | | | |
+| QA-MAKE-02 | Web | | | | | |
+| QA-MAKE-03 | Web | | | | | |
+| QA-MAKE-04 | Web | | | | | |
+| QA-MAKE-05 | Web | | | | | |
+| QA-MAKE-06 | Web | | | | | |
+| QA-MAKE-07 | Web | | | | | |
+| QA-MAKE-08 | Web | | | | | |
+| QA-MAKE-09 | Web | | | | | |
+| QA-MAKE-10 | Web | | | | | N-A if the full catalog is enabled — note the catalog size |
+| QA-MINE-01 | Web | | | | | |
+| QA-MINE-02 | Web | | | | | |
+| QA-MINE-03 | Web | | | | | |
+| QA-MINE-04 | Web | | | | | |
+| QA-MINE-05 | Web | | | | | |
+| QA-MINE-06 | Web | | | | | |
+| QA-START-01 | Web | | | | | Needs a brand-new household |
+| QA-START-02 | Web | | | | | |
+| QA-START-03 | Web | | | | | |
+| QA-START-04 | Web | | | | | |
+| QA-START-05 | Web | | | | | |
+| QA-START-06 | Web | | | | | Needs a second brand-new household |
+| QA-START-07 | Web | | | | | Needs an invitation into a filled household |
+| QA-CHROME-01 | Web | | | | | |
+| QA-CHROME-02 | Web | | | | | Needs the API stopped mid-case |
+| QA-CHROME-03 | Web | | | | | Screen reader |
+| QA-CHROME-04 | Web | | | | | |
+| QA-CHROME-05 | Web | | | | | Screen reader |
+| QA-CHROME-06 | Web | | | | | |
+| QA-CHROME-07 | Web/Desktop/Android | | | | | |
+| QA-CHROME-08 | Web | | | | | OS reduce-motion setting |
+| QA-CHROME-09 | Web | | | | | Needs a Spanish reader |
+
 **§14a adversarial / tenant-isolation (QA-ADV-*).** All rows are **Not-run** (blank) until executed.
 The formerly pre-seeded **Blocked (known defect)** rows were reset when the v3 remediation completed
 (2026-07, PRs #147–#191) — their Notes record which defect each was blocked on, and every one of those
@@ -2316,7 +2868,14 @@ Critical/High defects. 🟢 Edge cases triaged (Pass or accepted-known-issue).
   Gherkin blocks here are written to be lifted directly into new E2E scenarios — keep the two in sync
   as automation grows.
 - When you add an app-specific domain feature on top of this platform, add a matching suite here and
-  a row in the traceability matrix (§15) so "entire functionality" stays honest.
+  a row in the traceability matrix (§15) so "entire functionality" stays honest. **That instruction
+  sat here unfollowed through nineteen merged app slices** — this document covered the platform only
+  while every flow in `FEATURES.md` was built on top of it, and its scope section went on saying the
+  app had no features. The app suites are §10d–§10i; the lesson is that the reminder is not enough on
+  its own, so the slice ritual in `docs/PLAN.md` now carries the step.
+- **Each app story file carries Gherkin that maps onto these cases almost directly.** When a slice
+  changes behaviour, its story is the place the new acceptance criteria are written first; copying
+  them here is a translation rather than an invention.
 - `docs/FEATURES.md` describes the same JWT-based flows at the design level; this plan is their
   step-by-step verification. Keep the two in sync when behavior changes.
 - **Updated 2026-06-22** for the security/quality remediation: OTP lockout is now **cumulative per

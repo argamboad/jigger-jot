@@ -28,6 +28,11 @@
    missing request; let it.
 6. Add EN **and** ES strings.
 7. Write or update the story file with Gherkin that maps 1:1 to the tests.
+7b. **Add or update the matching cases in `docs/QA_TEST_PLAN.md`** — a case per user-visible change,
+   a row in the traceability matrix (§15) and a row on the sign-off sheet (§16). The story's Gherkin
+   is the source; copying it across is a translation, not an invention. This step exists because the
+   plan's own maintainer note asked for it and nineteen app slices shipped without it, leaving a
+   document whose scope section claimed the app had no features at all.
 8. Run: Release build of API and Web (zero warnings), then `Core.Tests`, `Api.Tests`, `Ui.Tests`.
 9. Report: what flow it implements, what was decided and why, what is deliberately out, the test
    counts. Then **wait**.
@@ -76,7 +81,23 @@ had carried since day one.
 settled what a first bottle is and closed the `MARGA` epic; **SHELL-1**, the responsive shell, which
 settled the wide-screen question; and **SHELL-2**, the boot state. **The UI wave is complete.**
 
-**Built, verified, uncommitted** on `feat/ONBOARD-1-wizard` (branched from `develop`):
+**Merged since** (PR #29): **ONBOARD-1**, the first minute. **Every flow in `FEATURES.md` §7–§15 is
+now covered.**
+
+**Built, verified, uncommitted** on `docs/QA-app-coverage` (branched from `develop`):
+
+- **The QA plan's app half**, which never existed. The document covered the platform only: a search of
+  its 2,300 lines for "cocktail", "shelf", "makeable" or "ingredient" returned **nothing**, and its
+  scope section still listed as out of scope "any app-specific domain features not yet built on this
+  platform" — true when it was written, false since the first slice merged.
+- **Six new suites, §10d–§10i, 54 cases** (150 → 204), plus traceability rows, sign-off rows, and the
+  test-data the app's cases need that the platform's did not: a never-touched shelf, a screen reader,
+  a Spanish reader.
+- **Two stale claims corrected**: the journey count (34 → 52) and the scope paragraph.
+- **The ritual now carries the step**, because the plan's own maintainer note asked for exactly this
+  and was not enough on its own.
+
+**Previously built** on `feat/ONBOARD-1-wizard`:
 
 - **ONBOARD-1**: the first minute, and **the last unbuilt flow in `FEATURES.md`**. Two steps over the
   same data and the same control as the shelf — guided, not a second way to record what you own.
@@ -118,13 +139,17 @@ Each is one branch off `develop`, one PR, after the previous one is merged.
 
 | # | Slice | Flow / screen | What it is |
 |---|---|---|---|
-| 1 | **ONBOARD-1** | §7 | The uncommitted work above. Waiting on C+P+PR. **The last unbuilt flow** — with it merged, every flow in `FEATURES.md` §7–§15 is covered. |
+| 1 | **The QA plan's app half** | §10d–§10i | The uncommitted work above. Waiting on C+P+PR. Docs only — no code. |
 
-**After this one the list is empty, and what follows is a decision rather than a queue.** Candidates,
-none of which blocks another: the 969-recipe catalog behind a flag (a flag, not a slice); the Savoy
-transcription-source question (JJ-032, open, blocks nothing); the two scrape-merged recipe lines;
-**`AUTHORING-2`** — editing a cocktail, including a fork, the one outstanding story inside an epic
-marked complete; and a QA pass over the whole app, since the UI wave changed every screen it has.
+**Then: run it.** The whole point of writing the cases is to execute them, and the app's half is the
+least automated part of the plan by design — what a browser journey cannot check is whether a count is
+*honest*, whether a suggestion is *useful*, whether her Spanish reads as Spanish.
+
+**After that the list is empty, and what follows is a decision rather than a queue.** Candidates, none
+of which blocks another: the 969-recipe catalog behind a flag (a flag, not a slice — and note it makes
+`QA-MAKE-10` unreachable); the Savoy transcription-source question (JJ-032, open, blocks nothing); the
+two scrape-merged recipe lines; and **`AUTHORING-2`** — editing a cocktail, including a fork, the one
+outstanding story inside an epic marked complete.
 
 **Three questions to settle before the slices that need them. All three are now settled, each by the
 slice that needed it — the answers are kept here because the reasoning outlives the slice.**
