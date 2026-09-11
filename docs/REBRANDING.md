@@ -54,6 +54,7 @@ In-app UI (shared RCL — used by web + desktop + mobile):
 
 **Email logo (CID-embedded — shown in every transactional email):**
 - **`src/Infrastructure/Email/Assets/logo.png`** — keep it a **PNG** (email clients strip SVG and block data-URIs); a ~128px square is plenty.
+- **`src/Infrastructure/Email/Assets/marga.png`** — the character's avatar, a deliberate **copy** of the RCL's brand asset: `Infrastructure` does not depend on `Shared.Ui` and must not start. Replacing the character means replacing **both** files, and a rebrand that drops the character entirely should remove her lines from `EmailStrings.resx` and the `MargaSays(...)` calls in `BrandedEmail.cs` rather than leaving a stranger's face on the sign-in email.
 
 Web host chrome:
 - `src/Web/wwwroot/{favicon.ico, favicon.svg, favicon.png, apple_touch_180.png, og_image_1200x630.png}`

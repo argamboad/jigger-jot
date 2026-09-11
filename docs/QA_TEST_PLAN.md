@@ -1686,6 +1686,34 @@ address; a `/join?token=…` link that works (QA-INV-02).
 **Expected:** the CID logo still renders. *(Note: from a non-verified domain, real delivery may land
 in spam — a domain/DKIM concern, not an app bug.)*
 
+### QA-MAIL-05 — Marga is on the emails a person asked for, and only those 🟠
+**Gherkin**
+```gherkin
+Given an email I asked for — a sign-in code, a sign-in link, an invitation
+Then Marga says one line near the top, above the thing I came for
+But given a system notification — a failed payment, a security alert
+Then she is not there at all
+```
+**Walkthrough**
+1. Trigger an OTP, a magic link and an invitation. **Expected in each:** her avatar and one line, above
+   the code/button — and **Inline images (2)** in Mailpit's header, the logo plus her.
+2. Trigger a notification email (a billing or announcement one — §10b, §10c). **Expected:** no Marga,
+   and **Inline images (1)**. She is not merely hidden; her 19 KB does not ride along on an email that
+   never shows her.
+3. *(Why: that template wraps arbitrary system messages, including "your subscription is past due" and
+   a security alert. A bartender character on those undercuts the message.)*
+
+### QA-MAIL-06 — Her email lines read as written Spanish 🟢
+**Walkthrough:** set the language to Español, request an OTP and have someone invite you.
+**Expected:** her line is written Spanish, not a translation of the English, and the rest of the email
+is Spanish too. *(Her lines are voiced; a literal translation of a voiced line reads like a machine.)*
+
+### QA-MAIL-07 — A client that blocks images loses only her 🟢
+**Walkthrough:** open an OTP email with images blocked (Mailpit's Text tab, or Gmail with "ask before
+displaying"). **Expected:** her sentence is still there and still makes sense; no "photo of a
+bartender" alt text sits in front of it; the code and the button are unaffected. *(Her avatar has an
+empty `alt` for the same reason it does in the app — the line beside her carries the whole meaning.)*
+
 ---
 
 ## 12. Desktop — MAUI / Windows 🟠
@@ -2677,6 +2705,7 @@ is the product. Cited decisions are `JJ-nnn` in `docs/DECISIONS.md`.
 | Marga (MARGA-1/2/3) | CHROME-01/02/03, MAKE-08/09/10 | none of her own. **She is a drawn character, not an assistant**: every line is a localized resource string with real data in its placeholders, picked whole rather than assembled, from queries that already exist. Her component takes a FINISHED sentence — it cannot build one, pick one or fetch anything. She is `alt=""`/`aria-hidden`. |
 | The responsive shell (SHELL-1) | **CHROME-04/06** (⚙️ E2E `ShellJourneyTests`) + CHROME-05 | none. ONE element repositioned by CSS, never a second copy hidden at one width — two `nav-shelf` in the DOM fails every journey that clicks it. The current tab is weight plus a drawn indicator, never colour alone, plus `aria-current`. |
 | The boot state (SHELL-2) | CHROME-07/08, and the native legs of §12/§13 | none — it renders before the app exists. It lands in **two** `index.html` files (`NATIVE_PARITY.md`), held by a CI gate; the WebView hosts sweep instead of filling, having no download to measure. A second gate caps the illustration's size, since this is the one place it is fetched before the app is usable. |
+| Marga in the emails (MARGA-4) | **MAIL-05/06/07** + `Api.Tests` (`MargaInEmailTests`) | none — `BrandedEmail` renders her the way it renders the logo: a CID inline image, the one approach Gmail and Outlook both show (they block data-URIs). She is on the three emails a person ASKED for and deliberately not on the notification wrapper, which carries failed payments and security alerts. Attached only when shown, so her 19 KB never rides along unused. Her line is one whole resource string from `EmailStrings.resx`, same contract as in the app. |
 | The app in Spanish | **CHROME-09**, I18N-01..04 | resx only. Her lines are voiced, so the Spanish is a writing job rather than a translation, and the placeholders have to survive the rewrite. |
 
 **Adversarial & tenant-isolation (§14a, QA-ADV-*) — v3-audit hardening probes.** Rows tagged
@@ -2764,6 +2793,9 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 
 | Case ID | Client | Result (P/F/Blocked/N-A) | Tester | Build (SHA) | Date | Notes / defect link |
 |---------|--------|--------------------------|--------|-------------|------|---------------------|
+| QA-MAIL-05 | Web | | | | | |
+| QA-MAIL-06 | Web | | | | | | Needs a Spanish reader |
+| QA-MAIL-07 | Web | | | | | | Images blocked |
 | QA-SHELF-01 | Web | | | | | |
 | QA-SHELF-02 | Web | | | | | |
 | QA-SHELF-03 | Web | | | | | |

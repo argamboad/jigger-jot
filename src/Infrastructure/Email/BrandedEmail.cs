@@ -24,6 +24,7 @@ public sealed record EmailBody(string Subject, string Html, IReadOnlyList<EmailI
 public static class BrandedEmail
 {
     private const string LogoCid = "jiggerjot-logo";
+    private const string MargaCid = "jiggerjot-marga";
 
     // Brand palette (mirrors app.css; JJ-029). Email HTML can't use CSS variables, so these are
     // literal. Text roles keep AA contrast on white: Brass/BrassLight are the muted text tones,
@@ -57,7 +58,10 @@ public static class BrandedEmail
     }
 
     /// <summary>The logo as an inline image; reference it from HTML as <c>cid:jiggerjot-logo</c>.</summary>
-    public static EmailInlineImage Logo() => new(LogoCid, "logo.png", LoadLogo(), "image/png");
+    public static EmailInlineImage Logo() => new(LogoCid, "logo.png", LoadAsset("logo.png"), "image/png");
+
+    /// <summary>Marga, as an inline image — attached only by the emails that actually show her.</summary>
+    public static EmailInlineImage Marga() => new(MargaCid, "marga.png", LoadAsset("marga.png"), "image/png");
 
     /// <summary>"Email me a 6-digit code" — the OTP code email.</summary>
     public static EmailBody Otp(string code, int lifespanMinutes, CultureInfo culture) => Compose(
@@ -65,12 +69,13 @@ public static class BrandedEmail
         T("Otp_Preheader", culture, code),
         $"""
          {Heading(T("Otp_Heading", culture))}
+         {MargaSays(T("Marga_SignIn", culture))}
          {Paragraph(T("Otp_Body", culture, lifespanMinutes))}
          <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:8px 0 4px;">
            <div style="display:inline-block;background:{Surface};border:1px solid {Border};border-radius:10px;padding:16px 26px;font-family:{Font};font-size:30px;font-weight:700;letter-spacing:.35em;color:{Copper};">{code}</div>
          </td></tr></table>
          {IgnoreNote(T("Common_IgnoreNote", culture))}
-         """);
+         """, withMarga: true);
 
     /// <summary>"Email me a magic link" — the passwordless sign-in link.</summary>
     public static EmailBody MagicLink(string link, int lifespanMinutes, CultureInfo culture) => Compose(
@@ -78,12 +83,13 @@ public static class BrandedEmail
         T("MagicLink_Preheader", culture),
         $"""
          {Heading(T("MagicLink_Heading", culture))}
+         {MargaSays(T("Marga_SignIn", culture))}
          {Paragraph(T("MagicLink_Body", culture, lifespanMinutes))}
          {Button(T("MagicLink_Button", culture), link)}
          {Paragraph(T("MagicLink_OrPaste", culture), small: true)}
          <p style="margin:0 0 8px;font-family:{Font};font-size:12px;line-height:1.5;color:{Brass};word-break:break-all;">{link}</p>
          {IgnoreNote(T("Common_IgnoreNote", culture))}
-         """);
+         """, withMarga: true);
 
     /// <summary>Household invitation — join link plus the raw token fallback.</summary>
     public static EmailBody Invitation(string joinUrl, string token, CultureInfo culture) => Compose(
@@ -91,6 +97,7 @@ public static class BrandedEmail
         T("Invitation_Preheader", culture),
         $"""
          {Heading(T("Invitation_Heading", culture))}
+         {MargaSays(T("Marga_Invitation", culture))}
          {Paragraph(T("Invitation_Body", culture))}
          {Button(T("Invitation_Button", culture), joinUrl)}
          {Paragraph(T("Invitation_OrToken", culture), small: true)}
@@ -98,7 +105,7 @@ public static class BrandedEmail
            <div style="display:inline-block;background:{Surface};border:1px solid {Border};border-radius:8px;padding:10px 16px;font-family:'Courier New',monospace;font-size:13px;color:{Copper};word-break:break-all;">{token}</div>
          </td></tr></table>
          {IgnoreNote(T("Common_IgnoreNoteUnexpected", culture))}
-         """);
+         """, withMarga: true);
 
     /// <summary>
     /// A branded in-app notification copy (NOTIFY-2). <paramref name="title"/>/<paramref name="body"/>
@@ -116,8 +123,33 @@ public static class BrandedEmail
 
     // ── shell + pieces ────────────────────────────────────────────────────────
 
-    private static EmailBody Compose(string subject, string preheader, string inner) =>
-        new(subject, Wrap(preheader, inner), [Logo()]);
+    private static EmailBody Compose(string subject, string preheader, string inner, bool withMarga = false) =>
+        new(subject, Wrap(preheader, inner), withMarga ? [Logo(), Marga()] : [Logo()]);
+
+    /// <summary>
+    /// Marga, saying one line, in an email (MARGA-4). The same contract as her component in the app:
+    /// she is handed a FINISHED sentence and never builds, picks or fetches one.
+    /// </summary>
+    /// <remarks>
+    /// A two-cell table rather than a flex row, because email HTML has no flexbox worth the name;
+    /// <c>valign="top"</c> and a fixed-width first cell are what keep Outlook from stacking them.
+    /// The avatar is decorative — the line beside it carries the whole meaning — so it has an empty
+    /// alt, which also means the block still reads correctly in the many clients that block images
+    /// by default: the sentence is there, she simply is not.
+    /// </remarks>
+    private static string MargaSays(string line) => $"""
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 22px;">
+          <tr>
+            <td width="60" valign="top" style="width:60px;padding-right:14px;">
+              <img src="cid:{MargaCid}" width="52" height="52" alt="" style="display:block;border:0;outline:none;text-decoration:none;border-radius:26px;">
+            </td>
+            <td valign="top" style="font-family:{Font};font-size:15px;line-height:1.55;color:{Ink};">
+              {line}
+              <div style="margin-top:4px;font-size:12px;color:{BrassLight};">Marga</div>
+            </td>
+          </tr>
+        </table>
+        """;
 
     private static string Wrap(string preheader, string inner) => $"""
         <!DOCTYPE html>
@@ -167,17 +199,22 @@ public static class BrandedEmail
     private static string IgnoreNote(string text) =>
         $"""<p style="margin:24px 0 0;font-family:{Font};font-size:13px;line-height:1.5;color:{BrassLight};">{text}</p>""";
 
-    private static byte[]? _logoCache;
-    private static byte[] LoadLogo()
+    private static readonly Dictionary<string, byte[]> AssetCache = [];
+
+    private static byte[] LoadAsset(string fileName)
     {
-        if (_logoCache is not null) return _logoCache;
-        var asm = typeof(BrandedEmail).Assembly;
-        var name = asm.GetManifestResourceNames()
-            .FirstOrDefault(n => n.EndsWith("logo.png", StringComparison.OrdinalIgnoreCase))
-            ?? throw new InvalidOperationException("Embedded email logo (logo.png) not found.");
-        using var stream = asm.GetManifestResourceStream(name)!;
-        using var memory = new MemoryStream();
-        stream.CopyTo(memory);
-        return _logoCache = memory.ToArray();
+        lock (AssetCache)
+        {
+            if (AssetCache.TryGetValue(fileName, out var cached)) return cached;
+
+            var asm = typeof(BrandedEmail).Assembly;
+            var name = asm.GetManifestResourceNames()
+                .FirstOrDefault(n => n.EndsWith(fileName, StringComparison.OrdinalIgnoreCase))
+                ?? throw new InvalidOperationException($"Embedded email asset ({fileName}) not found.");
+            using var stream = asm.GetManifestResourceStream(name)!;
+            using var memory = new MemoryStream();
+            stream.CopyTo(memory);
+            return AssetCache[fileName] = memory.ToArray();
+        }
     }
 }

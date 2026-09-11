@@ -66,6 +66,8 @@
   <data name="Invitation_Body" xml:space="preserve"><value>Someone invited you to join their household on JiggerJot. Accept below to get started.</value></data>
   <data name="Invitation_Button" xml:space="preserve"><value>Accept invitation</value></data>
   <data name="Invitation_OrToken" xml:space="preserve"><value>Or use this token to join manually:</value></data>
+  <data name="Marga_SignIn" xml:space="preserve"><value>Tell me what's on your shelf and I'll tell you what you can pour tonight.</value></data>
+  <data name="Marga_Invitation" xml:space="preserve"><value>Someone wants you behind the bar with them. Bring whatever you have — I'll work with it.</value></data>
   <data name="Common_IgnoreNote" xml:space="preserve"><value>If you didn't request this, you can safely ignore this email.</value></data>
   <data name="Common_IgnoreNoteUnexpected" xml:space="preserve"><value>If you didn't expect this, you can safely ignore this email.</value></data>
 </root>

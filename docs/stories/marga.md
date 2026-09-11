@@ -186,6 +186,75 @@ line beneath it, rather than nesting `MargaSays` — which would put her face on
 
 ---
 
+### MARGA-4 — Her in the emails
+
+**Status: ✅ Implemented.** Not from the design proposal — asked for directly, after the app shipped
+and she turned out to be scarcer in practice than on paper.
+
+**As a** person who gets an email from this app
+**I want** it to sound like the app it came from
+**So that** a sign-in code does not read like it was sent by a different product
+
+**She goes on the three emails a person ASKED for**, and the decision worth recording is the fourth
+one she does not go on:
+
+| Email | Her? |
+|---|---|
+| Sign-in code (OTP) | yes — the line she already says on the login page |
+| Sign-in link (magic link) | yes — the same line |
+| Household invitation | yes — welcoming someone in |
+| **Notification** | **no** |
+
+That last template wraps **arbitrary system messages**, including "your subscription is past due" and
+a security alert. A bartender character on those undercuts the message, and the person reading it is
+not in the mood. It is a judgement rather than a rule, so it is held by a test instead of a comment.
+
+**She is attached, not merely hidden.** The image rides along as a CID inline attachment — the one
+approach Gmail and Outlook both render, since both block data-URIs — and only the emails that show
+her carry it. Her 19 KB does not travel on every notification for nothing.
+
+**Her avatar is a COPY, not a reference.** `Infrastructure` does not depend on `Shared.Ui` and must
+not start; `REBRANDING.md` already treats the email assets as their own set, and now names both.
+
+**Same contract as in the app.** `MargaSays(...)` takes a finished sentence — it never builds, picks
+or fetches one — and every line is one whole resource string from `EmailStrings.resx`. If a key ever
+goes missing the resolver echoes the key, which would ship `Marga_SignIn` to a real inbox, so a test
+fails on that instead.
+
+**Her avatar is decorative in email too** (`alt=""`), which matters more here than in the app: most
+clients block images by default, so the common case is the sentence without her. It has to read
+correctly on its own, and "photo of a bartender" in front of it would only get in the way.
+
+**Verified in a real client path**, not as a string: sent through the running API into Mailpit in
+both languages, confirming two inline images, her line above the code, and the Spanish reading as
+written Spanish. Mailpit's compatibility check adds no new warnings — every CSS property in her block
+was already used elsewhere in the template, except the avatar's `border-radius`, which degrades to a
+square in Outlook and is fine.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: The emails someone asked for sound like the app
+  Given a sign-in code, a sign-in link or an invitation
+  Then Marga says one line above the thing I came for
+  And the email carries her image alongside the logo
+
+Scenario: She stays off the bad news
+  Given a system notification — a failed payment, a security alert
+  Then she is not there
+  And her image is not attached either
+
+Scenario: An image-blocking client loses only her
+  Given images are blocked
+  Then her sentence still reads, with no alt text in front of it
+
+Scenario: She speaks both languages
+  Then her email lines have an English and a Spanish resource
+  And the Spanish is written rather than translated
+```
+
+---
+
 ## Acceptance criteria (all slices)
 
 ```gherkin
