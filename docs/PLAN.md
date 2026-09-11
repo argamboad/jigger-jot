@@ -84,31 +84,30 @@ settled the wide-screen question; and **SHELL-2**, the boot state. **The UI wave
 **Merged since** (PR #29): **ONBOARD-1**, the first minute. **Every flow in `FEATURES.md` §7–§15 is
 now covered.**
 
-**Built, verified, uncommitted** on `docs/QA-app-coverage` (branched from `develop`):
+**Merged since** (PR #30): **the QA plan's app half** — six suites, §10d–§10i, 54 cases (150 → 204).
+The document had covered the platform only while every app flow was built on top of it.
 
-- **The QA plan's app half**, which never existed. The document covered the platform only: a search of
-  its 2,300 lines for "cocktail", "shelf", "makeable" or "ingredient" returned **nothing**, and its
-  scope section still listed as out of scope "any app-specific domain features not yet built on this
-  platform" — true when it was written, false since the first slice merged.
-- **Six new suites, §10d–§10i, 54 cases** (150 → 204), plus traceability rows, sign-off rows, and the
-  test-data the app's cases need that the platform's did not: a never-touched shelf, a screen reader,
-  a Spanish reader.
-- **Two stale claims corrected**: the journey count (34 → 52) and the scope paragraph.
-- **The ritual now carries the step**, because the plan's own maintainer note asked for exactly this
-  and was not enough on its own.
+**Built, verified, uncommitted** on `fix/header-chrome` (branched from `develop`):
 
-**Previously built** on `feat/ONBOARD-1-wizard`:
-
-- **ONBOARD-1**: the first minute, and **the last unbuilt flow in `FEATURES.md`**. Two steps over the
-  same data and the same control as the shelf — guided, not a second way to record what you own.
-- **The staples needed no second curated list.** `MARGA-3` had already settled the honest definition,
-  so the wizard asks `/api/cocktails/starters` for twelve and puts them on screen already ticked.
-- **Nothing is written until Finish**, which is why the write is new: `PUT /api/inventory` takes the
-  whole shelf in one request. The per-ingredient write stays for the shelf screen, where a tick *is*
-  the decision.
-- **Offered, never forced.** No redirect, no dismissal flag, and therefore no "has this household been
-  onboarded" fact to store — which matters, because `Tenant` is the platform's and holding one bit of
-  app state there is the wrong direction (golden rule 8).
+- **The header was wrong in three ways at once**, reported from a screenshot rather than found by a
+  test. All three are written up under SHELL-1 in `docs/stories/shell.md`.
+- **SHELL-1's tab styles never applied at all.** Scoped CSS cannot reach an element rendered by a
+  child component — `<NavLink>`'s anchor never gets the scope attribute — so every rule matched
+  nothing. The `<ul>` rules DID work, so the tab bar moved correctly and the slice looked finished.
+- **Underneath that, dark theme repainted the whole bar copper.** `[data-bs-theme="dark"] a` at 0,1,1
+  outranks Bootstrap's 0,1,0 button and nav-link colours, so every anchor-shaped button went copper
+  while the identical `<button>` stayed white. Two earlier overrides had treated symptoms; the rule
+  now excludes `.btn`, `.nav-link` and `.navbar-brand`, and both overrides are gone.
+- **And it overflowed at 1024px**, clipping "Sign out" and scrolling the page sideways. The email
+  address shows at `xl` and up only, and the row may wrap rather than clip.
+- **Fourth: the account cluster stopped being pushed right**, because that had been a side effect of
+  the destinations' `me-auto` while they lived inside the collapse. It carries `ms-lg-auto` now.
+  Found by holding the bar next to `vuelto`'s, which runs the platform's original layout — **the
+  sibling apps are a reference implementation, and comparing against one is a cheap check nobody was
+  making.**
+- **Guarded in the browser**, which is the only place any of it was visible: the journey now asserts
+  the current tab's weight, the chrome's colour in dark theme, and that the page does not scroll
+  sideways.
 
 ## The UI wave — 2026-09-10
 
@@ -216,3 +215,13 @@ had their own private copy of "tick an ingredient". Three journeys went red in C
 had been made and verified correctly. **Before changing a shared control, grep the E2E project for
 everything that drives it** — and if more than one fixture drives it, the helper belongs in
 `E2ETestBase`, which is where `SetShelfAsync` now lives.
+
+**Writing component CSS that a child component renders.** SHELL-1 styled the header's destinations in
+`AppHeader.razor.css`. Blazor's CSS isolation stamps its `b-xxxxx` attribute on the elements of the
+component's OWN markup only, and those anchors come from `<NavLink>` — a child component — so every
+rule compiled to a selector that matched nothing and silently did nothing. The `.app-tabs` rules on
+the `<ul>` DID apply, because that element is AppHeader's own, so the tab bar moved to the bottom
+correctly and the slice looked finished. **Scoped CSS cannot reach inside a child component**: if a
+selector's last element is rendered by one, it belongs in `app.css`. It shipped, and the manual case
+that described the right behaviour (`QA-CHROME-04`) had not been run yet — which is the argument for
+running the plan rather than only writing it.

@@ -24,6 +24,30 @@ public class ShellJourneyTests : E2ETestBase
         // Wide first: the destinations live in the header, beside the brand.
         await Page.SetViewportSizeAsync(1280, 800);
         await Expect(Page.GetByTestId("nav-shelf")).ToBeVisibleAsync(new() { Timeout = 30_000 });
+
+        // The current tab's WEIGHT, asserted before anything else, because it is the cheapest proof
+        // that these rules reach the element at all. They were authored in AppHeader.razor.css, and
+        // Blazor's CSS isolation stamps its scope attribute only on the component's OWN markup — the
+        // anchor here is rendered by <NavLink>, a child component, so every rule compiled to a
+        // selector matching NOTHING. It shipped that way: the destinations kept Bootstrap's colour
+        // and no tab was ever bold. A screenshot would have shown it; no test could.
+        await Expect(Page.GetByTestId("nav-home")).ToHaveCSSAsync("font-weight", "700");
+        await Expect(Page.GetByTestId("nav-shelf")).ToHaveCSSAsync("font-weight", "500");
+
+        // ...and in DARK theme the chrome must stay white. The dark link colour is painted at
+        // specificity 0,1,1 and Bootstrap colours buttons and nav links at 0,1,0, so it repainted
+        // every anchor-shaped button and every destination in the bar copper — while the identical
+        // <button> beside them stayed white. "Sign out" is that button, so it is the control.
+        await Page.GetByTestId("theme-switcher").SelectOptionAsync("dark");
+        await Expect(Page.GetByTestId("nav-shelf")).ToHaveCSSAsync("color", "rgba(255, 255, 255, 0.85)");
+        await Expect(Page.GetByTestId("nav-billing")).ToHaveCSSAsync("color", "rgb(248, 249, 250)");
+        await Expect(Page.GetByTestId("sign-out")).ToHaveCSSAsync("color", "rgb(248, 249, 250)");
+
+        // A long household name must never push "Sign out" off the end of the bar, and the page must
+        // never scroll sideways to reach it.
+        Assert.That(await Page.EvaluateAsync<bool>(
+            "document.body.scrollWidth > document.documentElement.clientWidth"), Is.False,
+            "the header overflowed and the page scrolled sideways");
         await Page.GetByTestId("nav-cocktails").ClickAsync();
         await Expect(Page.GetByTestId("cocktail-list").Or(Page.GetByTestId("cocktail-empty")))
             .ToBeVisibleAsync(new() { Timeout = 30_000 });

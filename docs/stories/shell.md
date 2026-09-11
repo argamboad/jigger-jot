@@ -68,6 +68,38 @@ container gained bottom padding, and INV-3's sticky payoff footer now sits clear
 clearance is one global token (`--tab-bar-clearance`, zero above the breakpoint) rather than a media
 query re-spelled on each screen — the payoff footer is the first claimant and will not be the last.
 
+> **⚠️ Fixed after the fact: none of the tab STYLES were reaching the anchor.** They were authored in
+> `AppHeader.razor.css`, and Blazor's CSS isolation stamps its `b-xxxxx` attribute only on the
+> elements of the component's **own** markup. The anchor is rendered by `<NavLink>`, a **child**
+> component, which never receives it — so `.app-tabs .nav-link` compiled to
+> `.app-tabs .nav-link[b-xxxxx]` and matched **nothing**. The `.app-tabs` rules on the `<ul>` itself
+> did work, because that element is AppHeader's own, which is exactly what made the failure invisible:
+> the tab bar moved to the bottom correctly, so the slice looked right, while the destinations kept
+> Bootstrap's colour and no tab was ever bold. They now live in `app.css` under `.app-header`.
+>
+> **Underneath it, a second bug the first one hid.** `[data-bs-theme="dark"] a` is specificity 0,1,1,
+> and Bootstrap paints buttons and nav links at 0,1,0 (`.btn`/`.nav-link` reading a custom property).
+> So in dark theme that rule repainted every anchor-shaped button and every destination in the header
+> **copper** — while the identical `<button>` beside them stayed white, which is why "Sign out"
+> looked right and "Settings" did not. Two earlier one-off overrides (`a.btn-primary`, then
+> `.navbar-brand`) had each treated a symptom; the rule now excludes `.btn`, `.nav-link` and
+> `.navbar-brand`, and both overrides are gone as redundant.
+>
+> **And the bar overflowed at 1024px**, clipping "Sign out" and making the page scroll sideways. The
+> email address is the one thing in that row nobody needs — you know your own — so it shows only at
+> `xl` and up, and the row may wrap rather than clip.
+>
+> **A fourth, from moving the `<ul>` out of the collapse: the account cluster stopped being pushed
+> right.** Its right alignment had been a side effect of the destinations' `me-auto` while they lived
+> inside the collapse. Outside it, the collapse grows to fill the row and there is nothing to push
+> against, so the furniture sat jammed against "Cocktails" with **400px of dead space after "Sign
+> out"**. It now carries `ms-lg-auto` of its own — at `lg` and up only, since below that the collapse
+> is a dropdown where right-aligning would be wrong. Caught by comparing the bar against `vuelto`,
+> which runs the platform's original layout and was right all along.
+>
+> `QA-CHROME-04` already described the correct behaviour ("they read at least as strongly as
+> Household/Billing/Settings on the right"). The case was written before anyone ran it.
+
 **Acceptance criteria**
 
 ```gherkin
