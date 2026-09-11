@@ -62,8 +62,8 @@
 **Merged into `develop`** (PRs #1–#19): the domain model and both tenancy walls, the seed catalog,
 browse, detail, the measurement preference, the shelf, the makeable engine, one-ingredient-away, the
 recipe's own makeability, custom ingredients, the catalog filters, forking, authoring, and the
-brand-token stylesheet fixes. **Every flow in `FEATURES.md` §8–§15 is covered.** Only §7, the
-onboarding wizard, has never been built.
+brand-token stylesheet fixes. **Every flow in `FEATURES.md` §8–§15 is covered.** §7, the onboarding
+wizard, was the last one unbuilt — it is the uncommitted slice below.
 
 The same stylesheet fixes went upstream the same day: `perezosoft-platform` #222 and `vuelto` #57.
 All three apps inherited the defect from the platform's `app.css`.
@@ -72,22 +72,22 @@ All three apps inherited the defect from the platform's `app.css`.
 **MARGA-2**, the signed-in home screen — which closed the `<!-- TODO -->` the platform's welcome card
 had carried since day one.
 
-**Merged since** (PRs #25–#27): **INV-3**, the shelf rework; **MARGA-3**, the two empty states, which
-settled what a first bottle is and closed the `MARGA` epic; and **SHELL-1**, the responsive shell,
-which settled the wide-screen question.
+**Merged since** (PRs #25–#28): **INV-3**, the shelf rework; **MARGA-3**, the two empty states, which
+settled what a first bottle is and closed the `MARGA` epic; **SHELL-1**, the responsive shell, which
+settled the wide-screen question; and **SHELL-2**, the boot state. **The UI wave is complete.**
 
-**Built, verified, uncommitted** on `feat/SHELL-2-boot-state` (branched from `develop`):
+**Built, verified, uncommitted** on `feat/ONBOARD-1-wizard` (branched from `develop`):
 
-- **SHELL-2**: the boot state, and the last slice of the UI wave. The stock two-circle spinner becomes
-  her illustration, rocking as if shaking — CSS on the static drawing, so there is no second asset —
-  with the brass arc still reading the real load percentage.
-- **The parity rule was already broken**, before there was a boot state to break it with: web had the
-  stock spinner, MAUI had the literal word `Loading...`. It is a CI gate now rather than a line in a
-  document, and it asserts the one intended difference in both directions.
-- **Found in the browser, not by a test:** the arc showed a sixth of a turn while the text read 81%.
-  `calc()` cannot divide a percentage by a percentage, and an invalid `calc` is dropped **silently**.
-- **A second gate holds the asset's size**, because this is the one place the drawing is fetched
-  before the app is usable.
+- **ONBOARD-1**: the first minute, and **the last unbuilt flow in `FEATURES.md`**. Two steps over the
+  same data and the same control as the shelf — guided, not a second way to record what you own.
+- **The staples needed no second curated list.** `MARGA-3` had already settled the honest definition,
+  so the wizard asks `/api/cocktails/starters` for twelve and puts them on screen already ticked.
+- **Nothing is written until Finish**, which is why the write is new: `PUT /api/inventory` takes the
+  whole shelf in one request. The per-ingredient write stays for the shelf screen, where a tick *is*
+  the decision.
+- **Offered, never forced.** No redirect, no dismissal flag, and therefore no "has this household been
+  onboarded" fact to store — which matters, because `Tenant` is the platform's and holding one bit of
+  app state there is the wrong direction (golden rule 8).
 
 ## The UI wave — 2026-09-10
 
@@ -118,8 +118,13 @@ Each is one branch off `develop`, one PR, after the previous one is merged.
 
 | # | Slice | Flow / screen | What it is |
 |---|---|---|---|
-| 1 | **SHELL-2** | screen 9 | The uncommitted work above. Waiting on C+P+PR. **Last slice of the UI wave.** |
-| 4 | **ONBOARD-1** | §7 | The last unbuilt flow, and the only one predating the wave. Sits after it because a wizard that lands on a reworked shelf should be built against the reworked shelf. **Now has a head start**: MARGA-3 settled what a first bottle is, and a starter SET is the same question asked four times. |
+| 1 | **ONBOARD-1** | §7 | The uncommitted work above. Waiting on C+P+PR. **The last unbuilt flow** — with it merged, every flow in `FEATURES.md` §7–§15 is covered. |
+
+**After this one the list is empty, and what follows is a decision rather than a queue.** Candidates,
+none of which blocks another: the 969-recipe catalog behind a flag (a flag, not a slice); the Savoy
+transcription-source question (JJ-032, open, blocks nothing); the two scrape-merged recipe lines;
+**`AUTHORING-2`** — editing a cocktail, including a fork, the one outstanding story inside an epic
+marked complete; and a QA pass over the whole app, since the UI wave changed every screen it has.
 
 **Three questions to settle before the slices that need them. All three are now settled, each by the
 slice that needed it — the answers are kept here because the reasoning outlives the slice.**

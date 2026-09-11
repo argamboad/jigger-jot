@@ -1,0 +1,265 @@
+@page "/welcome"
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager Nav
+@inject IStringLocalizer<AppStrings> Localizer
+
+<PageTitle>@Localizer["Onboard_Title"]</PageTitle>
+
+@* ONBOARD-1, FEATURES §7. A brand-new household has an empty shelf, so "what can I make" answers
+   nothing — this exists to make sure nobody meets that screen first (JJ-021).
+
+   It is the SHELF, guided: two steps over the same data and the same controls, not a second way to
+   record what someone owns. Step one is the short list worth asking about; step two is everything
+   else, for anyone who wants it. Nothing is written until Finish. *@
+
+<div class="onboard">
+
+    @if (_loading)
+    {
+        <div class="p-5 text-center text-muted">
+            <span class="spinner-border spinner-border-sm me-2"></span> @Localizer["Common_Loading"]
+        </div>
+    }
+    else if (_error is not null)
+    {
+        <div class="alert alert-danger" data-testid="onboard-error">@_error</div>
+    }
+    else
+    {
+        <div class="card shadow-sm mb-3">
+            <div class="card-body p-4">
+                <MargaSays Size="56" Aside="@Localizer["Onboard_MargaAside"]">
+                    @(_step == 1 ? Localizer["Marga_OnboardStaples"] : Localizer["Marga_OnboardRest"])
+                </MargaSays>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+
+                <p class="onboard-step text-body-secondary" data-testid="onboard-step">
+                    @Localizer["Onboard_Step", _step, TotalSteps]
+                </p>
+
+                @if (_step == 1)
+                {
+                    <h1 class="h4 fw-bold mb-1">@Localizer["Onboard_StaplesHeading"]</h1>
+                    <p class="text-body-secondary mb-3">@Localizer["Onboard_StaplesBody"]</p>
+
+                    @* Pre-ticked, and that is the point: answering "which of these are wrong" is far
+                       faster than picking a dozen bottles out of 191. They are SUGGESTIONS until
+                       Finish — nothing here has been written. *@
+                    <div class="shelf-pills mb-3" data-testid="onboard-staples">
+                        @foreach (var item in _staples)
+                        {
+                            <input class="btn-check" type="checkbox" autocomplete="off"
+                                   id="@($"sug-{item.IngredientId}")"
+                                   data-testid="@($"onboard-item-{item.IngredientId}")"
+                                   checked="@_wanted.Contains(item.IngredientId)"
+                                   @onchange="e => Toggle(item.IngredientId, e)" />
+                            <label class="btn btn-sm btn-outline-secondary shelf-pill" for="@($"sug-{item.IngredientId}")">
+                                @item.Ingredient
+                            </label>
+                        }
+                    </div>
+
+                    @if (_staples.Count == 0)
+                    {
+                        <p class="text-body-secondary" data-testid="onboard-no-staples">
+                            @Localizer["Onboard_NothingToSuggest"]
+                        </p>
+                    }
+                }
+                else
+                {
+                    <h1 class="h4 fw-bold mb-1">@Localizer["Onboard_RestHeading"]</h1>
+                    <p class="text-body-secondary mb-3">@Localizer["Onboard_RestBody"]</p>
+
+                    <div class="input-group mb-3" style="max-width:360px">
+                        <span class="input-group-text" aria-hidden="true">🔎</span>
+                        <input class="form-control" data-testid="onboard-search"
+                               placeholder="@Localizer["Shelf_SearchPlaceholder"]"
+                               aria-label="@Localizer["Shelf_SearchPlaceholder"]"
+                               @bind="_search" @bind:event="oninput" />
+                    </div>
+
+                    @* The same control as the shelf, deliberately. Someone who fills this in and then
+                       opens the shelf next week should find the screen they already know. *@
+                    @foreach (var group in Visible.GroupBy(i => i.Category))
+                    {
+                        <div class="mb-3">
+                            <h2 class="h6 text-uppercase text-muted mb-2">@group.Key</h2>
+                            <div class="shelf-pills">
+                                @foreach (var item in group)
+                                {
+                                    <input class="btn-check" type="checkbox" autocomplete="off"
+                                           id="@($"all-{item.Id}")"
+                                           data-testid="@($"onboard-item-{item.Id}")"
+                                           checked="@_wanted.Contains(item.Id)"
+                                           @onchange="e => Toggle(item.Id, e)" />
+                                    <label class="btn btn-sm btn-outline-secondary shelf-pill" for="@($"all-{item.Id}")">
+                                        @item.Name
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if (!Visible.Any())
+                    {
+                        <p class="text-body-secondary" data-testid="onboard-no-matches">
+                            @Localizer["Shelf_NoMatches"]
+                        </p>
+                    }
+                }
+
+                @if (_saveError is not null)
+                {
+                    <div class="alert alert-warning py-2" data-testid="onboard-save-error">@_saveError</div>
+                }
+
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-4">
+                    <strong class="me-auto" data-testid="onboard-count">
+                        @Localizer["Shelf_Count", _wanted.Count]
+                    </strong>
+
+                    @if (_step > 1)
+                    {
+                        <button class="btn btn-outline-secondary" data-testid="onboard-back"
+                                disabled="@_saving" @onclick="() => _step--">
+                            @Localizer["Onboard_Back"]
+                        </button>
+                    }
+
+                    @if (_step < TotalSteps)
+                    {
+                        <button class="btn btn-primary" data-testid="onboard-next" @onclick="() => _step++">
+                            @Localizer["Onboard_Next"]
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-primary" data-testid="onboard-finish"
+                                disabled="@_saving" @onclick="FinishAsync">
+                            @Localizer["Onboard_Finish"]
+                        </button>
+                    }
+                </div>
+
+                @* A wizard nobody can leave is a wizard people resent. It writes nothing and the
+                   catalog is one tap away regardless. *@
+                <div class="mt-3">
+                    <a class="btn btn-link btn-sm px-0" href="/cocktails" data-testid="onboard-skip">
+                        @Localizer["Onboard_Skip"]
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private const int TotalSteps = 2;
+
+    /// <summary>
+    /// How many bottles to put on the first screen. Enough to be worth asking about, few enough to
+    /// read in one go — past a dozen the step stops being a shortcut and becomes the shelf again.
+    /// </summary>
+    private const int Suggestions = 12;
+
+    private List<ShelfItemView> _catalog = [];
+    private List<StarterView> _staples = [];
+
+    /// <summary>Everything meant to end up ticked. The ONLY state the wizard keeps, and nothing in it
+    /// reaches the server until Finish.</summary>
+    private readonly HashSet<Guid> _wanted = [];
+
+    private int _step = 1;
+    private string _search = string.Empty;
+    private bool _loading = true;
+    private bool _saving;
+    private string? _error;
+    private string? _saveError;
+
+    private IEnumerable<ShelfItemView> Visible =>
+        string.IsNullOrWhiteSpace(_search)
+            ? _catalog
+            : _catalog.Where(i => i.Name.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase)
+                               || i.Category.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _catalog = await Http.GetFromJsonAsync<List<ShelfItemView>>("/api/inventory") ?? [];
+
+            // "Common staples may be pre-suggested" (FEATURES §7), and the honest definition of a
+            // staple is the one MARGA-3 already settled: the bottles the most recipes ask for, minus
+            // what this household has. No second curated list to keep in step with the catalog, and
+            // it grows by itself when the full catalog is switched on.
+            _staples = await Http.GetFromJsonAsync<List<StarterView>>(
+                $"/api/cocktails/starters?limit={Suggestions}") ?? [];
+
+            // Anything already ticked stays ticked. A household that joined by invitation has a shelf
+            // already (FEATURES §7), and so does anyone who wandered in here a second time — neither
+            // should find their answers thrown away.
+            foreach (var item in _catalog.Where(i => i.IsAvailable)) _wanted.Add(item.Id);
+
+            // ...and the suggestions arrive selected, which is what makes the first step fast.
+            foreach (var staple in _staples) _wanted.Add(staple.IngredientId);
+        }
+        catch (Exception)
+        {
+            _error = Localizer["Shelf_LoadFailed"];
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void Toggle(Guid id, ChangeEventArgs e)
+    {
+        if (e.Value is bool b && b) _wanted.Add(id);
+        else _wanted.Remove(id);
+    }
+
+    private async Task FinishAsync()
+    {
+        _saving = true;
+        _saveError = null;
+
+        try
+        {
+            // The whole shelf in ONE request. Writing tick by tick would leave a half-filled shelf
+            // behind for anyone who closed the tab midway, and would have written a dozen rows the
+            // household never confirmed.
+            //
+            // Every row is sent, not just the changes: the wizard's answer is "this is my shelf", and
+            // sending only the differences would make the result depend on what the shelf held when
+            // the request landed.
+            var items = _catalog.Select(i => new { ingredientId = i.Id, isAvailable = _wanted.Contains(i.Id) });
+            var response = await Http.PutAsJsonAsync("/api/inventory", new { items });
+            if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
+        }
+        catch (Exception)
+        {
+            _saveError = Localizer["Shelf_SaveFailed"];
+            return;
+        }
+        finally
+        {
+            _saving = false;
+        }
+
+        // FEATURES §7 step 5: land on what you can make, ideally already populated. Deep-linked the
+        // same way the home screen's buttons are, so the list arrives with the filter already on.
+        Nav.NavigateTo("/cocktails?makeable=true");
+    }
+
+    private record ShelfItemView(
+        Guid Id, string Name, string Category, string? Subcategory, bool IsAvailable, bool IsOwn);
+
+    private record StarterView(Guid IngredientId, string Ingredient, int Appears);
+}

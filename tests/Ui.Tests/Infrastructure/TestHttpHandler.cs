@@ -15,6 +15,13 @@ public sealed class TestHttpHandler : HttpMessageHandler
     /// <summary>Every request the components made, in order — assert against these.</summary>
     public List<HttpRequestMessage> Requests { get; } = [];
 
+    /// <summary>
+    /// The body of each request, at the same index as <see cref="Requests"/>. Captured on the way
+    /// through rather than read back later: HttpClient disposes the request message once the send
+    /// completes, so by the time a test looks, the content is gone.
+    /// </summary>
+    public List<string> Bodies { get; } = [];
+
     private readonly Dictionary<string, TaskCompletionSource<HttpResponseMessage>> _gated = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Stub "METHOD /path" (path only, query ignored) to return <paramref name="json"/> with <paramref name="status"/>.</summary>
@@ -47,6 +54,7 @@ public sealed class TestHttpHandler : HttpMessageHandler
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         Requests.Add(request);
+        Bodies.Add(request.Content?.ReadAsStringAsync(cancellationToken).GetAwaiter().GetResult() ?? "");
         var key = Key(request.Method, request.RequestUri?.AbsolutePath ?? "/");
         if (_gated.TryGetValue(key, out var gate))
             return gate.Task;

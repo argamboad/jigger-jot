@@ -22,6 +22,32 @@ public record ShelfItem(
 public record SetAvailabilityRequest(bool IsAvailable);
 
 /// <summary>
+/// One ingredient's intended state, for the bulk write (ONBOARD-1). The state is stated rather than
+/// toggled: the wizard puts a dozen suggestions on screen already ticked and asks which are wrong, so
+/// the answer must not depend on what the shelf happened to hold when the request landed.
+/// </summary>
+public record ShelfChange(Guid IngredientId, bool IsAvailable);
+
+/// <summary>
+/// A whole shelf in one request (ONBOARD-1, FEATURES §7 — "optimized for fast bulk-checking").
+/// <para>
+/// Deliberately NOT the shelf screen's shape. A tick there is a decision someone just made and
+/// should be saved before they look away, which is why INV-1 writes one at a time and rolls back.
+/// The wizard is the opposite: nothing on it is confirmed until Finish, so writing as it goes would
+/// leave a half-filled shelf behind for anyone who closed the tab midway.
+/// </para>
+/// </summary>
+public record BulkSetAvailabilityRequest(IReadOnlyList<ShelfChange> Items);
+
+/// <summary>
+/// What the bulk write did.
+/// </summary>
+/// <param name="Unknown">Ids this household cannot see — named back rather than silently dropped, and
+/// rather than failing the whole request. The catalog can change under a wizard that has been open a
+/// while, and losing eleven good ticks because the twelfth went stale is the wrong trade.</param>
+public record BulkSetResult(int Applied, IReadOnlyList<Guid> Unknown);
+
+/// <summary>
 /// Adding a household's own ingredient inline from the shelf (INV-2, FEATURES §8).
 /// </summary>
 /// <param name="CategoryId">A <b>top-level</b> category from <c>GET /api/inventory/categories</c>.

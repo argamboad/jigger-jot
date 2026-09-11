@@ -1,0 +1,13 @@
+/* ONBOARD-1. A wizard is read top to bottom, so it gets a narrower column than the catalog: the
+   width that makes a list of 191 pills scannable is not the width that makes two sentences readable. */
+.onboard {
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.onboard-step {
+    font-size: .8125rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: .35rem;
+}

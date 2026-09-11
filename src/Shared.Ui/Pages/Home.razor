@@ -63,12 +63,20 @@
             else
             {
                 @* Not the catalog's empty state — that one is MARGA-3. This is the front page telling
-                   a household with nothing ticked where to start. *@
+                   a household with nothing ticked where to start, and ONBOARD-1 made that the guided
+                   route rather than the raw checklist: 191 pills with no idea which matter is exactly
+                   the dead first impression JJ-021 exists to avoid. The shelf stays one tap further
+                   on for anyone who would rather just get on with it. *@
                 <div class="card shadow-sm mb-3">
                     <div class="card-body p-4 text-center">
-                        <a class="btn btn-primary btn-lg" href="/shelf" data-testid="home-update-shelf">
-                            @Localizer["Make_FillYourShelf"]
+                        <a class="btn btn-primary btn-lg" href="/welcome" data-testid="home-setup-shelf">
+                            @Localizer["Onboard_SetUpShelf"]
                         </a>
+                        <div class="mt-3">
+                            <a class="btn btn-link btn-sm" href="/shelf" data-testid="home-update-shelf">
+                                @Localizer["Make_FillYourShelf"]
+                            </a>
+                        </div>
                     </div>
                 </div>
             }
