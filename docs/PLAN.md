@@ -12,8 +12,25 @@
 2. **Do not start the next slice until the user says "merged".** If a slice turns out to depend on
    something unmerged, **stop and say so**. Do not work around it. Working around it is how a branch
    ended up based on a feature branch.
-3. **Do not commit, push, or open a PR until the user says "C+P+PR".** "go" means *build it*. It
-   does not mean publish it. Every report ends with "waiting on your C+P+PR".
+3. **Do not push or open a PR until the user says "C+P+PR".** "go" means *build it*. It does not mean
+   publish it. Every report ends with "waiting on your C+P+PR".
+   **Committing is not publishing** (amended 2026-09-11). A finished unit of work gets its own commit
+   on the branch as soon as it is done and verified — that is what makes it revertable on its own.
+   What waits for the word is the **push and the PR**.
+
+**The batching rule — 2026-09-11.** A branch is no longer one slice. It is a **batch**, and the unit
+of work is the **commit**.
+
+- Each finished thing is its own commit, with its own message, revertable on its own.
+- Several commits ride one branch and one PR, so CI runs **once** for the batch instead of once per
+  fix.
+- This exists for a measured reason: the full run is ~15 minutes, and paying it for a one-line CSS
+  fix meant small repairs cost more waiting than doing. `LOCALCI-3` attacks the other half of the same
+  problem by making the run itself proportional to the change.
+- **It does not license mixing.** The old warning still stands for FEATURES: two slices in one PR is
+  still wrong, because a reviewer cannot take one and leave the other. A batch of independent fixes,
+  or a fix plus a small addition, is a different thing — the commits keep them separable, and the PR
+  body must list them as separate items rather than blurring them into one story.
 
 ## The slice ritual — every time, in this order
 
@@ -34,8 +51,9 @@
    plan's own maintainer note asked for it and nineteen app slices shipped without it, leaving a
    document whose scope section claimed the app had no features at all.
 8. Run: Release build of API and Web (zero warnings), then `Core.Tests`, `Api.Tests`, `Ui.Tests`.
-9. Report: what flow it implements, what was decided and why, what is deliberately out, the test
-   counts. Then **wait**.
+9. **Commit it**, on its own, with a message that stands alone — then report: what flow it
+   implements, what was decided and why, what is deliberately out, the test counts. Then **wait**.
+   The next thing may be another commit on the same branch; the push and the PR wait for the word.
 10. **On "merged", update the Slice Board** before anything else — it is the only view of this
     project the maintainer has that is not a diff, and a board that lags is worse than no board.
     `https://claude.ai/code/artifact/a9fed2f8-60e9-478e-9030-864170fab1d7`; read it first, then
