@@ -197,6 +197,7 @@
   <data name="Billing_CheckoutSuccess" xml:space="preserve"><value>Payment received. Your plan updates as soon as the provider confirms it — usually within a few seconds.</value></data>
   <data name="Billing_CheckoutCancelled" xml:space="preserve"><value>Checkout cancelled — nothing changed.</value></data>
   <data name="Nav_SignOut" xml:space="preserve"><value>Sign out</value></data>
+  <data name="Nav_AccountMenu" xml:space="preserve"><value>Account menu</value></data>
   <data name="Home_HeroSubtitle" xml:space="preserve"><value>Sign in to get started with your household.</value></data>
   <data name="Home_SignInCta" xml:space="preserve"><value>Sign in</value></data>
   <data name="Home_MakeableLabel" xml:space="preserve"><value>drinks you can pour right now</value></data>

@@ -72,21 +72,19 @@ All three apps inherited the defect from the platform's `app.css`.
 **MARGA-2**, the signed-in home screen — which closed the `<!-- TODO -->` the platform's welcome card
 had carried since day one.
 
-**Merged since** (PR #25): **INV-3**, the shelf rework — pills, per-category counts, a jump bar, and
-the payoff footer that asks once per burst of ticks rather than once per tick.
+**Merged since** (PRs #25–#26): **INV-3**, the shelf rework, and **MARGA-3**, the two empty states —
+which settled what a first bottle is and closed the `MARGA` epic.
 
-**Built, verified, uncommitted** on `feat/MARGA-3-empty-states` (branched from `develop`):
+**Built, verified, uncommitted** on `feat/SHELL-1-tab-bar` (branched from `develop`):
 
-- **MARGA-3**: the two empty states. Both carry her scene, `Make_FillYourShelf` is a primary button,
-  and the one-away state names a bottle to start from.
-- **The first-bottle question is answered** — see below. It needed a new endpoint,
-  `GET /api/cocktails/starters`, which is the wave's second and last piece of engine work.
-- **Found in the browser, not by a test:** with the one-away filter on *and a search typed*, an empty
-  list means the search found nothing — and the suggestion told someone who may own forty bottles to
-  go shopping. The filter now has to be the only thing narrowing the list.
-- **Tested as components rather than as a journey**, because the development database cannot produce
-  the state: it was seeded before the catalog was cut to its starter set, so an empty shelf there is
-  one bottle away from fourteen drinks rather than from nothing.
+- **SHELL-1**: the app's three destinations move to a bottom tab bar below `lg`, and the hamburger
+  keeps only the account cluster.
+- **One element, two positions.** The same `<ul>` is repositioned by CSS rather than a second copy
+  being rendered and hidden — which would put two `nav-shelf` in the DOM and fail every journey that
+  clicks it by test id on an ambiguous locator. A test asserts each id resolves exactly once.
+- **The wide-screen question is answered** — see below.
+- **A fixed bar sits ON the page**, so the content container gained bottom padding and INV-3's payoff
+  footer now sits clear of it, through one global token rather than a media query per screen.
 
 ## The UI wave — 2026-09-10
 
@@ -117,12 +115,12 @@ Each is one branch off `develop`, one PR, after the previous one is merged.
 
 | # | Slice | Flow / screen | What it is |
 |---|---|---|---|
-| 1 | **MARGA-3** | screens 6, 7 | The uncommitted work above. Waiting on C+P+PR. |
-| 2 | **SHELL-1** | all, below `lg` | Bottom tab bar for the app's three destinations; account furniture stays on top. ⚠️ must keep the `nav-shelf` and `nav-cocktails` test ids. |
-| 3 | **SHELL-2** | screen 9 | The boot state. Smallest of the wave, and it lands in **two** `index.html` files, not one. |
+| 1 | **SHELL-1** | all, below `lg` | The uncommitted work above. Waiting on C+P+PR. |
+| 2 | **SHELL-2** | screen 9 | The boot state. Smallest of the wave, and it lands in **two** `index.html` files, not one. |
 | 4 | **ONBOARD-1** | §7 | The last unbuilt flow, and the only one predating the wave. Sits after it because a wizard that lands on a reworked shelf should be built against the reworked shelf. **Now has a head start**: MARGA-3 settled what a first bottle is, and a starter SET is the same question asked four times. |
 
-**Three questions to settle before the slices that need them. Two are now settled; one is left.**
+**Three questions to settle before the slices that need them. All three are now settled, each by the
+slice that needed it — the answers are kept here because the reasoning outlives the slice.**
 
 1. ~~**What is the best first bottle for an empty shelf?**~~ **Answered by `MARGA-3`.** It is the
    ingredient the most recipes **ask for**, among those the household does not already have — required
@@ -137,9 +135,12 @@ Each is one branch off `develop`, one PR, after the previous one is merged.
    So the screen re-asks `?makeable=true&pageSize=1` — but only once the ticking stops. Each tick
    cancels the pending ask, and an answer overtaken by a later tick is discarded rather than written
    over a fresher one, so a burst costs one request rather than one per checkbox.
-3. **Do wide screens change too?** `SHELL-1` moves the destinations to a tab bar below `lg`. At wide
-   widths the app's own links stay at 55% opacity beside the platform's at full strength, which the
-   bug list called a hierarchy question rather than a defect. Answering it at one width only moves it.
+3. ~~**Do wide screens change too?**~~ **Answered by `SHELL-1`: yes.** Lifting the destinations only
+   inside the tab bar would have moved the inconsistency rather than settled it, so the app's own
+   links are raised at every width — 85% white, full white and bold for the current one. The account
+   cluster is deliberately untouched: the complaint was that the destinations read as less important
+   than the furniture, and the fix is to raise the destinations, not to dim shared platform chrome
+   this slice has no business redesigning.
 
 **One thing that is already decided.** Selected shelf pills are **filled**, not outlined: the catalog
 screen already uses outlined pills for filters, and the same shape one screen apart must not mean two

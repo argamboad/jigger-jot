@@ -197,6 +197,7 @@
   <data name="Billing_CheckoutSuccess" xml:space="preserve"><value>Pago recibido. Tu plan se actualiza en cuanto el proveedor lo confirma; normalmente en unos segundos.</value></data>
   <data name="Billing_CheckoutCancelled" xml:space="preserve"><value>Pago cancelado: no cambió nada.</value></data>
   <data name="Nav_SignOut" xml:space="preserve"><value>Cerrar sesión</value></data>
+  <data name="Nav_AccountMenu" xml:space="preserve"><value>Menú de la cuenta</value></data>
   <data name="Home_HeroSubtitle" xml:space="preserve"><value>Inicia sesión para empezar con tu hogar.</value></data>
   <data name="Home_SignInCta" xml:space="preserve"><value>Iniciar sesión</value></data>
   <data name="Home_MakeableLabel" xml:space="preserve"><value>tragos que puedes preparar ahora mismo</value></data>

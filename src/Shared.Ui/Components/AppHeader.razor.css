@@ -46,3 +46,64 @@
 .user-name {
     font-size: .85rem;
 }
+
+/* ── SHELL-1: the app's own destinations ──────────────────────────────────────────────────────
+   One element, two positions. At lg and above it sits in the header row; below lg the same element
+   is pulled out to the bottom of the viewport. A second copy hidden by CSS would put two
+   `nav-shelf` in the DOM and break every browser journey that clicks it by test id. */
+
+/* The hierarchy question the bug list raised, answered at BOTH widths rather than only below lg.
+   Bootstrap paints these from --bs-navbar-color at 55% white, which made the three screens someone
+   actually uses the faintest text in the chrome, quieter than "cancel my subscription" beside them.
+   Answering it only in the tab bar would have moved the inconsistency rather than settled it. */
+.app-tabs .nav-link {
+    color: rgba(255, 255, 255, .85);
+    font-weight: 500;
+}
+
+.app-tabs .nav-link:hover,
+.app-tabs .nav-link:focus-visible {
+    color: #fff;
+}
+
+/* Weight and a drawn indicator, never colour alone — the tab you are on has to survive a screen
+   that renders this in greyscale, and aria-current carries the same fact to a screen reader. */
+.app-tabs .nav-link.active {
+    color: #fff;
+    font-weight: 700;
+    box-shadow: inset 0 -3px 0 0 #fff;
+}
+
+@media (max-width: 991.98px) {
+    .app-tabs {
+        position: fixed;
+        inset: auto 0 0 0;
+        z-index: 1030;
+        flex-direction: row;
+        justify-content: space-around;
+        margin: 0;
+        background: var(--bs-primary);
+        border-top: 1px solid rgba(255, 255, 255, .18);
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, .25);
+        /* Clear the iOS home indicator, the same way the header clears the notch. Resolves to 0
+           on Android and on the web. */
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .app-tabs .nav-item {
+        flex: 1 1 0;
+        text-align: center;
+    }
+
+    .app-tabs .nav-link {
+        padding: .6rem .25rem;
+        font-size: .9rem;
+    }
+
+    /* The indicator moves to the top edge, where it reads as the tab being lifted rather than as an
+       underline hanging off the bottom of the screen. */
+    .app-tabs .nav-link.active {
+        box-shadow: inset 0 3px 0 0 #fff;
+        background: rgba(255, 255, 255, .10);
+    }
+}

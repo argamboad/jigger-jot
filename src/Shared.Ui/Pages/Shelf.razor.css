@@ -85,7 +85,10 @@
    while you are still ticking, which it cannot do from the bottom of a 191-row page. */
 .shelf-payoff {
     position: sticky;
-    bottom: 0;
+    /* Clear of SHELL-1's tab bar, which is fixed to the bottom of the viewport below lg and would
+       otherwise sit on top of the one thing this footer exists to show. Zero above that breakpoint,
+       where there is no tab bar. */
+    bottom: var(--tab-bar-clearance, 0px);
     z-index: 3;
     display: flex;
     flex-wrap: wrap;

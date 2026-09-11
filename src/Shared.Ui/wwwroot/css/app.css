@@ -19,6 +19,12 @@
     --bs-link-color: #B4562A;
     --bs-link-hover-color: #8C3F1D;
     --header-height: 60px;
+    /* SHELL-1's bottom tab bar. Two tokens rather than one: the HEIGHT is a constant the layout
+       reserves room for, while the CLEARANCE is zero above the breakpoint and lets anything else
+       stuck to the bottom of a page — the shelf's payoff footer — sit clear of it without each
+       screen re-spelling the media query. */
+    --tab-bar-height: 56px;
+    --tab-bar-clearance: 0px;
     --app-bg: #F4F5F7;              /* page background surface — cool near-white */
     --app-border: #E4D8CF;          /* soft border tinted toward the primary */
 }
@@ -258,4 +264,12 @@ code {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
+}
+/* SHELL-1. Below lg the app's destinations become a tab bar fixed to the bottom of the viewport, so
+   anything else anchored there has to sit above it. Set once, globally, rather than once per screen:
+   the shelf's payoff footer is the only claimant today and will not be the last. */
+@media (max-width: 991.98px) {
+    :root {
+        --tab-bar-clearance: calc(var(--tab-bar-height, 56px) + env(safe-area-inset-bottom, 0px));
+    }
 }

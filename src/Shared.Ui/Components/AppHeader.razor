@@ -15,30 +15,42 @@
         </a>
 
         <!-- Hamburger: shown below the lg breakpoint (phones/tablets); Bootstrap hides it
-             on wide screens. Toggled by Blazor state — the app doesn't load Bootstrap JS. -->
+             on wide screens. Toggled by Blazor state — the app doesn't load Bootstrap JS.
+             SHELL-1 left it holding the ACCOUNT cluster only: the app's own destinations moved out
+             of it and into the tab bar, which is the whole point of the slice. -->
         <button class="navbar-toggler" type="button" @onclick="ToggleMenu"
-                aria-label="Toggle navigation" aria-expanded="@_menuOpen.ToString().ToLowerInvariant()">
+                aria-label="@Localizer["Nav_AccountMenu"]" aria-expanded="@_menuOpen.ToString().ToLowerInvariant()">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse @(_menuOpen ? "show" : "")">
-            <ul class="navbar-nav me-auto ms-lg-4 mt-2 mt-lg-0">
-                <!-- The app's own screens, left of the fold: this is where someone spends their time.
-                     The cluster on the right is the platform's account furniture (household, billing,
-                     settings, sign out) and reads as such — plain links here, outline buttons there.
-                     Shelf and Cocktails sat in that right-hand cluster until now, which put "what can
-                     I make" on the same footing as "cancel my subscription". -->
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">@Localizer["Nav_Home"]</NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="/shelf" data-testid="nav-shelf">@Localizer["Nav_Shelf"]</NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="/cocktails" data-testid="nav-cocktails">@Localizer["Nav_Cocktails"]</NavLink>
-                </li>
-            </ul>
+        <!-- SHELL-1. The app's own screens, and ONE element at every width: in the header bar at lg
+             and above, a fixed bottom tab bar below it. Rendering a second copy for narrow screens
+             and hiding one with CSS would put two `nav-shelf` in the DOM, and the browser journeys
+             that click it by test id would fail on an ambiguous locator — which is the single
+             highest-risk detail in this epic, so the markup is arranged to make it impossible.
 
+             Deliberately OUTSIDE the collapse: inside it, the tab bar would vanish below lg until
+             someone opened the hamburger, which is exactly the trip this slice removes.
+
+             The cluster on the right is the platform's account furniture (household, billing,
+             settings, sign out) and reads as such. Shelf and Cocktails sat in that cluster until
+             ALMOST-1, which put "what can I make" on the same footing as "cancel my subscription". -->
+        <ul class="navbar-nav app-tabs me-auto ms-lg-4">
+            <li class="nav-item">
+                <NavLink class="nav-link" href="/" Match="NavLinkMatch.All" data-testid="nav-home"
+                         aria-current="@Current("/")">@Localizer["Nav_Home"]</NavLink>
+            </li>
+            <li class="nav-item">
+                <NavLink class="nav-link" href="/shelf" data-testid="nav-shelf"
+                         aria-current="@Current("/shelf")">@Localizer["Nav_Shelf"]</NavLink>
+            </li>
+            <li class="nav-item">
+                <NavLink class="nav-link" href="/cocktails" data-testid="nav-cocktails"
+                         aria-current="@Current("/cocktails")">@Localizer["Nav_Cocktails"]</NavLink>
+            </li>
+        </ul>
+
+        <div class="collapse navbar-collapse @(_menuOpen ? "show" : "")">
             <div class="header-user d-flex flex-column flex-lg-row align-items-lg-center gap-2 gap-lg-3 mt-3 mt-lg-0 pb-2 pb-lg-0">
                 <div class="d-flex align-items-center gap-2">
                     <span class="tenant-badge" data-testid="tenant-badge">@Auth.TenantName</span>
@@ -78,7 +90,9 @@
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        if (!_menuOpen) return;
+        // Always re-render, not only to close the menu: SHELL-1's aria-current is computed from the
+        // location here, and NavLink refreshes its own `active` class without telling its parent — so
+        // an early return would leave the tab bar announcing the previous page indefinitely.
         _menuOpen = false;
         InvokeAsync(StateHasChanged);
     }
@@ -100,6 +114,27 @@
     }
 
     private void ToggleMenu() => _menuOpen = !_menuOpen;
+
+    /// <summary>
+    /// "page" for the destination currently being viewed, null for the rest — Blazor drops an
+    /// attribute whose value is null, so the others render nothing at all.
+    /// </summary>
+    /// <remarks>
+    /// <c>NavLink</c> supplies the <c>active</c> CLASS and nothing else, and a tab bar whose current
+    /// tab is conveyed by styling alone tells a screen reader nothing. Matching by hand for three
+    /// known routes rather than reaching into NavLink: the routes are fixed, and the alternative is
+    /// re-deriving what the component is already doing behind its own API.
+    /// </remarks>
+    private string? Current(string path)
+    {
+        var relative = "/" + Nav.ToBaseRelativePath(Nav.Uri).Split('?', '#')[0].TrimEnd('/');
+
+        var match = path == "/"
+            ? relative == "/"                                        // home matches exactly, or "" wins everywhere
+            : relative == path || relative.StartsWith(path + "/", StringComparison.Ordinal);
+
+        return match ? "page" : null;
+    }
 
     private async Task SignOutAsync()
     {
