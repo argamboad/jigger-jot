@@ -61,13 +61,15 @@ else if (_recipe is not null)
     @* MARGA-1, proposal screen 3. A substitution is the reason this drink qualified at all, so she
        says it once at the top as a recommendation. The line-level "(you'd pour X)" marker stays —
        that one answers WHICH line, and this one answers WHY the drink is here. *@
-    @if (Swaps.Count > 0)
+    @* MARGA-5 widened this. She used to appear here ONLY when a substitution was in play, which
+       meant she only ever turned up to explain a compromise — never to say yes. The badge above
+       already states where the drink stands; hers is the sentence a bartender would actually say
+       about it, and the detail response has carried `makeability` since CKTL-4. *@
+    @if (RecipeLine is { } margaLine)
     {
         <div class="card shadow-sm mb-3" data-testid="cocktail-marga">
             <div class="card-body py-3">
-                <MargaSays Size="44">
-                    @string.Join(" ", Swaps.Select(l => Localizer["Marga_Swap", l.Ingredient, l.SubstituteWith!].Value))
-                </MargaSays>
+                <MargaSays Size="44">@margaLine</MargaSays>
             </div>
         </div>
     }
@@ -233,6 +235,39 @@ else if (_recipe is not null)
     private List<LineView> Swaps => _recipe is null
         ? []
         : [.. _recipe.Lines.Where(l => l.Availability == "Substitute" && l.SubstituteWith is not null)];
+
+    /// <summary>
+    /// What she says about this recipe, or null when there is nothing worth saying (MARGA-5).
+    /// </summary>
+    /// <remarks>
+    /// A substitution outranks everything: it is the reason the drink qualified at all, and leaving
+    /// it unsaid would have her congratulate someone on a drink they cannot pour as written. After
+    /// that it follows the same status the badge does — so the two can never disagree, because they
+    /// read the one value the API derived.
+    /// <para>
+    /// She says nothing at all about a drink that is more than one bottle away. The badge has already
+    /// said so plainly, and a character adding "you cannot make this" to it is piling on.
+    /// </para>
+    /// </remarks>
+    private string? RecipeLine
+    {
+        get
+        {
+            if (Swaps.Count > 0)
+                return string.Join(" ", Swaps.Select(l => Localizer["Marga_Swap", l.Ingredient, l.SubstituteWith!].Value));
+
+            return _recipe?.Makeability switch
+            {
+                "Makeable" => Localizer["Marga_RecipeMakeable"].Value,
+                "AlmostMakeable" when MissingLine is { } missing => Localizer["Marga_RecipeOneAway", missing].Value,
+                _ => null,
+            };
+        }
+    }
+
+    /// <summary>The single line standing between this household and this drink, when there is one.</summary>
+    private string? MissingLine => _recipe?.Lines
+        .FirstOrDefault(l => l.IsRequired && l.Availability == "Missing")?.Ingredient;
 
     /// <summary>
     /// The wording and the colour both key off the status the API derived. Switching on it here

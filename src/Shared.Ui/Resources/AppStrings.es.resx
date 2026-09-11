@@ -209,6 +209,13 @@
   <data name="Marga_HomeNoBottle" xml:space="preserve"><value>Eso es todo lo que alcanza tu estantería, por ahora.</value></data>
   <data name="Marga_HomeEmpty" xml:space="preserve"><value>Nada todavía. Dime qué tienes en la estantería y yo me encargo.</value></data>
   <data name="Marga_StarterBottle" xml:space="preserve"><value>¿Empiezas de cero? Hazte con {0}. Más recetas la piden que a cualquier otra botella: {1} de ellas.</value></data>
+  <data name="Marga_ShelfEmpty" xml:space="preserve"><value>Marca lo que ya tengas: con tres botellas ya hacemos algo. Y si vas a comprar, yo empezaría por {0}.</value></data>
+  <data name="Marga_ShelfNext" xml:space="preserve"><value>A una botella de {1} tragos más: {0}. Márcala el día que la tengas.</value></data>
+  <data name="Marga_ShelfReached" xml:space="preserve"><value>Hasta ahí llega tu estantería. Añade algo nuevo y te digo qué abre.</value></data>
+  <data name="Marga_MakeableCount" xml:space="preserve"><value>{0} esta noche, con lo que ya tienes.</value></data>
+  <data name="Marga_UnlocksHeadline" xml:space="preserve"><value>Compra {0} y se abren {1} de estos.</value></data>
+  <data name="Marga_RecipeMakeable" xml:space="preserve"><value>Este lo puedes servir ahora mismo.</value></data>
+  <data name="Marga_RecipeOneAway" xml:space="preserve"><value>Solo te falta {0}.</value></data>
   <data name="Marga_OnboardStaples" xml:space="preserve"><value>Vamos por la vía rápida. Ya marqué lo que suele haber en toda barra: desmarca lo que no tengas.</value></data>
   <data name="Marga_OnboardRest" xml:space="preserve"><value>Ahora lo demás. Sáltatelo si prefieres ir directo a los tragos; siempre puedes añadir después.</value></data>
   <data name="Onboard_Title" xml:space="preserve"><value>Prepara tu estantería</value></data>

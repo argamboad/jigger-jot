@@ -186,6 +186,156 @@ line beneath it, rather than nesting `MargaSays` — which would put her face on
 
 ---
 
+### MARGA-4 — Her in the emails
+
+**Status: ✅ Implemented.** Not from the design proposal — asked for directly, after the app shipped
+and she turned out to be scarcer in practice than on paper.
+
+**As a** person who gets an email from this app
+**I want** it to sound like the app it came from
+**So that** a sign-in code does not read like it was sent by a different product
+
+**She goes on the three emails a person ASKED for**, and the decision worth recording is the fourth
+one she does not go on:
+
+| Email | Her? |
+|---|---|
+| Sign-in code (OTP) | yes — the line she already says on the login page |
+| Sign-in link (magic link) | yes — the same line |
+| Household invitation | yes — welcoming someone in |
+| **Notification** | **no** |
+
+That last template wraps **arbitrary system messages**, including "your subscription is past due" and
+a security alert. A bartender character on those undercuts the message, and the person reading it is
+not in the mood. It is a judgement rather than a rule, so it is held by a test instead of a comment.
+
+**She is attached, not merely hidden.** The image rides along as a CID inline attachment — the one
+approach Gmail and Outlook both render, since both block data-URIs — and only the emails that show
+her carry it. Her 19 KB does not travel on every notification for nothing.
+
+**Her avatar is a COPY, not a reference.** `Infrastructure` does not depend on `Shared.Ui` and must
+not start; `REBRANDING.md` already treats the email assets as their own set, and now names both.
+
+**Same contract as in the app.** `MargaSays(...)` takes a finished sentence — it never builds, picks
+or fetches one — and every line is one whole resource string from `EmailStrings.resx`. If a key ever
+goes missing the resolver echoes the key, which would ship `Marga_SignIn` to a real inbox, so a test
+fails on that instead.
+
+**Her avatar is decorative in email too** (`alt=""`), which matters more here than in the app: most
+clients block images by default, so the common case is the sentence without her. It has to read
+correctly on its own, and "photo of a bartender" in front of it would only get in the way.
+
+**Verified in a real client path**, not as a string: sent through the running API into Mailpit in
+both languages, confirming two inline images, her line above the code, and the Spanish reading as
+written Spanish. Mailpit's compatibility check adds no new warnings — every CSS property in her block
+was already used elsewhere in the template, except the avatar's `border-radius`, which degrades to a
+square in Outlook and is fine.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: The emails someone asked for sound like the app
+  Given a sign-in code, a sign-in link or an invitation
+  Then Marga says one line above the thing I came for
+  And the email carries her image alongside the logo
+
+Scenario: She stays off the bad news
+  Given a system notification — a failed payment, a security alert
+  Then she is not there
+  And her image is not attached either
+
+Scenario: An image-blocking client loses only her
+  Given images are blocked
+  Then her sentence still reads, with no alt text in front of it
+
+Scenario: She speaks both languages
+  Then her email lines have an English and a Spanish resource
+  And the Spanish is written rather than translated
+```
+
+---
+
+### MARGA-5 — Where she actually is
+
+**Status: ✅ Implemented.** Not from the design proposal either — asked for after the wave shipped,
+because on paper she was on seven surfaces and in practice you met her once.
+
+**As a** member of a household
+**I want** her where I spend my time, not only on the front page
+**So that** the app keeps its voice past the first screen
+
+**The measurement that prompted it.** Of her seven surfaces, **four were conditional** (a substituted
+row, a substituted recipe, two empty states) and **one is a flash** (the boot screen). So a household
+with a filled shelf met her on the home page and then never again — and the **shelf**, the screen with
+the most dwell time in the whole app, had no Marga at all.
+
+#### The rule, because without one she becomes wallpaper
+
+**She speaks where a number needs interpreting, and stays quiet where the screen already says it
+plainly. One page-level Marga per screen.** A per-row aside at 24px is a footnote on that row, not the
+page's voice, and does not count against it.
+
+| Screen | What she says | Why there |
+|---|---|---|
+| **Shelf** (new) | what the shelf is one bottle short of | most dwell time, and she was absent; the footer already counts what you HAVE, so she takes the other half |
+| **Catalog, makeable filter** (new) | the count | under that filter the count IS the product's question answered, so she gives it — the one place she REPLACES a number |
+| **One-away list** | the unlocking bottle | the card was already hers in shape and colour and simply had nobody in it |
+| **Recipe page** (widened) | "you can pour this now", or the one bottle missing | she used to appear here ONLY for a substitution, so she only ever turned up to explain a compromise, never to say yes |
+| **Home** | unchanged, at 76px rather than 56 | the first sentence anyone reads; at 56 she was an icon beside it rather than the one saying it |
+
+**Where she deliberately does not go:** a plain catalog browse ("969 cocktails" is a fact about the
+list, and a character who narrates every number stops being worth reading), a drink more than one
+bottle away (the badge has said so; piling on is not her job), the authoring form, and every platform
+screen.
+
+**No new engine work.** Every line is fixed copy over data the page already had, or over `unlocks` and
+`starters`, both of which already existed.
+
+> **Two bugs it introduced, both caught by tests rather than by looking.**
+>
+> Her shelf fetch joined the payoff footer's and **shared its catch**, so failing to get her line
+> blanked the drinks count too. An existing INV-3 test went red immediately. The footer states a fact
+> the screen owns; she is optional furniture; the two must fail apart, and now do.
+>
+> Then, once separated, a failed fetch left her saying **"that is everything your shelf reaches"** —
+> a claim she had nothing behind, because "nothing is within one bottle" and "I could not find out"
+> were both just `null`. She now tracks whether the answer actually came back and says nothing when
+> it did not.
+
+**The test id follows the number.** `cocktail-count` stays on whichever element carries the count —
+her sentence under the makeable filter, the plain line otherwise — because a journey reads it to check
+the home screen and the list agree. SHELL-1 moved information without moving its id and took three
+suites down; that is not repeated here.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: She is on the screen I spend the most time on
+  Given a shelf with something ticked
+  Then she names the one bottle that would open the most
+  And she does not repeat the bottle count the footer already shows
+
+Scenario: An untouched shelf gets a starting point
+  Given nothing ticked, so nothing is one bottle away from anything
+  Then she suggests where to start instead
+
+Scenario: She says nothing rather than something empty
+  Given her data cannot be fetched
+  Then she is absent, and the footer's count is unaffected
+
+Scenario: She takes the count only where the count is the answer
+  Given the makeable filter
+  Then she gives the number
+  But given a plain browse
+  Then the number is plain text and she is not there
+
+Scenario: She can say yes
+  Given a recipe I can pour right now
+  Then she says so — not only when a substitution needs explaining
+```
+
+---
+
 ## Acceptance criteria (all slices)
 
 ```gherkin

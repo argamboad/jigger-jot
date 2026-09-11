@@ -11,6 +11,10 @@
   <ItemGroup>
     <!-- Brand logo embedded for CID inline-embedding in branded emails (BrandedEmail). -->
     <EmbeddedResource Include="Email\Assets\logo.png" />
+    <!-- Marga's avatar, a COPY of the RCL's brand asset rather than a reference to it: Infrastructure
+         does not depend on Shared.Ui and must not start, and REBRANDING.md already treats the email
+         assets as their own set for exactly this reason. Attached only to the emails that use her. -->
+    <EmbeddedResource Include="Email\Assets\marga.png" />
     <EmbeddedResource Include="Persistence\Seed\lookups.json" />
     <EmbeddedResource Include="Persistence\Seed\ingredients.json" />
     <EmbeddedResource Include="Persistence\Seed\cocktails.json" />

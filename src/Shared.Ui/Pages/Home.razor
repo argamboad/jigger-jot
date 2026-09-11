@@ -24,7 +24,11 @@
         {
             <div class="card shadow-sm mb-3" data-testid="home-marga">
                 <div class="card-body p-4">
-                    <MargaSays Size="56" Aside="@Localizer["Marga_HomeAside"]">
+                    @* MARGA-5 raised her from 56. This is the front page and her line is the first
+                       sentence anyone reads; at 56 she was an icon beside it rather than the one
+                       saying it. The inline list rows stay at 24 — there she is a per-row aside and
+                       must stay quiet. *@
+                    <MargaSays Size="76" Aside="@Localizer["Marga_HomeAside"]">
                         @MargaLine
                     </MargaSays>
                 </div>

@@ -209,6 +209,13 @@
   <data name="Marga_HomeNoBottle" xml:space="preserve"><value>That is everything your shelf reaches, for now.</value></data>
   <data name="Marga_HomeEmpty" xml:space="preserve"><value>Nothing yet. Tell me what is on your shelf and I will take it from there.</value></data>
   <data name="Marga_StarterBottle" xml:space="preserve"><value>Starting from nothing? Get {0}. More of these recipes ask for it than for any other bottle — {1} of them.</value></data>
+  <data name="Marga_ShelfEmpty" xml:space="preserve"><value>Tick whatever you already have — even three bottles gets us somewhere. If you are buying, {0} is where I would start.</value></data>
+  <data name="Marga_ShelfNext" xml:space="preserve"><value>One bottle from {1} more drinks: {0}. Tick it the day you get it.</value></data>
+  <data name="Marga_ShelfReached" xml:space="preserve"><value>That is everything your shelf reaches. Add anything new and I will tell you what it opens.</value></data>
+  <data name="Marga_MakeableCount" xml:space="preserve"><value>{0} tonight, with what you already have.</value></data>
+  <data name="Marga_UnlocksHeadline" xml:space="preserve"><value>Buy {0} and {1} of these open up.</value></data>
+  <data name="Marga_RecipeMakeable" xml:space="preserve"><value>You can pour this one right now.</value></data>
+  <data name="Marga_RecipeOneAway" xml:space="preserve"><value>All you are missing is {0}.</value></data>
   <data name="Marga_OnboardStaples" xml:space="preserve"><value>Let us do the quick version. I have ticked what most bars keep — untick anything you do not have.</value></data>
   <data name="Marga_OnboardRest" xml:space="preserve"><value>Now anything else. Skip this if you would rather get to the drinks; you can add to it whenever.</value></data>
   <data name="Onboard_Title" xml:space="preserve"><value>Set up your shelf</value></data>

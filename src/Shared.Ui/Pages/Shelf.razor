@@ -77,6 +77,18 @@
     </div>
 </div>
 
+@* MARGA-5. She is at the TOP of the shelf because this is the screen with the most dwell time in the
+   app and she was not on it at all. What she says is deliberately NOT what the footer says: the
+   footer counts what you have, she names what you are short of. Two sentences, two jobs, no echo. *@
+@if (!_loading && _shelfLine is not null)
+{
+    <div class="card shadow-sm mb-3" data-testid="shelf-marga">
+        <div class="card-body py-3">
+            <MargaSays Size="48">@_shelfLine</MargaSays>
+        </div>
+    </div>
+}
+
 @if (_adding && _addingIn is null)
 {
     <div class="card shadow-sm mb-3 px-3">@addForm</div>
@@ -212,6 +224,44 @@ else
     private bool _counting;
     private CancellationTokenSource? _countCts;
 
+    // MARGA-5. Both read on the same debounce as the payoff total: the bottle that would open the
+    // most, and — only for a shelf with nothing on it — where to start instead.
+    private UnlockView? _unlock;
+    private StarterView? _starter;
+
+    /// <summary>
+    /// Whether the last look at her data actually came back. Null on both counts means two different
+    /// things — "nothing is within one bottle" and "I could not find out" — and only the first of
+    /// them is something she may say out loud. Without this she answers a failed request with
+    /// "that is everything your shelf reaches", which is a claim she has nothing behind.
+    /// </summary>
+    private bool _margaKnows;
+
+    /// <summary>
+    /// Which of her four fixed lines this shelf gets, or null for none at all. She never assembles a
+    /// sentence — this picks one whole resource string and fills its placeholders.
+    /// </summary>
+    /// <remarks>
+    /// Deliberately about what the shelf is SHORT of, never what it holds: the footer two inches
+    /// below already counts the bottles and the drinks, and a character repeating the number beside
+    /// it would be the thing that turns her into wallpaper.
+    /// </remarks>
+    private string? _shelfLine => !_margaKnows ? null : (AvailableCount, _unlock, _starter) switch
+    {
+        // Nothing ticked, and a bottle worth naming. The one moment a suggestion is most useful.
+        (0, _, { } starter) => Localizer["Marga_ShelfEmpty", starter.Ingredient].Value,
+
+        // Nothing ticked and nothing to suggest — a household that somehow owns the whole catalog,
+        // or a catalog that cannot answer. Say nothing rather than something empty.
+        (0, _, null) => null,
+
+        // Something ticked, and one bottle away from more. What you came to this screen to act on.
+        (_, { } bottle, _) => Localizer["Marga_ShelfNext", bottle.Ingredient, bottle.Unlocks].Value,
+
+        // Ticked plenty, nothing within one bottle. Not a failure — an invitation to add something.
+        _ => Localizer["Marga_ShelfReached"].Value,
+    };
+
     // INV-2. The category tree is fetched the first time someone opens the form rather than on every
     // page load, because most visits to this screen are ticking boxes.
     private bool _adding;
@@ -314,6 +364,43 @@ else
                 "/api/cocktails?makeable=true&page=1&pageSize=1", cts.Token);
 
             _makeableTotal = page?.Total;
+
+            // MARGA-5. Her line rides the same debounce as the footer rather than fetching on its
+            // own — she is talking about the shelf that just changed, so asking on a different
+            // schedule would let the two disagree for a second at a time.
+            //
+            // Its OWN try, though, and that distinction is the point: the footer's number is
+            // something the screen states, while she is optional furniture. Sharing a catch let a
+            // failure fetching her line blank the count as well, which a test caught immediately.
+            try
+            {
+                var bottles = await Http.GetFromJsonAsync<List<UnlockView>>(
+                    "/api/cocktails/unlocks?limit=1", cts.Token);
+                _unlock = bottles is { Count: > 0 } ? bottles[0] : null;
+
+                // Only for a shelf with nothing on it. `unlocks` ranks the almost-makeable set, which
+                // is empty before anything is ticked — the same gap MARGA-3 settled, answered the
+                // same way.
+                _starter = null;
+                if (AvailableCount == 0)
+                {
+                    var starters = await Http.GetFromJsonAsync<List<StarterView>>(
+                        "/api/cocktails/starters?limit=1", cts.Token);
+                    _starter = starters is { Count: > 0 } ? starters[0] : null;
+                }
+
+                _margaKnows = true;
+            }
+            catch (OperationCanceledException)
+            {
+                throw; // a later tick owns the whole refresh, not just her half of it
+            }
+            catch (Exception)
+            {
+                _unlock = null;
+                _starter = null;
+                _margaKnows = false;
+            }
         }
         catch (OperationCanceledException)
         {
@@ -322,8 +409,12 @@ else
         catch (Exception)
         {
             // The footer is an encouragement, not a fact the screen depends on. If it cannot be had,
-            // the bottle count still stands on its own.
+            // the bottle count still stands on its own — and she is optional furniture, so she goes
+            // quiet rather than saying something she cannot back up.
             _makeableTotal = null;
+            _unlock = null;
+            _starter = null;
+            _margaKnows = false;
         }
         finally
         {
@@ -494,4 +585,11 @@ else
 
     /// <summary>Only the total is read; the page of one row it comes with is the cheapest way to ask.</summary>
     private record MakeableCount(int Total);
+
+    /// <summary>ALMOST-2's ranked bottle — what one more purchase would open (MARGA-5).</summary>
+    private record UnlockView(Guid IngredientId, string Ingredient, int Unlocks, List<string> Cocktails);
+
+    /// <param name="Appears">How many recipes ASK for it — never how many it would unlock. Only used
+    /// on a shelf with nothing ticked, where nothing is within one bottle of anything.</param>
+    private record StarterView(Guid IngredientId, string Ingredient, int Appears);
 }

@@ -12,8 +12,25 @@
 2. **Do not start the next slice until the user says "merged".** If a slice turns out to depend on
    something unmerged, **stop and say so**. Do not work around it. Working around it is how a branch
    ended up based on a feature branch.
-3. **Do not commit, push, or open a PR until the user says "C+P+PR".** "go" means *build it*. It
-   does not mean publish it. Every report ends with "waiting on your C+P+PR".
+3. **Do not push or open a PR until the user says "C+P+PR".** "go" means *build it*. It does not mean
+   publish it. Every report ends with "waiting on your C+P+PR".
+   **Committing is not publishing** (amended 2026-09-11). A finished unit of work gets its own commit
+   on the branch as soon as it is done and verified — that is what makes it revertable on its own.
+   What waits for the word is the **push and the PR**.
+
+**The batching rule — 2026-09-11.** A branch is no longer one slice. It is a **batch**, and the unit
+of work is the **commit**.
+
+- Each finished thing is its own commit, with its own message, revertable on its own.
+- Several commits ride one branch and one PR, so CI runs **once** for the batch instead of once per
+  fix.
+- This exists for a measured reason: the full run is ~15 minutes, and paying it for a one-line CSS
+  fix meant small repairs cost more waiting than doing. `LOCALCI-3` attacks the other half of the same
+  problem by making the run itself proportional to the change.
+- **It does not license mixing.** The old warning still stands for FEATURES: two slices in one PR is
+  still wrong, because a reviewer cannot take one and leave the other. A batch of independent fixes,
+  or a fix plus a small addition, is a different thing — the commits keep them separable, and the PR
+  body must list them as separate items rather than blurring them into one story.
 
 ## The slice ritual — every time, in this order
 
@@ -34,8 +51,9 @@
    plan's own maintainer note asked for it and nineteen app slices shipped without it, leaving a
    document whose scope section claimed the app had no features at all.
 8. Run: Release build of API and Web (zero warnings), then `Core.Tests`, `Api.Tests`, `Ui.Tests`.
-9. Report: what flow it implements, what was decided and why, what is deliberately out, the test
-   counts. Then **wait**.
+9. **Commit it**, on its own, with a message that stands alone — then report: what flow it
+   implements, what was decided and why, what is deliberately out, the test counts. Then **wait**.
+   The next thing may be another commit on the same branch; the push and the PR wait for the word.
 10. **On "merged", update the Slice Board** before anything else — it is the only view of this
     project the maintainer has that is not a diff, and a board that lags is worse than no board.
     `https://claude.ai/code/artifact/a9fed2f8-60e9-478e-9030-864170fab1d7`; read it first, then
@@ -84,31 +102,39 @@ settled the wide-screen question; and **SHELL-2**, the boot state. **The UI wave
 **Merged since** (PR #29): **ONBOARD-1**, the first minute. **Every flow in `FEATURES.md` §7–§15 is
 now covered.**
 
-**Built, verified, uncommitted** on `docs/QA-app-coverage` (branched from `develop`):
+**Merged since** (PR #30): **the QA plan's app half** — six suites, §10d–§10i, 54 cases (150 → 204).
+The document had covered the platform only while every app flow was built on top of it.
 
-- **The QA plan's app half**, which never existed. The document covered the platform only: a search of
-  its 2,300 lines for "cocktail", "shelf", "makeable" or "ingredient" returned **nothing**, and its
-  scope section still listed as out of scope "any app-specific domain features not yet built on this
-  platform" — true when it was written, false since the first slice merged.
-- **Six new suites, §10d–§10i, 54 cases** (150 → 204), plus traceability rows, sign-off rows, and the
-  test-data the app's cases need that the platform's did not: a never-touched shelf, a screen reader,
-  a Spanish reader.
-- **Two stale claims corrected**: the journey count (34 → 52) and the scope paragraph.
-- **The ritual now carries the step**, because the plan's own maintainer note asked for exactly this
-  and was not enough on its own.
+**Committed, not pushed** — the first batch under the rule above, on
+`batch/header-fix-and-marga-emails` (branched from `develop`). Five commits, each revertable alone:
 
-**Previously built** on `feat/ONBOARD-1-wizard`:
+| | |
+|---|---|
+| `fix(ui)` | the header, four bugs — below |
+| `docs(plan)` | the batching rule itself |
+| `feat(email)` | MARGA-4, Marga on the emails a person asked for |
+| `feat(ui)` | MARGA-5, where she actually is |
+| `ci` | LOCALCI-3, the trigger diet |
 
-- **ONBOARD-1**: the first minute, and **the last unbuilt flow in `FEATURES.md`**. Two steps over the
-  same data and the same control as the shelf — guided, not a second way to record what you own.
-- **The staples needed no second curated list.** `MARGA-3` had already settled the honest definition,
-  so the wizard asks `/api/cocktails/starters` for twelve and puts them on screen already ticked.
-- **Nothing is written until Finish**, which is why the write is new: `PUT /api/inventory` takes the
-  whole shelf in one request. The per-ingredient write stays for the shelf screen, where a tick *is*
-  the decision.
-- **Offered, never forced.** No redirect, no dismissal flag, and therefore no "has this household been
-  onboarded" fact to store — which matters, because `Tenant` is the platform's and holding one bit of
-  app state there is the wrong direction (golden rule 8).
+**The header was wrong in four ways at once**, reported from a screenshot rather than found by a
+test. All four are written up under SHELL-1 in `docs/stories/shell.md`.
+- **SHELL-1's tab styles never applied at all.** Scoped CSS cannot reach an element rendered by a
+  child component — `<NavLink>`'s anchor never gets the scope attribute — so every rule matched
+  nothing. The `<ul>` rules DID work, so the tab bar moved correctly and the slice looked finished.
+- **Underneath that, dark theme repainted the whole bar copper.** `[data-bs-theme="dark"] a` at 0,1,1
+  outranks Bootstrap's 0,1,0 button and nav-link colours, so every anchor-shaped button went copper
+  while the identical `<button>` stayed white. Two earlier overrides had treated symptoms; the rule
+  now excludes `.btn`, `.nav-link` and `.navbar-brand`, and both overrides are gone.
+- **And it overflowed at 1024px**, clipping "Sign out" and scrolling the page sideways. The email
+  address shows at `xl` and up only, and the row may wrap rather than clip.
+- **Fourth: the account cluster stopped being pushed right**, because that had been a side effect of
+  the destinations' `me-auto` while they lived inside the collapse. It carries `ms-lg-auto` now.
+  Found by holding the bar next to `vuelto`'s, which runs the platform's original layout — **the
+  sibling apps are a reference implementation, and comparing against one is a cheap check nobody was
+  making.**
+- **Guarded in the browser**, which is the only place any of it was visible: the journey now asserts
+  the current tab's weight, the chrome's colour in dark theme, and that the page does not scroll
+  sideways.
 
 ## The UI wave — 2026-09-10
 
@@ -216,3 +242,36 @@ had their own private copy of "tick an ingredient". Three journeys went red in C
 had been made and verified correctly. **Before changing a shared control, grep the E2E project for
 everything that drives it** — and if more than one fixture drives it, the helper belongs in
 `E2ETestBase`, which is where `SetShelfAsync` now lives.
+
+**Writing component CSS that a child component renders.** SHELL-1 styled the header's destinations in
+`AppHeader.razor.css`. Blazor's CSS isolation stamps its `b-xxxxx` attribute on the elements of the
+component's OWN markup only, and those anchors come from `<NavLink>` — a child component — so every
+rule compiled to a selector that matched nothing and silently did nothing. The `.app-tabs` rules on
+the `<ul>` DID apply, because that element is AppHeader's own, so the tab bar moved to the bottom
+correctly and the slice looked finished. **Scoped CSS cannot reach inside a child component**: if a
+selector's last element is rendered by one, it belongs in `app.css`. It shipped, and the manual case
+that described the right behaviour (`QA-CHROME-04`) had not been run yet — which is the argument for
+running the plan rather than only writing it.
+
+## CI is now proportional to the change — 2026-09-11
+
+**`LOCALCI-3` shipped**, pulled forward ahead of `LOCALCI-1` and `LOCALCI-2` and needing neither. A
+job called `changes` reads the diff once and publishes `code` / `native` / `docs`; every non-deploy
+job gates on it. A docs-only push stops billing roughly thirty minutes for markdown — which the QA
+plan's own pull request paid in full, for three text files.
+
+**Two jobs never gate on code**, and this is the half worth remembering: `secret-scan`, because a
+credential pasted into a markdown file is still a leaked credential, and `qa-artifacts`, because
+editing the plan without regenerating the PDFs is the ONLY way to break it — gating it on code would
+switch it off for precisely the change it exists to catch. A test enforces both halves.
+
+**It fails open.** An unreachable diff base — a force push, a new branch, a scheduled run — runs
+everything. Skipping a gate because the diff could not be read is the one failure mode worth paying
+thirty minutes to avoid.
+
+**The Apple smoke moved to a weekly cron** (87 billed minutes, macOS at 10×), returning to every push
+the moment a self-hosted Mac is configured. The Apple BUILD still runs per develop push, so compile
+rot is caught within one merge. ⚠️ **A green develop run is no longer a green Apple smoke** — QA §13c
+says to dispatch it by hand before shipping a native client.
+
+**Still to observe:** the skip/run pattern on the real runners, one docs-only PR and one code PR.
