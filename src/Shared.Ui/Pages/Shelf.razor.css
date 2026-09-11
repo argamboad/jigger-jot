@@ -2,34 +2,9 @@
    fills it in, and 191 checkboxes in a fixed three-column grid is a form nobody finishes. Everything
    here is about density and about showing progress. */
 
-/* Pills wrap to their content, so "Gin" stops occupying as much room as "Crème de cacao". */
-.shelf-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .375rem;
-}
-
-.shelf-pill {
-    border-radius: 2rem;
-    font-weight: 500;
-
-    /* Selected reads as OWNED, not as a filter. The catalog screen one tap away uses outlined pills
-       to filter, and the same shape meaning two things across two screens is worse than either.
-       Bootstrap drives the checked state through these three custom properties, so overriding them
-       keeps every other state — hover, focus ring, disabled — exactly as the framework draws it. */
-    --bs-btn-active-color: #fff;
-    --bs-btn-active-bg: var(--bs-primary);
-    --bs-btn-active-border-color: var(--bs-primary);
-}
-
-/* "Yours" on a household's own bottle. Inherits the label's colour, so it reads on the outlined pill
-   and on the filled one without a second rule per theme. */
-.shelf-own {
-    font-size: .75em;
-    opacity: .7;
-    margin-left: .3rem;
-    text-transform: lowercase;
-}
+/* The pills themselves moved to app.css when ONBOARD-1's wizard started using the same control.
+   Scoped CSS is per-component by design, so leaving them here would have meant a second copy — and
+   two copies of a control that is meant to be the same control is how they stop being the same. */
 
 /* Dashed, because it adds a bottle rather than being one — it sits in the same row as the pills and
    must not be mistaken for one that happens to be unticked. */

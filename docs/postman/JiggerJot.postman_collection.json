@@ -1486,6 +1486,47 @@
           ]
         },
         {
+          "name": "Shelf — set many at once (the wizard's write)",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"ingredientId\": \"{{ingredientId}}\",\n      \"isAvailable\": true\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "A whole shelf in one request (ONBOARD-1, FEATURES §7 — *optimized for fast bulk-checking*).\n\n**Deliberately not the same shape as the request above.** On the shelf screen a tick is a decision someone just made and should be saved before they look away, which is why that one writes a single ingredient and the UI rolls back if it fails. The wizard is the opposite: it puts a dozen suggestions on screen **already ticked** and asks which are wrong, so nothing is confirmed until Finish. Writing as it went would record a shelf the household never confirmed, and leave half of one behind for anyone who closed the tab midway.\n\n**The state is stated, never toggled.** Each entry says what that ingredient should BE, so the result does not depend on what the shelf happened to hold when the request landed — and sending the same body twice leaves the same shelf rather than a second row per ingredient, which matters because a wizard finishing on a flaky connection is exactly what produces a retry.\n\n**Always 200.** An id this household cannot see comes back in `unknown` rather than failing the request: the catalog can change under a wizard that has been open a while, and losing eleven good ticks because the twelfth went stale is the wrong trade. That same filter is the authorization check — another household's custom ingredient simply is not visible, so it lands in `unknown` like any unrecognised id.\n\n**Unticking updates the row rather than deleting it** (INV-1, JJ-023), the same as the single-ingredient write.\n\nRun *Shelf — list* first to pick a real `ingredientId`."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"every id was recognised\", () => pm.expect(body.unknown).to.eql([]));",
+                  "pm.test(\"something was written\", () => pm.expect(body.applied).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Shelf — category tree",
           "request": {
             "method": "GET",

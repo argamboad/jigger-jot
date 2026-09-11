@@ -209,6 +209,21 @@
   <data name="Marga_HomeNoBottle" xml:space="preserve"><value>That is everything your shelf reaches, for now.</value></data>
   <data name="Marga_HomeEmpty" xml:space="preserve"><value>Nothing yet. Tell me what is on your shelf and I will take it from there.</value></data>
   <data name="Marga_StarterBottle" xml:space="preserve"><value>Starting from nothing? Get {0}. More of these recipes ask for it than for any other bottle — {1} of them.</value></data>
+  <data name="Marga_OnboardStaples" xml:space="preserve"><value>Let us do the quick version. I have ticked what most bars keep — untick anything you do not have.</value></data>
+  <data name="Marga_OnboardRest" xml:space="preserve"><value>Now anything else. Skip this if you would rather get to the drinks; you can add to it whenever.</value></data>
+  <data name="Onboard_Title" xml:space="preserve"><value>Set up your shelf</value></data>
+  <data name="Onboard_MargaAside" xml:space="preserve"><value>Marga · behind the bar</value></data>
+  <data name="Onboard_Step" xml:space="preserve"><value>Step {0} of {1}</value></data>
+  <data name="Onboard_StaplesHeading" xml:space="preserve"><value>The usual suspects</value></data>
+  <data name="Onboard_StaplesBody" xml:space="preserve"><value>These are the bottles the most recipes ask for. Untick whatever you do not have.</value></data>
+  <data name="Onboard_RestHeading" xml:space="preserve"><value>Anything else on your shelf</value></data>
+  <data name="Onboard_RestBody" xml:space="preserve"><value>Optional. Search for a bottle or tick your way down.</value></data>
+  <data name="Onboard_NothingToSuggest" xml:space="preserve"><value>Your shelf already covers everything these recipes ask for.</value></data>
+  <data name="Onboard_Back" xml:space="preserve"><value>Back</value></data>
+  <data name="Onboard_Next" xml:space="preserve"><value>Next</value></data>
+  <data name="Onboard_Finish" xml:space="preserve"><value>Save my shelf</value></data>
+  <data name="Onboard_Skip" xml:space="preserve"><value>Skip for now</value></data>
+  <data name="Onboard_SetUpShelf" xml:space="preserve"><value>Set up my shelf</value></data>
   <data name="AuthCallback_Processing" xml:space="preserve"><value>Processing sign-in…</value></data>
   <data name="AuthError_Title" xml:space="preserve"><value>Sign-in failed</value></data>
   <data name="AuthError_Heading" xml:space="preserve"><value>Authentication failed</value></data>

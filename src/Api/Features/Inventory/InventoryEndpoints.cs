@@ -49,6 +49,18 @@ public static class InventoryEndpoints
             };
         });
 
+        // ONBOARD-1, FEATURES §7: the wizard's write. A whole shelf in one request, because nothing
+        // in the wizard is confirmed until Finish — writing as it goes would leave a half-filled
+        // shelf behind for anyone who closed the tab midway. The per-ingredient PUT below stays for
+        // the shelf screen, where a tick IS the decision and should be saved before someone looks
+        // away. Always 200: an id this household cannot see is named in the body rather than failing
+        // the request, so a wizard left open across a catalog change does not lose its good ticks.
+        group.MapPut("/", async (
+            BulkSetAvailabilityRequest request,
+            InventoryHandler handler,
+            CancellationToken ct) =>
+            Results.Ok(await handler.SetManyAsync(request, ct)));
+
         group.MapPut("/{ingredientId:guid}", async (
             Guid ingredientId,
             SetAvailabilityRequest request,

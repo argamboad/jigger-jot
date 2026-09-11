@@ -209,6 +209,21 @@
   <data name="Marga_HomeNoBottle" xml:space="preserve"><value>Eso es todo lo que alcanza tu estantería, por ahora.</value></data>
   <data name="Marga_HomeEmpty" xml:space="preserve"><value>Nada todavía. Dime qué tienes en la estantería y yo me encargo.</value></data>
   <data name="Marga_StarterBottle" xml:space="preserve"><value>¿Empiezas de cero? Hazte con {0}. Más recetas la piden que a cualquier otra botella: {1} de ellas.</value></data>
+  <data name="Marga_OnboardStaples" xml:space="preserve"><value>Vamos por la vía rápida. Ya marqué lo que suele haber en toda barra: desmarca lo que no tengas.</value></data>
+  <data name="Marga_OnboardRest" xml:space="preserve"><value>Ahora lo demás. Sáltatelo si prefieres ir directo a los tragos; siempre puedes añadir después.</value></data>
+  <data name="Onboard_Title" xml:space="preserve"><value>Prepara tu estantería</value></data>
+  <data name="Onboard_MargaAside" xml:space="preserve"><value>Marga · detrás de la barra</value></data>
+  <data name="Onboard_Step" xml:space="preserve"><value>Paso {0} de {1}</value></data>
+  <data name="Onboard_StaplesHeading" xml:space="preserve"><value>Los de siempre</value></data>
+  <data name="Onboard_StaplesBody" xml:space="preserve"><value>Son las botellas que más recetas piden. Desmarca las que no tengas.</value></data>
+  <data name="Onboard_RestHeading" xml:space="preserve"><value>Lo demás de tu estantería</value></data>
+  <data name="Onboard_RestBody" xml:space="preserve"><value>Opcional. Busca una botella o ve marcando.</value></data>
+  <data name="Onboard_NothingToSuggest" xml:space="preserve"><value>Tu estantería ya cubre todo lo que piden estas recetas.</value></data>
+  <data name="Onboard_Back" xml:space="preserve"><value>Atrás</value></data>
+  <data name="Onboard_Next" xml:space="preserve"><value>Siguiente</value></data>
+  <data name="Onboard_Finish" xml:space="preserve"><value>Guardar mi estantería</value></data>
+  <data name="Onboard_Skip" xml:space="preserve"><value>Saltar por ahora</value></data>
+  <data name="Onboard_SetUpShelf" xml:space="preserve"><value>Preparar mi estantería</value></data>
   <data name="AuthCallback_Processing" xml:space="preserve"><value>Procesando el inicio de sesión…</value></data>
   <data name="AuthError_Title" xml:space="preserve"><value>Error de inicio de sesión</value></data>
   <data name="AuthError_Heading" xml:space="preserve"><value>Error de autenticación</value></data>

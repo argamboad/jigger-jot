@@ -86,6 +86,74 @@ public class InventoryHandler(
     }
 
     /// <summary>
+    /// A whole shelf in one request (ONBOARD-1, FEATURES §7 — "optimized for fast bulk-checking").
+    /// </summary>
+    /// <remarks>
+    /// One round trip and one <c>SaveChanges</c>, so the shelf either arrives as the wizard left it
+    /// or not at all. The per-ingredient <see cref="SetAsync"/> stays exactly as it is: on the shelf
+    /// screen a tick is a decision someone just made and should be saved before they look away, while
+    /// nothing in the wizard is confirmed until Finish.
+    /// <para>
+    /// Safe to send twice, because a wizard finishing on a flaky connection is the case that produces
+    /// a retry: each ingredient's row is found or created once and then SET to the state asked for,
+    /// so a repeat lands on the same shelf rather than a second row per ingredient.
+    /// </para>
+    /// <para>
+    /// An id this household cannot see is reported rather than written, and rather than failing the
+    /// whole request — the catalog can change under a wizard that has been open a while, and losing
+    /// eleven good ticks because the twelfth went stale is the wrong trade.
+    /// </para>
+    /// </remarks>
+    public async Task<BulkSetResult> SetManyAsync(
+        BulkSetAvailabilityRequest request, CancellationToken cancellationToken)
+    {
+        if (tenant.TenantId is not { } tenantId) return new BulkSetResult(0, []);
+
+        // Last word wins for a repeated id. Not a case the wizard produces, but one a caller can
+        // send, and refusing it would mean rejecting a request that has an obvious answer.
+        var wanted = new Dictionary<Guid, bool>();
+        foreach (var item in request.Items) wanted[item.IngredientId] = item.IsAvailable;
+        if (wanted.Count == 0) return new BulkSetResult(0, []);
+
+        var ids = wanted.Keys.ToList();
+
+        // Query() carries the shared-or-tenant filter, so this is also the authorization check: an id
+        // belonging to another household's custom ingredient simply is not in the result.
+        var visible = await ingredients.Query()
+            .Where(i => ids.Contains(i.Id))
+            .Select(i => i.Id)
+            .ToHashSetAsync(cancellationToken);
+
+        var existing = await inventory.Query()
+            .Where(i => ids.Contains(i.IngredientId))
+            .ToDictionaryAsync(i => i.IngredientId, cancellationToken);
+
+        var now = clock.GetUtcNow();
+        var applied = 0;
+
+        foreach (var (ingredientId, isAvailable) in wanted)
+        {
+            if (!visible.Contains(ingredientId)) continue;
+
+            if (!existing.TryGetValue(ingredientId, out var row))
+            {
+                row = new TenantInventory { TenantId = tenantId, IngredientId = ingredientId };
+                await inventory.AddAsync(row, cancellationToken);
+            }
+
+            // Set, never flipped, and unticking updates the row rather than deleting it — the same
+            // rule the single-ingredient write follows, for the same reason (INV-1, JJ-023).
+            row.IsAvailable = isAvailable;
+            row.UpdatedAt = now;
+            applied++;
+        }
+
+        await inventory.SaveChangesAsync(cancellationToken);
+
+        return new BulkSetResult(applied, [.. wanted.Keys.Where(id => !visible.Contains(id))]);
+    }
+
+    /// <summary>
     /// The two-level category tree, for the picker on the add form (JJ-015). Curated and global —
     /// no household additions in MVP (JJ-022) — so this is a read and will stay one.
     /// </summary>
