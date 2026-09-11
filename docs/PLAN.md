@@ -105,10 +105,19 @@ now covered.**
 **Merged since** (PR #30): **the QA plan's app half** — six suites, §10d–§10i, 54 cases (150 → 204).
 The document had covered the platform only while every app flow was built on top of it.
 
-**Built, verified, uncommitted** on `fix/header-chrome` (branched from `develop`):
+**Committed, not pushed** — the first batch under the rule above, on
+`batch/header-fix-and-marga-emails` (branched from `develop`). Five commits, each revertable alone:
 
-- **The header was wrong in three ways at once**, reported from a screenshot rather than found by a
-  test. All three are written up under SHELL-1 in `docs/stories/shell.md`.
+| | |
+|---|---|
+| `fix(ui)` | the header, four bugs — below |
+| `docs(plan)` | the batching rule itself |
+| `feat(email)` | MARGA-4, Marga on the emails a person asked for |
+| `feat(ui)` | MARGA-5, where she actually is |
+| `ci` | LOCALCI-3, the trigger diet |
+
+**The header was wrong in four ways at once**, reported from a screenshot rather than found by a
+test. All four are written up under SHELL-1 in `docs/stories/shell.md`.
 - **SHELL-1's tab styles never applied at all.** Scoped CSS cannot reach an element rendered by a
   child component — `<NavLink>`'s anchor never gets the scope attribute — so every rule matched
   nothing. The `<ul>` rules DID work, so the tab bar moved correctly and the slice looked finished.
@@ -243,3 +252,26 @@ correctly and the slice looked finished. **Scoped CSS cannot reach inside a chil
 selector's last element is rendered by one, it belongs in `app.css`. It shipped, and the manual case
 that described the right behaviour (`QA-CHROME-04`) had not been run yet — which is the argument for
 running the plan rather than only writing it.
+
+## CI is now proportional to the change — 2026-09-11
+
+**`LOCALCI-3` shipped**, pulled forward ahead of `LOCALCI-1` and `LOCALCI-2` and needing neither. A
+job called `changes` reads the diff once and publishes `code` / `native` / `docs`; every non-deploy
+job gates on it. A docs-only push stops billing roughly thirty minutes for markdown — which the QA
+plan's own pull request paid in full, for three text files.
+
+**Two jobs never gate on code**, and this is the half worth remembering: `secret-scan`, because a
+credential pasted into a markdown file is still a leaked credential, and `qa-artifacts`, because
+editing the plan without regenerating the PDFs is the ONLY way to break it — gating it on code would
+switch it off for precisely the change it exists to catch. A test enforces both halves.
+
+**It fails open.** An unreachable diff base — a force push, a new branch, a scheduled run — runs
+everything. Skipping a gate because the diff could not be read is the one failure mode worth paying
+thirty minutes to avoid.
+
+**The Apple smoke moved to a weekly cron** (87 billed minutes, macOS at 10×), returning to every push
+the moment a self-hosted Mac is configured. The Apple BUILD still runs per develop push, so compile
+rot is caught within one merge. ⚠️ **A green develop run is no longer a green Apple smoke** — QA §13c
+says to dispatch it by hand before shipping a native client.
+
+**Still to observe:** the skip/run pattern on the real runners, one docs-only PR and one code PR.
