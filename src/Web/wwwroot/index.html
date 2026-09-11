@@ -24,12 +24,26 @@
 </head>
 
 <body>
+    <!-- SHELL-2, proposal screen 9. Keep in sync with src/Maui/wwwroot/index.html — both hosts carry
+         their own copy of this file and NATIVE_PARITY.md makes keeping them together a maintainer
+         rule. The only intended difference is the boot-indeterminate class the MAUI host adds, and
+         the reason is written beside it there.
+
+         The drawing is the one shipped by MARGA-1 at 115 KB, down from the 2 MB delivered. This is
+         the single place in the app where it is fetched BEFORE the app is usable, so an unoptimized
+         asset here would make the very wait it decorates longer. -->
     <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
+        <div class="boot">
+            <img class="boot-scene" src="_content/JiggerJot.Shared.Ui/brand/marga_scene_512.png"
+                 alt="" aria-hidden="true" width="512" height="512" />
+            <div class="boot-meter">
+                <svg class="loading-progress" viewBox="0 0 100 100">
+                    <circle r="46" cx="50" cy="50" />
+                    <circle r="46" cx="50" cy="50" />
+                </svg>
+                <div class="loading-progress-text"></div>
+            </div>
+        </div>
     </div>
 
     <div id="blazor-error-ui">

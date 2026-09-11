@@ -4,7 +4,7 @@
 > the state the app shows before Blazor has finished loading. Read with `docs/NATIVE_PARITY.md` — the
 > two hosts carry their own `index.html` and keeping them in sync is a maintainer rule, not a nicety.
 > Stories use Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — SHELL-1 (the responsive shell) shipped; SHELL-2 (the boot state) planned.
+> **Status: ✅ COMPLETE for MVP** — SHELL-1 (the responsive shell) and SHELL-2 (the boot state) shipped.
 
 **Epic key:** `SHELL`
 
@@ -94,29 +94,60 @@ Scenario: The bar does not cover the page
 
 ### SHELL-2 — The boot state
 
-**Status: 📋 Planned.** Proposal screen **9**. The smallest slice in the wave.
+**Status: ✅ Implemented.** Proposal screen **9**. The smallest slice in the wave.
+
+**As a** member of a household opening the app
+**I want** the wait to look like the app I am waiting for
+**So that** the first thing I see is not a stock spinner
 
 Replaces the stock two-circle `.loading-progress` spinner with the illustration, keeping the brass
-`--brand-accent` arc it already uses and reading the real `--blazor-load-percentage`. A markup swap
-rather than new plumbing; the tilt is CSS on the static drawing, so there is no second asset.
+`--brand-accent` arc it already used and still reading the real `--blazor-load-percentage`. A markup
+swap rather than new plumbing; **the tilt is CSS on the static drawing**, so she rocks as if shaking
+and no second asset or animated format is needed to say it.
 
-> **⚠️ Two files, not one.** Both hosts carry their own `index.html`, and `NATIVE_PARITY.md` names
-> keeping them in sync as a maintainer rule. A boot state that only ships on web is a bug on four
-> native shells.
+**Two files, and the rule was already being broken.** Both hosts carry their own `index.html`, and
+`NATIVE_PARITY.md` names keeping them in sync as a maintainer rule — but the web host had the stock
+spinner while the MAUI host had the literal word `Loading...`. So the parity was gone before there was
+a boot state to lose it with. It is a **CI gate** now rather than a line in a document: both files must
+carry the boot markup and point at the same drawing.
 
-**And it is the payload, not just the markup.** The illustration is 2 MB as delivered. The boot screen
-is the one place it is fetched *before* the app is usable, so an unoptimized asset here makes the very
-problem it decorates worse.
+**One intended difference, asserted in both directions.** A WebView loads the app out of the app
+package: there is no download to measure, `--blazor-load-percentage` is never set, and an arc reading
+it would sit frozen at zero for the whole boot — which reads as broken rather than as fast. The MAUI
+host adds `boot-indeterminate` and the same arc sweeps instead of filling. The gate requires that class
+on MAUI and forbids it on web, so the difference stays deliberate rather than drifting.
+
+> **Found in the browser, not by a test.** The arc showed about a sixth of a turn while the text beside
+> it read 81%. `calc()` cannot divide one percentage by another, and an invalid `calc` is dropped
+> **silently** — so the arc rendered with no relation to the number printed inside it. The percentage
+> stays a percentage and is only multiplied. In a 100×100 viewBox a dasharray percentage resolves
+> against a normalized diagonal of 100, so the circumference (2 π 46) is 289%, and 100% of the load
+> now maps exactly onto 289% of dash. Measured: 0 → 0%, 25 → 72.25%, 100 → 289%.
+
+**The payload, not just the markup.** The illustration was 2 MB as delivered. The boot screen is the one
+place it is fetched *before* the app is usable, so an unoptimized asset here makes the very wait it
+decorates longer. MARGA-1 shipped it at 115 KB, and a gate now holds a ceiling on it — room to redraw
+it, no room to paste the original back.
+
+**Motion is optional**, because a boot screen is the one thing nobody can choose to skip. Under
+`prefers-reduced-motion` the rocking stops and the sweep becomes a static ring; the determinate arc
+still shows progress, it simply does not move on its own.
 
 **Acceptance criteria**
 
 ```gherkin
 Scenario: It shows real progress
   Then the arc reads --blazor-load-percentage rather than animating on a timer
+  And the length of the arc matches the number printed inside it
 
 Scenario: Both hosts agree
-  Then the web and MAUI index.html render the same boot state
+  Then the web and MAUI index.html both render the boot state, from the same drawing
+  And the only difference is the sweep, on the host that has no download to measure
 
 Scenario: It does not cost what it saves
   Then the illustration is optimized before it lands in the boot path
+
+Scenario: The motion can be turned off
+  Given a viewer who has asked for reduced motion
+  Then nothing on the boot screen moves on its own
 ```

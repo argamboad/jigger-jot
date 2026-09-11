@@ -20,7 +20,27 @@
 
     <div class="status-bar-safe-area"></div>
 
-    <div id="app">Loading...</div>
+    <!-- SHELL-2, proposal screen 9. Keep in sync with src/Web/wwwroot/index.html — see the note
+         there. This host showed the literal word "Loading..." until now, so the parity rule was
+         already being broken before there was a boot state to break it with.
+
+         `boot-indeterminate` is the one intended difference between the two files. A WebView loads
+         the app out of the app package: there is no download to measure, so --blazor-load-percentage
+         is never set and an arc reading it would sit frozen at zero for the whole boot. The sweep
+         says "something is happening" without claiming a number nothing measured. -->
+    <div id="app" class="boot-indeterminate">
+        <div class="boot">
+            <img class="boot-scene" src="_content/JiggerJot.Shared.Ui/brand/marga_scene_512.png"
+                 alt="" aria-hidden="true" width="512" height="512" />
+            <div class="boot-meter">
+                <svg class="loading-progress" viewBox="0 0 100 100">
+                    <circle r="46" cx="50" cy="50" />
+                    <circle r="46" cx="50" cy="50" />
+                </svg>
+                <div class="loading-progress-text"></div>
+            </div>
+        </div>
+    </div>
 
     <div id="blazor-error-ui" data-nosnippet>
         An unhandled error has occurred.

@@ -63,6 +63,58 @@ public class EnforcementGateTests
     }
 
     [Fact]
+    public void HostIndexHtml_RenderTheSameBootState() // SHELL-2, NATIVE_PARITY "index.html sync"
+    {
+        // The rule was already being broken before there was a boot state to break it with: the web
+        // host had the stock two-circle spinner and the MAUI host had the literal word "Loading...".
+        // A boot screen that only ships on web is a bug on four native shells, so it is a gate now
+        // rather than a line in a document.
+        var root = RepoRoot();
+
+        // Comments stripped first: both files explain the parity rule in prose, and a gate that
+        // matched its own documentation would pass on a file whose markup had been deleted.
+        static string Markup(string path) =>
+            Regex.Replace(File.ReadAllText(path), "<!--.*?-->", "", RegexOptions.Singleline);
+
+        var web = Markup(Path.Combine(root, "src", "Web", "wwwroot", "index.html"));
+        var maui = Markup(Path.Combine(root, "src", "Maui", "wwwroot", "index.html"));
+
+        foreach (var marker in new[] { "class=\"boot\"", "boot-scene", "class=\"loading-progress\"" })
+        {
+            Assert.Contains(marker, web, StringComparison.Ordinal);
+            Assert.Contains(marker, maui, StringComparison.Ordinal);
+        }
+
+        // ...and on the same drawing. Two hosts pointing at two different files would pass every
+        // marker above while looking like different apps.
+        static string Scene(string html) =>
+            Regex.Match(html, @"_content/[A-Za-z0-9./_-]+marga_scene[A-Za-z0-9._-]*\.png").Value;
+        Assert.NotEmpty(Scene(web));
+        Assert.Equal(Scene(web), Scene(maui));
+
+        // The ONE intended difference, asserted in both directions so it stays deliberate: a WebView
+        // loads out of the app package, so there is no download to measure and the arc sweeps rather
+        // than reading a --blazor-load-percentage nothing sets.
+        Assert.Contains("boot-indeterminate", maui, StringComparison.Ordinal);
+        Assert.DoesNotContain("boot-indeterminate", web, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheBootIllustration_IsTheOptimisedOne() // SHELL-2
+    {
+        // The boot screen is the one place this drawing is fetched BEFORE the app is usable, so an
+        // unoptimized asset here makes the very wait it decorates longer. It was 2 MB as delivered
+        // and ships at ~115 KB; the ceiling leaves room to redraw it without leaving room to paste
+        // the original back.
+        var scene = new FileInfo(Path.Combine(
+            RepoRoot(), "src", "Shared.Ui", "wwwroot", "brand", "marga_scene_512.png"));
+
+        Assert.True(scene.Exists, $"the boot illustration is missing: {scene.FullName}");
+        Assert.True(scene.Length < 250 * 1024,
+            $"the boot illustration is {scene.Length / 1024} KB — optimize it before it lands in the boot path");
+    }
+
+    [Fact]
     public void ClaudeMdDocMap_ListsEveryTopLevelDoc() // R75, doc-map half
     {
         var root = RepoRoot();

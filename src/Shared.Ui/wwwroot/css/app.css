@@ -219,34 +219,107 @@ a, .btn-link {
         content: "An error has occurred."
     }
 
+/* ── SHELL-2: the boot state ──────────────────────────────────────────────────────────────────
+   The stock two-circle spinner, replaced with the drawing. Single-sourced here, so both hosts get
+   it from the one stylesheet even though each carries its own index.html. */
+
+.boot {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 2rem 1rem;
+    background: var(--app-bg);
+}
+
+.boot-scene {
+    width: min(60vw, 240px);
+    height: auto;
+    border-radius: 12px;
+    /* The tilt is CSS on a STATIC drawing — she rocks as if shaking, and no second asset or
+       animated format is needed to say it. */
+    animation: boot-rock 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes boot-rock {
+    from { transform: rotate(-2.5deg); }
+    to   { transform: rotate(2.5deg); }
+}
+
+.boot-meter {
+    position: relative;
+    width: 5rem;
+    height: 5rem;
+}
+
 .loading-progress {
-    position: absolute;
     display: block;
-    width: 8rem;
-    height: 8rem;
-    inset: 20vh 0 auto 0;
-    margin: 0 auto 0 auto;
+    width: 100%;
+    height: 100%;
 }
 
     .loading-progress circle {
         fill: none;
         stroke: #e0e0e0;
-        stroke-width: 0.6rem;
+        stroke-width: 6;
         transform-origin: 50% 50%;
         transform: rotate(-90deg);
     }
 
+        /* The brass arc, kept from the stock spinner, still reading the REAL figure the framework
+           publishes rather than animating on a timer.
+           The percentage stays a PERCENTAGE and is only multiplied: calc cannot divide one percentage
+           by another, and an invalid calc is dropped silently — the arc then renders as a fraction of
+           the circle with no relation to the number printed inside it. Caught in the browser at 81%,
+           showing about a sixth of a turn.
+           In a 100x100 viewBox a dasharray percentage resolves against a normalized diagonal of 100,
+           so 1% is one user unit and the circumference (2 * pi * 46 = 289) is 289%. */
         .loading-progress circle:last-child {
             stroke: var(--brand-accent);
-            stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+            stroke-linecap: round;
+            stroke-dasharray: calc(2.89 * var(--blazor-load-percentage, 0%)), 500%;
             transition: stroke-dasharray 0.05s ease-in-out;
         }
 
 .loading-progress-text {
     position: absolute;
-    text-align: center;
-    font-weight: bold;
-    inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--bs-body-color, #212529);
+}
+
+/* The WebView hosts have no download to measure, so the same arc sweeps instead of filling. Reading
+   an unset --blazor-load-percentage would leave it frozen at zero for the whole boot, which reads as
+   broken rather than as fast. */
+.boot-indeterminate .loading-progress circle:last-child {
+    stroke-dasharray: 72%, 500%;
+    transition: none;
+    animation: boot-sweep 1.1s linear infinite;
+}
+
+@keyframes boot-sweep {
+    from { transform: rotate(-90deg); }
+    to   { transform: rotate(270deg); }
+}
+
+/* A boot screen is the one thing nobody can choose to skip, so the motion has to be optional. The
+   arc still shows progress; it simply stops moving on its own. */
+@media (prefers-reduced-motion: reduce) {
+    .boot-scene {
+        animation: none;
+    }
+
+    .boot-indeterminate .loading-progress circle:last-child {
+        animation: none;
+        stroke-dasharray: 289%, 500%;
+        opacity: .45;
+    }
 }
 
     .loading-progress-text:after {

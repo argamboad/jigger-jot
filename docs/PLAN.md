@@ -72,19 +72,22 @@ All three apps inherited the defect from the platform's `app.css`.
 **MARGA-2**, the signed-in home screen — which closed the `<!-- TODO -->` the platform's welcome card
 had carried since day one.
 
-**Merged since** (PRs #25–#26): **INV-3**, the shelf rework, and **MARGA-3**, the two empty states —
-which settled what a first bottle is and closed the `MARGA` epic.
+**Merged since** (PRs #25–#27): **INV-3**, the shelf rework; **MARGA-3**, the two empty states, which
+settled what a first bottle is and closed the `MARGA` epic; and **SHELL-1**, the responsive shell,
+which settled the wide-screen question.
 
-**Built, verified, uncommitted** on `feat/SHELL-1-tab-bar` (branched from `develop`):
+**Built, verified, uncommitted** on `feat/SHELL-2-boot-state` (branched from `develop`):
 
-- **SHELL-1**: the app's three destinations move to a bottom tab bar below `lg`, and the hamburger
-  keeps only the account cluster.
-- **One element, two positions.** The same `<ul>` is repositioned by CSS rather than a second copy
-  being rendered and hidden — which would put two `nav-shelf` in the DOM and fail every journey that
-  clicks it by test id on an ambiguous locator. A test asserts each id resolves exactly once.
-- **The wide-screen question is answered** — see below.
-- **A fixed bar sits ON the page**, so the content container gained bottom padding and INV-3's payoff
-  footer now sits clear of it, through one global token rather than a media query per screen.
+- **SHELL-2**: the boot state, and the last slice of the UI wave. The stock two-circle spinner becomes
+  her illustration, rocking as if shaking — CSS on the static drawing, so there is no second asset —
+  with the brass arc still reading the real load percentage.
+- **The parity rule was already broken**, before there was a boot state to break it with: web had the
+  stock spinner, MAUI had the literal word `Loading...`. It is a CI gate now rather than a line in a
+  document, and it asserts the one intended difference in both directions.
+- **Found in the browser, not by a test:** the arc showed a sixth of a turn while the text read 81%.
+  `calc()` cannot divide a percentage by a percentage, and an invalid `calc` is dropped **silently**.
+- **A second gate holds the asset's size**, because this is the one place the drawing is fetched
+  before the app is usable.
 
 ## The UI wave — 2026-09-10
 
@@ -115,8 +118,7 @@ Each is one branch off `develop`, one PR, after the previous one is merged.
 
 | # | Slice | Flow / screen | What it is |
 |---|---|---|---|
-| 1 | **SHELL-1** | all, below `lg` | The uncommitted work above. Waiting on C+P+PR. |
-| 2 | **SHELL-2** | screen 9 | The boot state. Smallest of the wave, and it lands in **two** `index.html` files, not one. |
+| 1 | **SHELL-2** | screen 9 | The uncommitted work above. Waiting on C+P+PR. **Last slice of the UI wave.** |
 | 4 | **ONBOARD-1** | §7 | The last unbuilt flow, and the only one predating the wave. Sits after it because a wizard that lands on a reworked shelf should be built against the reworked shelf. **Now has a head start**: MARGA-3 settled what a first bottle is, and a starter SET is the same question asked four times. |
 
 **Three questions to settle before the slices that need them. All three are now settled, each by the
