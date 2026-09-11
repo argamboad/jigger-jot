@@ -114,10 +114,12 @@
 @if (_almostOnly && _unlocks is { Count: > 0 })
 {
     var best = _unlocks[0];
+    @* MARGA-5: it says the same figure, in her voice instead of as a bare statement. The card was
+       already hers in shape and colour; it simply had nobody in it. *@
     <div class="card shadow-sm mb-3 border-primary-subtle bg-primary-subtle" data-testid="cocktail-unlocks">
         <div class="card-body py-3">
-            <p class="mb-1 fw-medium">@Localizer["Cocktails_UnlocksHeadline", best.Ingredient, best.Unlocks]</p>
-            <p class="mb-0 text-body-secondary small" data-testid="cocktail-unlocks-drinks">
+            <MargaSays Size="40">@Localizer["Marga_UnlocksHeadline", best.Ingredient, best.Unlocks]</MargaSays>
+            <p class="mb-0 mt-2 text-body-secondary small" data-testid="cocktail-unlocks-drinks">
                 @* Four, then a count. Thirteen names is a wall, and the number beside them already
                    says how many there are. The DATA stays whole — see ALMOST-2. *@
                 @(best.Cocktails.Count <= 4
@@ -181,7 +183,26 @@ else if (_page is null || _page.Total == 0)
 }
 else
 {
-    <p class="text-muted small" data-testid="cocktail-count">@Localizer["Cocktails_Count", _page.Total]</p>
+    @* MARGA-5, and the one place she replaces a number rather than adding to one: under the makeable
+       filter the count IS the answer to the product's question, so she says it. Only there — under a
+       plain browse or a filter, "N cocktails" is a fact about the list and nobody needs a character
+       to read it out. *@
+    @* `cocktail-count` stays on whichever element carries the number — her sentence here, the plain
+       line otherwise. The id means "where the count is", and the journey that follows the home
+       screen's button reads it to check the two agree. Moving the number without moving the id is
+       how SHELL-1 broke three suites. *@
+    @if (_makeableOnly)
+    {
+        <div class="card shadow-sm mb-3" data-testid="cocktail-count">
+            <div class="card-body py-3">
+                <MargaSays Size="40">@Localizer["Marga_MakeableCount", _page.Total]</MargaSays>
+            </div>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted small" data-testid="cocktail-count">@Localizer["Cocktails_Count", _page.Total]</p>
+    }
 
     <div class="list-group shadow-sm mb-3" data-testid="cocktail-list">
         @foreach (var c in _page.Items)

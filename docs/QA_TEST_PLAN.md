@@ -1620,6 +1620,39 @@ with an empty speech line. Restart the API.
 entirely — the sentence beside her carries the whole meaning, and "photo of a bartender" ahead of it
 would only get in the way.
 
+### QA-CHROME-10 — She is where I spend my time 🟠 (Web)
+**Gherkin**
+```gherkin
+Given a shelf with something ticked
+Then she names the one bottle that would open the most
+And she does not repeat the count the footer already shows
+```
+**Walkthrough**
+1. Open the **shelf** with the QA shelf ticked. **Expected:** she is at the TOP, naming a bottle and
+   how many more drinks it would open.
+2. **Expected:** she does **not** repeat the footer. The footer counts what you HAVE; she names what
+   you are SHORT of. If the two say the same thing, that is the defect.
+3. Untick everything. **Expected:** she switches to suggesting where to start — the one-away set is
+   empty with nothing ticked, so there is nothing to rank.
+
+### QA-CHROME-11 — She takes the count only where the count is the answer 🟠 (Web)
+**Walkthrough:** open the catalog under **I can make now**. **Expected:** she gives the number in her
+voice, in place of the plain "N cocktails". Turn the filter off. **Expected:** plain text, no Marga —
+"969 cocktails" is a fact about the list, and a character who narrates every number stops being worth
+reading.
+
+### QA-CHROME-12 — She can say yes 🟢 (Web)
+**Walkthrough:** open a recipe you **can** pour, then one you are **one bottle** short of, then one
+that is further away. **Expected:** "you can pour this now" on the first, the missing bottle named on
+the second, and **nothing from her** on the third — the badge has already said so, and piling on is
+not her job. **Expected:** where a substitution is in play, that outranks all three, since it is the
+reason the drink qualified at all.
+
+### QA-CHROME-13 — She says nothing rather than something empty 🟢 (Web)
+**Walkthrough:** stop the API, then reload the shelf. **Expected:** she is absent — not a blank
+speech bubble, and not a confident line she has nothing behind. **Expected:** the footer's bottle
+count is unaffected; it is a fact the screen owns rather than something she supplies.
+
 ### QA-CHROME-04 — The destinations follow the width 🟠 (Web) ⚙️ Automated in CI
 **Walkthrough**
 1. At a wide window: **Expected:** Home, Shelf and Cocktails sit in the header beside the brand, and
@@ -2702,7 +2735,7 @@ is the product. Cited decisions are `JJ-nnn` in `docs/DECISIONS.md`.
 | Forking (FORK-1) | **MINE-01** (⚙️ E2E) + MINE-02 | `POST /api/cocktails/{id}/fork` — a SNAPSHOT copy, never a reference (JJ-002, JJ-013): a new tenant-owned `Cocktail` plus copies of every line, `TenantId` set by hand on both tables. The source credit is deliberately NOT copied; provenance rides on `ForkedFromCocktailId`, which is not a foreign key, so deleting the original leaves the copy standing. |
 | Authoring (AUTHORING-1) | **MINE-03/04** (⚙️ E2E) + MINE-05/06 | `POST /api/cocktails`, `GET /api/cocktails/lookups`. **Two lookup endpoints that must not be merged:** `/filters` is catalog-derived so no filter is a dead end, `/lookups` is the whole curated set (JJ-022) so a form can reach a glass no recipe uses. Refuses a lineless recipe, a unit with no amount, and an ingredient the household cannot see. Request enums cross the wire BY NAME. |
 | Onboarding wizard (ONBOARD-1) | **START-01/02/03/05** (⚙️ E2E) + START-04/06/07 | `GET /api/inventory` + `GET /api/cocktails/starters?limit=12` + `PUT /api/inventory`. Offered, never forced: **no redirect and no dismissal flag**, so there is no "has this household been onboarded" fact to store — `Tenant` is the platform's. Members joining by invitation skip it for free, because they already have a shelf (FEATURES §7, JJ-021). |
-| Marga (MARGA-1/2/3) | CHROME-01/02/03, MAKE-08/09/10 | none of her own. **She is a drawn character, not an assistant**: every line is a localized resource string with real data in its placeholders, picked whole rather than assembled, from queries that already exist. Her component takes a FINISHED sentence — it cannot build one, pick one or fetch anything. She is `alt=""`/`aria-hidden`. |
+| Marga (MARGA-1/2/3/5) | CHROME-01/02/03/**10/11/12/13**, MAKE-08/09/10 + `Ui.Tests` (`MargaPresenceTests`) | none of her own. **She is a drawn character, not an assistant**: every line is a localized resource string with real data in its placeholders, picked whole rather than assembled, from queries that already exist. Her component takes a FINISHED sentence — it cannot build one, pick one or fetch anything. She is `alt=""`/`aria-hidden`. |
 | The responsive shell (SHELL-1) | **CHROME-04/06** (⚙️ E2E `ShellJourneyTests`) + CHROME-05 | none. ONE element repositioned by CSS, never a second copy hidden at one width — two `nav-shelf` in the DOM fails every journey that clicks it. The current tab is weight plus a drawn indicator, never colour alone, plus `aria-current`. |
 | The boot state (SHELL-2) | CHROME-07/08, and the native legs of §12/§13 | none — it renders before the app exists. It lands in **two** `index.html` files (`NATIVE_PARITY.md`), held by a CI gate; the WebView hosts sweep instead of filling, having no download to measure. A second gate caps the illustration's size, since this is the one place it is fetched before the app is usable. |
 | Marga in the emails (MARGA-4) | **MAIL-05/06/07** + `Api.Tests` (`MargaInEmailTests`) | none — `BrandedEmail` renders her the way it renders the logo: a CID inline image, the one approach Gmail and Outlook both show (they block data-URIs). She is on the three emails a person ASKED for and deliberately not on the notification wrapper, which carries failed payments and security alerts. Attached only when shown, so her 19 KB never rides along unused. Her line is one whole resource string from `EmailStrings.resx`, same contract as in the app. |
@@ -2846,6 +2879,10 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-CHROME-03 | Web | | | | | Screen reader |
 | QA-CHROME-04 | Web | | | | | |
 | QA-CHROME-05 | Web | | | | | Screen reader |
+| QA-CHROME-10 | Web | | | | | |
+| QA-CHROME-11 | Web | | | | | |
+| QA-CHROME-12 | Web | | | | | |
+| QA-CHROME-13 | Web | | | | | Needs the API stopped mid-case |
 | QA-CHROME-06 | Web | | | | | |
 | QA-CHROME-07 | Web/Desktop/Android | | | | | |
 | QA-CHROME-08 | Web | | | | | OS reduce-motion setting |

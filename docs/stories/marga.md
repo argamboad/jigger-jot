@@ -255,6 +255,87 @@ Scenario: She speaks both languages
 
 ---
 
+### MARGA-5 — Where she actually is
+
+**Status: ✅ Implemented.** Not from the design proposal either — asked for after the wave shipped,
+because on paper she was on seven surfaces and in practice you met her once.
+
+**As a** member of a household
+**I want** her where I spend my time, not only on the front page
+**So that** the app keeps its voice past the first screen
+
+**The measurement that prompted it.** Of her seven surfaces, **four were conditional** (a substituted
+row, a substituted recipe, two empty states) and **one is a flash** (the boot screen). So a household
+with a filled shelf met her on the home page and then never again — and the **shelf**, the screen with
+the most dwell time in the whole app, had no Marga at all.
+
+#### The rule, because without one she becomes wallpaper
+
+**She speaks where a number needs interpreting, and stays quiet where the screen already says it
+plainly. One page-level Marga per screen.** A per-row aside at 24px is a footnote on that row, not the
+page's voice, and does not count against it.
+
+| Screen | What she says | Why there |
+|---|---|---|
+| **Shelf** (new) | what the shelf is one bottle short of | most dwell time, and she was absent; the footer already counts what you HAVE, so she takes the other half |
+| **Catalog, makeable filter** (new) | the count | under that filter the count IS the product's question answered, so she gives it — the one place she REPLACES a number |
+| **One-away list** | the unlocking bottle | the card was already hers in shape and colour and simply had nobody in it |
+| **Recipe page** (widened) | "you can pour this now", or the one bottle missing | she used to appear here ONLY for a substitution, so she only ever turned up to explain a compromise, never to say yes |
+| **Home** | unchanged, at 76px rather than 56 | the first sentence anyone reads; at 56 she was an icon beside it rather than the one saying it |
+
+**Where she deliberately does not go:** a plain catalog browse ("969 cocktails" is a fact about the
+list, and a character who narrates every number stops being worth reading), a drink more than one
+bottle away (the badge has said so; piling on is not her job), the authoring form, and every platform
+screen.
+
+**No new engine work.** Every line is fixed copy over data the page already had, or over `unlocks` and
+`starters`, both of which already existed.
+
+> **Two bugs it introduced, both caught by tests rather than by looking.**
+>
+> Her shelf fetch joined the payoff footer's and **shared its catch**, so failing to get her line
+> blanked the drinks count too. An existing INV-3 test went red immediately. The footer states a fact
+> the screen owns; she is optional furniture; the two must fail apart, and now do.
+>
+> Then, once separated, a failed fetch left her saying **"that is everything your shelf reaches"** —
+> a claim she had nothing behind, because "nothing is within one bottle" and "I could not find out"
+> were both just `null`. She now tracks whether the answer actually came back and says nothing when
+> it did not.
+
+**The test id follows the number.** `cocktail-count` stays on whichever element carries the count —
+her sentence under the makeable filter, the plain line otherwise — because a journey reads it to check
+the home screen and the list agree. SHELL-1 moved information without moving its id and took three
+suites down; that is not repeated here.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: She is on the screen I spend the most time on
+  Given a shelf with something ticked
+  Then she names the one bottle that would open the most
+  And she does not repeat the bottle count the footer already shows
+
+Scenario: An untouched shelf gets a starting point
+  Given nothing ticked, so nothing is one bottle away from anything
+  Then she suggests where to start instead
+
+Scenario: She says nothing rather than something empty
+  Given her data cannot be fetched
+  Then she is absent, and the footer's count is unaffected
+
+Scenario: She takes the count only where the count is the answer
+  Given the makeable filter
+  Then she gives the number
+  But given a plain browse
+  Then the number is plain text and she is not there
+
+Scenario: She can say yes
+  Given a recipe I can pour right now
+  Then she says so — not only when a substitution needs explaining
+```
+
+---
+
 ## Acceptance criteria (all slices)
 
 ```gherkin
