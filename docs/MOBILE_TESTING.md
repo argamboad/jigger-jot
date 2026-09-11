@@ -4,10 +4,10 @@ How to run and sign in to the Android app against your local API. Covers **email
 **Google/Microsoft OAuth**, and **"remember me"** (session survives an app restart).
 
 The trick that makes everything work — including OAuth — is **`adb reverse`**: it maps the
-device's `localhost:5338` to your host machine, so the app talks to the API at
-`http://localhost:5338`. Using `localhost` (not the emulator's `10.0.2.2` alias) is what
+device's `localhost:5438` to your host machine, so the app talks to the API at
+`http://localhost:5438`. Using `localhost` (not the emulator's `10.0.2.2` alias) is what
 lets OAuth succeed, because Google/Microsoft accept `localhost` as a redirect host but
-reject raw IPs. The app's Android base URL is already set to `http://localhost:5338`.
+reject raw IPs. The app's Android base URL is already set to `http://localhost:5438`.
 
 ## 1. Prerequisites (host)
 
@@ -15,12 +15,12 @@ Start the backing services and the API:
 
 ```bash
 docker compose up -d                                   # Postgres (5435) + Mailpit (1027/8027)
-dotnet run --project src/Api --launch-profile https    # serves https:7260 AND http:5338
+dotnet run --project src/Api --launch-profile https    # serves https:7360 AND http:5438
 ```
 
-The `https` profile binds **both** `https://localhost:7260` (web/desktop) and
-`http://localhost:5338` (mobile) in one run. `UseHttpsRedirection` is disabled in
-Development, so the cleartext `:5338` leg is not redirected.
+The `https` profile binds **both** `https://localhost:7360` (web/desktop) and
+`http://localhost:5438` (mobile) in one run. `UseHttpsRedirection` is disabled in
+Development, so the cleartext `:5438` leg is not redirected.
 
 An Android emulator (AVD) running, or a physical device with USB debugging enabled.
 
@@ -34,11 +34,11 @@ build/F5 again and the bridge is back.
 To set it by hand (it does not persist across emulator/device restarts):
 
 ```bash
-adb reverse tcp:5338 tcp:5338
+adb reverse tcp:5438 tcp:5438
 ```
 
-Verify: `adb reverse --list` should show `tcp:5338 tcp:5338`. From then on, anything on the
-device hitting `localhost:5338` (the app *and* the in-app browser tab) reaches your host API.
+Verify: `adb reverse --list` should show `tcp:5438 tcp:5438`. From then on, anything on the
+device hitting `localhost:5438` (the app *and* the in-app browser tab) reaches your host API.
 
 ## 3. Run the app
 
@@ -61,16 +61,16 @@ dotnet build src/Maui/JiggerJot.Maui.csproj -t:Run -f net10.0-android
 ## 5. Test Google / Microsoft OAuth
 
 OAuth needs the provider to accept the redirect URI the API will use,
-`http://localhost:5338/signin-{provider}`. **Providers allow `http://localhost` (any port)**,
+`http://localhost:5438/signin-{provider}`. **Providers allow `http://localhost` (any port)**,
 so register these once in each console:
 
 | Provider | Redirect URI to register |
 |---|---|
-| Google (OAuth client → Authorized redirect URIs) | `http://localhost:5338/signin-google` |
-| Microsoft (App registration → Authentication → Web → Redirect URIs) | `http://localhost:5338/signin-microsoft` |
+| Google (OAuth client → Authorized redirect URIs) | `http://localhost:5438/signin-google` |
+| Microsoft (App registration → Authentication → Web → Redirect URIs) | `http://localhost:5438/signin-microsoft` |
 
 > The Google one is likely already registered — it's the same URI the desktop/web flow uses.
-> Microsoft typically needs `http://localhost:5338/signin-microsoft` added.
+> Microsoft typically needs `http://localhost:5438/signin-microsoft` added.
 
 Then in the app tap **Continue with Google/Microsoft** → a browser tab opens → sign in →
 the tab shows "you can close this" → the app completes sign-in. (Account **linking** from
@@ -84,10 +84,10 @@ the Android Keystore and silently exchanged on startup).
 ## Troubleshooting
 
 - **Everything fails / spinner forever** → `adb reverse` not set (re-run step 2), or the API
-  isn't running. Confirm from the host: `curl http://localhost:5338/api/auth/refresh -X POST`
+  isn't running. Confirm from the host: `curl http://localhost:5438/api/auth/refresh -X POST`
   returns `401` (not a connection error).
 - **OAuth: "redirect_uri_mismatch" / "reply URL does not match"** → the
-  `http://localhost:5338/signin-{provider}` URI isn't registered for that provider (step 5).
+  `http://localhost:5438/signin-{provider}` URI isn't registered for that provider (step 5).
 - **OAuth tab opens but never returns to the app** → the `jiggerjot://auth` intent filter
   didn't match; confirm `MauiProgram.CallbackScheme`, the API's `Auth:Native:CallbackScheme`,
   and `WebAuthenticatorCallbackActivity`'s scheme are all `jiggerjot`.

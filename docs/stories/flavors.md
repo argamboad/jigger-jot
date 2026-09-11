@@ -267,7 +267,7 @@ flavor author) — they are the new code; probes are SQL scripts run through the
 ```gherkin
 Scenario: One command, four stages, one verdict
   Given the reference stack is up (API, Web, Postgres, Mailpit)
-  When `docker run --network host spec-kit:1.0.0 --base-url http://localhost:5338 --web-url http://localhost:5269 --mailpit http://localhost:8027 --db "<app-role conn>"` runs
+  When `docker run --network host spec-kit:1.0.0 --base-url http://localhost:5438 --web-url http://localhost:5369 --mailpit http://localhost:8027 --db "<app-role conn>"` runs
   Then newman, journeys, adversarial, probes each write JUnit XML to /out and the exit code is 0
 
 Scenario: A tenancy regression is caught by the kit, not by C# tests

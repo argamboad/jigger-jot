@@ -10,10 +10,10 @@ public static class MauiProgram
 {
 	// Base address for the API, per platform.
 	//  - Windows desktop reaches localhost directly over HTTPS (machine-trusted dev cert).
-	//  - Android uses http://localhost:5338 via `adb reverse tcp:5338 tcp:5338`, which maps
+	//  - Android uses http://localhost:5438 via `adb reverse tcp:5438 tcp:5438`, which maps
 	//    the device's localhost to the host. Using "localhost" (not 10.0.2.2) is what makes
 	//    OAuth work: Google/Microsoft accept localhost as a redirect host but reject raw IPs,
-	//    so the provider redirect_uri http://localhost:5338/signin-google is valid (and is
+	//    so the provider redirect_uri http://localhost:5438/signin-google is valid (and is
 	//    the same one already registered for the desktop/web flow). See docs/MOBILE_TESTING.md.
 	//  - JIGGERJOT_API_BASE_URL overrides both (dev builds): the CI native smoke (NATIVE-7)
 	//    points the app at its plain-HTTP stack, and a physical device can target a LAN API
@@ -27,9 +27,9 @@ public static class MauiProgram
 #if DEBUG
 		Environment.GetEnvironmentVariable("JIGGERJOT_API_BASE_URL") is { Length: > 0 } o ? o :
 #if ANDROID
-		"http://localhost:5338";
+		"http://localhost:5438";
 #else
-		"https://localhost:7260";
+		"https://localhost:7360";
 #endif
 #else
 		ReleaseApiBaseUrl;

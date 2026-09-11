@@ -259,8 +259,8 @@ here so they are not rediscovered later:
 2. **The "client secret" is a rotating ES256 JWT**, minted from a downloaded `.p8` key + Team ID +
    Key ID + Service ID, expiring every ≤6 months. This breaks the single-static-secret-in-`.env`
    shape of ADR-001 (the package can generate/cache the JWT from the key material).
-3. **Apple forbids `localhost` redirect URIs.** Google/MS redirect to `https://localhost:7260` /
-   `http://localhost:5338`, which the QA plan and `MOBILE_TESTING.md` rely on. Apple needs a real
+3. **Apple forbids `localhost` redirect URIs.** Google/MS redirect to `https://localhost:7360` /
+   `http://localhost:5438`, which the QA plan and `MOBILE_TESTING.md` rely on. Apple needs a real
    **HTTPS domain or tunnel** even for local QA — a workflow asterisk, not a code change.
 4. **`form_post` callback** (because name/email scope is requested) ⇒ the OAuth correlation cookie
    must be `SameSite=None; Secure`; relevant given the schemeful-same-site cookie history.
@@ -1638,8 +1638,8 @@ perezosoft-platform, vuelto and JiggerJot are developed on the same machine, and
 launch profiles pin the app ports (ADR-C13 makes only the compose ports env-driven). The neighbours
 occupy: platform API 7160/5238, Web 7008/5169, compose 5433/1025/8025; vuelto API 5000, client 5001,
 a local Postgres on 5432 and a compose stack on 5434/1026/8026. JiggerJot therefore re-pins to a
-free set: **API `https://localhost:7260` + `http://localhost:5338`** (the cleartext leg the
-Android emulator reaches via `adb reverse`), **Web `https://localhost:7108` + `http://localhost:5269`**,
+free set: **API `https://localhost:7360` + `http://localhost:5438`** (the cleartext leg the
+Android emulator reaches via `adb reverse`), **Web `https://localhost:7208` + `http://localhost:5369`**,
 and in `.env.example` **`DB_PORT=5435`, `MAIL_SMTP_PORT=1027`, `MAIL_UI_PORT=8027`, `APP_PORT=8280`**
 (the last for the optional prod-like `app` compose service, which the platform leaves on 8080). The
 compose project name comes from the folder (`jigger-jot`), so containers, network and the `db_data`
