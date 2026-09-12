@@ -75,8 +75,8 @@ Open Claude Code in the repo and use **the expected first prompt from `README.md
 ```bash
 cp .env.example .env          # then fill it — at minimum Jwt__Secret (any ≥32-char string)
 docker compose up -d db mail  # Postgres 17 + Mailpit
-dotnet run --project src/Api --launch-profile https    # API on https://localhost:7260
-dotnet run --project src/Web                           # web UI on https://localhost:7108
+dotnet run --project src/Api --launch-profile https    # API on https://localhost:7360
+dotnet run --project src/Web                           # web UI on https://localhost:7208
 ```
 
 Sign in with **"Email me a 6-digit code"** and read the code from Mailpit at

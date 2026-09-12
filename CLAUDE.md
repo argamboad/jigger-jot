@@ -13,6 +13,21 @@ filter a shared, seeded catalog, fork any cocktail into their own editable copy,
 own. Full context in `docs/PROJECT_BRIEF.md`; tagline "Mix what you have." (JJ-029).
 
 ## Read before you act
+- **This app owns a dev PORT BLOCK, and it is not the platform's or a sibling's.**
+  `perezosoft-platform` seeds every new app with its own ports, so out of the box an app cannot run
+  beside the platform *or* beside another app — same Web port, same API port, first one wins. The
+  convention is **+100 per downstream app** on all four. This repo's block:
+
+  | | https | http |
+  |---|---|---|
+  | Web | **7208** | **5369** |
+  | API | **7360** | **5438** |
+
+  (Platform 7008/5169 + 7160/5238; y-el-vuelto 7108/5269 + 7260/5338; the next app takes 7308/5469 +
+  7460/5538.) The http API leg is what the Android emulator reaches through
+  `adb reverse tcp:5438 tcp:5438`, so **provider redirect URIs must name
+  `http://localhost:5438/signin-{provider}`** — see `docs/MOBILE_TESTING.md`. `docs/audits/**` and
+  `docs/qa-runs/**` keep the old ports on purpose: they log what a run actually used.
 - **Every session → `docs/PLAN.md` first.** The three gates (branch only from `develop`; no next
   slice until the user says "merged"; no commit/push/PR until the user says "C+P+PR"), the slice
   ritual, the editing rules, and the sequenced backlog. It exists because a session broke all

@@ -157,12 +157,12 @@ workspace (`clean: true` → `git clean -ffdx`), but anything **outside** the wo
 - `native-smoke-android` → "Free disk space": the `sudo rm -rf /usr/share/swift …` paths are hosted-image
   bloat; guard the step with `if: ${{ !contains(runner.name, 'desk') }}` **or** leave Android on hosted
   (recommended — see Phase B). Do not run that step on a personal machine.
-- Port collisions on the desk: the smoke/e2e jobs bind **5432, 5338, 5269, 1027, 8027**. The dev
+- Port collisions on the desk: the smoke/e2e jobs bind **5432, 5438, 5369, 1027, 8027**. The dev
   `docker-compose.yml` db + Mailpit and a running dev API hold the same ports. Rule (documented in §10):
   **stop the dev stack before letting the Windows runner take jobs** (`docker compose stop db mail`,
   stop F5 sessions). Add a fail-fast guard at the top of the Windows smoke's boot step:
-  `foreach ($p in 5432,5338) { if (Get-NetTCPConnection -State Listen -LocalPort $p -EA SilentlyContinue | ? OwningProcess -ne (docker inspect -f '{{.State.Pid}}' ci-smoke-pg 2>$null)) { … } }`
-  — simpler: `if ((Get-NetTCPConnection -State Listen -LocalPort 5338 -EA SilentlyContinue)) { Write-Error "port 5338 busy — a dev API is running on this runner"; exit 1 }`.
+  `foreach ($p in 5432,5438) { if (Get-NetTCPConnection -State Listen -LocalPort $p -EA SilentlyContinue | ? OwningProcess -ne (docker inspect -f '{{.State.Pid}}' ci-smoke-pg 2>$null)) { … } }`
+  — simpler: `if ((Get-NetTCPConnection -State Listen -LocalPort 5438 -EA SilentlyContinue)) { Write-Error "port 5438 busy — a dev API is running on this runner"; exit 1 }`.
   Escalation if collisions keep biting: run the Windows runner inside a Hyper-V VM (out of scope here).
 
 #### 1c. Runner installation (operator steps → `DEPLOYMENT.md` §10, written in this slice)
@@ -352,7 +352,7 @@ git branch -D ci/local-gates
 | qa-artifacts | pip install + `check_qa_artifacts.py` + append-only guard vs `origin/develop` merge-base | same (CI uses the PR base SHA) | keep; requires `python` + `bash` on PATH (Git Bash) |
 | secret-scan | `docker run zricethezav/gitleaks:v8.21.2 … --config .gitleaks.toml` | binary `8.21.2` + sha256 pin | keep the image form; version string must equal `GITLEAKS_VERSION` (tripwire) |
 | license-scan | `DOTNET_ROLL_FORWARD=LatestMajor`, tool restore, scan Api + Web vs `.github/forbidden-licenses.json` | same | keep |
-| e2e (opt-in) | `postgres:17` + `axllent/mailpit:v1.30.4` containers, same env block as CI, ports 5432/1027/8027/5338/5269 guard | same images/env | keep; image tags must equal CI's (tripwire) |
+| e2e (opt-in) | `postgres:17` + `axllent/mailpit:v1.30.4` containers, same env block as CI, ports 5432/1027/8027/5438/5369 guard | same images/env | keep; image tags must equal CI's (tripwire) |
 | docker-build (opt-in) | `docker build -t jiggerjot-app:ci-local .` | same | keep |
 | native-build (windows) (opt-in) | `dotnet build src/Maui/… -f net10.0-windows10.0.19041.0 -c Debug` | preceded by `dotnet workload restore … --version 10.0.400.1` | add the workload restore (no-op when present; keeps the set pin honest) |
 | not mirrored | — | native-paths, Apple/Android legs + smokes, deploys, postman-sync | header already says so; keep |
@@ -409,9 +409,9 @@ Scenario: The EF drift step is mirrored
   Then build-test FAILS on "has-pending-model-changes" — the same verdict CI would give
 
 Scenario: Opt-in E2E boots and tears down the stack
-  Given ports 5432/1027/8027/5338/5269 are free
+  Given ports 5432/1027/8027/5438/5369 are free
   When ./ci-local.ps1 -E2E runs
-  Then the Playwright suite runs against http://localhost:5269 and both containers + both dotnet
+  Then the Playwright suite runs against http://localhost:5369 and both containers + both dotnet
        processes are gone afterwards, and src/Web/wwwroot/appsettings.json is restored byte-for-byte
 
 Scenario: Port clash fails fast

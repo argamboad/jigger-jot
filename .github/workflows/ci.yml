@@ -471,11 +471,11 @@ jobs:
           # The dotted logging key can't be a shell export (invalid identifier) — env(1) sets it.
           # It raises AspNetCore request logging so the provider probe is grep-able below.
           env 'Logging__LogLevel__Microsoft.AspNetCore=Information' \
-            dotnet run --project src/Api/JiggerJot.Api.csproj -c Debug --no-build --urls http://localhost:5338 > api.log 2>&1 &
+            dotnet run --project src/Api/JiggerJot.Api.csproj -c Debug --no-build --urls http://localhost:5438 > api.log 2>&1 &
 
           echo "Waiting for the API…"
           for i in $(seq 1 60); do
-            api=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5338/health/ready || echo 000)
+            api=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5438/health/ready || echo 000)
             [ "$api" = "200" ] && { echo "ready"; break; }
             sleep 3
           done
@@ -485,7 +485,7 @@ jobs:
 
           echo "=== Mac Catalyst: launch + boot-to-login ==="
           CAT_BIN=$(ls src/Maui/bin/Debug/net10.0-maccatalyst/maccatalyst-*/*.app/Contents/MacOS/* | head -1)
-          JIGGERJOT_API_BASE_URL=http://localhost:5338 "$CAT_BIN" > catalyst-app.log 2>&1 &
+          JIGGERJOT_API_BASE_URL=http://localhost:5438 "$CAT_BIN" > catalyst-app.log 2>&1 &
           CAT_PID=$!
           ok=0
           for i in $(seq 1 40); do   # up to 2 min
@@ -501,7 +501,7 @@ jobs:
           echo "=== iOS simulator: install + launch + boot-to-login ==="
           APP=$(ls -d src/Maui/bin/Debug/net10.0-ios/iossimulator-*/JiggerJot.Maui.app | head -1)
           xcrun simctl install "$UDID" "$APP"
-          SIMCTL_CHILD_JIGGERJOT_API_BASE_URL=http://localhost:5338 \
+          SIMCTL_CHILD_JIGGERJOT_API_BASE_URL=http://localhost:5438 \
             xcrun simctl launch "$UDID" com.jiggerjot.app | tee launch.out
           APP_PID=$(grep -Eo '[0-9]+$' launch.out)
 
@@ -591,18 +591,18 @@ jobs:
           ASPNETCORE_ENVIRONMENT: Development
           ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=smoke;Username=postgres;Password=root"
           Jwt__Secret: "ci-native-smoke-jwt-signing-key-0123"
-          JIGGERJOT_API_BASE_URL: "http://localhost:5338"
+          JIGGERJOT_API_BASE_URL: "http://localhost:5438"
         run: |
           # Raise AspNetCore request logging so the provider probe is grep-able in api.log (the dotted
           # key can't be a PowerShell $env: assignment — the '.' parses as member access — so set it
           # via the environment API; Start-Process inherits it).
           [Environment]::SetEnvironmentVariable('Logging__LogLevel__Microsoft.AspNetCore', 'Information')
-          $api = Start-Process dotnet -ArgumentList "run --project src/Api/JiggerJot.Api.csproj -c Debug --no-build --urls http://localhost:5338" -PassThru -RedirectStandardOutput api.log -RedirectStandardError api.err.log
+          $api = Start-Process dotnet -ArgumentList "run --project src/Api/JiggerJot.Api.csproj -c Debug --no-build --urls http://localhost:5438" -PassThru -RedirectStandardOutput api.log -RedirectStandardError api.err.log
 
           Write-Host "Waiting for the API..."
           $ready = $false
           foreach ($i in 1..60) {
-            try { if ((Invoke-WebRequest -Uri "http://localhost:5338/health/ready" -UseBasicParsing -TimeoutSec 3).StatusCode -eq 200) { $ready = $true; break } } catch {}
+            try { if ((Invoke-WebRequest -Uri "http://localhost:5438/health/ready" -UseBasicParsing -TimeoutSec 3).StatusCode -eq 200) { $ready = $true; break } } catch {}
             Start-Sleep -Seconds 3
           }
           if (-not $ready) { Write-Host "::error::API did not become ready"; Get-Content api.log -Tail 60; exit 1 }
@@ -767,20 +767,20 @@ jobs:
           # platform-tools was installed by sdkmanager this job — it is NOT on the runner's PATH
           # (run 4 died with `adb: command not found`); the Node smoke needs adb reachable too.
           export PATH="$ANDROID_HOME/platform-tools:$PATH"
-          dotnet run --project src/Api/JiggerJot.Api.csproj -c Debug --no-build --urls http://localhost:5338 > api.log 2>&1 &
+          dotnet run --project src/Api/JiggerJot.Api.csproj -c Debug --no-build --urls http://localhost:5438 > api.log 2>&1 &
 
           echo "Waiting for the API…"
           for i in $(seq 1 60); do
-            api=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5338/health/ready || echo 000)
+            api=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5438/health/ready || echo 000)
             [ "$api" = "200" ] && { echo "ready"; break; }
             sleep 3
           done
           [ "$api" = "200" ] || { echo "::error::API did not become ready"; tail -60 api.log; exit 1; }
 
           adb install -r src/Maui/bin/Debug/net10.0-android/com.jiggerjot.app-Signed.apk
-          # The app's compiled Android base URL is http://localhost:5338 — adb reverse maps the
-          # emulator's localhost:5338 back to this runner (same trick as local dev).
-          adb reverse tcp:5338 tcp:5338
+          # The app's compiled Android base URL is http://localhost:5438 — adb reverse maps the
+          # emulator's localhost:5438 back to this runner (same trick as local dev).
+          adb reverse tcp:5438 tcp:5438
           adb shell monkey -p com.jiggerjot.app -c android.intent.category.LAUNCHER 1
 
           echo "Waiting for the app process…"
@@ -842,7 +842,7 @@ jobs:
       - name: Point the WASM client at the HTTP API
         # The committed wwwroot/appsettings.json targets the dev https API; the CI stack is http.
         run: |
-          echo '{ "ApiBaseUrl": "http://localhost:5338" }' > src/Web/wwwroot/appsettings.json
+          echo '{ "ApiBaseUrl": "http://localhost:5438" }' > src/Web/wwwroot/appsettings.json
 
       - name: Restore (locked mode)
         run: |
@@ -888,26 +888,26 @@ jobs:
           # AnnouncementJourneyTests.StaffEmail.
           Admin__StaffEmails__0: "e2e-staff@example.com"
           # Where server-side redirects send the BROWSER (magic-link verify, OAuth callback → the client).
-          # Without this it falls back to the dev default https://localhost:7108, which is NOT running in
+          # Without this it falls back to the dev default https://localhost:7208, which is NOT running in
           # this stack — so the magic-link journey (E2E-4) died with ERR_CONNECTION_REFUSED (Playwright
           # attributes the refusal to the *requested* URL, which made it look like the API was down).
-          Auth__AppBaseUrl: "http://localhost:5269"
+          Auth__AppBaseUrl: "http://localhost:5369"
         run: |
           set -e
-          dotnet run --project src/Api/JiggerJot.Api.csproj -c Debug --no-build --urls http://localhost:5338 > api.log 2>&1 &
-          dotnet run --project src/Web/JiggerJot.Web.csproj -c Debug --no-build --urls http://localhost:5269 > web.log 2>&1 &
+          dotnet run --project src/Api/JiggerJot.Api.csproj -c Debug --no-build --urls http://localhost:5438 > api.log 2>&1 &
+          dotnet run --project src/Web/JiggerJot.Web.csproj -c Debug --no-build --urls http://localhost:5369 > web.log 2>&1 &
 
           echo "Waiting for API + Web…"
           for i in $(seq 1 60); do
-            api=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5338/health/ready || echo 000)
-            web=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5269/ || echo 000)
+            api=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5438/health/ready || echo 000)
+            web=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5369/ || echo 000)
             [ "$api" = "200" ] && [ "$web" = "200" ] && { echo "ready"; break; }
             sleep 3
           done
           [ "$api" = "200" ] && [ "$web" = "200" ] || { echo "::error::stack did not become ready"; tail -40 api.log web.log; exit 1; }
 
-          PLAYWRIGHT_BASE_URL=http://localhost:5269 MAILPIT_BASE_URL=http://localhost:8027 \
-            E2E_API_BASE_URL=http://localhost:5338 \
+          PLAYWRIGHT_BASE_URL=http://localhost:5369 MAILPIT_BASE_URL=http://localhost:8027 \
+            E2E_API_BASE_URL=http://localhost:5438 \
             dotnet test tests/E2E.Tests/JiggerJot.E2E.Tests.csproj -c Debug --no-build
 
       - name: Server logs (on failure)

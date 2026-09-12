@@ -15,7 +15,21 @@ namespace JiggerJot.Api.Tests.Files;
 public sealed class MinioFixture : IAsyncLifetime
 {
     public const string Bucket = "jiggerjot-test";
-    private readonly MinioContainer _minio = new MinioBuilder("minio/minio:latest").Build();
+
+    /// <summary>
+    /// Pulled from quay.io, and pinned. MinIO withdrew <c>minio/minio</c> from Docker Hub — the
+    /// repository is gone rather than merely unlisted, so the pull fails with "repository does not
+    /// exist" and takes the whole build-test job down with it. quay.io is MinIO's other published
+    /// registry and serves the same images.
+    /// <para>
+    /// The floating tag is what turned an upstream decision into a red build on an unrelated branch,
+    /// so it is not what replaces it: an exact release means a future withdrawal or retag cannot
+    /// break this suite again without someone choosing to move the pin.
+    /// </para>
+    /// </summary>
+    private const string Image = "quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z";
+
+    private readonly MinioContainer _minio = new MinioBuilder(Image).Build();
 
     public S3StorageSettings Settings { get; private set; } = default!;
 

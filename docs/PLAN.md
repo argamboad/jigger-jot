@@ -76,7 +76,7 @@ of work is the **commit**.
   before the request returns. Use `RunAndWaitForResponseAsync` on the PUT/POST, the way the theme
   journey does. And wait for the list to load before applying a filter to it.
 - **A failing E2E job is read from the CI log first.** Reproducing locally requires pointing
-  `src/Web/wwwroot/appsettings.json` at the http API, stale processes on 5269/5338 must be killed,
+  `src/Web/wwwroot/appsettings.json` at the http API, stale processes on 5369/5438 must be killed,
   and every process started by `dotnet run` outlives the shell. It cost an hour twice. Do it only
   when the log does not answer the question.
 
