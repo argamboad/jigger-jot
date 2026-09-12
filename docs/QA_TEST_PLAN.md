@@ -611,7 +611,9 @@ And raising the limit (Pro plan / editing PlanCatalog) lets the invite through
 **Walkthrough**
 1. As owner of a Free household at the seat cap, **Household** → invite a new email.
 2. **Expected:** an error — "Your plan's seat limit is reached. Upgrade your plan to invite more members."
-   (HTTP **402**); no invitation is created and no email is sent.
+   (HTTP **402**); no invitation is created and no email is sent. **With billing gated off**
+   (`Billing__Enabled` unset — GATES-1) the same 402 reads "Your household is full. Remove a member or
+   revoke a pending invitation to free a seat." instead, since there is no plan to upgrade to.
 3. Free up a seat (revoke a pending invite / remove a member) **or** move to a higher-seat plan — the next
    invite succeeds. (Seats count members **plus** pending invites, so invites can't over-provision.)
 4. **Note:** limits are `PlanCatalog` data; `null`/absent = unlimited. Metered-usage caps
