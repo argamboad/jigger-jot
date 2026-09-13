@@ -10,8 +10,13 @@
 
 <PageTitle>@Localizer["Admin_Title"]</PageTitle>
 
+@* BACKBAR-8 (JJ-039): not drawn in the handoff, restyled to the same language as Settings and
+   Household — the broadcast as the one panel (it acts platform-wide), tenants as hairline rows, the
+   selected tenant as labelled groups with members as rows and every action a text link, statuses
+   as one inline notice rather than five green alerts. Same calls, same staff gate, same ids; no
+   admin write added (ADR-021 enumerates them). *@
 <div class="admin-wrapper">
-    <h1 class="h4 fw-bold mb-1">@Localizer["Admin_Title"]</h1>
+    <h1 class="page-title mb-1">@Localizer["Admin_Title"]</h1>
     <p class="text-muted mb-4">@Localizer["Admin_Subtitle"]</p>
 
     @if (_state == State.Loading)
@@ -35,59 +40,47 @@
         }
 
         @* ── Platform-wide broadcast (ADMIN-3): queued on the outbox, delivered out-of-band.
-             Opinionated template feature — rebranders can remove this card. ── *@
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <h2 class="h6 fw-bold mb-1">@Localizer["Admin_BroadcastTitle"]</h2>
-                <p class="small text-muted mb-2">@Localizer["Admin_BroadcastHint"]</p>
-                @if (!string.IsNullOrEmpty(_broadcastStatus))
-                {
-                    <div class="alert alert-success py-2" data-testid="admin-broadcast-status">@_broadcastStatus</div>
-                }
-                <div class="row g-2 align-items-start">
-                    <div class="col-12 col-md-4">
-                        <input class="form-control" maxlength="200" data-testid="admin-broadcast-title"
-                               placeholder="@Localizer["Admin_AnnounceTitlePlaceholder"]" @bind="_broadcastTitle" />
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <textarea class="form-control" rows="1" maxlength="2000" data-testid="admin-broadcast-body"
-                                  placeholder="@Localizer["Admin_AnnounceBodyPlaceholder"]" @bind="_broadcastBody"></textarea>
-                    </div>
-                    <div class="col-12 col-md-2 d-grid">
-                        <button class="btn btn-outline-danger btn-sm" data-testid="admin-broadcast-send"
-                                disabled="@(_busy || string.IsNullOrWhiteSpace(_broadcastTitle) || string.IsNullOrWhiteSpace(_broadcastBody))"
-                                @onclick="SendBroadcast">@Localizer["Admin_BroadcastSend"]</button>
-                    </div>
-                </div>
+             Opinionated template feature — rebranders can remove this panel. ── *@
+        <section class="admin-panel mb-4">
+            <span class="eyebrow">@Localizer["Admin_BroadcastTitle"]</span>
+            <p class="settings-group-hint">@Localizer["Admin_BroadcastHint"]</p>
+            @if (!string.IsNullOrEmpty(_broadcastStatus))
+            {
+                <div class="notice mb-2" data-testid="admin-broadcast-status">@_broadcastStatus</div>
+            }
+            <div class="admin-broadcast-form">
+                <input class="form-control" maxlength="200" data-testid="admin-broadcast-title"
+                       placeholder="@Localizer["Admin_AnnounceTitlePlaceholder"]" @bind="_broadcastTitle" />
+                <textarea class="form-control" rows="1" maxlength="2000" data-testid="admin-broadcast-body"
+                          placeholder="@Localizer["Admin_AnnounceBodyPlaceholder"]" @bind="_broadcastBody"></textarea>
+                <button class="btn btn-primary btn-sm" data-testid="admin-broadcast-send"
+                        disabled="@(_busy || string.IsNullOrWhiteSpace(_broadcastTitle) || string.IsNullOrWhiteSpace(_broadcastBody))"
+                        @onclick="SendBroadcast">@Localizer["Admin_BroadcastSend"]</button>
             </div>
-        </div>
+        </section>
 
-        <div class="row g-4">
-            @* ── Tenant list ── *@
-            <div class="col-12 col-lg-5">
-                <div class="card shadow-sm">
-                    <div class="card-header py-2 fw-semibold small">
-                        @Localizer["Admin_TenantsTitle"] <span class="text-muted">(@_tenants.Count)</span>
-                    </div>
-                    <div class="list-group list-group-flush" style="max-height:60vh;overflow-y:auto">
-                        @foreach (var t in _tenants)
-                        {
-                            <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center @(t.Id == _selectedId ? "active" : "")"
-                                    data-testid="admin-tenant-row" @onclick="() => SelectTenant(t.Id)">
-                                <span class="text-truncate">@t.Name</span>
-                                <span class="badge bg-secondary-subtle text-secondary-emphasis ms-2">@t.MemberCount</span>
-                            </button>
-                        }
-                        @if (_tenants.Count == 0)
-                        {
-                            <div class="list-group-item text-muted small">@Localizer["Admin_NoTenants"]</div>
-                        }
-                    </div>
+        <div class="admin-grid">
+            @* ── Tenant list: hairline rows, the selected one in copper. ── *@
+            <section class="settings-group">
+                <span class="eyebrow">@Localizer["Admin_TenantsTitle"] · @_tenants.Count</span>
+                <div class="settings-rows admin-tenants">
+                    @foreach (var t in _tenants)
+                    {
+                        <button type="button" class="settings-row admin-tenant @(t.Id == _selectedId ? "is-selected" : null)"
+                                data-testid="admin-tenant-row" @onclick="() => SelectTenant(t.Id)">
+                            <span class="settings-row-main text-truncate">@t.Name</span>
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis">@t.MemberCount</span>
+                        </button>
+                    }
+                    @if (_tenants.Count == 0)
+                    {
+                        <p class="settings-group-hint">@Localizer["Admin_NoTenants"]</p>
+                    }
                 </div>
-            </div>
+            </section>
 
             @* ── Tenant detail ── *@
-            <div class="col-12 col-lg-7">
+            <div class="admin-detail">
                 @if (_detailLoading)
                 {
                     <div class="p-4 text-center text-muted">
@@ -96,130 +89,125 @@
                 }
                 else if (_detail is not null)
                 {
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div>
-                                    <h2 class="h6 fw-bold mb-1">@_detail.Name</h2>
-                                    <div class="text-muted small">@_detail.Id</div>
-                                </div>
-                                <span>
-                                    <span class="badge bg-primary-subtle text-primary-emphasis" data-testid="admin-plan">@_detail.PlanKey</span>
-                                    <span class="badge bg-info-subtle text-info-emphasis">@_detail.SubscriptionStatus</span>
-                                </span>
+                    <section class="settings-group">
+                        <div class="settings-group-head">
+                            <div>
+                                <p class="household-name font-display mb-0">@_detail.Name</p>
+                                <span class="settings-row-meta">@_detail.Id</span>
                             </div>
-
-                            <dl class="row small mb-3">
-                                <dt class="col-5 text-muted fw-normal">@Localizer["Admin_Created"]</dt>
-                                <dd class="col-7">@_detail.CreatedAt.LocalDateTime.ToString("g")</dd>
-                                <dt class="col-5 text-muted fw-normal">@Localizer["Admin_AuditEvents"]</dt>
-                                <dd class="col-7">@_detail.AuditEventCount</dd>
-                            </dl>
-
-                            @* ── Staff plan override (comp). The server refuses provider-managed subs (409). ── *@
-                            <h3 class="h6 fw-semibold mb-2">@Localizer["Admin_SubscriptionTitle"]</h3>
-                            @if (!string.IsNullOrEmpty(_subscriptionMsg))
-                            {
-                                <div class="alert alert-success py-2" data-testid="admin-sub-status">@_subscriptionMsg</div>
-                            }
-                            @if (_detail.ProviderManaged)
-                            {
-                                <p class="small text-muted mb-3">@Localizer["Admin_ProviderManaged"]</p>
-                            }
-                            else
-                            {
-                                <div class="d-flex gap-2 mb-3">
-                                    @if (_detail.PlanKey != "pro")
-                                    {
-                                        <button class="btn btn-outline-primary btn-sm" data-testid="admin-comp-pro"
-                                                disabled="@_busy" @onclick="CompPro">@Localizer["Admin_CompPro"]</button>
-                                    }
-                                    @if (_detail.PlanKey != "free")
-                                    {
-                                        <button class="btn btn-outline-danger btn-sm" data-testid="admin-revert-free"
-                                                disabled="@_busy" @onclick="RevertFree">@Localizer["Admin_RevertFree"]</button>
-                                    }
-                                </div>
-                            }
-
-                            <h3 class="h6 fw-semibold mb-2">@Localizer["Admin_Members"] <span class="text-muted">(@_detail.Members.Count)</span></h3>
-                            @if (!string.IsNullOrEmpty(_mfaResetMsg))
-                            {
-                                <div class="alert alert-success py-2" data-testid="admin-mfa-reset-status">@_mfaResetMsg</div>
-                            }
-                            <div class="table-responsive">
-                                <table class="table table-sm align-middle mb-0">
-                                    <thead>
-                                        <tr class="small text-muted">
-                                            <th style="width:1.75rem"></th>
-                                            <th>@Localizer["Admin_ColMember"]</th>
-                                            <th>@Localizer["Admin_ColRole"]</th>
-                                            <th class="text-end"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var m in _detail.Members)
-                                        {
-                                            <tr>
-                                                <td>
-                                                    @* Target this member in the announcement below (none checked = all members). *@
-                                                    <input type="checkbox" class="form-check-input" data-testid="admin-member-check"
-                                                           checked="@_selectedMembers.Contains(m.UserId)"
-                                                           @onchange="e => ToggleMember(m.UserId, (bool)e.Value!)" />
-                                                </td>
-                                                <td>
-                                                    <div class="fw-medium small">@(string.IsNullOrEmpty(m.DisplayName) ? m.Email : m.DisplayName)</div>
-                                                    @if (!string.IsNullOrEmpty(m.DisplayName))
-                                                    {
-                                                        <div class="text-muted" style="font-size:.75rem">@m.Email</div>
-                                                    }
-                                                </td>
-                                                <td><span class="badge bg-light text-dark border">@m.Role</span></td>
-                                                <td class="text-end text-nowrap">
-                                                    <button class="btn btn-outline-warning btn-sm" disabled="@_busy"
-                                                            @onclick="() => Impersonate(m)">
-                                                        @Localizer["Admin_Impersonate"]
-                                                    </button>
-                                                    @* Staff recovery for a locked-out user (ADR-021 addendum): wipes their
-                                                       authenticator + recovery codes after out-of-band identity verification. *@
-                                                    <button class="btn btn-outline-danger btn-sm ms-1" disabled="@_busy"
-                                                            data-testid="admin-mfa-reset" @onclick="() => ResetMfa(m)">
-                                                        @Localizer["Admin_ResetMfa"]
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            @* ── Announcement to all members (ADMIN-3) ── *@
-                            <h3 class="h6 fw-semibold mt-4 mb-2">@Localizer["Admin_AnnounceTitle"]</h3>
-                            @if (!string.IsNullOrEmpty(_announceStatus))
-                            {
-                                <div class="alert alert-success py-2" data-testid="admin-status">@_announceStatus</div>
-                            }
-                            <div class="mb-2">
-                                <input class="form-control" maxlength="200" data-testid="admin-announce-title"
-                                       placeholder="@Localizer["Admin_AnnounceTitlePlaceholder"]" @bind="_announceTitle" />
-                            </div>
-                            <div class="mb-2">
-                                <textarea class="form-control" rows="3" maxlength="2000" data-testid="admin-announce-body"
-                                          placeholder="@Localizer["Admin_AnnounceBodyPlaceholder"]" @bind="_announceBody"></textarea>
-                            </div>
-                            <button class="btn btn-outline-primary btn-sm" data-testid="admin-announce-send"
-                                    disabled="@(_busy || string.IsNullOrWhiteSpace(_announceTitle) || string.IsNullOrWhiteSpace(_announceBody))"
-                                    @onclick="SendAnnouncement">
-                                @(_selectedMembers.Count > 0
-                                    ? Localizer["Admin_AnnounceSendSelected", _selectedMembers.Count]
-                                    : Localizer["Admin_AnnounceSend"])
-                            </button>
+                            <span class="d-flex gap-2">
+                                <span class="badge bg-secondary-subtle text-secondary-emphasis" data-testid="admin-plan">@_detail.PlanKey</span>
+                                <span class="badge bg-secondary-subtle text-secondary-emphasis">@_detail.SubscriptionStatus</span>
+                            </span>
                         </div>
-                    </div>
+                        <ul class="settings-rows">
+                            <li class="settings-row">
+                                <span class="settings-row-main">@Localizer["Admin_Created"]</span>
+                                <span class="settings-row-meta">@_detail.CreatedAt.LocalDateTime.ToString("g")</span>
+                            </li>
+                            <li class="settings-row">
+                                <span class="settings-row-main">@Localizer["Admin_AuditEvents"]</span>
+                                <span class="settings-row-meta">@_detail.AuditEventCount</span>
+                            </li>
+                        </ul>
+                    </section>
+
+                    @* ── Staff plan override (comp). The server refuses provider-managed subs (409). ── *@
+                    <section class="settings-group">
+                        <span class="eyebrow">@Localizer["Admin_SubscriptionTitle"]</span>
+                        @if (!string.IsNullOrEmpty(_subscriptionMsg))
+                        {
+                            <div class="notice mt-2" data-testid="admin-sub-status">@_subscriptionMsg</div>
+                        }
+                        @if (_detail.ProviderManaged)
+                        {
+                            <p class="settings-group-hint">@Localizer["Admin_ProviderManaged"]</p>
+                        }
+                        else
+                        {
+                            <div class="d-flex gap-3 mt-2">
+                                @if (_detail.PlanKey != "pro")
+                                {
+                                    <button class="btn btn-link px-0" data-testid="admin-comp-pro"
+                                            disabled="@_busy" @onclick="CompPro">@Localizer["Admin_CompPro"]</button>
+                                }
+                                @if (_detail.PlanKey != "free")
+                                {
+                                    <button class="btn btn-link px-0 text-danger" data-testid="admin-revert-free"
+                                            disabled="@_busy" @onclick="RevertFree">@Localizer["Admin_RevertFree"]</button>
+                                }
+                            </div>
+                        }
+                    </section>
+
+                    <section class="settings-group">
+                        <span class="eyebrow">@Localizer["Admin_Members"] · @_detail.Members.Count</span>
+                        @if (!string.IsNullOrEmpty(_mfaResetMsg))
+                        {
+                            <div class="notice mt-2" data-testid="admin-mfa-reset-status">@_mfaResetMsg</div>
+                        }
+                        <ul class="settings-rows">
+                            @foreach (var m in _detail.Members)
+                            {
+                                <li class="settings-row">
+                                    <div class="d-flex align-items-center gap-3 settings-row-main">
+                                        @* Target this member in the announcement below (none checked = all members). *@
+                                        <input type="checkbox" class="form-check-input mt-0" data-testid="admin-member-check"
+                                               aria-label="@(string.IsNullOrEmpty(m.DisplayName) ? m.Email : m.DisplayName)"
+                                               checked="@_selectedMembers.Contains(m.UserId)"
+                                               @onchange="e => ToggleMember(m.UserId, (bool)e.Value!)" />
+                                        <div>
+                                            <span class="fw-medium">@(string.IsNullOrEmpty(m.DisplayName) ? m.Email : m.DisplayName)</span>
+                                            @if (!string.IsNullOrEmpty(m.DisplayName))
+                                            {
+                                                <span class="settings-row-meta">@m.Email</span>
+                                            }
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary-emphasis">@m.Role</span>
+                                    </div>
+                                    <div class="settings-row-side">
+                                        <button class="btn btn-link" disabled="@_busy" @onclick="() => Impersonate(m)">
+                                            @Localizer["Admin_Impersonate"]
+                                        </button>
+                                        @* Staff recovery for a locked-out user (ADR-021 addendum): wipes their
+                                           authenticator + recovery codes after out-of-band identity verification. *@
+                                        <button class="btn btn-link text-danger" disabled="@_busy"
+                                                data-testid="admin-mfa-reset" @onclick="() => ResetMfa(m)">
+                                            @Localizer["Admin_ResetMfa"]
+                                        </button>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    </section>
+
+                    @* ── Announcement to all members (ADMIN-3) ── *@
+                    <section class="settings-group">
+                        <span class="eyebrow">@Localizer["Admin_AnnounceTitle"]</span>
+                        @if (!string.IsNullOrEmpty(_announceStatus))
+                        {
+                            <div class="notice mt-2" data-testid="admin-status">@_announceStatus</div>
+                        }
+                        <div class="admin-announce-form mt-2">
+                            <input class="form-control" maxlength="200" data-testid="admin-announce-title"
+                                   placeholder="@Localizer["Admin_AnnounceTitlePlaceholder"]" @bind="_announceTitle" />
+                            <textarea class="form-control" rows="3" maxlength="2000" data-testid="admin-announce-body"
+                                      placeholder="@Localizer["Admin_AnnounceBodyPlaceholder"]" @bind="_announceBody"></textarea>
+                            <div>
+                                <button class="btn btn-primary btn-sm" data-testid="admin-announce-send"
+                                        disabled="@(_busy || string.IsNullOrWhiteSpace(_announceTitle) || string.IsNullOrWhiteSpace(_announceBody))"
+                                        @onclick="SendAnnouncement">
+                                    @(_selectedMembers.Count > 0
+                                        ? Localizer["Admin_AnnounceSendSelected", _selectedMembers.Count]
+                                        : Localizer["Admin_AnnounceSend"])
+                                </button>
+                            </div>
+                        </div>
+                    </section>
                 }
                 else
                 {
-                    <div class="text-muted p-4 text-center border rounded">@Localizer["Admin_SelectTenant"]</div>
+                    <p class="settings-group-hint">@Localizer["Admin_SelectTenant"]</p>
                 }
             </div>
         </div>

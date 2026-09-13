@@ -12,8 +12,12 @@
 
 <PageTitle>@Localizer["Billing_Title"]</PageTitle>
 
+@* BACKBAR-8 (JJ-039): not drawn in the handoff, restyled to the same language as Settings — two
+   labelled groups, Plan and Seats, the plan name in the serif with its status as a pill in the
+   status colours, the checkout notices as one 12px notice, the owner-only pointer a muted line. Same
+   calls, same gate (GATES-1 hides the whole page when billing is off), same ids. *@
 <div class="billing-wrapper">
-    <h1 class="h4 fw-bold mb-1">@Localizer["Billing_Title"]</h1>
+    <h1 class="page-title mb-1">@Localizer["Billing_Title"]</h1>
     <p class="text-muted mb-4">@Localizer["Billing_Subtitle"]</p>
 
     @if (!string.IsNullOrEmpty(_error))
@@ -24,11 +28,11 @@
     @* The hosted checkout returns the user to /billing/success or /billing/cancel — this page, with a word about what happened. *@
     @if (_checkout == "success")
     {
-        <div class="alert alert-success py-2" data-testid="billing-checkout-success">@Localizer["Billing_CheckoutSuccess"]</div>
+        <div class="notice mb-3" data-testid="billing-checkout-success">@Localizer["Billing_CheckoutSuccess"]</div>
     }
     else if (_checkout == "cancel")
     {
-        <div class="alert alert-secondary py-2" data-testid="billing-checkout-cancel">@Localizer["Billing_CheckoutCancelled"]</div>
+        <div class="notice notice-muted mb-3" data-testid="billing-checkout-cancel">@Localizer["Billing_CheckoutCancelled"]</div>
     }
 
     @if (_loading)
@@ -40,58 +44,55 @@
     else if (_forbidden)
     {
         @* Billing is owner-only (Permission.ManageBilling) — members get a friendly pointer. *@
-        <div class="alert alert-secondary" data-testid="billing-owner-only">@Localizer["Billing_OwnerOnly"]</div>
+        <p class="settings-group-hint" data-testid="billing-owner-only">@Localizer["Billing_OwnerOnly"]</p>
     }
     else if (_summary is not null)
     {
-        <div class="card shadow-sm mb-3">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h2 class="h6 fw-bold mb-1">@Localizer["Billing_CurrentPlan"]</h2>
-                        <div class="h5 mb-0 text-capitalize" data-testid="billing-plan">@Label($"Plan_{_summary.PlanKey}", _summary.PlanKey)</div>
-                    </div>
-                    <span class="badge bg-info-subtle text-info-emphasis" data-testid="billing-status">@Label($"BillingStatus_{_summary.Status}", _summary.Status)</span>
+        <div class="settings-grid">
+            <section class="settings-group">
+                <span class="eyebrow">@Localizer["Billing_CurrentPlan"]</span>
+                <div class="settings-group-head">
+                    <p class="billing-plan font-display text-capitalize" data-testid="billing-plan">@Label($"Plan_{_summary.PlanKey}", _summary.PlanKey)</p>
+                    <span class="badge @StatusClass" data-testid="billing-status">@Label($"BillingStatus_{_summary.Status}", _summary.Status)</span>
                 </div>
                 @* A cancelled subscription's period end is the day it ENDED — never "renews" next to a free plan. *@
                 @if (_summary.CurrentPeriodEnd is { } end)
                 {
                     if (_summary.Status == CanceledStatus)
                     {
-                        <div class="small text-muted mt-2" data-testid="billing-ended">@Localizer["Billing_EndedOn", end.LocalDateTime.ToString("d")]</div>
+                        <p class="settings-row-meta mb-3" data-testid="billing-ended">@Localizer["Billing_EndedOn", end.LocalDateTime.ToString("d")]</p>
                     }
                     else
                     {
-                        <div class="small text-muted mt-2" data-testid="billing-renews">@Localizer["Billing_RenewsOn", end.LocalDateTime.ToString("d")]</div>
+                        <p class="settings-row-meta mb-3" data-testid="billing-renews">@Localizer["Billing_RenewsOn", end.LocalDateTime.ToString("d")]</p>
                     }
                 }
-            </div>
-        </div>
 
-        <div class="card shadow-sm mb-3">
-            <div class="card-body">
-                <h2 class="h6 fw-bold mb-2">@Localizer["Billing_Seats"]</h2>
-                <div data-testid="billing-seats">@Localizer["Billing_SeatsUsage", _summary.Seats.Used, _summary.Seats.Limit?.ToString() ?? "∞"]</div>
-            </div>
-        </div>
-
-        <div class="d-flex gap-2">
-            @if (_summary.PlanKey == FreePlanKey)
-            {
-                <button class="btn btn-primary" data-testid="billing-upgrade" disabled="@_busy" @onclick="Upgrade">
-                    @if (_busy)
+                <div class="d-flex align-items-center gap-3">
+                    @if (_summary.PlanKey == FreePlanKey)
                     {
-                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        <button class="btn btn-primary" data-testid="billing-upgrade" disabled="@_busy" @onclick="Upgrade">
+                            @if (_busy)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            @Localizer["Billing_Upgrade"]
+                        </button>
                     }
-                    @Localizer["Billing_Upgrade"]
-                </button>
-            }
-            @* No portal for a cancelled subscription: there is nothing live to manage (and the provider customer may be
-               gone); Upgrade is the way back — it opens a fresh checkout. *@
-            @if (_summary.HasSubscription && _summary.Status != CanceledStatus)
-            {
-                <button class="btn btn-outline-secondary" data-testid="billing-portal" disabled="@_busy" @onclick="OpenPortal">@Localizer["Billing_Manage"]</button>
-            }
+                    @* No portal for a cancelled subscription: there is nothing live to manage (and the provider customer may be
+                       gone); Upgrade is the way back — it opens a fresh checkout. *@
+                    @if (_summary.HasSubscription && _summary.Status != CanceledStatus)
+                    {
+                        <button class="btn btn-link px-0" data-testid="billing-portal" disabled="@_busy" @onclick="OpenPortal">@Localizer["Billing_Manage"]</button>
+                    }
+                </div>
+            </section>
+
+            <section class="settings-group">
+                <span class="eyebrow">@Localizer["Billing_Seats"]</span>
+                @* The same n-of-m figure the shelf uses, in the serif and copper. *@
+                <p class="shelf-payoff-count font-display mt-2" data-testid="billing-seats">@Localizer["Billing_SeatsUsage", _summary.Seats.Used, _summary.Seats.Limit?.ToString() ?? "∞"]</p>
+            </section>
         </div>
     }
 </div>
@@ -111,6 +112,16 @@
     private const string FreePlanKey = "free";
     private const string UpgradePlanKey = "pro";
     private const string CanceledStatus = "canceled";
+
+    // BACKBAR-8: the status pill in the app's status colours (handoff page 10), not info-blue. A live
+    // subscription is the "good" state, one that is ending or behind is the warning, anything else
+    // (none, free) is neutral — never red; it is not an error.
+    private string StatusClass => _summary?.Status switch
+    {
+        "active" or "trialing" => "bg-success-subtle text-success-emphasis",
+        "past_due" or CanceledStatus => "bg-warning-subtle text-warning-emphasis",
+        _ => "bg-secondary-subtle text-secondary-emphasis",
+    };
 
     /// <summary>"success" | "cancel" when the page is the provider's return address; null on a plain visit.</summary>
     private string? _checkout;

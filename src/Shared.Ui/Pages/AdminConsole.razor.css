@@ -1,0 +1,55 @@
+/* BACKBAR-8. The broadcast as the one panel; tenants as rows on the left, the detail on the right. */
+.admin-wrapper {
+    max-width: 1100px;
+}
+
+.admin-broadcast-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) auto;
+    gap: .5rem;
+    align-items: start;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 0 52px;
+    align-items: start;
+}
+
+.admin-tenants {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* A tenant row is a button: the whole row is the hit area, the selected one is copper. */
+.admin-tenant {
+    width: 100%;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--app-border);
+    text-align: left;
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.admin-tenant.is-selected .settings-row-main {
+    color: var(--copper-ink);
+    font-weight: 500;
+}
+
+.admin-tenant:hover .settings-row-main {
+    color: var(--copper-ink);
+}
+
+.admin-announce-form {
+    display: grid;
+    gap: .5rem;
+}
+
+@media (max-width: 991.98px) {
+    .admin-grid,
+    .admin-broadcast-form {
+        grid-template-columns: 1fr;
+    }
+}

@@ -5,7 +5,7 @@
 > Marga given room. **Read with the handoff, `docs/design/2026-09-backbar-handoff.pdf`** (19 pages;
 > page numbers below are the document's own), and with **JJ-036 → JJ-039**, which record what the
 > review accepted, changed and refused. Stories use Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — planned 2026-09-13; BACKBAR-1 ✅ through BACKBAR-7 ✅ built the same day. One branch,
+> **Status: 🚧 IN PROGRESS** — planned 2026-09-13; BACKBAR-1 ✅ through BACKBAR-8 ✅ built the same day. One branch,
 > `feat/backbar`, one commit per slice or fix, pushed on the word (PLAN, the redesign rule).
 
 **Epic key:** `BACKBAR`
@@ -697,12 +697,33 @@ three widths match pages 16–17.
 
 ### BACKBAR-8 — Billing and Admin, and every small screen
 
-**Status: 📋 Planned.** Not drawn in the handoff. **JJ-039** — all pages, no exceptions. Spec: page 02
-(components) and the Settings/Household language of pages 16–17, applied by analogy.
+**Status: ✅ Implemented (2026-09-13).** Not drawn in the handoff. **JJ-039** — all pages, no
+exceptions. Spec: page 02 (components) and the Settings/Household language of pages 16–17, applied
+by analogy. One commit on `feat/backbar`.
 
 **As a** household owner on the billing page, or platform staff on the console
 **I want** the two pages the designer never saw to look like the rest of the app
 **So that** there is no screen left that gives the old template away
+
+**What was decided while building it.**
+- **The not-found view became a component** (`NotFoundView`) so it can be rendered in a test; its
+  three English literals are the platform's and stay untranslated as they were — a restyle adds no
+  strings, and localising the platform's 404 is the platform's.
+- **Billing's status pill maps to the app's status colours** (page 10) rather than info-blue: active
+  or trialing is the good state, past-due or cancelled the warning, anything else neutral — never
+  red, since a free plan is not an error. Upgrade stays the primary pill; Manage becomes a text link.
+- **The console's one panel is the broadcast**, because it is the one control that acts
+  platform-wide. Everything else is groups and rows: a tenant row is a `<button>` carrying the
+  `settings-row` class so the whole row is the hit area and `admin-tenant-row` keeps working;
+  members are rows with the checkbox, name, role and two text-link actions; the five green alerts
+  become one `.notice` each, on the same ids.
+- **The error bar recolours in place.** `#blazor-error-ui` lives in both hosts' `index.html`, held by
+  the parity gate, so it is restyled from `app.css` alone and the two files are untouched.
+- **The impersonation banner keeps its alert classes** (the role, the spacing) and only the paint
+  changes, through Bootstrap's alert tokens. The callback's spinner is a shared `.loading-bar`.
+
+**Seen, not proven.** The billing, seat-quota and announcement journeys drive these by id and get
+their run in CI; QA-CHROME-24 looks at the rest, including the error bar, which no journey provokes.
 
 **Context / notes.** These pages were not drawn, so the treatment is derived rather than copied: the
 same labelled groups of hairline rows, the same text-link row actions, the same status colours, and
