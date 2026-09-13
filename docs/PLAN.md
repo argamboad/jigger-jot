@@ -32,6 +32,15 @@ of work is the **commit**.
   or a fix plus a small addition, is a different thing — the commits keep them separable, and the PR
   body must list them as separate items rather than blurring them into one story.
 
+**The redesign rule — 2026-09-13, the maintainer's call.** `BACKBAR` is worked on **one branch from
+`develop`** for the whole epic. Every slice and every bug fix is **its own commit**, with its own
+message, revertable alone; the story, the QA cases and the tests ride in the slice's commit. Nothing
+is pushed and no PR is opened until the maintainer says **"P+PR"** — and that word covers the push and
+the PR only, never the next slice, which still waits for "go". The features warning above does not
+apply here because a restyle is not two features: the slices are one change to one thing, delivered
+in an order, and a reviewer reads them as one diff. The branch is cut from `develop` **after PR #36
+(the plan) is merged**, so it carries the plan it executes.
+
 ## The slice ritual — every time, in this order
 
 1. **Read `docs/FEATURES.md` for the flow being built**, and quote the flow number in the report.
