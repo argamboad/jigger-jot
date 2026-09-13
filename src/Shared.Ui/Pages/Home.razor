@@ -9,90 +9,114 @@
 
 @if (Auth.IsAuthenticated)
 {
-    @* MARGA-2, proposal screen 1. This replaced an inherited platform welcome card whose only
-       app-specific content was `<!-- TODO -->`. The count is the headline because it IS the product's
-       question answered; Marga states the one purchase that extends it. *@
+    @* MARGA-2, proposal screen 1; restyled by BACKBAR-3 to handoff pages 03–04. This replaced an
+       inherited platform welcome card whose only app-specific content was `<!-- TODO -->`. The count
+       is the headline because it IS the product's question answered; Marga states the one purchase
+       that extends it.
+
+       Rules, not cards: the only boxed thing on the screen is the unlock panel, so it reads as the one
+       thing to act on. Desktop is two columns — her line and the count on the left, the drinks and the
+       panel on the right; a phone stacks them in that order. *@
     <div class="home-wrapper">
 
         @if (_loading)
         {
-            <div class="p-5 text-center text-muted">
-                <span class="spinner-border spinner-border-sm me-2"></span> @Localizer["Common_Loading"]
+            @* A 2px brass bar under the header, indeterminate, and the numeral holding its space at
+               40% — no spinner in the middle of the page. *@
+            <div class="home-loading" role="status">
+                <span class="home-loading-bar" aria-hidden="true"></span>
+                <p class="home-count home-count-placeholder font-display" aria-hidden="true">&mdash;</p>
+                <span class="visually-hidden">@Localizer["Common_Loading"]</span>
+            </div>
+        }
+        else if (_makeable is { Total: > 0 })
+        {
+            <div class="home-grid">
+                <div class="home-lead">
+                    @* MARGA-5 raised her from 56; BACKBAR-3 makes her the page's voice at 96, with her
+                       label above the line and the line in the display face. *@
+                    <div class="home-marga" data-testid="home-marga">
+                        <MargaSays Tone="MargaTone.Card" Aside="@Localizer["Marga_HomeAside"]">
+                            @MargaLine
+                        </MargaSays>
+                    </div>
+
+                    <p class="home-count font-display" data-testid="home-count">@_makeable.Total</p>
+                    <p class="home-count-label">@Localizer["Home_MakeableLabel"]</p>
+
+                    <div class="home-actions">
+                        @* Deep-linked, so the button lands on the list that produced the number
+                           above it rather than on the whole catalog. *@
+                        <a class="btn btn-primary" href="/cocktails?makeable=true" data-testid="home-show-makeable">
+                            @Localizer["Home_ShowMakeable"]
+                        </a>
+                        <a class="btn btn-outline-secondary" href="/shelf" data-testid="home-update-shelf">
+                            @Localizer["Home_UpdateShelf"]
+                        </a>
+                    </div>
+                </div>
+
+                <div class="home-side">
+                    @* The three drinks as hairline rules: name in the serif, its facets right-aligned. *@
+                    <ul class="home-drinks" data-testid="home-makeable-list">
+                        @foreach (var c in _makeable.Items)
+                        {
+                            <li class="home-drink">
+                                <a class="home-drink-name font-display" href="/cocktails/@c.Id">@c.Name</a>
+                                <span class="home-drink-meta">@string.Join(" · ", Facets(c))</span>
+                            </li>
+                        }
+                    </ul>
+
+                    @if (_bottle is not null)
+                    {
+                        <div class="card home-unlocks" data-testid="home-unlocks">
+                            <div class="card-body">
+                                <p class="home-unlock-headline font-display">@Localizer["Cocktails_UnlocksHeadline", _bottle.Ingredient, _bottle.Unlocks]</p>
+                                <p class="home-unlock-drinks">@Named(_bottle.Cocktails)</p>
+                                <a class="home-unlock-link" href="/cocktails?almost=true" data-testid="home-show-almost">
+                                    @Localizer["Home_ShowAlmost"] &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
             </div>
         }
         else
         {
-            <div class="card shadow-sm mb-3" data-testid="home-marga">
-                <div class="card-body p-4">
-                    @* MARGA-5 raised her from 56. This is the front page and her line is the first
-                       sentence anyone reads; at 56 she was an icon beside it rather than the one
-                       saying it. The inline list rows stay at 24 — there she is a per-row aside and
-                       must stay quiet. *@
-                    <MargaSays Size="76" Aside="@Localizer["Marga_HomeAside"]">
-                        @MargaLine
-                    </MargaSays>
-                </div>
-            </div>
-
-            @if (_makeable is { Total: > 0 })
-            {
-                <div class="card shadow-sm mb-3">
-                    <div class="card-body p-4">
-                        <p class="home-count mb-0" data-testid="home-count">@_makeable.Total</p>
-                        <p class="text-body-secondary mb-3">@Localizer["Home_MakeableLabel"]</p>
-
-                        <div class="d-flex flex-wrap gap-2 mb-3">
-                            @* Deep-linked, so the button lands on the list that produced the number
-                               above it rather than on the whole catalog. *@
-                            <a class="btn btn-primary" href="/cocktails?makeable=true" data-testid="home-show-makeable">
-                                @Localizer["Home_ShowMakeable"]
-                            </a>
-                            <a class="btn btn-outline-secondary" href="/shelf" data-testid="home-update-shelf">
-                                @Localizer["Home_UpdateShelf"]
-                            </a>
-                        </div>
-
-                        <ul class="list-group list-group-flush" data-testid="home-makeable-list">
-                            @foreach (var c in _makeable.Items)
-                            {
-                                <li class="list-group-item px-0">
-                                    <a class="text-decoration-none fw-medium" href="/cocktails/@c.Id">@c.Name</a>
-                                    <div class="text-muted small">@string.Join(" · ", Facets(c))</div>
-                                </li>
-                            }
-                        </ul>
-                    </div>
-                </div>
-            }
-            else
-            {
-                @* Not the catalog's empty state — that one is MARGA-3. This is the front page telling
-                   a household with nothing ticked where to start, and ONBOARD-1 made that the guided
-                   route rather than the raw checklist: 191 pills with no idea which matter is exactly
-                   the dead first impression JJ-021 exists to avoid. The shelf stays one tap further
-                   on for anyone who would rather just get on with it. *@
-                <div class="card shadow-sm mb-3">
-                    <div class="card-body p-4 text-center">
+            @* Not the catalog's empty state — that one is MARGA-3. This is the front page telling
+               a household with nothing ticked where to start, and ONBOARD-1 made that the guided
+               route rather than the raw checklist: 191 pills with no idea which matter is exactly
+               the dead first impression JJ-021 exists to avoid. The shelf stays one tap further
+               on for anyone who would rather just get on with it. No zero: her scene at 260px
+               beside her line, and the primary pill is the wizard. *@
+            <div class="home-empty" data-testid="home-marga">
+                <img class="home-scene" src="_content/JiggerJot.Shared.Ui/brand/marga_scene_512.png"
+                     alt="" aria-hidden="true" width="512" height="512" />
+                <div class="home-empty-body">
+                    <p class="home-empty-line font-display">@MargaLine</p>
+                    <div class="home-actions">
                         <a class="btn btn-primary btn-lg" href="/welcome" data-testid="home-setup-shelf">
                             @Localizer["Onboard_SetUpShelf"]
                         </a>
-                        <div class="mt-3">
-                            <a class="btn btn-link btn-sm" href="/shelf" data-testid="home-update-shelf">
-                                @Localizer["Make_FillYourShelf"]
-                            </a>
-                        </div>
+                        <a class="btn btn-link" href="/shelf" data-testid="home-update-shelf">
+                            @Localizer["Make_FillYourShelf"]
+                        </a>
                     </div>
                 </div>
-            }
+            </div>
 
             @if (_bottle is not null)
             {
-                <div class="card shadow-sm border-primary-subtle bg-primary-subtle" data-testid="home-unlocks">
-                    <div class="card-body p-4">
-                        <p class="fw-medium mb-1">@Localizer["Cocktails_UnlocksHeadline", _bottle.Ingredient, _bottle.Unlocks]</p>
-                        <p class="text-body-secondary small mb-3">@Named(_bottle.Cocktails)</p>
-                        <a class="btn btn-outline-primary btn-sm" href="/cocktails?almost=true" data-testid="home-show-almost">
-                            @Localizer["Home_ShowAlmost"]
+                @* Nothing pourable yet, but something one bottle away — the panel still earns its
+                   place, since it names the bottle that turns the zero into a number. *@
+                <div class="card home-unlocks mt-3" data-testid="home-unlocks">
+                    <div class="card-body">
+                        <p class="home-unlock-headline font-display">@Localizer["Cocktails_UnlocksHeadline", _bottle.Ingredient, _bottle.Unlocks]</p>
+                        <p class="home-unlock-drinks">@Named(_bottle.Cocktails)</p>
+                        <a class="home-unlock-link" href="/cocktails?almost=true" data-testid="home-show-almost">
+                            @Localizer["Home_ShowAlmost"] &rarr;
                         </a>
                     </div>
                 </div>

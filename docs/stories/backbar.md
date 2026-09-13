@@ -5,7 +5,7 @@
 > Marga given room. **Read with the handoff, `docs/design/2026-09-backbar-handoff.pdf`** (19 pages;
 > page numbers below are the document's own), and with **JJ-036 → JJ-039**, which record what the
 > review accepted, changed and refused. Stories use Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — planned 2026-09-13; BACKBAR-1 ✅ and BACKBAR-2 ✅ built the same day. One branch,
+> **Status: 🚧 IN PROGRESS** — planned 2026-09-13; BACKBAR-1 ✅, BACKBAR-2 ✅ and BACKBAR-3 ✅ built the same day. One branch,
 > `feat/backbar`, one commit per slice or fix, pushed on the word (PLAN, the redesign rule).
 
 **Epic key:** `BACKBAR`
@@ -53,7 +53,7 @@ does not re-argue it.
 | F3 | **"Each carries its count"** (page 07) means three totals on every catalog load — two extra requests per visit for numbers the pager line already shows for the active filter. The same page says "same fetch-once behaviour". | The **selected** chip carries the response's `total`; the others carry none. No new fetch. |
 | F4 | **Page 15 puts the Write row's role and required selects "in the row's own popover".** The app loads no Bootstrap JS, a popover is a new interaction, and `new-line-role` / `new-line-required` would sit behind an open step every journey would have to learn. | **Refused.** Role and required stay visible in the row — a sub-line on desktop, a second line on mobile. Everything else on page 15 stands. **JJ-036.** |
 | F5 | **Settings and Household were inherited from the platform** (pages 16–17 restructure them: five cards to two columns, six cards to four groups, segmented theme control, a `···` row menu). The first draft of this review sent that markup upstream first. | **Restyled in full, here.** The UI is the app's own — every screen in the RCL, inherited or not — so pages 16–17 are built as their own slice, BACKBAR-7, with the components' parameters, ids and behaviours kept and no backend change anywhere in the epic. The sibling apps stay a comparison, not a constraint. **JJ-039.** |
-| F6 | **Two of the document's id lists are invented.** Page 15 names `write-name`, `write-serving`, `write-line-{n}-*`, `write-save`…; the page's ids are `new-name`, `new-serving`, `new-line-*`, `new-save`, `new-error`. Page 17 names eight `household-*` ids; three exist (`household-rename-input`, `household-rename-save`, `household-status`). `shelf-item-{id}` and `onboard-item-{id}` do not exist either — the pills are identified by `id` + `label[for]`. | The ids **in the code** are the contract. The document's lists are a reading aid, not a spec, and every "KEEP" list is re-derived from the razor when its slice starts. |
+| F6 | **Two of the document's id lists are invented.** Page 15 names `write-name`, `write-serving`, `write-line-{n}-*`, `write-save`…; the page's ids are `new-name`, `new-serving`, `new-line-*`, `new-save`, `new-error`. Page 17 names eight `household-*` ids; three exist (`household-rename-input`, `household-rename-save`, `household-status`). *(Corrected in BACKBAR-3: `shelf-item-{id}` and `onboard-item-{id}` DO exist, on the hidden inputs — the review's first pass mis-read the razor's interpolated attributes. The pills' labels are reached through `label[for]`.)* | The ids **in the code** are the contract. The document's lists are a reading aid, not a spec, and every "KEEP" list is re-derived from the razor when its slice starts. |
 | F7 | **"No new strings" has two exceptions.** The mobile chip labels "Make now · 14 / One away · 81" (page 07) and the Write footnote "Marga will tell you if you can pour it" (page 15) exist nowhere in `AppStrings.resx`. | The chips use the **full** labels at every width (`Cocktails_MakeableOnly`, `Cocktails_AlmostOnly`) and the row scrolls if it must; the footnote is **dropped** — it promises nothing the page does not already do. The one new pair is "Everything" (F2), EN + ES. |
 | F8 | **The scene is square and the panel is not.** Login and Welcome give `marga_scene_512.png` a ~520×680 panel; the document flags the upscale itself (page 05). The 2 MB source is deliberately not committed (MARGA-1). | Ship with `object-fit: cover` on the 512 asset now. The 2× landscape crop is a **maintainer asset action** from the source; when it lands it takes the same optimisation pass and the same `< 250 KB` gate the boot asset has. Nothing waits on it. |
 | F9 | **The serif has one weight, and `fw-bold` is on 31 elements across 14 files.** Faux-bold on a one-weight face is what the document warns about (page 18). | Only the elements the serif reaches lose `fw-bold` (the count, drink names, card headlines, her line). A repo gate refuses `.font-display` and `fw-bold` on the same element. Everything in the sans keeps its weight. |
@@ -272,11 +272,35 @@ and nothing else; QA-CHROME-04/05 re-run; `REBRANDING.md` §3 lists `icon_dark.s
 
 ### BACKBAR-3 — Home and Shelf, the identity screens
 
-**Status: 📋 Planned.** Pages 03–04 and 11–12.
+**Status: ✅ Implemented (2026-09-13).** Pages 03–04 and 11–12. One commit on `feat/backbar`.
 
 **As a** member of a household
 **I want** the count to be the first thing on the front page and the shelf to be pills on a page rather than pills in boxes
 **So that** the two screens I open most look like the product and not like its admin console
+
+**What was decided while building it.**
+- **A `--copper-ink` token** for copper as TEXT on the ground: copper itself on light, lifted on dark
+  where #B4562A does not reach 4.5:1. The count, a drink name on hover, the unlock link and the
+  payoff count all take it, and it is what page 01's "numeral #D9865A → #B4562A" means.
+- **A `.page-title` class** for every screen's h1 — the type page's "serif h1 29", never bold — so
+  each screen's h1 is the same h1. The shelf takes it here; the others in their slices.
+- **The unlock panel's "ONE BOTTLE AWAY" eyebrow is not drawn.** No such string exists and the
+  handoff promised no new ones; the copper tint and the serif headline say what the panel is.
+- **The shelf's Marga label is her name**, passed literally: a name is not copy and has no
+  translation. Home keeps `Marga_HomeAside` as its label.
+- **The payoff count is a `<span>`, not a `<strong>`.** The gate refuses `fw-bold` beside the display
+  class, but an element that is bold by default slips past it; the face has one weight either way.
+- **The named bottle is drawn in the subtle copper, never the fill** — `--bs-btn-color/bg/border`
+  from the primary-subtle family — so it is findable and cannot be mistaken for owned; ticking it
+  still takes the fill through the active tokens like any other pill. Matched by name, because that
+  is what her sentence says.
+- **Welcome's step 2 inherits the pills, not the sections.** The wizard groups categories with its
+  own markup; the shared control (pill + named-bottle style) reaches it from `app.css`, the section
+  headings do not. BACKBAR-5 brings the sections across.
+
+**Seen, not proven.** The shelf and makeable journeys drive the pills through `label[for]` and read
+`#cat-{slug}`, `shelf-count` and `shelf-payoff` — all kept — so they are expected green in CI; the
+loading bar and the two-column grid have no test and QA-CHROME-16/17 are the cases that look.
 
 **Context / notes.**
 

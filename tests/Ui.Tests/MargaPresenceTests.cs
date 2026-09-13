@@ -62,8 +62,9 @@ public class MargaPresenceTests : ComponentTestBase
         var page = RenderShelf(Stocked, OneBottleAway, OneStarter);
 
         page.WaitForAssertion(
+            // Her LINE, not the whole block: BACKBAR-3 put her name above it as a label.
             () => Assert.Equal("Marga_ShelfNext[Sweet vermouth, 4]",
-                page.Find("[data-testid='shelf-marga']").TextContent.Trim()),
+                page.Find("[data-testid='shelf-marga'] .marga-line").TextContent.Trim()),
             TimeSpan.FromSeconds(10));
 
         // The footer two inches below already counts the bottles and the drinks. Her repeating that
@@ -81,7 +82,7 @@ public class MargaPresenceTests : ComponentTestBase
 
         page.WaitForAssertion(
             () => Assert.Equal("Marga_ShelfEmpty[London dry gin]",
-                page.Find("[data-testid='shelf-marga']").TextContent.Trim()),
+                page.Find("[data-testid='shelf-marga'] .marga-line").TextContent.Trim()),
             TimeSpan.FromSeconds(10));
     }
 

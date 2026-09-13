@@ -51,6 +51,21 @@
     /* The small uppercase label above a card headline or Marga's line. Brass is a label colour on
        dark only (page 01); on light it is copper, because brass on cream fails contrast. */
     --label-accent: var(--bs-primary);
+
+    /* Copper as TEXT on the ground — the count, a drink name on hover, the unlock link. Copper
+       itself on light; lifted on dark, where #B4562A does not reach 4.5:1 (page 01). */
+    --copper-ink: #B4562A;
+}
+
+/* A page's title: the serif at 29px, the type page's "serif h1", never bold. One class so each
+   screen's h1 is the same h1. */
+.page-title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 29px;
+    line-height: 1.25;
+    color: var(--ink);
+    text-wrap: balance;
 }
 
 /* Self-hosted so both hosts get it from the RCL — offline in the MAUI shells, and no request leaves the
@@ -116,6 +131,7 @@
     --bs-box-shadow-sm: none;
     --bs-box-shadow: none;
     --label-accent: var(--brand-accent);
+    --copper-ink: #D9865A;
 }
 
 /* The dark-theme link colour, for anchors that are actually LINKS.
@@ -523,6 +539,19 @@ code {
     --bs-btn-active-color: #fff;
     --bs-btn-active-bg: var(--bs-primary);
     --bs-btn-active-border-color: var(--bs-primary);
+}
+
+/* BACKBAR-3 (pages 11–12): the bottle Marga just named, outlined in copper so it can be found — and
+   drawn in the SUBTLE copper, never the fill, so it is present without ever reading as owned. The
+   ticked state still takes the fill through the active tokens above, so ticking it looks like
+   ticking anything else. */
+.shelf-pill-named {
+    --bs-btn-color: var(--bs-primary-text-emphasis);
+    --bs-btn-bg: var(--bs-primary-bg-subtle);
+    --bs-btn-border-color: var(--bs-primary-border-subtle);
+    --bs-btn-hover-color: var(--bs-primary-text-emphasis);
+    --bs-btn-hover-bg: var(--bs-primary-bg-subtle);
+    --bs-btn-hover-border-color: var(--bs-primary);
 }
 
 /* "Yours" on a household's own bottle. Inherits the label's colour, so it reads on the outlined pill
