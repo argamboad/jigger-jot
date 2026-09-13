@@ -1802,6 +1802,19 @@ single inline notice. A missing page shows her scene, the line and "Go home". Th
 thin brass bar, not a spinner. The impersonation banner is a thin amber strip under the header.
 Force an unhandled error (§14): the error bar at the foot is the red-on-rose error colour.
 
+### QA-CHROME-25 — The sweep: nothing gives the old app away 🟢 (Web) — BACKBAR-9
+**Walkthrough:** in both themes, walk every screen (Home, Shelf, Cocktails with each chip, a recipe,
+Write, Welcome, Settings, Household, Billing, Admin, Login, Join, the auth error page, a missing
+URL) at 1440, 768 and 390 wide. On Household, Join and the console, look at Rename, Invite,
+Transfer, Join and "Send to everyone" BEFORE typing anything. Open the bell. Then switch the OS to
+reduce motion and reload the shelf, the wizard and the boot screen. **Expected:** no box with a
+border on any screen except the copper-tinted unlock panel on Home and Cocktails — the bell's list
+is a floating panel with hairline rows, not a card. Every disabled primary button is copper at
+reduced opacity, never blue. Join's heading is the serif, like Login's. With motion reduced, ticking
+a pill changes colour instantly, the wizard's progress rule jumps rather than slides, and the boot
+arc steps to each figure. Tab through any screen: one copper ring on every control, no element
+skipped and none with the browser's blue outline.
+
 ### QA-CHROME-09 — The app speaks Spanish throughout 🟠 (Web)
 **Walkthrough:** switch the language to Español (§10) and walk the app's own screens — shelf, catalog,
 a recipe, makeable, one-away, the wizard, both empty states. **Expected:** no English leaks, and
@@ -2990,6 +3003,7 @@ is the product. Cited decisions are `JJ-nnn` in `docs/DECISIONS.md`.
 | Marga in the emails (MARGA-4) | **MAIL-05/06/07** + `Api.Tests` (`MargaInEmailTests`) | none — `BrandedEmail` renders her the way it renders the logo: a CID inline image, the one approach Gmail and Outlook both show (they block data-URIs). She is on the three emails a person ASKED for and deliberately not on the notification wrapper, which carries failed payments and security alerts. Attached only when shown, so her 19 KB never rides along unused. Her line is one whole resource string from `EmailStrings.resx`, same contract as in the app. |
 | The app in Spanish | **CHROME-09**, I18N-01..04 | resx only. Her lines are voiced, so the Spanish is a writing job rather than a translation, and the placeholders have to survive the rewrite. |
 | Billing, Admin and the small screens (BACKBAR-8) | **CHROME-24** + BILL-*, ADM-* (⚙️ E2E `BillingJourneyTests`, `SeatQuotaJourneyTests`, `AnnouncementJourneyTests`, unchanged) + `Ui.Tests` (`UndrawnScreensTests`, `BillingGateUiTests`) | none — presentation only (JJ-039), derived by analogy from pages 02 and 16–17 since the handoff never drew these. Billing as two groups with the status pill in the status colours; the console's six cards and one table as groups with tenants and members as rows and every action a text link; statuses as one `.notice`; not-found as a `NotFoundView` on the empty-state layout; the callback's spinner a brass bar; the impersonation banner a hairline strip; the error bar in the error colours. No admin write added (ADR-021); every gate and id intact. |
+| The sweep (BACKBAR-9) | **CHROME-25** + `Api.Tests` (`RestyleGateTests` — no `.card` outside the unlock panel, every transition and animation named again under `prefers-reduced-motion`, the primary button's disabled tokens set) + `Ui.Tests` (`AnonymousLayoutTests`, Join's heading) | none — presentation only (JJ-039). Ninety-six frames (sixteen screens × three widths × two themes) rendered against mocked responses and read one by one; three findings, each fixed with a test first: the bell's dropdown was still a card, every primary button that STARTS disabled painted in Bootstrap's blue because the copper rule never set the disabled tokens, and Join's headings were the bold sans the split's borrowers had kept. The boot arc's 50ms transition gained the reduced-motion rule the other motions already had. |
 | Settings and Household restyled (BACKBAR-7) | **CHROME-22/23** + SET-01..08, MFA-01..03, NOTIF-01..04, HH-01..14, INV-01..10 (⚙️ E2E, one journey's two dropdown selects become label clicks) + `Ui.Tests` (`SettingsLayoutTests`, `HouseholdLayoutTests`, `SwitcherStateTests`) | none — presentation only (JJ-039). `ThemeSwitcher`/`UnitSwitcher` gain `Segmented`, radios on their own ids (`theme-choice-*`, `unit-choice-*`) sharing the select's handler and PUT; the header's select keeps `theme-switcher`, so a page no longer carries that id twice. `.settings-group`/`.settings-row` in `app.css`, shared by both pages and both cards; the ··· row menu toggles visibility only, so no id doubles. Owner badge copper, Admin/Member neutral. |
 | The write page restyled (BACKBAR-6) | **CHROME-21** + MINE-03/04 (⚙️ E2E, unchanged) + `Ui.Tests` (`WriteLayoutTests`) | none — presentation only (JJ-036 F4). Two columns; the amount in the display face beside its unit; role and required a visible sub-line, no popover; the two client-side checks attach to the name field and to the lines (new id `new-lines-error`, additive), `new-error` kept above Save for the server's answer; a fixed Save bar on a phone. Every `new-*` id intact. |
 | Login, Welcome, Join, auth error (BACKBAR-5) | **CHROME-20** + SMK-01, AUTH-01..10, START-01..07, INV-02..05 (⚙️ E2E, unchanged) + `Ui.Tests` (`MargaSplitTests`, `AnonymousLayoutTests`) | none — presentation only (JJ-036). One `MargaSplit` component: her scene as half the screen with the line on it, night ground in both themes, the working side beside; Login and Welcome are her two full appearances, Join and the auth error page reuse it. The wizard's step 2 renders the shelf's sections, whose rules moved to `app.css` so two pages share them; a 3px brass progress rule; every id intact. |
@@ -3155,6 +3169,7 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-CHROME-22 | Web | | | | | A linked provider; 1280 and 390 wide |
 | QA-CHROME-23 | Web | | | | | Owner and member accounts; 1280 and 390 wide |
 | QA-CHROME-24 | Web | | | | | Billing on; a staff account; a provider sign-in |
+| QA-CHROME-25 | Web | | | | | Both themes; 1440, 768 and 390 wide; OS reduce-motion on |
 
 **§14a adversarial / tenant-isolation (QA-ADV-*).** All rows are **Not-run** (blank) until executed.
 The formerly pre-seeded **Blocked (known defect)** rows were reset when the v3 remediation completed

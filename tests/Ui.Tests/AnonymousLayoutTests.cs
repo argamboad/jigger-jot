@@ -129,6 +129,12 @@ public class AnonymousLayoutTests : ComponentTestBase
             Assert.NotNull(page.Find(".split-panel [data-testid='join-household-full']"));
             Assert.NotNull(page.Find(".split-scene img.split-scene-art"));
             Assert.Empty(page.FindAll(".card"));
+
+            // BACKBAR-9: the panel's heading is the same serif h1 Login and the auth error use, not the
+            // bold sans the split's borrowers kept — the sweep found Join was the one screen still in it.
+            var heading = page.Find(".split-panel h1");
+            Assert.Contains("page-title", heading.ClassList);
+            Assert.DoesNotContain("fw-bold", heading.ClassList);
         });
     }
 

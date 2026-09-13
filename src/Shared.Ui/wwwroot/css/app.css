@@ -241,6 +241,31 @@
     background: var(--brand-accent);
 }
 
+/* The bell's dropdown: a floating 16px panel on the surface with a hairline; a shadow on light only
+   (the token is cleared under dark). Its head and foot are hairline-separated rows. */
+.notif-panel {
+    background: var(--surface);
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    box-shadow: var(--bs-box-shadow, none);
+    overflow: hidden;
+}
+
+.notif-panel-head,
+.notif-panel-foot {
+    padding: .6rem 1rem;
+    font-size: 13px;
+}
+
+.notif-panel-head {
+    border-bottom: 1px solid var(--app-border);
+    font-weight: 500;
+}
+
+.notif-panel-foot {
+    border-top: 1px solid var(--app-border);
+}
+
 /* A page's title: the serif at 29px, the type page's "serif h1", never bold. One class so each
    screen's h1 is the same h1. */
 .page-title {
@@ -365,6 +390,13 @@ a, .btn-link {
     color: #fff;
     background-color: var(--bs-primary);
     border-color: var(--brand-dark);
+
+    /* BACKBAR-9: Rename, Invite, Transfer, Join and the broadcast all START disabled, and Bootstrap
+       paints a disabled primary from its own tokens — blue — unless these are set. Same copper, and
+       the framework's .65 opacity does the rest. */
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: var(--bs-primary);
+    --bs-btn-disabled-border-color: var(--bs-primary);
 }
 
 .btn-primary:hover {
@@ -718,6 +750,12 @@ a:focus-visible {
         animation: none;
         stroke-dasharray: 289%, 500%;
         opacity: .45;
+    }
+
+    /* BACKBAR-9: the measured arc steps to each figure instead of easing to it. Still the real
+       number, just no motion between two readings of it. */
+    .loading-progress circle:last-child {
+        transition: none;
     }
 }
 

@@ -5,7 +5,7 @@
 > Marga given room. **Read with the handoff, `docs/design/2026-09-backbar-handoff.pdf`** (19 pages;
 > page numbers below are the document's own), and with **JJ-036 → JJ-039**, which record what the
 > review accepted, changed and refused. Stories use Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — planned 2026-09-13; BACKBAR-1 ✅ through BACKBAR-8 ✅ built the same day. One branch,
+> **Status: ✅ COMPLETE** — planned 2026-09-13; BACKBAR-1 ✅ through BACKBAR-9 ✅ built the same day. One branch,
 > `feat/backbar`, one commit per slice or fix, pushed on the word (PLAN, the redesign rule).
 
 **Epic key:** `BACKBAR`
@@ -782,11 +782,56 @@ language as pages 16–17.
 
 ### BACKBAR-9 — The sweep
 
-**Status: 📋 Planned.** Page 18.
+**Status: ✅ Implemented (2026-09-13).** Page 18. One commit on `feat/backbar`.
 
 **As a** member on any screen
 **I want** the restyle to be finished, not mostly finished
 **So that** no screen, state or width is the one that still gives the old app away
+
+**What the pass showed.** Ninety-six frames — sixteen screens (the nine drawn, Billing, Admin, Join,
+the auth error page, a missing URL, and the catalog under each chip) × 1440/768/390 × dark/light —
+rendered from a Release publish of the web app against mocked API responses and read one by one.
+Three findings, each fixed with a failing test first:
+- **The bell's dropdown was still a card** (`card`, `card-header`, `card-footer`), the one place
+  the definition of done's "no card border except the panel" was false. It is a `.notif-panel` now:
+  the surface, a hairline, 16px, hairline rows inside — page 17's own words for it.
+- **Every primary button that STARTS disabled was Bootstrap blue.** Rename, Invite, Transfer, Join
+  and "Send to everyone" all wait for input, and the copper rule for `.btn-primary` named only the
+  enabled states; the disabled one fell through to the framework's `--bs-btn-disabled-*` defaults.
+  A pass with fixtures typed nothing, which is exactly why it showed. The rule sets the three
+  disabled tokens now, same copper, the framework's own opacity.
+- **Join's five headings were still `h5 fw-bold`** — the split's other borrower (the auth error page)
+  and Login itself use `page-title`. Join does too; the states, ids and colours are untouched.
+
+And one thing the gate found rather than the eye: the boot arc's 50ms `stroke-dasharray` transition
+had no reduced-motion rule while the boot rock, the pill fill, the loading bars and the wizard's
+progress rule all did. It steps to each figure now.
+
+**What was decided while building it.**
+- **The definition of done is held by gates, not by a reading.** Three repo tests in
+  `RestyleGateTests`: no `class` in the RCL names `card`, `card-header` or `card-footer` unless it
+  also names the unlock panel (`home-unlocks`, `catalog-unlocks`); every selector that transitions
+  or animates in `app.css` or any `*.razor.css` is named again inside a `prefers-reduced-motion`
+  block **in the same sheet** with the motion set to none — same sheet, because scoped CSS is
+  rewritten per component and a rule in `app.css` cannot reach a scoped selector, so a
+  reduced-motion block in the wrong file passes a reading and fails a user; and the `.btn-primary`
+  rule sets its disabled tokens. The first two failed on the pre-sweep tree, the third on the
+  pre-fix one.
+- **The "200ms panel expand" page 18 names does not exist in this codebase** — the `···` row menu
+  toggles visibility and the bell's panel renders or does not — so there was nothing to drop. The
+  gate covers whatever motion is actually written rather than the two the document lists.
+- **The auth error page says its heading twice on purpose** — once as the split's line (BACKBAR-5:
+  the error heading replaces her line, with no label) and once as the panel's h1 for the reader who
+  lands on the working side. Seen in the frames, left as decided.
+- **The pass is a script, not a test** (`visual_pass.py` in the session's scratchpad, not the
+  repo): it mocks every `/api/**` route, signs an unverified JWT for the authenticated screens, and
+  needs a static server with a single-page fallback — `python -m http.server` has none, and the
+  first run produced sixteen 404 pages before anyone looked. It is not committed because the
+  fixtures are hand-typed and would rot; QA-CHROME-25 is the human version of it.
+
+**Seen, not proven.** Focus rings were checked by reading the one `:focus-visible` rule and not by
+tabbing every screen — QA-CHROME-25 does that. Nothing looks at the frames in CI; the sixteen
+screens are held by ids and the three gates, and by the QA plan.
 
 **Context / notes.** The cross-cutting pass page 18 asks for — focus rings on every interactive
 element, `prefers-reduced-motion` dropping the 120ms fill and the 200ms panel expand, a pass in both
@@ -798,21 +843,38 @@ traceability matrix and sign-off rows, and the PDFs regenerated.
 
 ```gherkin
 Scenario: No card border survives except the panel
-  Given every page in Ui.Tests renders
-  Then every .card resolves to the 16px hairline panel
-  And the copper-subtle panel is the only element with a tinted border
+  Given every razor file in the RCL
+  Then no class names card, card-header or card-footer
+  Unless the same class names the unlock panel
+  # RestyleGateTests.NoCardBorder_SurvivesExceptTheCopperPanel
 
 Scenario: Motion is optional
-  Given prefers-reduced-motion: reduce
-  Then the pill fill and the panel expand have no transition
+  Given every selector that transitions or animates in app.css or a scoped sheet
+  Then the same sheet names it again under prefers-reduced-motion with the motion set to none
+  # RestyleGateTests.EveryMotion_IsOptional
+
+Scenario: A button that waits for input is still copper
+  Given the .btn-primary rule in app.css
+  Then it sets --bs-btn-disabled-bg and --bs-btn-disabled-border-color
+  # RestyleGateTests.PrimaryButton_StaysCopperWhenDisabled
+
+Scenario: Join's heading is Login's heading
+  Given /join in any of its five states
+  Then the panel's h1 carries page-title and never fw-bold
+  # AnonymousLayoutTests.Join_ReusesTheSplit_AndKeepsItsStates
 
 Scenario: Every journey is still green
   # the whole E2E suite, unchanged except the two helpers BACKBAR-2 and BACKBAR-4 introduced
 ```
 
 **Out of scope:** nothing the document asks for; anything it does not. **Definition of done:** the
-definition of done on page 18, every line; the whole suite green; `docs/QA_TEST_PLAN.md` updated with
-the artifacts regenerated; the Slice Board updated on "merged".
+definition of done on page 18, every line — ✅ both themes on all nine screens at three widths (and
+the seven the handoff never drew); ✅ no Bootstrap card border anywhere except the copper-subtle panel
+(gated); ✅ Marga at 96px on Home and Shelf and full-bleed on Login and Welcome (BACKBAR-3, -5); ✅
+every existing test green with no id edits (one id ADDED, `cocktail-all`, per F2). The whole suite
+green — `Ui.Tests` 136, `Core.Tests` 80, the gates, Release builds with zero warnings, E2E compiles
+(its run is CI's: no Docker here). `docs/QA_TEST_PLAN.md` updated with the artifacts regenerated
+(QA-CHROME-25, 229 cases). The Slice Board updated on "merged".
 
 ---
 

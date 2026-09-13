@@ -145,10 +145,12 @@ test. All four are written up under SHELL-1 in `docs/stories/shell.md`.
   the current tab's weight, the chrome's colour in dark theme, and that the page does not scroll
   sideways.
 
-**Merged since** (PRs #31–#35): the batch above as one PR (#31); the port block (#32, JJ-030); the
+**Merged since** (PRs #31–#36): the batch above as one PR (#31); the port block (#32, JJ-030); the
 pre-launch gates ported from the platform (#33, ADR-027); the gate-variable doc lines (#34); and
-"a markdown file is never code" (#35, LOCALCI-3 follow-up). **Nothing is committed-not-pushed.** The
-next thing is the restyle below.
+"a markdown file is never code" (#35, LOCALCI-3 follow-up); the restyle's plan (#36, JJ-036 → JJ-039).
+**Committed, not pushed: `feat/backbar`**, the whole restyle ladder BACKBAR-1 → 9 as one commit per
+slice or fix, waiting on the word (the redesign rule above). The next thing after it is a decision,
+not a queue — see "After the ladder" below.
 
 ## The UI wave — 2026-09-10
 
@@ -226,6 +228,10 @@ Gherkin, the ids and the pages for each.
 | 7 | **BACKBAR-7** Settings + Household | 16–17 | Five cards to two columns, six to four groups, segmented theme and unit controls, text-link row actions, the `···` menu on mobile, the bell's dropdown. Same calls, parameters and ids. |
 | 8 | **BACKBAR-8** Billing + Admin, every small screen | not drawn | The two pages the handoff never saw, restyled in full to the same language by analogy, plus not-found, the auth callback, the impersonation banner and the error bar. Same calls, gates and ids. |
 | 9 | **BACKBAR-9** Sweep | 18 | Focus rings, reduced motion, both themes at three widths on every screen, the QA cases + regenerated PDFs, the definition of done line by line. |
+
+**Built 2026-09-13, all nine, on `feat/backbar`** — one commit per slice or fix, the story's per-slice
+sections say what each decided, and the sweep's ninety-six frames found three things (the bell's
+card, blue disabled buttons, Join's bold sans), each now held by a test. Waiting on the word.
 
 **Every slice runs both themes at 390, 768 and 1440 in a browser before its commit.** A restyle is the
 one kind of change the suite is weakest at — 54 frames and no test looks at any of them — which is

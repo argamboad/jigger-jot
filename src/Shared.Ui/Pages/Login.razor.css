@@ -80,3 +80,9 @@
         align-items: flex-start;
     }
 }
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-oauth {
+        transition: none;
+    }
+}

@@ -26,9 +26,12 @@
         <div class="notif-backdrop position-fixed top-0 start-0 w-100 h-100" style="z-index:1040"
              @onclick="Close"></div>
 
-        <div class="notif-panel card shadow position-absolute end-0 mt-2"
+        @* BACKBAR-9: a floating panel on the surface with a hairline — not a card, so the
+           definition of done ("no card border except the copper-subtle panel") holds in the header
+           too. Hairline rows inside, a brass dot for unread (page 17). *@
+        <div class="notif-panel position-absolute end-0 mt-2"
              style="z-index:1050;width:320px;max-width:90vw" data-testid="notif-panel">
-            <div class="card-header d-flex align-items-center justify-content-between py-2">
+            <div class="notif-panel-head d-flex align-items-center justify-content-between">
                 <span class="fw-semibold small">@Localizer["Notif_Title"]</span>
                 @if (_count > 0)
                 {
@@ -85,7 +88,7 @@
             @* Bulk clear (NOTIFY: DELETE /api/notifications[?read=true]). Rebrandable — see CLAUDE.md. *@
             @if (!_loading && _items.Count > 0)
             {
-                <div class="card-footer d-flex align-items-center justify-content-between py-2">
+                <div class="notif-panel-foot d-flex align-items-center justify-content-between">
                     <button class="btn btn-link btn-sm p-0 text-muted" data-testid="notif-clear-read"
                             disabled="@(!_items.Any(n => n.ReadAt is not null))" @onclick="ClearRead">@Localizer["Notif_ClearRead"]</button>
                     <button class="btn btn-link btn-sm p-0 text-danger" data-testid="notif-clear-all"
