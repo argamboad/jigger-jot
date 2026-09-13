@@ -192,8 +192,9 @@ decision are logged as **JJ-036 → JJ-039**:
   "Everything" the third chip needs.
 - **The chrome leaves copper in both themes** — amending SHELL-1 in colour only; the hierarchy it
   settled stands (JJ-037). **The serif is self-hosted, one weight, display only, gated** (JJ-038).
-  **The UI is the app's own, inherited screens included** — Settings and Household are restyled in
-  full here, nothing goes upstream, and this epic touches no backend at all; the backend may be
+  **The UI is the app's own, all pages, no exceptions** — Settings and Household are restyled in
+  full here, Billing and Admin too though the handoff never drew them, nothing goes upstream, and
+  this epic touches no backend at all; the backend may be
   extended, its foundation is a red light (JJ-039, corrected the same day from "upstream first").
   **No popover** on the Write rows. **Auto stays the default theme** — it already is.
 
@@ -214,7 +215,8 @@ Gherkin, the ids and the pages for each.
 | 5 | **BACKBAR-5** Login + Welcome | 05–06, 13–14 | Her two full-scene screens; `/join` and `/auth-error` reuse the split; Android smoke. |
 | 6 | **BACKBAR-6** Write | 15 | Two columns, the amount in the serif, a fixed Save bar on mobile. |
 | 7 | **BACKBAR-7** Settings + Household | 16–17 | Five cards to two columns, six to four groups, segmented theme and unit controls, text-link row actions, the `···` menu on mobile, the bell's dropdown. Same calls, parameters and ids. |
-| 8 | **BACKBAR-8** Sweep | 18 | Billing, Admin, Join and AuthError on the primitives, focus rings, reduced motion, both themes at three widths, the QA cases + regenerated PDFs, the definition of done line by line. |
+| 8 | **BACKBAR-8** Billing + Admin, every small screen | not drawn | The two pages the handoff never saw, restyled in full to the same language by analogy, plus not-found, the auth callback, the impersonation banner and the error bar. Same calls, gates and ids. |
+| 9 | **BACKBAR-9** Sweep | 18 | Focus rings, reduced motion, both themes at three widths on every screen, the QA cases + regenerated PDFs, the definition of done line by line. |
 
 **Every slice runs both themes at 390, 768 and 1440 in a browser before its commit.** A restyle is the
 one kind of change the suite is weakest at — 54 frames and no test looks at any of them — which is
@@ -223,7 +225,7 @@ also why BACKBAR-7 writes the QA cases so a person runs them again after the wav
 **Still true, and still waiting: run the QA plan's app half.** The cases were written (PR #30) so they
 could be executed, and what a browser journey cannot check is whether a count is *honest*, whether a
 suggestion is *useful*, whether her Spanish reads as Spanish. The restyle changes every frame those
-cases look at, so the run is cheapest **after BACKBAR-8** — once, rather than once now and once again.
+cases look at, so the run is cheapest **after BACKBAR-9** — once, rather than once now and once again.
 
 **After the ladder, what follows is a decision rather than a queue.** Candidates, none of which blocks
 another: the 969-recipe catalog behind a flag (a flag, not a slice — and note it makes `QA-MAKE-10`

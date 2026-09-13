@@ -1979,10 +1979,11 @@ draft of this decision treated them as the platform's — primitives only here, 
 The maintainer corrected that the same day, and the correction is the decision:
 
 *Decision.*
-1. **Every app from the platform owns its UI.** The RCL is downstream property, the inherited screens
-   included. Settings, Household, Join, AuthError, Billing, Admin, `MfaCard`,
-   `NotificationPrefsCard`, the bell and the switchers are restyled **in full** here, to pages 16–17,
-   with nothing sent upstream and nothing waited for. The sibling apps remain a useful comparison
+1. **Every app from the platform owns its UI — all pages, no exceptions.** The RCL is downstream
+   property, the inherited screens included. Settings and Household are restyled **in full** here, to
+   pages 16–17; Billing, Admin, Join, AuthError, the not-found view, the auth callback, the
+   impersonation banner and the error bar — none of which the handoff drew — are restyled to the
+   same language by analogy, with nothing sent upstream and nothing waited for. The sibling apps remain a useful comparison
    (the last header fix was found by holding the bar next to `vuelto`'s), never a constraint.
 2. **The backend may be extended, never re-founded.** New endpoints, queries, features and
    contributors are the app's to add (the whole of `CKTL`, `INV`, `MAKE`, `ALMOST` is exactly that);
@@ -1997,8 +1998,9 @@ control writes the same preference the header switcher does, the danger zone sti
 confirm dialog, row actions behind `···` still call what the buttons called. The journeys that drive
 them (roster, membership lifecycle, MFA, notifications, billing, GDPR export) stay green as they are.
 
-*Consequences.* The ladder gains a slice: **BACKBAR-7 Settings + Household** (pages 16–17), with the
-sweep becoming **BACKBAR-8**. CLAUDE.md's golden rule 8 gains the sentence that keeps this from being
+*Consequences.* The ladder gains two slices: **BACKBAR-7 Settings + Household** (pages 16–17) and
+**BACKBAR-8 Billing + Admin and every small screen** (not drawn; derived from pages 02 and 16–17),
+with the sweep becoming **BACKBAR-9**. CLAUDE.md's golden rule 8 gains the sentence that keeps this from being
 re-argued: the UI is the app's; the foundation is the platform's.
 
 *Decided 2026-09-13; corrected the same day before publication.*

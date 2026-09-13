@@ -79,7 +79,7 @@ does not re-argue it.
 
 ## The ladder
 
-Eight slices, each one branch off `develop`, one PR, after the previous is merged — the three gates
+Nine slices, each one branch off `develop`, one PR, after the previous is merged — the three gates
 in `docs/PLAN.md` apply unchanged. The order is the document's (page 18) with its six steps regrouped
 so that every PR leaves the app looking finished at the level it reached, never half-restyled:
 
@@ -92,7 +92,8 @@ so that every PR leaves the app looking finished at the level it reached, never 
 | 5 | **BACKBAR-5** Login + Welcome | 05–06, 13–14 | The two full-scene screens; `/join` and `/auth-error` reuse the split. Native parity checked on the Android emulator. |
 | 6 | **BACKBAR-6** Write | 15 | Two columns, the amount in the serif, a fixed Save bar on mobile. No popover (F4). |
 | 7 | **BACKBAR-7** Settings + Household | 16–17 | Five cards to two columns, six cards to four groups, segmented theme and unit controls, text-link row actions, the `···` menu on mobile, the bell's dropdown. Same parameters, ids and calls (F5). |
-| 8 | **BACKBAR-8** Sweep | 18 | Billing, Admin, Join and AuthError on the primitives, focus rings, reduced motion, both themes at 390/768/1440, the QA plan's cases and regenerated PDFs, the definition of done ticked line by line. |
+| 8 | **BACKBAR-8** Billing + Admin, and every small screen | — (not drawn) | The two pages the handoff did not draw, restyled to the same language in full: labelled groups of hairline rows, one plan panel, the tenant table as hairline rows. Plus the screens nobody draws — not-found, the auth callback, the impersonation banner, the error bar. |
+| 9 | **BACKBAR-9** Sweep | 18 | Focus rings, reduced motion, both themes at 390/768/1440 on every screen, the QA plan's cases and regenerated PDFs, the definition of done ticked line by line. |
 
 **Why the foundation is one PR and not three.** Tokens without primitives change nothing visible;
 primitives without the serif leave the count in Helvetica bold; `Tone` without either draws her at
@@ -502,7 +503,71 @@ three widths match pages 16–17.
 
 ---
 
-### BACKBAR-8 — The sweep
+### BACKBAR-8 — Billing and Admin, and every small screen
+
+**Status: 📋 Planned.** Not drawn in the handoff. **JJ-039** — all pages, no exceptions. Spec: page 02
+(components) and the Settings/Household language of pages 16–17, applied by analogy.
+
+**As a** household owner on the billing page, or platform staff on the console
+**I want** the two pages the designer never saw to look like the rest of the app
+**So that** there is no screen left that gives the old template away
+
+**Context / notes.** These pages were not drawn, so the treatment is derived rather than copied: the
+same labelled groups of hairline rows, the same text-link row actions, the same status colours, and
+one boxed panel per page for the one thing to act on. Nothing about what they fetch, send or gate
+changes; every id and every config gate (`Billing:Enabled`, the staff probe) stays.
+
+- **Billing** (`/billing`, GATES-1 hides it entirely when billing is off). Four cards become two
+  groups: **Plan** — the plan name in the serif with its status as a pill (the page-10 status colours;
+  the `bg-info-subtle` badge goes), renews-on and ended-on as meta rows, Upgrade as the primary pill
+  or Manage as a text link; **Seats** — used of allowed as the same `n of m` figure the shelf uses.
+  The checkout success / cancel banners become one 12px-radius notice above the groups; the
+  owner-only notice is a muted line, not an alert. `billing-*` ids unchanged; the fake-provider
+  upgrade-loop journey unchanged.
+- **Admin** (`/admin`, staff only). Six cards and one table become groups: **Broadcast** at the top
+  as a panel (it is the one thing that acts platform-wide); **Tenants** as hairline rows with the
+  name in the serif and the plan as a neutral pill, `admin-tenant-row` kept; the selected tenant's
+  detail as three labelled groups — Subscription (comp / revert as text links, 409 message inline),
+  Members (the MFA reset as a text link with its status inline), Announce. Success statuses become
+  the same inline notice as Billing's rather than five green alerts. `admin-forbidden` keeps the
+  page-06 error styling. `admin-*` ids unchanged; the announcement journey unchanged.
+- **The screens nobody draws.** The not-found view in `App.razor` on the empty-state layout (her
+  scene, the line, a link home); the auth-callback spinner replaced by the 2px brass bar; the
+  impersonation banner as a hairline strip in the warn colours, still `impersonation-banner`; the
+  `#blazor-error-ui` bar in the page-06 error colours instead of light yellow, still `color-scheme:
+  light only` so it reads on either theme.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: Billing keeps every id and every gate
+  Given billing is enabled and I am the owner on a Pro plan
+  Then billing-plan, billing-status, billing-renews, billing-seats and billing-portal render
+  And billing-upgrade does not
+  Given billing is disabled
+  Then /billing is refused as today and the header shows no link
+  # BillingGateUiTests and BillingJourneyTests, unchanged
+
+Scenario: Admin keeps every id and the staff gate
+  Given a non-staff user on /admin
+  Then admin-forbidden renders and nothing else does
+  Given staff, with two tenants listed
+  Then admin-tenant-row renders twice, as rows, not as table cells
+  # AnnouncementJourneyTests, unchanged
+
+Scenario: Not found is an empty state, not a blank page
+  Given a route that matches nothing
+  Then her scene, the not-found copy and a link home render on the page ground
+```
+
+**Out of scope:** any endpoint, any gate, any admin write (ADR-021 enumerates them and this adds
+none). **Definition of done:** the scenarios; the billing, seat-quota, announcement and impersonation
+journeys green; QA-BILL and QA-ADM cases re-run; both themes at three widths read as the same
+language as pages 16–17.
+
+---
+
+### BACKBAR-9 — The sweep
 
 **Status: 📋 Planned.** Page 18.
 
@@ -510,12 +575,11 @@ three widths match pages 16–17.
 **I want** the restyle to be finished, not mostly finished
 **So that** no screen, state or width is the one that still gives the old app away
 
-**Context / notes.** Billing, Admin, Join and AuthError take the primitives (they were not drawn;
-the primitives are their spec). Then the cross-cutting pass page 18 asks for — focus rings on every
-interactive element, `prefers-reduced-motion` dropping the 120ms fill and the 200ms panel expand, a
-pass in both themes at 390, 768 and 1440 on every screen, and the definition of done ticked line by
-line. The QA plan gains a case per user-visible change this epic made that no earlier slice already
-covered, the traceability matrix and sign-off rows, and the PDFs regenerated.
+**Context / notes.** The cross-cutting pass page 18 asks for — focus rings on every interactive
+element, `prefers-reduced-motion` dropping the 120ms fill and the 200ms panel expand, a pass in both
+themes at 390, 768 and 1440 on every screen, and the definition of done ticked line by line. The QA
+plan gains a case per user-visible change this epic made that no earlier slice already covered, the
+traceability matrix and sign-off rows, and the PDFs regenerated.
 
 **Acceptance criteria**
 
