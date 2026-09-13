@@ -1723,6 +1723,28 @@ copper like any other. Press "+ Add your own" inside a category: the form opens 
 category's pills as a rounded panel. The sticky footer's count is in the serif and copper, the drinks
 phrase beside it in the sans, and it still clears the tab bar at 390 (QA-CHROME-06).
 
+### QA-CHROME-18 — The catalog's three chips are one control 🟠 (Web) — BACKBAR-4
+**Walkthrough:** open the catalog with a partial shelf. Click "I can make now", then "One
+ingredient away", then "Everything"; then Tab to the chip row and use the arrow keys; then follow
+Home's "Show me them". **Expected:** exactly one chip is filled copper at any time and only that chip
+carries a count ("· 14"); the arrow keys move the selection the way a radio group does and a screen
+reader announces "radio, 1 of 3"; the deep link lands with the right chip selected. The search is a
+pill; the rows are hairlines with the name in the serif and the book on the right, never wrapping;
+a substituted drink shows Marga at 32px with her line in copper; the pager is text on a hairline. At
+390 the chip row stays at the top while the list scrolls. No box anywhere except the one-away panel.
+
+### QA-CHROME-19 — A recipe reads by its measures, and prints 🟠 (Web) — BACKBAR-4
+**Walkthrough:** open a drink you are one bottle short of, whose recipe also has a substitution and
+an optional garnish (§10f QA-MAKE-05 fixture), at 1280 and at 390; then print preview.
+**Expected:** the title in the serif at up to 52px, wrapping rather than cut; status pill beside the
+facets; "Based on X" in the facet line for a fork, not as its own paragraph; Marga at 72px with her
+line in the serif. Amounts in a 104px column in the serif and copper; the garnish shows a dash, a
+muted name and the word "optional" as plain text — no badge. Exactly two marks: "you'd pour X" on the
+substituted line and "not on your shelf" on the missing one; pourable lines say nothing. At 1280 the
+method sits left and the ingredients right; at 390 the ingredients come first and "Create my own
+version" is a bar fixed above the tab bar. Print preview: white ground, no header, no tab bar, no
+fork button. A bad id shows her scene, the not-found line and a link back — not a yellow alert.
+
 ### QA-CHROME-09 — The app speaks Spanish throughout 🟠 (Web)
 **Walkthrough:** switch the language to Español (§10) and walk the app's own screens — shelf, catalog,
 a recipe, makeable, one-away, the wizard, both empty states. **Expected:** no English leaks, and
@@ -2910,6 +2932,7 @@ is the product. Cited decisions are `JJ-nnn` in `docs/DECISIONS.md`.
 | The boot state (SHELL-2) | CHROME-07/08, and the native legs of §12/§13 | none — it renders before the app exists. It lands in **two** `index.html` files (`NATIVE_PARITY.md`), held by a CI gate; the WebView hosts sweep instead of filling, having no download to measure. A second gate caps the illustration's size, since this is the one place it is fetched before the app is usable. |
 | Marga in the emails (MARGA-4) | **MAIL-05/06/07** + `Api.Tests` (`MargaInEmailTests`) | none — `BrandedEmail` renders her the way it renders the logo: a CID inline image, the one approach Gmail and Outlook both show (they block data-URIs). She is on the three emails a person ASKED for and deliberately not on the notification wrapper, which carries failed payments and security alerts. Attached only when shown, so her 19 KB never rides along unused. Her line is one whole resource string from `EmailStrings.resx`, same contract as in the app. |
 | The app in Spanish | **CHROME-09**, I18N-01..04 | resx only. Her lines are voiced, so the Spanish is a writing job rather than a translation, and the placeholders have to survive the rewrite. |
+| Catalog and recipe restyled (BACKBAR-4) | **CHROME-18/19** + MAKE-01..10 (⚙️ E2E `MakeableJourneyTests` through the new `SetCatalogFilterAsync` helper) + `Ui.Tests` (`CatalogChipsTests`, `RecipeLayoutTests`) | none — presentation only, but the one slice that touches a journey's MECHANICS (JJ-036): the two switches are three radios (`cocktail-makeable`, `cocktail-almost`, new `cocktail-all`), driven by label like the shelf pills; only the selected chip carries the response's own total, no new fetch. Rows keep their list-group classes. Amounts lead in the serif; two marks only; optional is a dash and plain text; provenance in the facet line; not-found on the empty-state layout; `@media print` on the recipe. |
 | Home and the shelf restyled (BACKBAR-3) | **CHROME-16/17** + `Ui.Tests` (`HomeLayoutTests`, `ShelfSectionsTests`) + the shelf and makeable journeys unchanged | none — presentation only (JJ-036). Home in two columns, rules not cards, the unlock panel the only box, the count in the serif, her scene on an empty shelf; the shelf's cards become sections on a hairline with `#cat-{slug}` intact, the named bottle outlined in the subtle copper and never ticked, the add form a panel in place, the payoff count in the serif. |
 | The chrome off copper (BACKBAR-2) | **CHROME-15** + CHROME-04 (⚙️ E2E `ShellJourneyTests`, colour lines rewritten to the hierarchy) + `Ui.Tests` (`AppHeaderChromeTests`) + `Api.Tests` (`RestyleGateTests`, the two marks) | none — presentation only (JJ-037). The bar and the tab bar on the surface with a hairline in both themes; destinations in the ink, account cluster muted, one theme-aware button variant for all of them so an anchor-shaped button and a `<button>` can never differ; 2px copper indicator; `icon_dark.svg` for the dark surface, swapped by `app.css`, named in `REBRANDING.md` and `build_assets.py`. |
 | The restyle's foundation (BACKBAR-1) | **CHROME-14** + `Api.Tests` (`RestyleGateTests`) + `Ui.Tests` (`MargaSaysToneTests`) | none — presentation only (JJ-036). Both token sets in `app.css`; one self-hosted display serif, one weight, display only, reached through `.font-display` and never bold (JJ-038, gated); the primitives as CSS on Bootstrap's classes so no markup churns; `MargaSays` gains `Tone` with the old `Size`/`Compact` intact. |
@@ -3064,6 +3087,8 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-CHROME-15 | Web | | | | | Both themes, 1280 and 390 wide |
 | QA-CHROME-16 | Web | | | | | 1280 and 390 wide; a throttled reload |
 | QA-CHROME-17 | Web | | | | | A shelf one bottle away from something |
+| QA-CHROME-18 | Web | | | | | Keyboard + screen reader for the radio group |
+| QA-CHROME-19 | Web | | | | | Print preview; 1280 and 390 wide |
 
 **§14a adversarial / tenant-isolation (QA-ADV-*).** All rows are **Not-run** (blank) until executed.
 The formerly pre-seeded **Blocked (known defect)** rows were reset when the v3 remediation completed

@@ -46,17 +46,21 @@
     /// </summary>
     [Parameter] public MargaTone Tone { get; set; } = MargaTone.None;
 
-    /// <summary>Her size in pixels when no tone is given. 24 in a list row, 40 on a card.</summary>
-    [Parameter] public int Size { get; set; } = 40;
+    /// <summary>
+    /// Her size in pixels. Without a tone: 24 in a list row, 40 on a card (the default). With a tone
+    /// it OVERRIDES the tone's own size — the handoff draws the card tone at 96 on Home and the
+    /// shelf but at 72 on the catalog, the recipe and the wizard (page 02).
+    /// </summary>
+    [Parameter] public int? Size { get; set; }
 
     /// <summary>Tighter spacing and smaller text, for use inside a row rather than as a card.</summary>
     [Parameter] public bool Compact { get; set; }
 
-    private int Pixels => Tone switch
+    private int Pixels => Size ?? Tone switch
     {
         MargaTone.Card => 96,
         MargaTone.Inline => 32,
-        _ => Size,
+        _ => 40,
     };
 
     private string? ToneClass => Tone switch

@@ -1,0 +1,172 @@
+/* BACKBAR-4, handoff pages 09–10. The recipe: amounts lead, two marks only, two columns at desktop. */
+
+.recipe {
+    max-width: 1100px;
+}
+
+.recipe-head {
+    margin-bottom: 1.5rem;
+}
+
+/* Wraps to two lines at 52px before shrinking; never truncated. */
+.recipe-title {
+    font-size: clamp(32px, 2rem + 1.4vw, 52px);
+    line-height: 1.1;
+    margin: 0 0 .5rem;
+    color: var(--ink);
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+}
+
+.recipe-yours {
+    vertical-align: middle;
+    margin-left: .5rem;
+    font-size: 12px;
+}
+
+.recipe-status {
+    margin: 0 0 .5rem;
+}
+
+.recipe-facets {
+    color: var(--muted);
+    font-size: 15px;
+    margin: 0 0 1.25rem;
+}
+
+.recipe-marga {
+    margin-top: .5rem;
+}
+
+.recipe-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 40px 52px;
+    align-items: start;
+}
+
+/* The method reads first on a wide screen, the ingredients on a phone. */
+.recipe-aside {
+    order: -1;
+}
+
+.recipe-lines {
+    list-style: none;
+    margin: 0 0 1.5rem;
+    padding: 0;
+    border-top: 1px solid var(--app-border);
+}
+
+.recipe-line {
+    display: grid;
+    grid-template-columns: 104px minmax(0, 1fr);
+    gap: 1rem;
+    align-items: baseline;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--app-border);
+}
+
+/* The measure: 21px in the serif, copper-lifted. On a recipe the quantity is the thing you scan. */
+.recipe-amount {
+    font-size: 21px;
+    line-height: 1.2;
+    color: var(--copper-ink);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.recipe-ingredient {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--ink);
+}
+
+/* An optional line: a dash in the amount column, the ingredient muted, "optional" as plain text. */
+.recipe-line-optional .recipe-amount,
+.recipe-line-optional .recipe-ingredient {
+    color: var(--muted);
+}
+
+.recipe-optional,
+.recipe-notes {
+    color: var(--muted);
+    font-size: 13px;
+    margin-left: .35rem;
+}
+
+/* Two marks only: substitute in the label accent (brass on dark), missing in the one red. */
+.recipe-mark {
+    display: block;
+    font-size: 13px;
+    margin-top: .1rem;
+}
+
+.recipe-mark-substitute {
+    color: var(--label-accent);
+}
+
+.recipe-mark-missing {
+    color: var(--mark-missing);
+}
+
+.recipe-fork {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .5rem;
+}
+
+.recipe-fork-error {
+    color: var(--mark-missing);
+    font-size: 13px;
+}
+
+.recipe-method {
+    margin-bottom: 1.5rem;
+}
+
+.recipe-instructions {
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 0;
+    max-width: 62ch;
+}
+
+.recipe-source {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0;
+}
+
+@media (max-width: 991.98px) {
+    .recipe-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+
+    /* Ingredients first on a phone (page 09's mobile frame); the method follows. */
+    .recipe-aside {
+        order: 1;
+    }
+
+    /* The fork as a fixed bar above the tab bar, and the page pads so its last line clears it. */
+    .recipe {
+        padding-bottom: 72px;
+    }
+
+    .recipe-fork {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: var(--tab-bar-clearance, 0px);
+        z-index: 4;
+        padding: .6rem 1rem;
+        background: var(--surface);
+        border-top: 1px solid var(--app-border);
+        align-items: stretch;
+    }
+
+    .recipe-fork .btn {
+        width: 100%;
+    }
+}

@@ -55,6 +55,63 @@
     /* Copper as TEXT on the ground — the count, a drink name on hover, the unlock link. Copper
        itself on light; lifted on dark, where #B4562A does not reach 4.5:1 (page 01). */
     --copper-ink: #B4562A;
+
+    /* The "not on your shelf" mark on a recipe line (page 09) — the one red in the app, and only
+       ever on a line, never on a status: further-away is neutral, not an error. */
+    --mark-missing: #B02A37;
+}
+
+/* A recipe is the one screen people print (page 10): white ground, no chrome, no fork button. */
+@media print {
+    html, body { background: #fff !important; color: #000 !important; }
+    .app-header, .app-tabs, .recipe-fork, #blazor-error-ui { display: none !important; }
+}
+
+/* The small uppercase label — "METHOD", "INGREDIENTS", "MARGA · BEHIND THE BAR" — 11px, .16em,
+   in the label accent (brass on dark, copper on light). */
+.eyebrow {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--label-accent);
+}
+
+/* An empty state on the page ground (BACKBAR-3/4): her scene at 260px, the line in the serif
+   beneath it, then the one action. Shared by the catalog's empty lists and a recipe that is not
+   there; Home has its own two-column arrangement of the same parts. */
+.catalog-empty {
+    text-align: center;
+    padding: 2rem 1rem;
+    max-width: 46ch;
+    margin: 0 auto;
+}
+
+.empty-scene {
+    /* Her whole scene, uncropped. Capped rather than fixed: on a phone the illustration must not be
+       the only thing on the screen, or the sentence explaining it falls below the fold. */
+    width: 100%;
+    max-width: 260px;
+    height: auto;
+    border-radius: 16px;
+    margin-bottom: 1rem;
+}
+
+.catalog-empty-line {
+    font-size: clamp(23px, 1.4rem + .6vw, 29px);
+    line-height: 1.25;
+    color: var(--ink);
+    margin: 0 0 1rem;
+    text-wrap: balance;
+}
+
+.empty-starter {
+    /* The one sentence on this screen that names something to go and buy, so it carries the accent
+       while the verdict above it stays quiet. */
+    color: var(--copper-ink);
+    font-weight: 500;
+    margin: 0 0 1.25rem;
 }
 
 /* A page's title: the serif at 29px, the type page's "serif h1", never bold. One class so each
@@ -132,6 +189,7 @@
     --bs-box-shadow: none;
     --label-accent: var(--brand-accent);
     --copper-ink: #D9865A;
+    --mark-missing: #E88A8A;
 }
 
 /* The dark-theme link colour, for anchors that are actually LINKS.

@@ -125,6 +125,26 @@ public abstract class E2ETestBase : PageTest
     protected ILocator ShelfPill(string ingredient) =>
         Page.Locator("label.shelf-pill").Filter(new() { HasText = ingredient });
 
+    /// <summary>
+    /// Select one of the catalog's three scope chips — <c>makeable</c>, <c>almost</c> or <c>all</c>
+    /// (BACKBAR-4). They are radios styled through their labels, like the shelf pills, so the input
+    /// is hidden and the LABEL is what gets clicked; and a radio cannot be unchecked, so "turn the
+    /// filter off" is "select Everything". Waits on the list request the change fires, not on the
+    /// paint. Idempotent: selecting the chip that is already selected does nothing.
+    /// </summary>
+    protected async Task SetCatalogFilterAsync(string scope)
+    {
+        var box = Page.GetByTestId($"cocktail-{scope}");
+        await Assertions.Expect(box).ToBeAttachedAsync(new() { Timeout = 30_000 });
+        if (await box.IsCheckedAsync()) return;
+
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.Locator($"label[for='catalog-{scope}']").ClickAsync(),
+            r => r.Url.Contains("/api/cocktails?") && r.Request.Method == "GET" && r.Status == 200);
+
+        await Assertions.Expect(box).ToBeCheckedAsync();
+    }
+
     /// <summary>The checkbox half, which is what actually holds the state.</summary>
     protected ILocator ShelfBox(string ingredient) =>
         Page.GetByRole(AriaRole.Checkbox, new() { Name = ingredient, Exact = true });

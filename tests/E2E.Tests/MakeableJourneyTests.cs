@@ -26,7 +26,9 @@ public class MakeableJourneyTests : E2ETestBase
     {
         await Page.GetByTestId("nav-cocktails").ClickAsync();
         await Expect(Page.GetByTestId("cocktail-list")).ToBeVisibleAsync(new() { Timeout = 30_000 });
-        await Page.GetByTestId("cocktail-makeable").CheckAsync();
+        // BACKBAR-4: the switch became a radio chip driven through its label — the helper in the base
+        // knows how, the way SetShelfAsync does for the pills.
+        await SetCatalogFilterAsync("makeable");
     }
 
     /// <summary>Ticks one shared ingredient onto the shelf. The how lives in the base, shared with
@@ -63,7 +65,7 @@ public class MakeableJourneyTests : E2ETestBase
 
         // Turning the filter off is the other half of a filter: the catalog is still all there.
         await Page.GetByTestId("cocktail-search").FillAsync(string.Empty);
-        await Page.GetByTestId("cocktail-makeable").UncheckAsync();
+        await SetCatalogFilterAsync("all");
         await Expect(Page.GetByTestId("cocktail-list")).ToBeVisibleAsync(new() { Timeout = 30_000 });
     }
 
@@ -117,7 +119,7 @@ public class MakeableJourneyTests : E2ETestBase
 
         await Page.GetByTestId("nav-cocktails").ClickAsync();
         await Expect(Page.GetByTestId("cocktail-list")).ToBeVisibleAsync(new() { Timeout = 30_000 });
-        await Page.GetByTestId("cocktail-almost").CheckAsync();
+        await SetCatalogFilterAsync("almost");
         await Page.GetByTestId("cocktail-search").FillAsync("Negroni");
 
         // The name is the feature. A row that only said "you cannot make this" would be the catalog.
@@ -131,13 +133,13 @@ public class MakeableJourneyTests : E2ETestBase
         // never overlap, and nothing was recomputed or invalidated to make that true (JJ-003).
         await Page.GetByTestId("nav-cocktails").ClickAsync();
         await Expect(Page.GetByTestId("cocktail-list")).ToBeVisibleAsync(new() { Timeout = 30_000 });
-        await Page.GetByTestId("cocktail-almost").CheckAsync();
+        await SetCatalogFilterAsync("almost");
         await Page.GetByTestId("cocktail-search").FillAsync("Negroni");
         await Expect(Page.GetByTestId("cocktail-empty")).ToBeVisibleAsync(new() { Timeout = 30_000 });
 
         // Ticking "makeable now" unticks "one ingredient away": no drink is both, so the pair behaves
         // like a choice rather than two boxes that can contradict each other.
-        await Page.GetByTestId("cocktail-makeable").CheckAsync();
+        await SetCatalogFilterAsync("makeable");
         await Expect(Page.GetByTestId("cocktail-almost")).Not.ToBeCheckedAsync();
         await Expect(Page.GetByTestId("cocktail-list")).ToContainTextAsync("Negroni", new() { Timeout = 30_000 });
     }
@@ -192,10 +194,8 @@ public class MakeableJourneyTests : E2ETestBase
         foreach (var ingredient in new[] { "London dry gin", "Campari" }) await StockAsync(ingredient);
 
         await ShowMakeableAsync();
-        await Page.GetByTestId("cocktail-makeable").UncheckAsync();
-        await Page.RunAndWaitForResponseAsync(
-            () => Page.GetByTestId("cocktail-almost").CheckAsync(),
-            r => r.Url.Contains("/api/cocktails/unlocks") && r.Status == 200);
+        await SetCatalogFilterAsync("all");
+        await SetCatalogFilterAsync("almost");
 
         // The summary is the point of the slice: eighty-one rows each naming a bottle is correct and
         // unreadable, so the card says which single purchase opens the most.
@@ -206,7 +206,7 @@ public class MakeableJourneyTests : E2ETestBase
 
         // It belongs to this filter only. Turning it off takes the card with it, because a shopping
         // suggestion over the whole catalog would be a claim nothing on screen supports.
-        await Page.GetByTestId("cocktail-almost").UncheckAsync();
+        await SetCatalogFilterAsync("all");
         await Expect(card).Not.ToBeVisibleAsync();
     }
 

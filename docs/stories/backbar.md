@@ -5,7 +5,7 @@
 > Marga given room. **Read with the handoff, `docs/design/2026-09-backbar-handoff.pdf`** (19 pages;
 > page numbers below are the document's own), and with **JJ-036 → JJ-039**, which record what the
 > review accepted, changed and refused. Stories use Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — planned 2026-09-13; BACKBAR-1 ✅, BACKBAR-2 ✅ and BACKBAR-3 ✅ built the same day. One branch,
+> **Status: 🚧 IN PROGRESS** — planned 2026-09-13; BACKBAR-1 ✅ through BACKBAR-4 ✅ built the same day. One branch,
 > `feat/backbar`, one commit per slice or fix, pushed on the word (PLAN, the redesign rule).
 
 **Epic key:** `BACKBAR`
@@ -356,11 +356,42 @@ green; QA-SHELF and QA-CHROME-10/11 re-run; both themes at three widths match pa
 
 ### BACKBAR-4 — Cocktails and the recipe
 
-**Status: 📋 Planned.** Pages 07–10. **JJ-036 (F2, F3).**
+**Status: ✅ Implemented (2026-09-13).** Pages 07–10. **JJ-036 (F2, F3).** One commit on
+`feat/backbar`.
 
 **As a** member of a household
 **I want** the three ways of looking at the catalog to be one control, and a recipe to be read by its measures
 **So that** the filter I am on is obvious and the quantity is the thing my eye lands on
+
+**What was decided while building it.**
+- **The rows keep their `list-group` classes.** The browse journey reads rows by `.list-group-item`
+  and the recipe's lines by `li`, and the primitives already draw a list-group as hairlines — so the
+  classes stay and the CSS does the restyle, which is the handoff's own rule ("build them as CSS on
+  Bootstrap's classes so no markup churns"). Nothing in `CocktailBrowseJourneyTests` changes.
+- **`MargaSays.Size` became nullable.** Page 02 draws the card tone at 96 on Home and the shelf but
+  at 72 on the catalog, the recipe and the wizard; a set `Size` now overrides the tone's default, an
+  unset one takes it. The three existing tone tests hold both readings.
+- **The "oz · as written" label above the ingredient list is not drawn.** The recipe response does
+  not say which unit system rendered it, and adding that is an API change — out of scope by page 18.
+  `PREFS-2` owns the preference; Settings is one tap away.
+- **An optional line that is missing says nothing.** Page 09's "two marks only" plus JJ-009 (an
+  optional line never blocks): the missing mark is for required lines only, so a garnish you do not
+  have is a dash and the word "optional", not a red "not on your shelf".
+- **A `.eyebrow` class and a `--mark-missing` token** — the small uppercase labels ("METHOD",
+  "INGREDIENTS") and the one red in the app, `#B02A37` light / `#E88A8A` dark, only ever on a line.
+- **The empty-state parts moved to `app.css`** (`.catalog-empty`, `.empty-scene`,
+  `.catalog-empty-line`, `.empty-starter`) because the recipe's not-found now uses the same layout
+  and scoped CSS cannot be shared across two pages.
+- **The chip labels are the switch labels at every width** (F7); "Everything" is the one new string,
+  EN and ES. Only the selected chip carries a count — the response's own `total`, formatted, never a
+  second request — and a test holds that exactly one GET is issued.
+- **The journey helper waits on the list request**, `GET /api/cocktails?…`, not on the unlocks
+  request that follows it; the unlocks panel is then awaited by its own `Expect`, which is what the
+  old `RunAndWaitForResponseAsync` around the almost switch was doing by hand.
+
+**Seen, not proven.** `MakeableJourneyTests` compiles against the helper; its nine rewritten calls
+run first in CI. The print stylesheet, the sticky chip row and the fixed fork bar have no test —
+QA-CHROME-18/19 are the cases that look.
 
 **Context / notes.**
 
