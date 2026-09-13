@@ -1,0 +1,485 @@
+# Stories — Back bar (BACKBAR)
+
+> One file per epic. The restyle: every screen of the app redrawn to design direction 1A, "Back
+> bar" — dark as the primary theme with a light counterpart, a display serif, hairline surfaces, and
+> Marga given room. **Read with the handoff, `docs/design/2026-09-backbar-handoff.pdf`** (19 pages;
+> page numbers below are the document's own), and with **JJ-036 → JJ-039**, which record what the
+> review accepted, changed and refused. Stories use Gherkin acceptance criteria.
+> **Status: 📋 PLANNED 2026-09-13** — reviewed, decided, sequenced; nothing built.
+
+**Epic key:** `BACKBAR`
+
+**Prerequisites:** none in the code — every screen it touches has shipped. One asset action for the
+maintainer (a 2× landscape crop of Marga's scene, see BACKBAR-5), which does not block anything.
+
+**Depends on:** `MARGA`, `SHELL`, `INV-3`, `ONBOARD-1` — for the screens it restyles. **Depended on
+by:** nothing. It is a restyle: the document's own "do not change" list (page 18) is binding — routes,
+page parameters, API calls, the makeability and unlock logic, Marga's selection rules, optimistic
+ticks, the pre-paint theme apply, unit conversion, localisation keys and every existing `data-testid`.
+
+---
+
+## What it is, precisely
+
+**A restyle, not a feature wave.** The 2026-09-10 proposal (`MARGA`, `SHELL`, `INV-3`, `ONBOARD-1`)
+changed what the screens *do*; every one of its nine screens has shipped. This document changes what
+they *look like*, and it says so on page 1: "Structure, routes, copy and test ids are unchanged from
+develop." Reading it as a feature request makes it look four times larger than it is, exactly as
+reading Marga as an assistant did last time.
+
+Sorted by what it costs, the whole document is four things:
+
+| What | Where it lives | Size |
+|---|---|---|
+| **Tokens and type** — a dark set and a light set in `app.css`, one self-hosted display serif | `app.css`, `wwwroot/fonts/` | small, and everything else stands on it |
+| **Primitives** — pill buttons and inputs, the bottle pill, status badges, the hairline row, the 16px panel, one focus ring | `app.css`, as CSS on Bootstrap's classes | medium; no markup churn by design |
+| **The chrome** — header and tab bar off copper onto the surface, a hairline and a 2px indicator | `AppHeader`, `app.css` | small, and it is "most of what makes the app stop looking like Bootstrap" (page 18) |
+| **Nine screens** — rearranged over the same data, the same ids, the same strings | `Pages/*.razor` + scoped CSS | the bulk, screen by screen |
+
+Nothing in it needs a new endpoint, a new query, a schema change or a new package.
+
+## The review
+
+The document is good. It was drawn from `develop`, it names the files it changes, it lists the ids to
+keep per screen, and its implementation order (page 18) is the right order. The findings below are
+where it meets the codebase and something gives — each with the verdict, so the slice that hits it
+does not re-argue it.
+
+| # | Finding | Verdict |
+|---|---|---|
+| F1 | **"Every existing test green with no id edits" is not achievable as written.** `ShellJourneyTests` asserts the chrome's literal colours — the destinations at `rgba(255,255,255,.85)` and the account buttons at `rgb(248,249,250)` on copper — and the chrome step (page 04) moves the bar off copper. | The three colour assertions are rewritten to the **invariant they guard** — a destination is never fainter than the account cluster, and dark theme never repaints a button copper — rather than to the old literal. The structural assertions (one element per id, aria-current, no sideways scroll, the payoff clears the tab bar) stand untouched. **JJ-037.** |
+| F2 | **The catalog chips collide with a journey.** Page 07 turns the two switches into `btn-check` chips. `.btn-check` hides the input, and Playwright refuses to `check()` a hidden input — the INV-3 lesson, learned once already. `MakeableJourneyTests` calls `CheckAsync`/`UncheckAsync` on `cocktail-makeable` and `cocktail-almost` nine times. | Three **radios** in one group — `cocktail-makeable`, `cocktail-almost`, and a new `cocktail-all` — because "they already behave exclusively in code" is the argument for radio semantics, not for two checkboxes with exclusivity re-implemented. The journey drives the labels through one `E2ETestBase` helper, the way `SetShelfAsync` does. One id added, none edited; one string pair added ("Everything"). **JJ-036.** |
+| F3 | **"Each carries its count"** (page 07) means three totals on every catalog load — two extra requests per visit for numbers the pager line already shows for the active filter. The same page says "same fetch-once behaviour". | The **selected** chip carries the response's `total`; the others carry none. No new fetch. |
+| F4 | **Page 15 puts the Write row's role and required selects "in the row's own popover".** The app loads no Bootstrap JS, a popover is a new interaction, and `new-line-role` / `new-line-required` would sit behind an open step every journey would have to learn. | **Refused.** Role and required stay visible in the row — a sub-line on desktop, a second line on mobile. Everything else on page 15 stands. **JJ-036.** |
+| F5 | **Settings and Household are platform pages** (pages 16–17 restructure them: five cards to two columns, six cards to four groups, segmented theme control, a `···` row menu). JJ-026/JJ-028: the platform wins, and the sibling apps are the reference implementation the last header fix was checked against. | **CSS-only in this epic.** The primitives restyle them for free — `.card` becomes the 16px hairline panel everywhere, outline buttons become pills — and that meets the definition of done ("no Bootstrap card border visible"). Restructuring their markup is deferred until it goes upstream first, like the stylesheet fixes did (`perezosoft-platform` #222). Same for the bell dropdown and `ThemeSwitcher`. **JJ-039.** |
+| F6 | **Two of the document's id lists are invented.** Page 15 names `write-name`, `write-serving`, `write-line-{n}-*`, `write-save`…; the page's ids are `new-name`, `new-serving`, `new-line-*`, `new-save`, `new-error`. Page 17 names eight `household-*` ids; three exist (`household-rename-input`, `household-rename-save`, `household-status`). `shelf-item-{id}` and `onboard-item-{id}` do not exist either — the pills are identified by `id` + `label[for]`. | The ids **in the code** are the contract. The document's lists are a reading aid, not a spec, and every "KEEP" list is re-derived from the razor when its slice starts. |
+| F7 | **"No new strings" has two exceptions.** The mobile chip labels "Make now · 14 / One away · 81" (page 07) and the Write footnote "Marga will tell you if you can pour it" (page 15) exist nowhere in `AppStrings.resx`. | The chips use the **full** labels at every width (`Cocktails_MakeableOnly`, `Cocktails_AlmostOnly`) and the row scrolls if it must; the footnote is **dropped** — it promises nothing the page does not already do. The one new pair is "Everything" (F2), EN + ES. |
+| F8 | **The scene is square and the panel is not.** Login and Welcome give `marga_scene_512.png` a ~520×680 panel; the document flags the upscale itself (page 05). The 2 MB source is deliberately not committed (MARGA-1). | Ship with `object-fit: cover` on the 512 asset now. The 2× landscape crop is a **maintainer asset action** from the source; when it lands it takes the same optimisation pass and the same `< 250 KB` gate the boot asset has. Nothing waits on it. |
+| F9 | **The serif has one weight, and `fw-bold` is on 31 elements across 14 files.** Faux-bold on a one-weight face is what the document warns about (page 18). | Only the elements the serif reaches lose `fw-bold` (the count, drink names, card headlines, her line). A repo gate refuses `.font-display` and `fw-bold` on the same element. Everything in the sans keeps its weight. |
+| F10 | **The chrome must read on both grounds**, and the header currently hard-codes `navbar-dark` for white text on copper; the mark `icon_light.svg` is bone for dark grounds. | `navbar-dark` goes; the bar follows `data-bs-theme`. `icon_dark.svg` becomes a brand asset generated by `docs/brand/build_assets.py` from the same source and swapped by the existing `content: url()` pattern the lockups use; `REBRANDING.md` §3 gains the row. **JJ-037.** |
+| F11 | **Auto stays the default** (page 04). | Confirmed against `theme.js`: `system` is already the default and tracks the OS live. Nothing to change. |
+| F12 | **The shelf's DOM shape changes** (cards to sections) and the document expects "component tests to need new selectors". | Checked: `ShelfPageTests` selects by test id, by `label[for]` and by the `#cat-{slug}` anchors, all of which survive. The risk is smaller than the document says; the anchors and their `scroll-margin-top` are the thing to keep. |
+| F13 | **Hairline, never a shadow on dark; `shadow-sm` on light.** `.shadow-sm` is on nearly every card. | One global rule under `[data-bs-theme="dark"]` removes the shadow; light keeps Bootstrap's. No markup touched. |
+| F14 | **Print** (page 10): "a recipe is the one screen people print." | Accepted as written — white ground, chrome and the fork bar hidden — with a QA case, since no browser journey prints. |
+
+## The decisions, in one place
+
+- **JJ-036** — the app adopts direction 1A. A restyle bound by the document's own "do not change"
+  list, with F2, F3, F4 and F7 as the recorded adjustments. The handoff is committed under
+  `docs/design/` because the slices cite its pages and the Claude Design project is not versioned.
+- **JJ-037** — the chrome leaves copper, in both themes. Amends SHELL-1's settled answer in colour
+  only: the destinations stay raised above the account cluster, the current tab stays weight plus a
+  drawn indicator plus `aria-current`. Copper is reserved for actions, the count and Marga's advice.
+- **JJ-038** — one self-hosted display serif, one weight, display only, never below 20px, never bold.
+  Self-hosted in the RCL so both hosts get it with no third-party request. Amends JJ-029's typography;
+  the wordmark PNGs are unchanged.
+- **JJ-039** — platform-inherited pages get the restyle through the primitives only; their markup is
+  restructured upstream first or not at all.
+
+## The ladder
+
+Seven slices, each one branch off `develop`, one PR, after the previous is merged — the three gates
+in `docs/PLAN.md` apply unchanged. The order is the document's (page 18) with its six steps regrouped
+so that every PR leaves the app looking finished at the level it reached, never half-restyled:
+
+| # | Slice | Handoff pages | What it is |
+|---|---|---|---|
+| 1 | **BACKBAR-1** Foundation | 01, 02 | Tokens (both sets), the serif, the primitives, `MargaSays` `Tone`. Three commits, one PR. Visible everywhere at once; no screen rearranged. |
+| 2 | **BACKBAR-2** Chrome | 04 | Header and tab bar off copper. `icon_dark.svg`. The shell journey's colour assertions rewritten (F1). |
+| 3 | **BACKBAR-3** Home + Shelf | 03–04, 11–12 | The two identity screens. Welcome's step 2 inherits the shelf's sections for free (one control, two screens). |
+| 4 | **BACKBAR-4** Cocktails + Detail | 07–10 | Chips as radios (F2), the filter panel, hairline rows, the amounts column, two marks, print. The one slice that touches a journey's mechanics. |
+| 5 | **BACKBAR-5** Login + Welcome | 05–06, 13–14 | The two full-scene screens; `/join` and `/auth-error` reuse the split. Native parity checked on the Android emulator. |
+| 6 | **BACKBAR-6** Write | 15 | Two columns, the amount in the serif, a fixed Save bar on mobile. No popover (F4). |
+| 7 | **BACKBAR-7** Sweep | 16–18 | Platform pages by CSS only (F5), focus rings, reduced motion, both themes at 390/768/1440, the QA plan's cases and regenerated PDFs, the definition of done ticked line by line. |
+
+**Why the foundation is one PR and not three.** Tokens without primitives change nothing visible;
+primitives without the serif leave the count in Helvetica bold; `Tone` without either draws her at
+96px in the old card. The batching rule (PLAN, 2026-09-11) is for exactly this: three separable
+commits, one CI run, one reviewer pass over a change that only makes sense whole.
+
+**What every slice does before its commit** (the ritual, restated for a restyle): re-derive the
+screen's id list from the razor, not from the document (F6); grep `tests/E2E.Tests` and
+`tests/Ui.Tests` for every id and class it touches; run both themes at 390, 768 and 1440 in the
+browser; Release build with zero warnings; `Core.Tests`, `Api.Tests`, `Ui.Tests`; add the QA cases
+(7b) with the PDFs regenerated, or `qa-artifacts` goes red.
+
+---
+
+### BACKBAR-1 — Foundation: tokens, type, primitives, Marga's tone
+
+**Status: 📋 Planned.** Pages 01–02, and steps 1, 3 and 4 of page 18.
+
+**As a** member of a household
+**I want** every control in the app to share one shape and one palette in both themes
+**So that** the screens that follow are rearrangements of things I already recognise
+
+**Context / notes.** Everything on page 02, as CSS on Bootstrap's classes so no markup churns.
+
+- **Tokens.** `:root` gets the light set and `[data-bs-theme="dark"]` the dark set exactly as page 01
+  lists them, plus `--surface` (panels and inputs; `--bs-body-bg` re-points to it — the page ground is
+  already painted from `--app-bg` explicitly), `--ink` / `--muted` / `--faint`, and `--font-display`.
+  The `--bs-primary` family stays; the derived family (`text-emphasis`, `bg-subtle`, `border-subtle`)
+  is already restated per theme and gets the page-01 values.
+- **The serif.** Instrument Serif, regular only, as `@font-face` from `wwwroot/fonts/` in the RCL, with
+  its OFL licence file beside it. `font-display: swap`; the fallback stack is Georgia / serif. Both
+  hosts get it through `app.css`, so R68 parity is automatic and the MAUI shells have it offline.
+  Applied through one class, `.font-display`, never by element — page 18: display only, never a
+  label, never below 20px.
+- **Primitives.** `.btn` → pill (999px); `.form-control` / `.form-select` → 12px field on the surface;
+  `.card` → 16px panel with a hairline, `shadow-sm` on light only (F13); the status badges in the
+  page-10 colours; `.list-group-flush` rows → hairline rows; one focus ring
+  (`0 0 0 2px var(--app-bg), 0 0 0 4px rgba(180,86,42,.55)`) replacing the two rules in `app.css`
+  today. The shelf pill grows to 9px/16px with a 14px label (page 11) — it lives in `app.css` already
+  because the wizard shares it.
+- **`MargaSays`.** Gains `Tone="Card|Inline"`: card is 96px with the brass label above the line
+  (`Aside` moves up and becomes the label — same string, new position) and the line in the serif at
+  23–29px; inline is 32px, 14px sans, no label. `Size` and `Compact` stay for call sites that pass a
+  number, so every call site keeps compiling and improves in its own slice. Ring 1px brass on dark,
+  none on light.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: The serif ships with the app and needs nothing from the network
+  Given the RCL's wwwroot/fonts directory
+  Then it contains the display face and its licence file
+  And app.css declares the @font-face from that path and defines --font-display
+  And no stylesheet in either host references an external font origin
+
+Scenario: The display face is never synthesised bold
+  Given every razor file under Shared.Ui
+  Then no element carries both font-display and fw-bold
+  # held by a repo gate in Api.Tests beside the index.html parity gates
+
+Scenario: Marga has two tones and the old sizes still work
+  When MargaSays renders with Tone="Card" and an Aside
+  Then her image is 96 pixels and the aside renders as a label BEFORE the line
+  When MargaSays renders with Tone="Inline"
+  Then her image is 32 pixels and no label renders
+  When MargaSays renders with Size="40" and no Tone
+  Then it renders exactly as before this slice
+
+Scenario: Nothing is rearranged yet
+  Given every page renders in Ui.Tests as it did before this slice
+  Then every existing test passes with no selector changed
+```
+
+**Out of scope:** any screen's layout; the chrome. **Definition of done:** the scenarios above;
+`app.css` carries both token sets; the fonts folder is under 60 KB; both themes look like page 02 at
+the three widths; every existing test green with no id or selector edits.
+
+---
+
+### BACKBAR-2 — Chrome: the bar leaves copper
+
+**Status: 📋 Planned.** Page 04 (chrome), step 2 of page 18. **JJ-037.**
+
+**As a** member of a household
+**I want** the header and the tab bar to sit on the page rather than on a copper band
+**So that** copper means "act here" everywhere it appears
+
+**Context / notes.** In both themes the bar takes the surface colour and a bottom hairline; the tab
+bar the same with a top hairline. The current tab keeps weight, gains a 2px copper indicator, keeps
+`aria-current`. The destinations stay raised above the account cluster — by ink against muted now,
+where it was white against white-alpha — because that hierarchy is SHELL-1's settled answer and only
+the colour changes. `navbar-dark` goes (F10); the mark swaps to `icon_dark.svg` on light through the
+lockups' `content: url()` pattern, and `build_assets.py` generates it from the same source.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: One element, two positions, still
+  Given the header at 1280 wide and again at 390 wide
+  Then nav-home, nav-shelf and nav-cocktails each render exactly once
+  And they sit outside the collapsible menu
+  # AppHeaderNavTests, unchanged
+
+Scenario: The hierarchy survives the colour change (replaces the literal-colour assertions)
+  Given I am signed in at 1280 wide, in dark theme and again in light
+  Then the current destination's font-weight is 700 and the others' is 500
+  And no destination is rendered with less contrast against the bar than the account buttons
+  And no anchor-shaped button in the bar is painted the link colour
+  And the page does not scroll sideways
+
+Scenario: The mark reads on both grounds
+  Given the header in light theme
+  Then the brand mark is the dark-ground variant
+  Given the header in dark theme
+  Then the brand mark is the light-ground variant
+```
+
+**Out of scope:** the account cluster's contents; the bell's dropdown (BACKBAR-7, CSS only).
+**Definition of done:** the scenarios; `ShellJourneyTests` green with its three colour lines rewritten
+and nothing else; QA-CHROME-04/05 re-run; `REBRANDING.md` §3 lists `icon_dark.svg`.
+
+---
+
+### BACKBAR-3 — Home and Shelf, the identity screens
+
+**Status: 📋 Planned.** Pages 03–04 and 11–12.
+
+**As a** member of a household
+**I want** the count to be the first thing on the front page and the shelf to be pills on a page rather than pills in boxes
+**So that** the two screens I open most look like the product and not like its admin console
+
+**Context / notes.**
+
+- **Home** (`/`, FEATURES §9 for the count, §10 for the bottle). Desktop two columns 1.15fr / 1fr,
+  gap 52, max-width 1100; mobile one column. The numeral at 128px in the serif and copper; the three
+  drinks as hairline rules, not a list-group; the unlock panel the only boxed thing. Empty shelf: her
+  scene at 260px beside `Marga_HomeEmpty`, "Set up my shelf" primary, "Tick what you have" a text
+  link — no zero. Loading: a 2px indeterminate brass bar under the header and the numeral holding its
+  space at 40%, no spinner. Failure unchanged: she and the panel are absent, count and list stand.
+- **Shelf** (`/shelf`, FEATURES §8). Cards become sections — a serif heading on a hairline with `n of
+  m` right-aligned — keeping `#cat-{slug}` and its `scroll-margin-top`. The bottle Marga names is
+  outlined in `#5C3620` on dark and copper-on-`#F9EDE7` on light: present, never mistaken for owned.
+  The add form opens in place under the section's pills on the surface colour. The payoff stays
+  sticky above `--tab-bar-clearance`, its count in the serif and copper, the phrase in the sans.
+  Optimistic ticks unchanged; the fill animates 120ms.
+- **Welcome step 2** renders the same sections with no change of its own (ONBOARD-1: one control).
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: Home keeps its ids and loses its boxes
+  Given a household with drinks makeable and a bottle one away
+  When the home page renders
+  Then home-marga, home-count, home-show-makeable, home-update-shelf, home-makeable-list, home-unlocks and home-show-almost each render once
+  And home-unlocks is the only element on the page with the panel class
+  And the count carries the display face
+
+Scenario: Home never shows a zero
+  Given a household with nothing ticked
+  When the home page renders
+  Then home-count does not render
+  And home-setup-shelf renders as the primary action beside her scene
+
+Scenario: The shelf's anchors survive the sections
+  Given the shelf for a household with gin and rum categories
+  Then #cat-gin and #cat-rum exist, each carrying shelf-cat-{slug}
+  And each section's count is over the whole category, never over what search left visible
+  # ShelfPageTests, unchanged
+
+Scenario: The named bottle is findable and not owned
+  Given Marga names Sweet vermouth as one bottle away
+  Then the Sweet vermouth pill carries the named-bottle class and its input is not checked
+
+Scenario: The payoff still clears the tab bar
+  # ShellJourneyTests' geometry assertion, unchanged
+```
+
+**Out of scope:** any change to what the two screens fetch. **Definition of done:** the scenarios;
+`HomePageTests`, `ShelfPageTests`, `MargaPresenceTests`, `WelcomeWizardTests` and the shelf journeys
+green; QA-SHELF and QA-CHROME-10/11 re-run; both themes at three widths match pages 03–04, 11–12.
+
+---
+
+### BACKBAR-4 — Cocktails and the recipe
+
+**Status: 📋 Planned.** Pages 07–10. **JJ-036 (F2, F3).**
+
+**As a** member of a household
+**I want** the three ways of looking at the catalog to be one control, and a recipe to be read by its measures
+**So that** the filter I am on is obvious and the quantity is the thing my eye lands on
+
+**Context / notes.**
+
+- **Chips.** Three radios in one group — `cocktail-makeable`, `cocktail-almost`, `cocktail-all` — as
+  `btn-check` inputs with pill labels, so keyboard and screen reader get a radio group. Only the
+  selected chip carries a count, the response's `total` (F3). `?makeable=true` / `?almost=true`
+  preselect as today. The search field becomes a pill on the surface, 280px at desktop. The filter
+  panel opens under the chips as a 16px panel, four fields in a 4-up grid, "Clear filters" a text
+  link — same fetch-once behaviour. Rows are hairline, 18px vertical; Marga inline at 32px with her
+  line in copper; the source credit right-aligned at 12px and `white-space: nowrap` (load-bearing:
+  four names appear in both books). Pagination as text controls on a hairline. The unlocks panel in
+  the copper-subtle style under "One ingredient away"; the empty state keeps her scene at 260px.
+- **Detail.** The measure in the serif at 21px, copper-lifted, in a 104px column. Two marks only:
+  substitute ("you'd pour X", brass) and missing (`#E88A8A` dark / `#B02A37` light); everything
+  pourable silent. Status badge colours from page 10; further-away neutral, never red. "Based on" in
+  the facet line. Optional lines: a dash in the amount column, muted name, "optional" as plain text —
+  the Bootstrap badge goes. Title wraps to two lines at 52px before shrinking, `text-wrap: balance`,
+  never truncated. Fork: a primary pill at the foot of the ingredient column on desktop, a fixed bar
+  above the tab bar on mobile, `cocktail-fork-error` inline beneath. `@media print`: white ground,
+  chrome and fork hidden.
+- **The journey.** `MakeableJourneyTests` drives the chips through a `SetCatalogFilterAsync` helper in
+  `E2ETestBase` that clicks the label and waits on the GET, the way `SetShelfAsync` does; every
+  `UncheckAsync` becomes a click on `cocktail-all`. `ToBeCheckedAsync` on the inputs stays valid.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: The chips are one control
+  Given the catalog page
+  Then cocktail-makeable, cocktail-almost and cocktail-all are radio inputs sharing one name
+  And exactly one of them is checked at any time
+  When I open /cocktails?almost=true
+  Then cocktail-almost is checked and the page shows the one-away list
+
+Scenario: Only the selected chip counts
+  Given the makeable filter is selected and the response says 14
+  Then the makeable chip's label contains 14
+  And no other chip's label contains a number
+  And the page issued one GET for the list, as before
+
+Scenario: A recipe says something in exactly two cases
+  Given a recipe with one substituted line, one missing line and three pourable lines
+  Then cocktail-line-substitute renders once and cocktail-line-missing renders once
+  And no pourable line carries either mark
+
+Scenario: An optional line is text, not a badge
+  Given a recipe with an optional garnish
+  Then that line shows a dash in the amount column and the word optional as plain text
+  And no badge element renders inside cocktail-lines
+
+Scenario: The recipe prints clean
+  Given a recipe page in print media
+  Then the header, the tab bar and cocktail-fork are hidden
+  # QA case; no journey prints
+```
+
+**Out of scope:** the filters' options, the queries, the pager's page size. **Definition of done:**
+the scenarios; `MakeableJourneyTests` and `CocktailBrowseJourneyTests` green through the new helper;
+`CocktailsEmptyStateTests` green; "Everything" in EN and ES; QA-MAKE, QA-CKTL and a new print case
+re-run; both themes at three widths match pages 07–10.
+
+---
+
+### BACKBAR-5 — Login and Welcome, her two full appearances
+
+**Status: 📋 Planned.** Pages 05–06 and 13–14.
+
+**As a** person who has not yet told the app anything
+**I want** the first screen to be her, and her sentence to be its headline
+**So that** the product's promise is the first thing I read, not a form
+
+**Context / notes.** Both screens split: her scene on one side (`marga_scene_512.png`,
+`object-fit: cover`, a bottom gradient to `#0F1216` so her line sits on solid ground), the working
+side on the other. **Her panel keeps its dark ground in both themes** — the illustration is a night
+bar and carries its own light; only the form side flips. On light, Welcome's panel base is `#2A1A12`
+so the gradient lands warm. Over her scene the lockup is always `lockup_dark`; the form side keeps
+today's `content: url()` swap. Mobile: the scene 300px tall on top (240 below 380px), the panel
+sliding 26px up under the gradient, the whole login form above the fold at 390×812. The code step
+swaps the buttons for the 6-digit field at 24px, letter-spacing .4rem, and she does not move.
+Welcome adds a 3px brass progress rule at 50% / 100% under "Step 1 of 2"; step 2 is the shelf's
+sections; it keeps the app header (page 13: "trapping people in it was never the intent"). `/join`
+and `/auth-error` reuse the split with her line replaced by their copy. The scene is already in the
+browser cache from the boot screen, so no preload is added. Native: the MAUI shells render the same
+two panels; the magic-link button is absent and the code button primary, as today. The 2× landscape
+crop is the maintainer's asset action (F8) and lands whenever it lands.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: The form keeps every id
+  Given the login page
+  Then login-email, login-send-magic-link, login-send-otp, login-otp-code, login-verify-otp, login-mfa-code and login-error render where their step shows them
+  And provider buttons render only for configured providers
+
+Scenario: Her panel does not follow the theme
+  Given the login page in light theme
+  Then her panel's background is the night ground and the form side is #fff
+
+Scenario: The wizard keeps every id and the header
+  Given /welcome
+  Then onboard-step, onboard-staples, onboard-search, onboard-count, onboard-back, onboard-next, onboard-finish and onboard-skip render on their steps
+  And the app header renders above it
+
+Scenario: Nothing is written until Finish
+  # OnboardJourneyTests, unchanged
+```
+
+**Out of scope:** any sign-in mechanics. **Definition of done:** the scenarios; `AuthFlowTests`,
+`MagicLinkJourneyTests`, `MfaJourneyTests`, `OnboardJourneyTests`, `WelcomeWizardTests` green; the
+Android emulator smoke (`docs/MOBILE_TESTING.md`) shows the split; QA-SMK-01, QA-ONB and QA-AND-01
+re-run; both themes at three widths match pages 05–06, 13–14.
+
+---
+
+### BACKBAR-6 — Write a cocktail
+
+**Status: 📋 Planned.** Page 15. **JJ-036 (F4, F7).**
+
+**As a** member writing my own recipe
+**I want** the drink on one side and its lines on the other, with the amounts reading like a recipe
+**So that** the form previews what it is writing
+
+**Context / notes.** Two columns: the drink (name, served as, glass, method, instructions) left, the
+ingredients right. Each line is an amount field whose value renders in the serif, the ingredient with
+role and required as a visible sub-line (F4 — no popover), and a remove control. Errors attach to the
+field; `new-error` keeps its place above Save for server failures. Mobile: one column, Save as a
+fixed bar above the tab bar, the row collapsing to amount + name with role and required on a second
+line. Fork: the same form pre-filled with "Based on X" under the title. The footnote on page 15 is
+dropped (F7). Ids are the page's own: `new-name`, `new-serving`, `new-glass`, `new-method`,
+`new-instructions`, `new-lines`, `new-line`, `new-line-*`, `new-line-add`, `new-line-remove`,
+`new-save`, `new-error`.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: Every field stays reachable without opening anything
+  Given the write page with one line
+  Then new-line-amount, new-line-unit, new-line-ingredient, new-line-role and new-line-required are all visible at 1440 wide and at 390 wide
+
+Scenario: The amount previews in the display face
+  Given a line whose amount is 2
+  Then the amount field carries the display face
+
+Scenario: Validation stays where it was
+  # the authoring journey, unchanged: a lineless recipe and a unit with no amount are refused inline
+```
+
+**Out of scope:** editing (AUTHORING-2 is still outstanding and unrelated). **Definition of done:**
+the scenarios; the authoring and fork journeys green; QA-AUTH(oring) cases re-run; both themes at
+three widths match page 15.
+
+---
+
+### BACKBAR-7 — The sweep
+
+**Status: 📋 Planned.** Pages 16–18. **JJ-039.**
+
+**As a** member on any screen the platform gave the app
+**I want** it to look like the rest of the app without behaving any differently
+**So that** Settings and Household stop being the two screens that still look like a template
+
+**Context / notes.** Settings, Household, Billing, Admin, Join, AuthError, `MfaCard`,
+`NotificationPrefsCard`, the bell's dropdown and `ThemeSwitcher` take the primitives and nothing
+else: no markup restructuring (F5). Then the cross-cutting pass page 18 asks for — focus rings on
+every interactive element, `prefers-reduced-motion` dropping the 120ms fill and the 200ms panel
+expand, a pass in both themes at 390, 768 and 1440 on all nine screens, and the definition of done
+ticked line by line. The QA plan gains a case per user-visible change this epic made that no earlier
+slice already covered, the traceability matrix and sign-off rows, and the PDFs regenerated.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: No card border survives except the panel
+  Given every page in Ui.Tests renders
+  Then every .card resolves to the 16px hairline panel
+  And the copper-subtle panel is the only element with a tinted border
+
+Scenario: Motion is optional
+  Given prefers-reduced-motion: reduce
+  Then the pill fill and the panel expand have no transition
+
+Scenario: The platform pages keep every id and every parameter
+  # the roster, membership, MFA, notification and billing journeys, unchanged
+```
+
+**Out of scope:** the two-column Settings and four-group Household of pages 16–17 — upstream first.
+**Definition of done:** the definition of done on page 18, every line; the whole suite green;
+`docs/QA_TEST_PLAN.md` updated with the artifacts regenerated; the Slice Board updated on "merged".
+
+---
+
+## Risks carried, and the one that is new
+
+- **From the document (page 18):** the one-weight serif and `fw-bold` (F9, gated); the shelf's DOM
+  shape (F12, smaller than stated).
+- **From this codebase:** scoped CSS cannot reach an element a child component renders (PLAN,
+  "Writing component CSS that a child component renders") — every rule whose last element is a
+  `<NavLink>` anchor, a `MargaSays` image or a Bootstrap-generated element belongs in `app.css`.
+  BACKBAR-1 puts the primitives there for this reason as much as for sharing.
+- **New:** a restyle is the one kind of change the suite is weakest at. Three widths × two themes ×
+  nine screens is 54 frames, and no test looks at any of them. The per-slice browser pass is not
+  optional, and the QA cases exist so that a person runs it again after the wave.

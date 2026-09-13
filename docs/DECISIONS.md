@@ -1881,3 +1881,112 @@ is not green-listed, so it admits nobody new — the leak is cosmetic, not a hol
 **Ports downstream** (`vuelto`, `jigger-jot`) once the platform suite is green, like LOCALCI-3.
 
 > *Numbering note: 025 and 026 are reserved upstream for platform-only work (local CI, the flavors program) that this app does not carry, so the sequence jumps.*
+
+**JJ-036 — The UI adopts design direction 1A, "Back bar": a restyle bound by the handoff's own
+"do not change" list, with four recorded adjustments. (2026-09-13)**
+A second design document arrived (`docs/design/2026-09-backbar-handoff.pdf`, 19 pages): every screen
+restyled — dark as the primary theme with a light counterpart, one display serif, hairline surfaces,
+Marga at the size she was drawn for — with the structure, routes, copy and test ids "unchanged from
+develop". The first proposal (2026-09-10) changed what the screens do and has shipped in full; this
+one changes what they look like. It is adopted as epic `BACKBAR` (`docs/stories/backbar.md`), in the
+document's own order.
+
+*What is binding.* Page 18's list: routes, page parameters, API calls, the makeability and unlock
+logic, Marga's selection rules, optimistic ticks, the pre-paint theme apply, unit conversion,
+localisation keys and every existing `data-testid`. A change that would show up in a behaviour test
+is out of scope — with the one test-mechanics exception below, stated rather than discovered.
+
+*The adjustments, from the review.*
+1. **The catalog chips are three radios**, not two `btn-check` checkboxes with exclusivity
+   re-implemented: `cocktail-makeable`, `cocktail-almost` and a new `cocktail-all`. "They already
+   behave exclusively in code" argues for radio semantics. The hidden input cannot be `check()`ed by
+   Playwright (the INV-3 lesson), so the one journey that drives them clicks labels through a shared
+   `E2ETestBase` helper. One id added, none edited; one new string pair, "Everything", EN and ES.
+2. **Only the selected chip carries a count** — the response's own `total`. Three simultaneous counts
+   would cost two extra requests on every catalog load for numbers the pager already shows, and the
+   document's own rule is "same fetch-once behaviour".
+3. **No popover on the Write row.** The app loads no Bootstrap JS, a popover is a new interaction, and
+   it would put `new-line-role` and `new-line-required` behind an open step. Both stay visible.
+4. **Two strings the document assumes do not exist** ("Make now / One away" as mobile chip labels,
+   and "Marga will tell you if you can pour it"). The chips use the full labels at every width; the
+   footnote is dropped.
+
+*Why the PDF is committed.* The slices cite its pages, and the Claude Design project it came from is
+not versioned. `.gitattributes` already treats PDFs as binary; the `changes` job counts it as docs.
+
+*Consequences.* Seven slices, each one branch off `develop` and one PR (the batching rule lets the
+foundation ride as three commits in one). The ids in the code are the contract — two of the
+document's "keep" lists name ids that do not exist (`write-*`, most of `household-*`), and every list
+is re-derived from the razor when its slice starts. The definition of done on page 18 is the epic's.
+
+*Decided 2026-09-13.*
+
+**JJ-037 — The chrome leaves copper, in both themes; SHELL-1's hierarchy stands in a new colour.
+(2026-09-13)**
+The header and the bottom tab bar move onto the surface colour with a 1px hairline, and the current
+tab gets a 2px copper indicator. Copper is reserved for actions (buttons, the makeable count, Marga's
+advice) — "the copper header is what makes today's app read as a Bootstrap admin" (handoff page 04),
+and the sibling apps' green bars read the same way.
+
+*What this amends and what it keeps.* SHELL-1 settled that the app's three destinations are raised
+above the platform's account cluster at every width, that the current tab is weight plus a drawn
+indicator and never colour alone, and that `aria-current` carries the fact to a screen reader. All of
+that stands; only the ground and the ink change (ink against muted, where it was white against
+white-alpha). The account cluster stays untouched in content, as SHELL-1 decided.
+
+*The test it changes.* `ShellJourneyTests` asserts three literal colours — written against a dark-theme
+bug where `[data-bs-theme="dark"] a` repainted every anchor-shaped button copper. Those three lines
+are rewritten to the invariant they guard: a destination is never fainter than the account buttons,
+and no anchor-shaped button in the bar takes the link colour. The structural assertions (one element
+per id, `aria-current`, no sideways scroll, the payoff footer clearing the tab bar) do not change.
+
+*Consequences.* `navbar-dark` goes and the bar follows `data-bs-theme`. The mark needs a dark-ground
+variant: `icon_dark.svg` is generated from the same source by `docs/brand/build_assets.py`, swapped by
+the `content: url()` pattern the lockups already use, and listed in `REBRANDING.md` §3 — a rebrand
+that skips it ships a bone mark on a white bar.
+
+*Decided 2026-09-13.*
+
+**JJ-038 — One self-hosted display serif, one weight, display only. (2026-09-13; amends JJ-029)**
+Instrument Serif (SIL Open Font License), regular weight only, ships in the RCL's `wwwroot/fonts/`
+with its licence file beside it, declared once in `app.css` and applied through one class,
+`.font-display`. It is for the count, drink names, card headlines and Marga's line — never a label,
+never a control, never below 20px, never bold. Body, controls and meta stay on the system sans, as
+today.
+
+*Why self-hosted.* Both hosts load `app.css` from the RCL, so the face reaches the MAUI shells
+offline and R68 parity is automatic. No request leaves the app for a third party on first paint, which
+a Google Fonts link would add on the one route (login) that is seen before consent to anything.
+`font-display: swap` with Georgia/serif as the fallback, so text is never invisible while it loads.
+
+*The one-weight rule is a gate, not a note.* The face has a single weight and a browser asked for
+bold synthesises one; `fw-bold` sits on 31 elements today. A repo gate in `Api.Tests` refuses
+`font-display` and `fw-bold` on the same element. Only the elements the serif reaches lose `fw-bold`;
+everything in the sans keeps its weight.
+
+*What JJ-029 keeps.* The wordmark (Barlow Semi Condensed, in the rendered PNG lockups) and the
+palette are unchanged; the token values on handoff page 01 are the palette restated per theme, with
+`--surface` added for panels and inputs.
+
+*Decided 2026-09-13.*
+
+**JJ-039 — Platform-inherited pages take the restyle through the primitives only; their markup is
+restructured upstream first or not at all. (2026-09-13)**
+Handoff pages 16–17 restructure Settings (five cards to two columns, segmented theme and unit
+controls) and Household (six cards to four groups, a `···` row menu), and page 17 restyles the
+notification bell's dropdown. All of these are the platform's screens and components, shared with the
+sibling apps — which are the reference implementation the last header fix was checked against
+(PLAN, 2026-09-10).
+
+*Decision.* In this epic they get what the primitives give every page — `.card` as the 16px hairline
+panel, pill buttons and fields, the status colours, the focus ring — and nothing that changes their
+markup, their components' parameters or their ids. That already meets the epic's definition of done
+("no Bootstrap card border visible anywhere except the copper-subtle panel"). The structural rework is
+a platform candidate: if it is wanted, it goes to `perezosoft-platform` first, the way the stylesheet
+fixes did (#222), and comes back down as a port.
+
+*Rationale.* JJ-026 / JJ-028: the platform wins, and a downstream fork of a shared page is a merge
+conflict on every later port. The value of the restyle is on the app's own screens — the document
+says so itself: "the last two are mostly deleted chrome."
+
+*Decided 2026-09-13.*
