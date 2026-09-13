@@ -47,6 +47,10 @@
        names, card headlines and Marga's line, never a label, never below 20px, never bold. Applied
        through .font-display, never by element, so the sans stays the default everywhere else. */
     --font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
+
+    /* The small uppercase label above a card headline or Marga's line. Brass is a label colour on
+       dark only (page 01); on light it is copper, because brass on cream fails contrast. */
+    --label-accent: var(--bs-primary);
 }
 
 /* Self-hosted so both hosts get it from the RCL — offline in the MAUI shells, and no request leaves the
@@ -111,6 +115,7 @@
        cleared rather than the rule fought. */
     --bs-box-shadow-sm: none;
     --bs-box-shadow: none;
+    --label-accent: var(--brand-accent);
 }
 
 /* The dark-theme link colour, for anchors that are actually LINKS.
@@ -220,9 +225,85 @@ a, .btn-link {
     --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-    /* --bs-body-bg is #fff in light — identical to the old hardcoded white halo. */
-    box-shadow: 0 0 0 0.1rem var(--bs-body-bg), 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.35);
+/* ── BACKBAR-1: the primitives, handoff page 02 ─────────────────────────────────────────────────
+   Built as CSS on Bootstrap's own classes so no markup churns: every button, field, card, badge and
+   list row in the app takes the new shape from here, and the screens that follow rearrange rather
+   than restyle. Where Bootstrap exposes a component token, the token is set; where it does not, the
+   rule sits after Bootstrap's at equal specificity and wins by order. */
+
+/* Pills. Buttons at every size; the padding widens a little so a pill does not read as a capsule
+   squeezed round its label. */
+.btn {
+    --bs-btn-border-radius: 999px;
+    --bs-btn-padding-x: 1.1rem;
+}
+
+.btn-sm {
+    --bs-btn-border-radius: 999px;
+    --bs-btn-padding-x: .85rem;
+}
+
+.btn-lg {
+    --bs-btn-border-radius: 999px;
+    --bs-btn-padding-x: 1.5rem;
+}
+
+/* Fields: 12px, on the surface, hairline border, copper when focused. */
+.form-control,
+.form-select {
+    border-radius: 12px;
+    background-color: var(--surface);
+    border-color: var(--app-border);
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: var(--surface);
+    border-color: var(--bs-primary);
+}
+
+/* The panel: 16px, hairline, on the surface. Bootstrap's shadow-sm stays on light (the token is
+   cleared under dark, above), so a card is lifted on the light ground and drawn on the dark one. */
+.card {
+    --bs-card-border-radius: 16px;
+    --bs-card-inner-border-radius: 15px;
+    --bs-card-border-color: var(--app-border);
+    --bs-card-bg: var(--surface);
+}
+
+.alert {
+    --bs-alert-border-radius: 12px;
+}
+
+/* The hairline row. A list-group inside a panel draws hairlines, not a second set of edges. */
+.list-group {
+    --bs-list-group-border-color: var(--app-border);
+    --bs-list-group-bg: transparent;
+    --bs-list-group-border-radius: 0;
+}
+
+/* Status badges are pills; the colours come from the status tokens above (page 10). Weight 500
+   rather than Bootstrap's 700 — it is a label, not a headline. */
+.badge {
+    border-radius: 999px;
+    font-weight: 500;
+    padding: .3em .7em;
+}
+
+/* One focus ring for everything interactive: a gap in the ground colour, then copper at 55%. It
+   replaces two rules that each drew their own halo, and sits on :focus-visible so a mouse click
+   does not light it while a keyboard still does. The hidden .btn-check input hands its focus to the
+   label it drives. */
+.btn:focus-visible,
+.btn:active:focus-visible,
+.btn-check:focus-visible + .btn,
+.btn-link.nav-link:focus-visible,
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus,
+a:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 2px var(--app-bg), 0 0 0 4px rgba(180, 86, 42, .55);
 }
 
 .not-found {
@@ -374,6 +455,11 @@ a, .btn-link {
         animation: none;
     }
 
+    /* The pill's 120ms fill is the other motion the restyle adds; it goes with the boot's. */
+    .shelf-pill {
+        transition: none;
+    }
+
     .boot-indeterminate .loading-progress circle:last-child {
         animation: none;
         stroke-dasharray: 289%, 500%;
@@ -422,6 +508,13 @@ code {
 .shelf-pill {
     border-radius: 2rem;
     font-weight: 500;
+
+    /* BACKBAR-1 (page 11): up from btn-sm, because this is a touch target people hit 190 times.
+       Set through Bootstrap's button tokens so .btn-sm's own values yield by order, not by !important. */
+    --bs-btn-padding-y: 9px;
+    --bs-btn-padding-x: 16px;
+    --bs-btn-font-size: 14px;
+    transition: color .12s ease-out, background-color .12s ease-out, border-color .12s ease-out;
 
     /* Selected reads as OWNED, not as a filter. The catalog screen one tap away uses outlined pills
        to filter, and the same shape meaning two things across two screens is worse than either.
