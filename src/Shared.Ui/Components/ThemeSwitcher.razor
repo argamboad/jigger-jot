@@ -7,19 +7,45 @@
 @inject AuthService Auth
 @inject IStringLocalizer<AppStrings> Localizer
 
-<select class="form-select form-select-sm theme-switcher" value="@_current" data-testid="theme-switcher"
-        @onchange="OnChange" aria-label="@Localizer["Theme_Label"]">
-    <option value="system">@Localizer["Theme_System"]</option>
-    <option value="light">@Localizer["Theme_Light"]</option>
-    <option value="dark">@Localizer["Theme_Dark"]</option>
-</select>
+@if (Segmented)
+{
+    @* BACKBAR-7 (page 16): three fixed options as segmented pills — the choice visible without
+       opening anything. Real radios styled through their labels, the shelf pill's arrangement, and
+       the SAME OnChange as the select, so both controls write the same preference. Its own ids:
+       the header's select keeps `theme-switcher`, and a page must never carry that id twice. *@
+    <div class="segmented" role="radiogroup" aria-label="@Localizer["Theme_Label"]" data-testid="theme-segmented">
+        @foreach (var (value, label) in Choices)
+        {
+            <input class="btn-check" type="radio" name="theme-choice" id="theme-choice-@value" autocomplete="off"
+                   value="@value" checked="@(_current == value)" @onchange="OnChange" />
+            <label class="btn btn-outline-secondary btn-sm" for="theme-choice-@value">@Localizer[label]</label>
+        }
+    </div>
+}
+else
+{
+    <select class="form-select form-select-sm theme-switcher" value="@_current" data-testid="theme-switcher"
+            @onchange="OnChange" aria-label="@Localizer["Theme_Label"]">
+        <option value="system">@Localizer["Theme_System"]</option>
+        <option value="light">@Localizer["Theme_Light"]</option>
+        <option value="dark">@Localizer["Theme_Dark"]</option>
+    </select>
+}
 @if (_syncFailed)
 {
     <span class="text-warning small ms-1" data-testid="theme-sync-failed"
           title="@Localizer["Pref_SyncFailed"]" role="status">&#9888;</span>
 }
-
 @code {
+    /// <summary>Segmented pills (Settings) rather than the compact select (the header). Same preference.</summary>
+    [Parameter] public bool Segmented { get; set; }
+
+    private static readonly (string Value, string Label)[] Choices =
+    [
+        ("system", "Theme_System"),
+        ("light", "Theme_Light"),
+        ("dark", "Theme_Dark"),
+    ];
     private string _current = "system";
     private bool _syncFailed;
 

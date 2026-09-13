@@ -1769,6 +1769,27 @@ copper beside its unit, the ingredient with role and required visible on a sub-l
 open — and an × at the end (disabled when it is the only line). At 390 it is one column and "Save
 this recipe" is a bar fixed above the tab bar. A server rejection still shows above Save.
 
+### QA-CHROME-22 — Settings is two columns of rows, and the choices are visible 🟠 (Web) — BACKBAR-7
+**Walkthrough:** open Settings at 1280 and at 390 with a provider linked and 2FA off. Click the
+"Dark" pill, then "Light"; click "oz" then "As written"; toggle a notification switch; press "Delete
+my account" and cancel the dialog. **Expected:** sign-in providers and two-factor on the left,
+preferences and notifications on the right, each a labelled group of hairline rows with no box; the
+title in the serif. Theme and Measurements are three pills each with the current one filled copper,
+and each click applies at once (the theme flips live, the header's own switcher follows) and sends
+one save. Language is still a dropdown. Unlink and Link are text links, Unlink red. "Delete my
+account" is a single red text link at the foot, no red box, and it still asks first. Enable 2FA:
+the flow still expands in place — QR on white, manual key, code field, then the codes in a panel.
+
+### QA-CHROME-23 — Household is four groups, and the owner is the only copper badge 🟠 (Web) — BACKBAR-7
+**Walkthrough:** as owner with one member and one pending invitation, open Household at 1280 and at
+390; then as a member. **Expected:** the name and the members on the left; invitations, transfer,
+data and leave on the right; no boxes. Owner's badge is copper-tinted; Admin and Member are neutral.
+Make admin / Remove, Regenerate / Revoke and Download household data are text links, the destructive
+ones red, each still asking first. At 390 a member row shows "···"; tapping it reveals that row's
+links beneath the row and tapping again hides them. As a member: the household name in the serif,
+the roster and nothing else — no rename, no invite, no transfer — and "Leave" as a red text link.
+The notification bell's list is hairline rows with a brass dot on unread.
+
 ### QA-CHROME-09 — The app speaks Spanish throughout 🟠 (Web)
 **Walkthrough:** switch the language to Español (§10) and walk the app's own screens — shelf, catalog,
 a recipe, makeable, one-away, the wizard, both empty states. **Expected:** no English leaks, and
@@ -2956,6 +2977,7 @@ is the product. Cited decisions are `JJ-nnn` in `docs/DECISIONS.md`.
 | The boot state (SHELL-2) | CHROME-07/08, and the native legs of §12/§13 | none — it renders before the app exists. It lands in **two** `index.html` files (`NATIVE_PARITY.md`), held by a CI gate; the WebView hosts sweep instead of filling, having no download to measure. A second gate caps the illustration's size, since this is the one place it is fetched before the app is usable. |
 | Marga in the emails (MARGA-4) | **MAIL-05/06/07** + `Api.Tests` (`MargaInEmailTests`) | none — `BrandedEmail` renders her the way it renders the logo: a CID inline image, the one approach Gmail and Outlook both show (they block data-URIs). She is on the three emails a person ASKED for and deliberately not on the notification wrapper, which carries failed payments and security alerts. Attached only when shown, so her 19 KB never rides along unused. Her line is one whole resource string from `EmailStrings.resx`, same contract as in the app. |
 | The app in Spanish | **CHROME-09**, I18N-01..04 | resx only. Her lines are voiced, so the Spanish is a writing job rather than a translation, and the placeholders have to survive the rewrite. |
+| Settings and Household restyled (BACKBAR-7) | **CHROME-22/23** + SET-01..08, MFA-01..03, NOTIF-01..04, HH-01..14, INV-01..10 (⚙️ E2E, one journey's two dropdown selects become label clicks) + `Ui.Tests` (`SettingsLayoutTests`, `HouseholdLayoutTests`, `SwitcherStateTests`) | none — presentation only (JJ-039). `ThemeSwitcher`/`UnitSwitcher` gain `Segmented`, radios on their own ids (`theme-choice-*`, `unit-choice-*`) sharing the select's handler and PUT; the header's select keeps `theme-switcher`, so a page no longer carries that id twice. `.settings-group`/`.settings-row` in `app.css`, shared by both pages and both cards; the ··· row menu toggles visibility only, so no id doubles. Owner badge copper, Admin/Member neutral. |
 | The write page restyled (BACKBAR-6) | **CHROME-21** + MINE-03/04 (⚙️ E2E, unchanged) + `Ui.Tests` (`WriteLayoutTests`) | none — presentation only (JJ-036 F4). Two columns; the amount in the display face beside its unit; role and required a visible sub-line, no popover; the two client-side checks attach to the name field and to the lines (new id `new-lines-error`, additive), `new-error` kept above Save for the server's answer; a fixed Save bar on a phone. Every `new-*` id intact. |
 | Login, Welcome, Join, auth error (BACKBAR-5) | **CHROME-20** + SMK-01, AUTH-01..10, START-01..07, INV-02..05 (⚙️ E2E, unchanged) + `Ui.Tests` (`MargaSplitTests`, `AnonymousLayoutTests`) | none — presentation only (JJ-036). One `MargaSplit` component: her scene as half the screen with the line on it, night ground in both themes, the working side beside; Login and Welcome are her two full appearances, Join and the auth error page reuse it. The wizard's step 2 renders the shelf's sections, whose rules moved to `app.css` so two pages share them; a 3px brass progress rule; every id intact. |
 | Catalog and recipe restyled (BACKBAR-4) | **CHROME-18/19** + MAKE-01..10 (⚙️ E2E `MakeableJourneyTests` through the new `SetCatalogFilterAsync` helper) + `Ui.Tests` (`CatalogChipsTests`, `RecipeLayoutTests`) | none — presentation only, but the one slice that touches a journey's MECHANICS (JJ-036): the two switches are three radios (`cocktail-makeable`, `cocktail-almost`, new `cocktail-all`), driven by label like the shelf pills; only the selected chip carries the response's own total, no new fetch. Rows keep their list-group classes. Amounts lead in the serif; two marks only; optional is a dash and plain text; provenance in the facet line; not-found on the empty-state layout; `@media print` on the recipe. |
@@ -3117,6 +3139,8 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-CHROME-19 | Web | | | | | Print preview; 1280 and 390 wide |
 | QA-CHROME-20 | Web | | | | | Both themes; 390×812; a fresh household for the wizard |
 | QA-CHROME-21 | Web | | | | | 1280 and 390 wide |
+| QA-CHROME-22 | Web | | | | | A linked provider; 1280 and 390 wide |
+| QA-CHROME-23 | Web | | | | | Owner and member accounts; 1280 and 390 wide |
 
 **§14a adversarial / tenant-isolation (QA-ADV-*).** All rows are **Not-run** (blank) until executed.
 The formerly pre-seeded **Blocked (known defect)** rows were reset when the v3 remediation completed

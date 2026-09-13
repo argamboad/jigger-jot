@@ -5,7 +5,7 @@
 > Marga given room. **Read with the handoff, `docs/design/2026-09-backbar-handoff.pdf`** (19 pages;
 > page numbers below are the document's own), and with **JJ-036 → JJ-039**, which record what the
 > review accepted, changed and refused. Stories use Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — planned 2026-09-13; BACKBAR-1 ✅ through BACKBAR-6 ✅ built the same day. One branch,
+> **Status: 🚧 IN PROGRESS** — planned 2026-09-13; BACKBAR-1 ✅ through BACKBAR-7 ✅ built the same day. One branch,
 > `feat/backbar`, one commit per slice or fix, pushed on the word (PLAN, the redesign rule).
 
 **Epic key:** `BACKBAR`
@@ -599,11 +599,43 @@ three widths match page 15.
 
 ### BACKBAR-7 — Settings and Household
 
-**Status: 📋 Planned.** Pages 16–17. **JJ-039.** FEATURES §5 (invitations) and §6 (account settings).
+**Status: ✅ Implemented (2026-09-13).** Pages 16–17. **JJ-039.** FEATURES §5 (invitations) and §6
+(account settings). One commit on `feat/backbar`.
 
 **As a** member managing my account or my household
 **I want** the same information at half the height, with the choices visible without opening anything
 **So that** the two screens I visit least stop being the two that still look like a template
+
+**What was decided while building it.**
+- **Two identical ids on one page, found by the restyle.** Settings rendered the same `ThemeSwitcher`
+  as the header, so `/settings` carried `theme-switcher` twice — an ambiguous locator waiting for a
+  journey to visit. The segmented control has its own ids (`theme-choice-*`, `unit-choice-*`) and
+  the header's select keeps the old one; a test now holds that the settings page renders no
+  `theme-switcher` at all.
+- **One handler, two controls.** `Segmented` is a parameter on the existing switchers, not a second
+  component: the radios call the same `OnChange` as the select, so the theme applies live, persists
+  to the device and sends the same `PUT`, and the unit pills send the same `PUT` the dropdown did.
+  `SwitcherStateTests` (the select) pass unchanged.
+- **The one journey that touched the unit dropdown changes two lines** — `SelectOptionAsync` becomes
+  a click on the pill's label, the same mechanics change BACKBAR-4 made for the catalog chips. No
+  helper this time: two calls in one fixture do not earn one.
+- **The ··· menu toggles visibility only.** The row's actions render once, on desktop and phone
+  alike, and the control just adds `is-open`; a second copy behind a menu would double
+  `member-remove` and fail the roster journeys on an ambiguous locator — the SHELL-1 lesson.
+  Labelled with the member's name, since no "more actions" string exists and none was added.
+- **The two cards are restyled inside, same parameters**, as page 16 asks: `MfaCard` and
+  `NotificationPrefsCard` become `.settings-group` sections and keep every id and call. The
+  recovery codes' "copy action" on page 16 is NOT added — it is new behaviour (a clipboard call), and
+  a restyle does not add one. The QR box stays white in both themes, because a code scans dark on
+  light.
+- **Group labels are existing strings.** "SIGN-IN" is `Login_Title`; page 17's "OWNERSHIP & DATA" has
+  no string, so ownership, data and leaving are three small groups under the headings that exist.
+- **`.settings-group` and `.settings-row` live in `app.css`**, since two pages and two components
+  share them; the grids and the name figure stay scoped.
+
+**Seen, not proven.** The roster, membership, MFA, notification, theme, locale and GDPR journeys drive
+these pages by id and get their run in CI; the two rewritten selects run there first. The ··· menu at
+390, the live theme flip from the pills and the QR on white are QA-CHROME-22/23's to look at.
 
 **Context / notes.** Both screens were inherited from the platform and are the app's to restyle in
 full (F5). What changes is arrangement and control shape; what does not change is any call, any

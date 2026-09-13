@@ -63,7 +63,8 @@
                                     </button>
                                     @if (n.ReadAt is null)
                                     {
-                                        <span class="notif-dot bg-primary rounded-circle mt-1 flex-shrink-0"
+                                        @* BACKBAR-7 (page 17): a brass dot for unread. *@
+                                        <span class="notif-dot rounded-circle mt-1 flex-shrink-0"
                                               style="width:.5rem;height:.5rem"></span>
                                     }
                                     else

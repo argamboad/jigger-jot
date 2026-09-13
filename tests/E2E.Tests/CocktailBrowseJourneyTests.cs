@@ -249,7 +249,9 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         // Settings, and the switcher saves server-side like the language and theme ones.
         await Page.GotoAsync($"{BaseUrl}/settings");
         await Page.RunAndWaitForResponseAsync(
-            () => Page.GetByTestId("unit-switcher").SelectOptionAsync("Imperial"),
+            // BACKBAR-7: the measurement preference is a segmented control — three radios driven
+            // through their labels — writing the same PUT the select did.
+            () => Page.Locator("label[for='unit-choice-Imperial']").ClickAsync(),
             r => r.Url.EndsWith("/api/auth/unit-system") && r.Request.Method == "PUT");
 
         // Same recipe, read in ounces. The stored 30 ml has not moved — only the reading of it.
@@ -259,7 +261,7 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         // ...and "as written" is a choice a reader can come back to, not just where they started.
         await Page.GotoAsync($"{BaseUrl}/settings");
         await Page.RunAndWaitForResponseAsync(
-            () => Page.GetByTestId("unit-switcher").SelectOptionAsync(""),
+            () => Page.Locator("label[for='unit-choice-AsWritten']").ClickAsync(),
             r => r.Url.EndsWith("/api/auth/unit-system") && r.Request.Method == "PUT");
 
         await Page.GotoAsync(recipeUrl);
