@@ -5,7 +5,7 @@
 > Marga given room. **Read with the handoff, `docs/design/2026-09-backbar-handoff.pdf`** (19 pages;
 > page numbers below are the document's own), and with **JJ-036 → JJ-039**, which record what the
 > review accepted, changed and refused. Stories use Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — planned 2026-09-13; BACKBAR-1 ✅ through BACKBAR-5 ✅ built the same day. One branch,
+> **Status: 🚧 IN PROGRESS** — planned 2026-09-13; BACKBAR-1 ✅ through BACKBAR-6 ✅ built the same day. One branch,
 > `feat/backbar`, one commit per slice or fix, pushed on the word (PLAN, the redesign rule).
 
 **Epic key:** `BACKBAR`
@@ -536,11 +536,35 @@ re-run; both themes at three widths match pages 05–06, 13–14.
 
 ### BACKBAR-6 — Write a cocktail
 
-**Status: 📋 Planned.** Page 15. **JJ-036 (F4, F7).**
+**Status: ✅ Implemented (2026-09-13).** Page 15. **JJ-036 (F4, F7).** One commit on `feat/backbar`.
 
 **As a** member writing my own recipe
 **I want** the drink on one side and its lines on the other, with the amounts reading like a recipe
 **So that** the form previews what it is writing
+
+**What was decided while building it.**
+- **Page 15's "Fork: the same form, pre-filled, with Based on X" describes editing, not forking.**
+  FORK-1 makes the snapshot on the server and lands on the copy's recipe page; the form is not in
+  that flow. Pre-filling it with an existing recipe is AUTHORING-2, the one outstanding story, and it
+  stays outstanding — a restyle does not open a flow. `write-forked-from` never existed (F6).
+- **Client-side checks attach to the field.** A missing name marks the name field with the message
+  under it; no complete line puts the message under the lines, on a new additive id
+  `new-lines-error`. Both checks run rather than the first one returning, so a form with two
+  problems shows two. `new-error` keeps its place above Save for the server's answer, which is
+  still mapped from the API's codes. The one journey that saves a recipe fills the form correctly
+  and reads none of these.
+- **The amount and its unit share a 160px column** so the row reads "2 oz · London dry gin" the way
+  the recipe page does; the amount input is in the display face at the recipe's 21px. Placeholders
+  and `aria-label`s replaced the per-column labels the old grid needed; the field still has a name
+  for a screen reader.
+- **"3 lines" is `Cocktails_IngredientCount`** ("{0} ingredients"), which already existed.
+- **The remove control has an `aria-label`** — `Household_Remove`, "Remove" / "Eliminar", which
+  already existed; an "×" alone announces nothing. (The first draft named a `Common_Remove` that does
+  not exist; the fake localizer echoes keys, so only a grep of the resx caught it. A missing key is
+  the one thing these tests cannot see.)
+
+**Seen, not proven.** The authoring journey (MINE-03/04) drives the form by test id and gets its run
+in CI. The fixed Save bar and the collapsed row at 390 are QA-CHROME-21's to look at.
 
 **Context / notes.** Two columns: the drink (name, served as, glass, method, instructions) left, the
 ingredients right. Each line is an amount field whose value renders in the serif, the ingredient with
