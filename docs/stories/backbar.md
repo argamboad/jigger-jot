@@ -5,7 +5,7 @@
 > Marga given room. **Read with the handoff, `docs/design/2026-09-backbar-handoff.pdf`** (19 pages;
 > page numbers below are the document's own), and with **JJ-036 → JJ-039**, which record what the
 > review accepted, changed and refused. Stories use Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — planned 2026-09-13; BACKBAR-1 ✅ through BACKBAR-4 ✅ built the same day. One branch,
+> **Status: 🚧 IN PROGRESS** — planned 2026-09-13; BACKBAR-1 ✅ through BACKBAR-5 ✅ built the same day. One branch,
 > `feat/backbar`, one commit per slice or fix, pushed on the word (PLAN, the redesign rule).
 
 **Epic key:** `BACKBAR`
@@ -457,11 +457,39 @@ re-run; both themes at three widths match pages 07–10.
 
 ### BACKBAR-5 — Login and Welcome, her two full appearances
 
-**Status: 📋 Planned.** Pages 05–06 and 13–14.
+**Status: ✅ Implemented (2026-09-13).** Pages 05–06 and 13–14. One commit on `feat/backbar`.
 
 **As a** person who has not yet told the app anything
 **I want** the first screen to be her, and her sentence to be its headline
 **So that** the product's promise is the first thing I read, not a form
+
+**What was decided while building it.**
+- **One component, `MargaSplit`, for all four screens.** Login, the wizard, Join and the auth error
+  page each wanted the same two panels; four copies of the split is how it stops being one. The
+  night ground, the gradient, the brass label and the lockup over the scene are drawn there once —
+  the "one intentional exception to the theme swap" (page 06) is a rule in one file rather than a
+  memory in four. `Warm` gives the wizard its `#2A1A12` base; `Compact` shortens the scene for the
+  screens with little beside it.
+- **Login has no `MargaSays` any more.** She IS the scene; an avatar beside the form would put her
+  face on the screen twice, the same reasoning the empty states used. The login line's label is
+  `Onboard_MargaAside` ("Marga · behind the bar"), which page 05 quotes and which already existed.
+- **The auth error page's line is the error heading, with no label** — it is not her line, so it
+  gets no attribution. Join's line is the login line: the same promise, to someone arriving by
+  invitation, and no new string.
+- **The shelf's section rules moved from `Shelf.razor.css` to `app.css`.** The wizard's second step
+  renders the same sections, and scoped CSS cannot reach a second page. This closes what BACKBAR-3
+  left open ("Welcome's step 2 inherits the pills, not the sections"); it now inherits both. The
+  wizard grew a `CountFor` of its own, read against what is WANTED rather than saved, because nothing
+  there is saved until Finish.
+- **No preload for the scene.** Page 06 asks for one on the anonymous route; the boot screen already
+  fetched the same file, so the browser has it. Nothing to add.
+- **The running total is a `<span>`,** like the shelf's payoff — a `<strong>` would ask the one-weight
+  face for bold.
+
+**Seen, not proven.** The sign-in, onboarding, MFA and invitation journeys drive these screens by
+test id only (checked in the page objects too), so they are expected green; the above-the-fold
+promise at 390×812, the 26px slide and the night panel in light theme are QA-CHROME-20's to look at.
+Native parity (the MAUI shells render the same split) is the Android smoke's.
 
 **Context / notes.** Both screens split: her scene on one side (`marga_scene_512.png`,
 `object-fit: cover`, a bottom gradient to `#0F1216` so her line sits on solid ground), the working

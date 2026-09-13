@@ -1,13 +1,52 @@
-/* ONBOARD-1. A wizard is read top to bottom, so it gets a narrower column than the catalog: the
-   width that makes a list of 191 pills scannable is not the width that makes two sentences readable. */
+/* ONBOARD-1, restyled by BACKBAR-5 (pages 13–14). The split does the layout; this is the working
+   side's own furniture. */
 .onboard {
-    max-width: 760px;
+    max-width: 1100px;
     margin: 0 auto;
 }
 
 .onboard-step {
-    font-size: .8125rem;
-    letter-spacing: .06em;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .16em;
     text-transform: uppercase;
-    margin-bottom: .35rem;
+    color: var(--label-accent);
+    margin-bottom: .5rem;
+}
+
+/* Step 1 of 2 plus a 3px brass rule at 50% / 100%. The copy string is unchanged; the rule is the
+   addition (page 13). */
+.onboard-progress {
+    height: 3px;
+    background: var(--app-border);
+    border-radius: 2px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.onboard-progress-fill {
+    display: block;
+    height: 100%;
+    background: var(--brand-accent);
+    transition: width .2s ease-out;
+}
+
+.onboard-search {
+    border-radius: 999px;
+    max-width: 360px;
+    padding-left: 1rem;
+}
+
+.onboard-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+    margin-top: 1.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .onboard-progress-fill {
+        transition: none;
+    }
 }

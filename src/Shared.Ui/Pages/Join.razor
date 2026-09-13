@@ -9,7 +9,11 @@
 
 <PageTitle>@Localizer["Join_Title"]</PageTitle>
 
-<div class="join-wrapper text-center py-5">
+@* BACKBAR-5 (page 17): reuses the login split — her scene on one side, the invitation and a single
+   action on the other. Her line is the login line: the same promise, to someone arriving by
+   invitation. Chromeless when anonymous, under the header when signed in; the split does not care. *@
+<div class="join-wrapper">
+  <MargaSplit Line="@Localizer["Marga_LoginLine"]" Aside="@Localizer["Onboard_MargaAside"]" ShowLockup="true" Compact="true">
     @if (_state == State.Working)
     {
         <div class="spinner-border text-primary" role="status">
@@ -59,6 +63,7 @@
         <p class="text-muted">@Localizer["Join_DefaultError"]</p>
         <a class="btn btn-outline-secondary" href="/household">@Localizer["Join_BackToHousehold"]</a>
     }
+  </MargaSplit>
 </div>
 
 @code {
