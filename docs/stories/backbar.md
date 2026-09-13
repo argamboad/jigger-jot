@@ -5,7 +5,7 @@
 > Marga given room. **Read with the handoff, `docs/design/2026-09-backbar-handoff.pdf`** (19 pages;
 > page numbers below are the document's own), and with **JJ-036 → JJ-039**, which record what the
 > review accepted, changed and refused. Stories use Gherkin acceptance criteria.
-> **Status: 🚧 IN PROGRESS** — planned 2026-09-13; BACKBAR-1 ✅ built the same day. One branch,
+> **Status: 🚧 IN PROGRESS** — planned 2026-09-13; BACKBAR-1 ✅ and BACKBAR-2 ✅ built the same day. One branch,
 > `feat/backbar`, one commit per slice or fix, pushed on the word (PLAN, the redesign rule).
 
 **Epic key:** `BACKBAR`
@@ -203,11 +203,36 @@ the three widths; every existing test green with no id or selector edits.
 
 ### BACKBAR-2 — Chrome: the bar leaves copper
 
-**Status: 📋 Planned.** Page 04 (chrome), step 2 of page 18. **JJ-037.**
+**Status: ✅ Implemented (2026-09-13).** Page 04 (chrome), step 2 of page 18. **JJ-037.** One
+commit on `feat/backbar`.
 
 **As a** member of a household
 **I want** the header and the tab bar to sit on the page rather than on a copper band
 **So that** copper means "act here" everywhere it appears
+
+**What was decided while building it.**
+- **The handoff had the marks backwards.** `icon_light.svg` is the mark in copper — for a *light*
+  ground, not a dark one as page 04 says — and it was sitting copper-on-copper in the old header. So
+  the markup keeps naming it, and the new `icon_dark.svg` is the same path in bone for the dark
+  surface, swapped in by `app.css` the way the lockups are. The gate holds both files, the swap, and
+  that `REBRANDING.md` and `build_assets.py` name both.
+- **One button variant for the whole account cluster.** `btn-outline-light` was white lines on
+  copper; on a white bar it vanishes. Every button in the cluster — Household, Billing, Settings, Sign
+  out, and the bell — is `btn-outline-secondary`, recoloured through Bootstrap's button tokens to
+  muted with a hairline border. That is also what makes the old dark-theme bug structurally
+  impossible: an anchor-shaped button and the `<button>` beside it carry the same class, so they
+  cannot be painted apart. The staff-only Admin button keeps `btn-outline-warning`; it is meant to
+  stand out.
+- **The hierarchy is ink against muted now** where it was white against white-alpha: destinations in
+  `--ink`, hover and focus copper, the current one bold with a 2px copper inset. Below `lg` the tab
+  bar takes the surface and a top hairline, and the current tab gets a copper-subtle fill under its
+  2px line.
+- **The journey asserts relations, not literals.** In dark theme: a destination's colour equals the
+  body's ink; the billing anchor's colour equals the sign-out button's; and neither equals
+  `--bs-link-color`. The three assertions survive any future palette.
+
+**Seen, not proven.** The E2E project compiles; the journey itself needs Postgres, Mailpit and a
+browser, so its rewritten lines run first in CI. QA-CHROME-15 is the case that looks.
 
 **Context / notes.** In both themes the bar takes the surface colour and a bottom hairline; the tab
 bar the same with a top hairline. The current tab keeps weight, gains a 2px copper indicator, keeps

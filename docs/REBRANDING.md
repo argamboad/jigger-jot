@@ -47,7 +47,12 @@ Backstop after working through the list: `git grep -i perezosoft` and a search f
 
 ## 3. Logos & images — replace the files (keep the filenames to avoid touching references)
 In-app UI (shared RCL — used by web + desktop + mobile):
-- `src/Shared.Ui/wwwroot/brand/{icon_light.svg, icon_light_1024.png, lockup_light.svg, lockup_light_1520.png, lockup_dark.svg, lockup_dark_1520.png}`
+- `src/Shared.Ui/wwwroot/brand/{icon_light.svg, icon_dark.svg, icon_light_1024.png, lockup_light.svg, lockup_light_1520.png, lockup_dark.svg, lockup_dark_1520.png}`
+- **The header mark comes in two: `icon_light.svg` for the light surface and `icon_dark.svg` for the
+  dark one** (JJ-037 — the bar sits on the page, not on a brand-coloured band, so the mark has to
+  read on both grounds). Same path, different fill; `app.css` swaps them by theme. A rebrand that
+  replaces one and not the other ships a mark that vanishes in one theme; a CI gate
+  (`RestyleGateTests`) checks both exist and that this file and `build_assets.py` name both.
 - **The UI references the PNG lockups, not the SVGs.** Webfonts don't load inside an `<img>`-embedded
   SVG, so an SVG lockup's wordmark silently falls back to Helvetica/Arial. Keep the SVGs as the
   editable source, render the PNGs from them, and point `Login.razor`/`Home.razor` at the PNGs.

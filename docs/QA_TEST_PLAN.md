@@ -1694,6 +1694,16 @@ Light the ground is warm off-white and panels are white with a soft shadow. Butt
 fields have rounded corners in both. Tab to any button or field: one copper focus ring with a gap in
 the ground colour, and no ring on a mouse click.
 
+### QA-CHROME-15 — The chrome sits on the page, not on a copper band 🟢 (Web) — BACKBAR-2
+**Walkthrough:** sign in and look at the header at 1280 wide in Light, then Dark (§9 QA-SET-08);
+then narrow to 390 and look at the tab bar in both. **Expected:** the bar is the page's surface
+colour with a 1px hairline beneath it (above it, for the tab bar) — never copper, never a shadow in
+Dark. The mark reads on both grounds (copper on light, bone on dark). Home / Shelf / Cocktails are in
+the page's text colour and the current one is bold with a **2px copper line** under it (over it, in
+the tab bar); the account buttons beside them are quieter, muted with a hairline border, and "Sign
+out" looks exactly like the "Household" and "Settings" buttons next to it — no button is painted the
+link colour. Hover a destination: it turns copper. The household name is a copper-tinted pill.
+
 ### QA-CHROME-09 — The app speaks Spanish throughout 🟠 (Web)
 **Walkthrough:** switch the language to Español (§10) and walk the app's own screens — shelf, catalog,
 a recipe, makeable, one-away, the wizard, both empty states. **Expected:** no English leaks, and
@@ -2881,6 +2891,7 @@ is the product. Cited decisions are `JJ-nnn` in `docs/DECISIONS.md`.
 | The boot state (SHELL-2) | CHROME-07/08, and the native legs of §12/§13 | none — it renders before the app exists. It lands in **two** `index.html` files (`NATIVE_PARITY.md`), held by a CI gate; the WebView hosts sweep instead of filling, having no download to measure. A second gate caps the illustration's size, since this is the one place it is fetched before the app is usable. |
 | Marga in the emails (MARGA-4) | **MAIL-05/06/07** + `Api.Tests` (`MargaInEmailTests`) | none — `BrandedEmail` renders her the way it renders the logo: a CID inline image, the one approach Gmail and Outlook both show (they block data-URIs). She is on the three emails a person ASKED for and deliberately not on the notification wrapper, which carries failed payments and security alerts. Attached only when shown, so her 19 KB never rides along unused. Her line is one whole resource string from `EmailStrings.resx`, same contract as in the app. |
 | The app in Spanish | **CHROME-09**, I18N-01..04 | resx only. Her lines are voiced, so the Spanish is a writing job rather than a translation, and the placeholders have to survive the rewrite. |
+| The chrome off copper (BACKBAR-2) | **CHROME-15** + CHROME-04 (⚙️ E2E `ShellJourneyTests`, colour lines rewritten to the hierarchy) + `Ui.Tests` (`AppHeaderChromeTests`) + `Api.Tests` (`RestyleGateTests`, the two marks) | none — presentation only (JJ-037). The bar and the tab bar on the surface with a hairline in both themes; destinations in the ink, account cluster muted, one theme-aware button variant for all of them so an anchor-shaped button and a `<button>` can never differ; 2px copper indicator; `icon_dark.svg` for the dark surface, swapped by `app.css`, named in `REBRANDING.md` and `build_assets.py`. |
 | The restyle's foundation (BACKBAR-1) | **CHROME-14** + `Api.Tests` (`RestyleGateTests`) + `Ui.Tests` (`MargaSaysToneTests`) | none — presentation only (JJ-036). Both token sets in `app.css`; one self-hosted display serif, one weight, display only, reached through `.font-display` and never bold (JJ-038, gated); the primitives as CSS on Bootstrap's classes so no markup churns; `MargaSays` gains `Tone` with the old `Size`/`Compact` intact. |
 
 **Adversarial & tenant-isolation (§14a, QA-ADV-*) — v3-audit hardening probes.** Rows tagged
@@ -3030,6 +3041,7 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-CHROME-08 | Web | | | | | OS reduce-motion setting |
 | QA-CHROME-09 | Web | | | | | Needs a Spanish reader |
 | QA-CHROME-14 | Web | | | | | Browser network panel, both themes |
+| QA-CHROME-15 | Web | | | | | Both themes, 1280 and 390 wide |
 
 **§14a adversarial / tenant-isolation (QA-ADV-*).** All rows are **Not-run** (blank) until executed.
 The formerly pre-seeded **Blocked (known defect)** rows were reset when the v3 remediation completed

@@ -1,7 +1,7 @@
 """
 Regenerate every JiggerJot brand raster from the SVG sources checked into the tree.
 
-Sources (editable):      src/Shared.Ui/wwwroot/brand/{icon_light,lockup_light,lockup_dark}.svg,
+Sources (editable):      src/Shared.Ui/wwwroot/brand/{icon_light,icon_dark,lockup_light,lockup_dark}.svg,
                          src/Web/wwwroot/favicon.svg, src/Maui/Resources/{AppIcon,Splash}/*.svg
 Outputs (this script):   the PNGs next to those sources, src/Web/wwwroot/{favicon.ico,favicon.png,
                          apple_touch_180.png,icon-*.png,og_image_1200x630.png},
@@ -98,6 +98,8 @@ def main():
 
     # Shared.Ui: icon + lockups (transparent)
     render(page(sized_svg(SHARED / "icon_light.svg", 1024, 1024), 1024, 1024), SHARED / "icon_light_1024.png", 1024, 1024)
+    # icon_dark.svg (BACKBAR-2, JJ-037) is the same mark in bone for the dark surface; the header uses the SVG
+    # directly, so it has no raster of its own — it is listed here so a rebrand that regenerates assets sees it.
     for name in ("lockup_light", "lockup_dark"):
         render(page(sized_svg(SHARED / f"{name}.svg", 1520, 392), 1520, 392), SHARED / f"{name}_1520.png", 1520, 392)
 

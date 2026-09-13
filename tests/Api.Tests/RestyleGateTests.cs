@@ -84,6 +84,28 @@ public class RestyleGateTests
             "The display face has one weight; drop the bold utility from: " + string.Join("; ", offenders));
     }
 
+    [Fact]
+    public void TheMark_ShipsAVariantForEachGround_AndTheRebrandChecklistKnows() // JJ-037, BACKBAR-2
+    {
+        var root = RepoRoot();
+        var brand = Path.Combine(root, "src", "Shared.Ui", "wwwroot", "brand");
+
+        // Two marks, one per ground: the copper one on the light surface, the bone one on the night
+        // surface. A rebrand that replaces one and not the other ships a mark that vanishes in one
+        // theme — which is why the checklist and the asset script both have to name both.
+        Assert.True(File.Exists(Path.Combine(brand, "icon_light.svg")));
+        Assert.True(File.Exists(Path.Combine(brand, "icon_dark.svg")), "icon_dark.svg is missing — the header has no mark on the dark surface");
+
+        var css = File.ReadAllText(Path.Combine(root, "src", "Shared.Ui", "wwwroot", "css", "app.css"));
+        Assert.Matches(new Regex(@"\[data-bs-theme=""dark""\]\s*\.brand-icon\s*\{[^}]*content:\s*url\(""?\.\./brand/icon_dark\.svg""?\)"), css);
+
+        var rebranding = File.ReadAllText(Path.Combine(root, "docs", "REBRANDING.md"));
+        Assert.Contains("icon_dark.svg", rebranding, StringComparison.Ordinal);
+
+        var script = File.ReadAllText(Path.Combine(root, "docs", "brand", "build_assets.py"));
+        Assert.Contains("icon_dark", script, StringComparison.Ordinal);
+    }
+
     private static string RepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
