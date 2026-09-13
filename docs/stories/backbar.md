@@ -51,7 +51,7 @@ does not re-argue it.
 | F2 | **The catalog chips collide with a journey.** Page 07 turns the two switches into `btn-check` chips. `.btn-check` hides the input, and Playwright refuses to `check()` a hidden input — the INV-3 lesson, learned once already. `MakeableJourneyTests` calls `CheckAsync`/`UncheckAsync` on `cocktail-makeable` and `cocktail-almost` nine times. | Three **radios** in one group — `cocktail-makeable`, `cocktail-almost`, and a new `cocktail-all` — because "they already behave exclusively in code" is the argument for radio semantics, not for two checkboxes with exclusivity re-implemented. The journey drives the labels through one `E2ETestBase` helper, the way `SetShelfAsync` does. One id added, none edited; one string pair added ("Everything"). **JJ-036.** |
 | F3 | **"Each carries its count"** (page 07) means three totals on every catalog load — two extra requests per visit for numbers the pager line already shows for the active filter. The same page says "same fetch-once behaviour". | The **selected** chip carries the response's `total`; the others carry none. No new fetch. |
 | F4 | **Page 15 puts the Write row's role and required selects "in the row's own popover".** The app loads no Bootstrap JS, a popover is a new interaction, and `new-line-role` / `new-line-required` would sit behind an open step every journey would have to learn. | **Refused.** Role and required stay visible in the row — a sub-line on desktop, a second line on mobile. Everything else on page 15 stands. **JJ-036.** |
-| F5 | **Settings and Household are platform pages** (pages 16–17 restructure them: five cards to two columns, six cards to four groups, segmented theme control, a `···` row menu). JJ-026/JJ-028: the platform wins, and the sibling apps are the reference implementation the last header fix was checked against. | **CSS-only in this epic.** The primitives restyle them for free — `.card` becomes the 16px hairline panel everywhere, outline buttons become pills — and that meets the definition of done ("no Bootstrap card border visible"). Restructuring their markup is deferred until it goes upstream first, like the stylesheet fixes did (`perezosoft-platform` #222). Same for the bell dropdown and `ThemeSwitcher`. **JJ-039.** |
+| F5 | **Settings and Household were inherited from the platform** (pages 16–17 restructure them: five cards to two columns, six cards to four groups, segmented theme control, a `···` row menu). The first draft of this review sent that markup upstream first. | **Restyled in full, here.** The UI is the app's own — every screen in the RCL, inherited or not — so pages 16–17 are built as their own slice, BACKBAR-7, with the components' parameters, ids and behaviours kept and no backend change anywhere in the epic. The sibling apps stay a comparison, not a constraint. **JJ-039.** |
 | F6 | **Two of the document's id lists are invented.** Page 15 names `write-name`, `write-serving`, `write-line-{n}-*`, `write-save`…; the page's ids are `new-name`, `new-serving`, `new-line-*`, `new-save`, `new-error`. Page 17 names eight `household-*` ids; three exist (`household-rename-input`, `household-rename-save`, `household-status`). `shelf-item-{id}` and `onboard-item-{id}` do not exist either — the pills are identified by `id` + `label[for]`. | The ids **in the code** are the contract. The document's lists are a reading aid, not a spec, and every "KEEP" list is re-derived from the razor when its slice starts. |
 | F7 | **"No new strings" has two exceptions.** The mobile chip labels "Make now · 14 / One away · 81" (page 07) and the Write footnote "Marga will tell you if you can pour it" (page 15) exist nowhere in `AppStrings.resx`. | The chips use the **full** labels at every width (`Cocktails_MakeableOnly`, `Cocktails_AlmostOnly`) and the row scrolls if it must; the footnote is **dropped** — it promises nothing the page does not already do. The one new pair is "Everything" (F2), EN + ES. |
 | F8 | **The scene is square and the panel is not.** Login and Welcome give `marga_scene_512.png` a ~520×680 panel; the document flags the upscale itself (page 05). The 2 MB source is deliberately not committed (MARGA-1). | Ship with `object-fit: cover` on the 512 asset now. The 2× landscape crop is a **maintainer asset action** from the source; when it lands it takes the same optimisation pass and the same `< 250 KB` gate the boot asset has. Nothing waits on it. |
@@ -73,12 +73,13 @@ does not re-argue it.
 - **JJ-038** — one self-hosted display serif, one weight, display only, never below 20px, never bold.
   Self-hosted in the RCL so both hosts get it with no third-party request. Amends JJ-029's typography;
   the wordmark PNGs are unchanged.
-- **JJ-039** — platform-inherited pages get the restyle through the primitives only; their markup is
-  restructured upstream first or not at all.
+- **JJ-039** — the UI is the app's own, inherited screens included, so Settings and Household are
+  restyled in full here; the backend may be extended but its foundation is a red light, and this epic
+  touches no backend at all.
 
 ## The ladder
 
-Seven slices, each one branch off `develop`, one PR, after the previous is merged — the three gates
+Eight slices, each one branch off `develop`, one PR, after the previous is merged — the three gates
 in `docs/PLAN.md` apply unchanged. The order is the document's (page 18) with its six steps regrouped
 so that every PR leaves the app looking finished at the level it reached, never half-restyled:
 
@@ -90,7 +91,8 @@ so that every PR leaves the app looking finished at the level it reached, never 
 | 4 | **BACKBAR-4** Cocktails + Detail | 07–10 | Chips as radios (F2), the filter panel, hairline rows, the amounts column, two marks, print. The one slice that touches a journey's mechanics. |
 | 5 | **BACKBAR-5** Login + Welcome | 05–06, 13–14 | The two full-scene screens; `/join` and `/auth-error` reuse the split. Native parity checked on the Android emulator. |
 | 6 | **BACKBAR-6** Write | 15 | Two columns, the amount in the serif, a fixed Save bar on mobile. No popover (F4). |
-| 7 | **BACKBAR-7** Sweep | 16–18 | Platform pages by CSS only (F5), focus rings, reduced motion, both themes at 390/768/1440, the QA plan's cases and regenerated PDFs, the definition of done ticked line by line. |
+| 7 | **BACKBAR-7** Settings + Household | 16–17 | Five cards to two columns, six cards to four groups, segmented theme and unit controls, text-link row actions, the `···` menu on mobile, the bell's dropdown. Same parameters, ids and calls (F5). |
+| 8 | **BACKBAR-8** Sweep | 18 | Billing, Admin, Join and AuthError on the primitives, focus rings, reduced motion, both themes at 390/768/1440, the QA plan's cases and regenerated PDFs, the definition of done ticked line by line. |
 
 **Why the foundation is one PR and not three.** Tokens without primitives change nothing visible;
 primitives without the serif leave the count in Helvetica bold; `Tone` without either draws her at
@@ -208,7 +210,7 @@ Scenario: The mark reads on both grounds
   Then the brand mark is the light-ground variant
 ```
 
-**Out of scope:** the account cluster's contents; the bell's dropdown (BACKBAR-7, CSS only).
+**Out of scope:** the account cluster's contents; the bell's dropdown (BACKBAR-7).
 **Definition of done:** the scenarios; `ShellJourneyTests` green with its three colour lines rewritten
 and nothing else; QA-CHROME-04/05 re-run; `REBRANDING.md` §3 lists `icon_dark.svg`.
 
@@ -434,21 +436,86 @@ three widths match page 15.
 
 ---
 
-### BACKBAR-7 — The sweep
+### BACKBAR-7 — Settings and Household
 
-**Status: 📋 Planned.** Pages 16–18. **JJ-039.**
+**Status: 📋 Planned.** Pages 16–17. **JJ-039.** FEATURES §5 (invitations) and §6 (account settings).
 
-**As a** member on any screen the platform gave the app
-**I want** it to look like the rest of the app without behaving any differently
-**So that** Settings and Household stop being the two screens that still look like a template
+**As a** member managing my account or my household
+**I want** the same information at half the height, with the choices visible without opening anything
+**So that** the two screens I visit least stop being the two that still look like a template
 
-**Context / notes.** Settings, Household, Billing, Admin, Join, AuthError, `MfaCard`,
-`NotificationPrefsCard`, the bell's dropdown and `ThemeSwitcher` take the primitives and nothing
-else: no markup restructuring (F5). Then the cross-cutting pass page 18 asks for — focus rings on
-every interactive element, `prefers-reduced-motion` dropping the 120ms fill and the 200ms panel
-expand, a pass in both themes at 390, 768 and 1440 on all nine screens, and the definition of done
-ticked line by line. The QA plan gains a case per user-visible change this epic made that no earlier
-slice already covered, the traceability matrix and sign-off rows, and the PDFs regenerated.
+**Context / notes.** Both screens were inherited from the platform and are the app's to restyle in
+full (F5). What changes is arrangement and control shape; what does not change is any call, any
+parameter, any id, or any behaviour.
+
+- **Settings.** Five bordered cards become labelled groups of hairline rows in two columns. Theme and
+  Measurements become **segmented pills** — three fixed options each, the choice visible — writing the
+  same preference through the same `PUT` the selects do today; the header's `ThemeSwitcher` may go
+  icon-only once this exists. Language stays a select (the list grows). Each row still saves on
+  change with no Save button; the toast stays, and on failure the control reverts. The danger zone
+  becomes a single red text link at the foot that opens the existing confirm dialog — "the box made
+  deletion feel like a feature." `MfaCard` and `NotificationPrefsCard` are restyled inside, same
+  parameters: enabling 2FA still expands in place (QR, manual key, 6-digit confirm, recovery codes in
+  a monospace block with copy); Unlink stays disabled on the last provider with the existing
+  explanation beneath.
+- **Household.** Six cards become four groups: Name and Members on the left, Invitations, Ownership
+  and Data on the right. Row actions are text links, not outline buttons; Owner is the only
+  copper-tinted badge; the household name renders in the serif because it is a name. On mobile, row
+  actions collapse behind a `···` menu at 44px that calls exactly what the buttons called. Non-owners
+  see the same layout with Rename, Transfer, Remove and role changes absent, not disabled. Destructive
+  actions stay red text links behind the existing confirm dialog; Revoke and Remove still re-fetch
+  the roster. `/join/{token}` reuses the Login split (BACKBAR-5) with her line replaced by the invite.
+- **The bell.** Its dropdown becomes hairline rows on the surface colour with a brass unread dot;
+  behaviour unchanged.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: The segmented theme control and the header switcher are one preference
+  Given Settings in light theme
+  When I choose Dark on the segmented control
+  Then data-bs-theme is dark, the header switcher reads dark, and one PUT /api/auth/theme was sent
+  # the theme journey's assertions, unchanged in what they check
+
+Scenario: Deleting an account still asks first
+  Given Settings
+  When I follow the red delete link
+  Then the existing confirm dialog opens and nothing is sent until it is confirmed
+
+Scenario: A non-owner sees the layout with the owner's controls absent
+  Given a member (not owner) on /household
+  Then the roster and the export are visible
+  And no Rename, Transfer, Remove or role control exists in the DOM
+  # the roster and membership journeys, unchanged
+
+Scenario: The row menu calls what the buttons called
+  Given /household at 390 wide as the owner
+  When I open ··· on a member row and choose Remove
+  Then the same confirm dialog opens and the same DELETE is sent as at 1280 wide
+```
+
+**Out of scope:** any endpoint, any preference's storage, any permission rule. **Definition of
+done:** the scenarios; `RosterJourneyTests`, `MembershipLifecycleTests`, `MfaJourneyTests`,
+`NotificationJourneyTests`, `ThemeJourneyTests`, `GdprExportJourneyTests`, `SwitcherStateTests` and
+`PreferenceScopingTests` green; QA-SET, QA-HH, QA-INV, QA-MFA and QA-NOTIF re-run; both themes at
+three widths match pages 16–17.
+
+---
+
+### BACKBAR-8 — The sweep
+
+**Status: 📋 Planned.** Page 18.
+
+**As a** member on any screen
+**I want** the restyle to be finished, not mostly finished
+**So that** no screen, state or width is the one that still gives the old app away
+
+**Context / notes.** Billing, Admin, Join and AuthError take the primitives (they were not drawn;
+the primitives are their spec). Then the cross-cutting pass page 18 asks for — focus rings on every
+interactive element, `prefers-reduced-motion` dropping the 120ms fill and the 200ms panel expand, a
+pass in both themes at 390, 768 and 1440 on every screen, and the definition of done ticked line by
+line. The QA plan gains a case per user-visible change this epic made that no earlier slice already
+covered, the traceability matrix and sign-off rows, and the PDFs regenerated.
 
 **Acceptance criteria**
 
@@ -462,13 +529,13 @@ Scenario: Motion is optional
   Given prefers-reduced-motion: reduce
   Then the pill fill and the panel expand have no transition
 
-Scenario: The platform pages keep every id and every parameter
-  # the roster, membership, MFA, notification and billing journeys, unchanged
+Scenario: Every journey is still green
+  # the whole E2E suite, unchanged except the two helpers BACKBAR-2 and BACKBAR-4 introduced
 ```
 
-**Out of scope:** the two-column Settings and four-group Household of pages 16–17 — upstream first.
-**Definition of done:** the definition of done on page 18, every line; the whole suite green;
-`docs/QA_TEST_PLAN.md` updated with the artifacts regenerated; the Slice Board updated on "merged".
+**Out of scope:** nothing the document asks for; anything it does not. **Definition of done:** the
+definition of done on page 18, every line; the whole suite green; `docs/QA_TEST_PLAN.md` updated with
+the artifacts regenerated; the Slice Board updated on "merged".
 
 ---
 

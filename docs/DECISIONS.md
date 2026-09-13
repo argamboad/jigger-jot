@@ -1970,23 +1970,35 @@ palette are unchanged; the token values on handoff page 01 are the palette resta
 
 *Decided 2026-09-13.*
 
-**JJ-039 — Platform-inherited pages take the restyle through the primitives only; their markup is
-restructured upstream first or not at all. (2026-09-13)**
+**JJ-039 — The UI is the app's own, every screen of it; the backend may be extended but its
+foundation is not changed. (2026-09-13)**
 Handoff pages 16–17 restructure Settings (five cards to two columns, segmented theme and unit
 controls) and Household (six cards to four groups, a `···` row menu), and page 17 restyles the
-notification bell's dropdown. All of these are the platform's screens and components, shared with the
-sibling apps — which are the reference implementation the last header fix was checked against
-(PLAN, 2026-09-10).
+notification bell's dropdown. These screens were inherited from `perezosoft-platform`, and the first
+draft of this decision treated them as the platform's — primitives only here, markup upstream first.
+The maintainer corrected that the same day, and the correction is the decision:
 
-*Decision.* In this epic they get what the primitives give every page — `.card` as the 16px hairline
-panel, pill buttons and fields, the status colours, the focus ring — and nothing that changes their
-markup, their components' parameters or their ids. That already meets the epic's definition of done
-("no Bootstrap card border visible anywhere except the copper-subtle panel"). The structural rework is
-a platform candidate: if it is wanted, it goes to `perezosoft-platform` first, the way the stylesheet
-fixes did (#222), and comes back down as a port.
+*Decision.*
+1. **Every app from the platform owns its UI.** The RCL is downstream property, the inherited screens
+   included. Settings, Household, Join, AuthError, Billing, Admin, `MfaCard`,
+   `NotificationPrefsCard`, the bell and the switchers are restyled **in full** here, to pages 16–17,
+   with nothing sent upstream and nothing waited for. The sibling apps remain a useful comparison
+   (the last header fix was found by holding the bar next to `vuelto`'s), never a constraint.
+2. **The backend may be extended, never re-founded.** New endpoints, queries, features and
+   contributors are the app's to add (the whole of `CKTL`, `INV`, `MAKE`, `ALMOST` is exactly that);
+   the platform's foundation — auth, tenancy and its walls, the outbox, billing, the RLS backstop,
+   R1–R76 — is a red light. JJ-026 / JJ-028 ("platform wins") is about that foundation and the
+   platform's *mechanics*, not about what a screen looks like.
+3. **This epic touches no backend at all.** A restyle with an API change in it is two slices.
 
-*Rationale.* JJ-026 / JJ-028: the platform wins, and a downstream fork of a shared page is a merge
-conflict on every later port. The value of the restyle is on the app's own screens — the document
-says so itself: "the last two are mostly deleted chrome."
+*What the restyle keeps on those pages.* The components' parameters, every existing id, and every
+behaviour: each Settings row still saves on change through the same `PUT`, the segmented theme
+control writes the same preference the header switcher does, the danger zone still opens the existing
+confirm dialog, row actions behind `···` still call what the buttons called. The journeys that drive
+them (roster, membership lifecycle, MFA, notifications, billing, GDPR export) stay green as they are.
 
-*Decided 2026-09-13.*
+*Consequences.* The ladder gains a slice: **BACKBAR-7 Settings + Household** (pages 16–17), with the
+sweep becoming **BACKBAR-8**. CLAUDE.md's golden rule 8 gains the sentence that keeps this from being
+re-argued: the UI is the app's; the foundation is the platform's.
+
+*Decided 2026-09-13; corrected the same day before publication.*
