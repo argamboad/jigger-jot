@@ -136,6 +136,11 @@ test. All four are written up under SHELL-1 in `docs/stories/shell.md`.
   the current tab's weight, the chrome's colour in dark theme, and that the page does not scroll
   sideways.
 
+**Merged since** (PRs #31–#35): the batch above as one PR (#31); the port block (#32, JJ-030); the
+pre-launch gates ported from the platform (#33, ADR-027); the gate-variable doc lines (#34); and
+"a markdown file is never code" (#35, LOCALCI-3 follow-up). **Nothing is committed-not-pushed.** The
+next thing is the restyle below.
+
 ## The UI wave — 2026-09-10
 
 A design proposal arrived as three Claude Design documents: the current UI recreated, a bug list
@@ -159,22 +164,73 @@ Everything else is presentation over data already on the page. **Eight of the ni
 exist and ship today**; the proposal changes them. `Home.razor` is the exception at 34 lines, and it
 still carries `<!-- TODO: app-specific content goes here -->`.
 
+## The restyle — 2026-09-13
+
+A second design document arrived: **`docs/design/2026-09-backbar-handoff.pdf`**, direction 1A, "Back
+bar" — every screen restyled, dark as the primary theme with a light counterpart, one display serif,
+hairline surfaces, Marga at 96px where she speaks and full-bleed where she is the screen. Nineteen
+pages: tokens, components, nine screens in both themes at two widths, and an implementation order.
+
+**Read this before planning around it.** It is a **restyle**, and it says so on page 1: structure,
+routes, copy and test ids unchanged from develop. The 2026-09-10 proposal changed what the screens
+*do* and every one of its nine screens has shipped; this one changes what they *look like*. Nothing
+in it needs a new endpoint, a query, a schema change or a package. Its "do not change" list (page 18)
+is binding, and its implementation order is the right one.
+
+**The review found seven places where it meets the codebase and something gives** — all decided,
+none re-argued per slice. The full table is in `docs/stories/backbar.md`; the ones that change a
+decision are logged as **JJ-036 → JJ-039**:
+
+- **Two tests pin what it changes.** The shell journey asserts the chrome's literal colours on copper;
+  the makeable journey checks and unchecks the two catalog switches nine times, and the chips it wants
+  hide the input. So "every existing test green with no id edits" is not achievable as written: three
+  colour lines are rewritten to the invariant they guard, and the switches become three **radios**
+  (one new id, `cocktail-all`) driven by a base helper the way the shelf pills already are.
+- **Two of its id lists are invented** (`write-*`, most of `household-*`). The code's ids are the
+  contract; each slice re-derives its list from the razor.
+- **"No new strings" has two exceptions**, both resolved without new copy except the one word
+  "Everything" the third chip needs.
+- **The chrome leaves copper in both themes** — amending SHELL-1 in colour only; the hierarchy it
+  settled stands (JJ-037). **The serif is self-hosted, one weight, display only, gated** (JJ-038).
+  **The UI is the app's own, all pages, no exceptions** — Settings and Household are restyled in
+  full here, Billing and Admin too though the handoff never drew them, nothing goes upstream, and
+  this epic touches no backend at all; the backend may be
+  extended, its foundation is a red light (JJ-039, corrected the same day from "upstream first").
+  **No popover** on the Write rows. **Auto stays the default theme** — it already is.
+
+**One asset action for the maintainer, blocking nothing:** a 2× landscape crop of Marga's scene from
+the uncommitted 2 MB source, for the Login and Welcome panels that upscale the 512 square today.
+
 ## What is next, in order
 
-Each is one branch off `develop`, one PR, after the previous one is merged.
+Each is one branch off `develop`, one PR, after the previous one is merged. The story file has the
+Gherkin, the ids and the pages for each.
 
-| # | Slice | Flow / screen | What it is |
+| # | Slice | Handoff pages | What it is |
 |---|---|---|---|
-| 1 | **The QA plan's app half** | §10d–§10i | The uncommitted work above. Waiting on C+P+PR. Docs only — no code. |
+| 1 | **BACKBAR-1** Foundation | 01–02 | Both token sets, the serif as `@font-face`, the primitives as CSS on Bootstrap's classes, `MargaSays` `Tone`. Three commits, one PR; visible everywhere, nothing rearranged. |
+| 2 | **BACKBAR-2** Chrome | 04 | Header and tab bar off copper; `icon_dark.svg`; the shell journey's three colour lines rewritten. |
+| 3 | **BACKBAR-3** Home + Shelf | 03–04, 11–12 | The identity screens. Welcome step 2 inherits the sections for free. |
+| 4 | **BACKBAR-4** Cocktails + Detail | 07–10 | Chips as radios, the filter panel, hairline rows, the amounts column, two marks, print. The one slice that touches a journey's mechanics. |
+| 5 | **BACKBAR-5** Login + Welcome | 05–06, 13–14 | Her two full-scene screens; `/join` and `/auth-error` reuse the split; Android smoke. |
+| 6 | **BACKBAR-6** Write | 15 | Two columns, the amount in the serif, a fixed Save bar on mobile. |
+| 7 | **BACKBAR-7** Settings + Household | 16–17 | Five cards to two columns, six to four groups, segmented theme and unit controls, text-link row actions, the `···` menu on mobile, the bell's dropdown. Same calls, parameters and ids. |
+| 8 | **BACKBAR-8** Billing + Admin, every small screen | not drawn | The two pages the handoff never saw, restyled in full to the same language by analogy, plus not-found, the auth callback, the impersonation banner and the error bar. Same calls, gates and ids. |
+| 9 | **BACKBAR-9** Sweep | 18 | Focus rings, reduced motion, both themes at three widths on every screen, the QA cases + regenerated PDFs, the definition of done line by line. |
 
-**Then: run it.** The whole point of writing the cases is to execute them, and the app's half is the
-least automated part of the plan by design — what a browser journey cannot check is whether a count is
-*honest*, whether a suggestion is *useful*, whether her Spanish reads as Spanish.
+**Every slice runs both themes at 390, 768 and 1440 in a browser before its commit.** A restyle is the
+one kind of change the suite is weakest at — 54 frames and no test looks at any of them — which is
+also why BACKBAR-7 writes the QA cases so a person runs them again after the wave.
 
-**After that the list is empty, and what follows is a decision rather than a queue.** Candidates, none
-of which blocks another: the 969-recipe catalog behind a flag (a flag, not a slice — and note it makes
-`QA-MAKE-10` unreachable); the Savoy transcription-source question (JJ-032, open, blocks nothing); the
-two scrape-merged recipe lines; and **`AUTHORING-2`** — editing a cocktail, including a fork, the one
+**Still true, and still waiting: run the QA plan's app half.** The cases were written (PR #30) so they
+could be executed, and what a browser journey cannot check is whether a count is *honest*, whether a
+suggestion is *useful*, whether her Spanish reads as Spanish. The restyle changes every frame those
+cases look at, so the run is cheapest **after BACKBAR-9** — once, rather than once now and once again.
+
+**After the ladder, what follows is a decision rather than a queue.** Candidates, none of which blocks
+another: the 969-recipe catalog behind a flag (a flag, not a slice — and note it makes `QA-MAKE-10`
+unreachable); the Savoy transcription-source question (JJ-032, open, blocks nothing); the two
+scrape-merged recipe lines; **`AUTHORING-2`** — editing a cocktail, including a fork, the one
 outstanding story inside an epic marked complete.
 
 **Three questions to settle before the slices that need them. All three are now settled, each by the
