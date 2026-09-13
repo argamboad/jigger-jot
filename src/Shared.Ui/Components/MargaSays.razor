@@ -4,20 +4,29 @@
    real data in its placeholders. There is no model behind her and nothing here generates text —
    callers pass the finished sentence in.
 
-   One component so no screen re-spells how she sits beside a line. Give it a size; the rest follows.
+   One component so no screen re-spells how she sits beside a line. Give it a tone (BACKBAR-1) or a
+   size; the rest follows.
 *@
 
-<div class="marga @(Compact ? "marga-compact" : null)" data-testid="marga">
+<div class="marga @ToneClass @(Compact ? "marga-compact" : null)" data-testid="marga">
     @* Decorative: the sentence beside her carries the whole meaning, and a screen reader reading
        "photo of a bartender" before it would only get in the way. *@
     <img src="_content/JiggerJot.Shared.Ui/brand/marga_avatar_160.png" alt="" aria-hidden="true"
-         class="marga-face" width="@Size" height="@Size" />
-    <div class="marga-line">
-        @ChildContent
-        @if (!string.IsNullOrWhiteSpace(Aside))
+         class="marga-face" width="@Pixels" height="@Pixels" />
+    <div class="marga-body">
+        @if (Tone == MargaTone.Card && !string.IsNullOrWhiteSpace(Aside))
         {
-            <span class="marga-aside">@Aside</span>
+            @* On a card the aside becomes the LABEL and moves above the sentence — "MARGA · CHECKED
+               YOUR SHELF A MOMENT AGO", then her line. Same string, new position. *@
+            <span class="marga-label">@Aside</span>
         }
+        <div class="marga-line @(Tone == MargaTone.Card ? "font-display" : null)">
+            @ChildContent
+            @if (Tone == MargaTone.None && !string.IsNullOrWhiteSpace(Aside))
+            {
+                <span class="marga-aside">@Aside</span>
+            }
+        </div>
     </div>
 </div>
 
@@ -25,12 +34,35 @@
     /// <summary>The sentence she says — already localized, already filled in.</summary>
     [Parameter, EditorRequired] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>Rendered small and quiet under the line: who said it, or when.</summary>
+    /// <summary>
+    /// Who said it, or when. Under the line in the untoned rendering; a label above it on a card;
+    /// not rendered inline, where she is a footnote and a footnote has no label.
+    /// </summary>
     [Parameter] public string? Aside { get; set; }
 
-    /// <summary>Her size in pixels. 24 in a list row, 40 on a card.</summary>
+    /// <summary>
+    /// Card (96px, serif line, label) or Inline (32px, sans, no label). <see cref="MargaTone.None"/>
+    /// falls back to <see cref="Size"/> and <see cref="Compact"/>.
+    /// </summary>
+    [Parameter] public MargaTone Tone { get; set; } = MargaTone.None;
+
+    /// <summary>Her size in pixels when no tone is given. 24 in a list row, 40 on a card.</summary>
     [Parameter] public int Size { get; set; } = 40;
 
     /// <summary>Tighter spacing and smaller text, for use inside a row rather than as a card.</summary>
     [Parameter] public bool Compact { get; set; }
+
+    private int Pixels => Tone switch
+    {
+        MargaTone.Card => 96,
+        MargaTone.Inline => 32,
+        _ => Size,
+    };
+
+    private string? ToneClass => Tone switch
+    {
+        MargaTone.Card => "marga-card",
+        MargaTone.Inline => "marga-inline",
+        _ => null,
+    };
 }

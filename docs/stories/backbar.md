@@ -5,7 +5,8 @@
 > Marga given room. **Read with the handoff, `docs/design/2026-09-backbar-handoff.pdf`** (19 pages;
 > page numbers below are the document's own), and with **JJ-036 → JJ-039**, which record what the
 > review accepted, changed and refused. Stories use Gherkin acceptance criteria.
-> **Status: 📋 PLANNED 2026-09-13** — reviewed, decided, sequenced; nothing built.
+> **Status: 🚧 IN PROGRESS** — planned 2026-09-13; BACKBAR-1 ✅ built the same day. One branch,
+> `feat/backbar`, one commit per slice or fix, pushed on the word (PLAN, the redesign rule).
 
 **Epic key:** `BACKBAR`
 
@@ -110,11 +111,38 @@ browser; Release build with zero warnings; `Core.Tests`, `Api.Tests`, `Ui.Tests`
 
 ### BACKBAR-1 — Foundation: tokens, type, primitives, Marga's tone
 
-**Status: 📋 Planned.** Pages 01–02, and steps 1, 3 and 4 of page 18.
+**Status: ✅ Implemented (2026-09-13).** Pages 01–02, and steps 1, 3 and 4 of page 18. Three
+commits on `feat/backbar`: `1a` tokens and the face, `1b` the primitives, `1c` Marga's tone.
 
 **As a** member of a household
 **I want** every control in the app to share one shape and one palette in both themes
 **So that** the screens that follow are rearrangements of things I already recognise
+
+**What was decided while building it.**
+- **Bootstrap's own tokens are re-pointed, not fought.** `--bs-body-color`, `--bs-secondary-color`,
+  `--bs-border-color` and `--bs-body-bg` now resolve to the app's ink, muted, hairline and surface in
+  both themes, so `.text-muted`, every border and every card take the palette with no rule per
+  component. Dark clears `--bs-box-shadow-sm` rather than overriding `.shadow-sm`, which Bootstrap
+  marks `!important`. The page-10 status colours are the success/warning/danger subtle tokens under
+  dark; light already had Bootstrap's, which the page quotes verbatim.
+- **The face ships as the two subsets Google serves** (latin 21 KB, latin-ext 12 KB) with their
+  `unicode-range`, so an English page never fetches the extended block and a Spanish one pulls it on
+  demand. The one-weight rule is a gate: `RestyleGateTests` refuses `font-display` beside `fw-bold`.
+- **`--label-accent`**: brass on dark, copper on light, for the small uppercase labels — page 01 says
+  brass is a label colour on dark only, and brass on cream fails contrast.
+- **The focus ring moved to `:focus-visible`** so a mouse click does not light it while a keyboard
+  still does; the hidden `.btn-check` input hands its ring to the label.
+- **`Tone` is additive.** `MargaTone.None` is the default and renders exactly the pre-Tone shape, so
+  all seven call sites compile untouched and each moves to a tone in its own slice. On a card the
+  `Aside` becomes the label above the line; inline it is not rendered at all.
+- **The shelf pill grows through Bootstrap's button tokens** (`--bs-btn-padding-*`, `--bs-btn-font-size`)
+  so `.btn-sm` yields by order rather than by `!important`, and its 120ms fill is dropped under
+  `prefers-reduced-motion` beside the boot animation.
+
+**Seen, not proven.** The three gate tests passed on their first run rather than failing first: the
+build took longer than the stylesheet edit, so they ran against the finished CSS. The Tone tests did
+fail to compile first, as the ritual asks. No browser pass was possible in the session that built
+this (no display); QA-CHROME-14 is the case that looks.
 
 **Context / notes.** Everything on page 02, as CSS on Bootstrap's classes so no markup churns.
 

@@ -14,6 +14,10 @@
     object-fit: cover;
 }
 
+.marga-body {
+    min-width: 0;
+}
+
 .marga-line {
     /* Her voice, not the system's: slightly larger and warmer than the caption it replaces, which
        is the whole point of moving a substitution out of a washed-out caveat and into advice. */
@@ -38,4 +42,47 @@
 
 .marga-compact .marga-line {
     font-size: .85rem;
+}
+
+/* ── BACKBAR-1: the two tones, handoff page 02 ─────────────────────────────────────────────── */
+
+/* Card: the page's voice. 96px, a label above, the line in the display face at 23–29px and in the
+   ink — never muted grey, because it is advice rather than a caption. */
+.marga-card {
+    gap: 1.1rem;
+}
+
+.marga-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--label-accent);
+    margin-bottom: .3rem;
+}
+
+.marga-card .marga-line {
+    font-size: clamp(23px, 1.4rem + .6vw, 29px);
+    line-height: 1.25;
+    color: var(--ink, var(--bs-body-color));
+    text-wrap: balance;
+}
+
+/* A 1px brass ring on dark only (page 02): on the night ground the drawing's own edge is the same
+   dark as the panel, so the ring is what separates her from it. On light the drawing does that
+   itself. */
+[data-bs-theme="dark"] .marga-card .marga-face {
+    box-shadow: 0 0 0 1px var(--brand-accent);
+}
+
+/* Inline: a footnote to the row above her. 32px, 14px sans, no label. */
+.marga-inline {
+    gap: .5rem;
+    align-items: center;
+}
+
+.marga-inline .marga-line {
+    font-size: 14px;
+    line-height: 1.4;
 }

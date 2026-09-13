@@ -1683,6 +1683,17 @@ because a WebView has no download to measure.)*
 **Walkthrough:** turn on the OS "reduce motion" setting, then hard-reload. **Expected:** nothing on the
 boot screen moves on its own. *(A boot screen is the one thing nobody can choose to skip.)*
 
+### QA-CHROME-14 — The display face is the app's own, in both themes 🟢 (Web) — BACKBAR-1
+**Walkthrough:** open the app with the browser's network panel filtered to fonts, sign in, and open
+Home; then switch the theme to Dark, then Light (§9 QA-SET-08). **Expected:** every font request goes
+to the app's own origin (`_content/JiggerJot.Shared.Ui/fonts/…`) and none to a font host; the serif
+that Marga's card and the headlines use renders as a real serif, not the system fallback, within a
+second of the page appearing; nothing set in it is bold or smeared (the face has one weight). In Dark
+the page ground is the night colour, panels are one step lighter with a hairline and **no shadow**; in
+Light the ground is warm off-white and panels are white with a soft shadow. Buttons are pills and
+fields have rounded corners in both. Tab to any button or field: one copper focus ring with a gap in
+the ground colour, and no ring on a mouse click.
+
 ### QA-CHROME-09 — The app speaks Spanish throughout 🟠 (Web)
 **Walkthrough:** switch the language to Español (§10) and walk the app's own screens — shelf, catalog,
 a recipe, makeable, one-away, the wizard, both empty states. **Expected:** no English leaks, and
@@ -2870,6 +2881,7 @@ is the product. Cited decisions are `JJ-nnn` in `docs/DECISIONS.md`.
 | The boot state (SHELL-2) | CHROME-07/08, and the native legs of §12/§13 | none — it renders before the app exists. It lands in **two** `index.html` files (`NATIVE_PARITY.md`), held by a CI gate; the WebView hosts sweep instead of filling, having no download to measure. A second gate caps the illustration's size, since this is the one place it is fetched before the app is usable. |
 | Marga in the emails (MARGA-4) | **MAIL-05/06/07** + `Api.Tests` (`MargaInEmailTests`) | none — `BrandedEmail` renders her the way it renders the logo: a CID inline image, the one approach Gmail and Outlook both show (they block data-URIs). She is on the three emails a person ASKED for and deliberately not on the notification wrapper, which carries failed payments and security alerts. Attached only when shown, so her 19 KB never rides along unused. Her line is one whole resource string from `EmailStrings.resx`, same contract as in the app. |
 | The app in Spanish | **CHROME-09**, I18N-01..04 | resx only. Her lines are voiced, so the Spanish is a writing job rather than a translation, and the placeholders have to survive the rewrite. |
+| The restyle's foundation (BACKBAR-1) | **CHROME-14** + `Api.Tests` (`RestyleGateTests`) + `Ui.Tests` (`MargaSaysToneTests`) | none — presentation only (JJ-036). Both token sets in `app.css`; one self-hosted display serif, one weight, display only, reached through `.font-display` and never bold (JJ-038, gated); the primitives as CSS on Bootstrap's classes so no markup churns; `MargaSays` gains `Tone` with the old `Size`/`Compact` intact. |
 
 **Adversarial & tenant-isolation (§14a, QA-ADV-*) — v3-audit hardening probes.** Rows tagged
 **⚠️ v3** were authored against then-broken behaviour and sat **Blocked** until their finding landed;
@@ -3017,6 +3029,7 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-CHROME-07 | Web/Desktop/Android | | | | | |
 | QA-CHROME-08 | Web | | | | | OS reduce-motion setting |
 | QA-CHROME-09 | Web | | | | | Needs a Spanish reader |
+| QA-CHROME-14 | Web | | | | | Browser network panel, both themes |
 
 **§14a adversarial / tenant-isolation (QA-ADV-*).** All rows are **Not-run** (blank) until executed.
 The formerly pre-seeded **Blocked (known defect)** rows were reset when the v3 remediation completed
