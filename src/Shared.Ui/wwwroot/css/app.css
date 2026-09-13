@@ -25,22 +25,92 @@
        screen re-spelling the media query. */
     --tab-bar-height: 56px;
     --tab-bar-clearance: 0px;
-    --app-bg: #F4F5F7;              /* page background surface — cool near-white */
-    --app-border: #E4D8CF;          /* soft border tinted toward the primary */
+    /* ── BACKBAR-1 (JJ-036, JJ-038): the light set, handoff page 01. ─────────────────────────────
+       The page ground is warm now rather than cool: the app is dark-first and the light theme is its
+       counterpart, so both grounds are tinted toward the copper rather than toward a default grey. */
+    --app-bg: #F6F3EF;              /* page ground */
+    --surface: #FFFFFF;             /* panels, fields, the header — everything that sits ON the ground */
+    --app-border: #E4D8CF;          /* the hairline, tinted toward the primary */
+    --ink: #1E1B18;
+    --muted: #6B635A;               /* 5.8:1 on the ground — the floor for meta text, never lower */
+    --faint: #8A8178;
+
+    /* Bootstrap paints body text, secondary text, borders and the body ground from its own tokens.
+       Re-pointing them here is what makes every .text-muted, every .border and every card take the
+       app's values without a rule per component. */
+    --bs-body-color: var(--ink);
+    --bs-secondary-color: var(--muted);
+    --bs-border-color: var(--app-border);
+    --bs-body-bg: var(--surface);
+
+    /* The display face (JJ-038): one self-hosted serif, one weight, display only — the count, drink
+       names, card headlines and Marga's line, never a label, never below 20px, never bold. Applied
+       through .font-display, never by element, so the sans stays the default everywhere else. */
+    --font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
+}
+
+/* Self-hosted so both hosts get it from the RCL — offline in the MAUI shells, and no request leaves the
+   app for a font host on the login route, the one screen seen before anyone has consented to anything.
+   Two subsets, the way Google serves it, so a Latin-only page never fetches the extended block;
+   Spanish sits in the extended range and pulls it on demand. SIL Open Font License — OFL.txt beside. */
+@font-face {
+    font-family: "Instrument Serif";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../fonts/instrument-serif-latin.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: "Instrument Serif";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../fonts/instrument-serif-latin-ext.woff2") format("woff2");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* The one class that reaches for the serif. Weight 400 is stated, not inherited: a heading utility
+   or a bold parent would otherwise ask the face for a weight it does not have, and the browser
+   would smear one — the gate in Api.Tests refuses fw-bold beside this class for the same reason. */
+.font-display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: 0;
 }
 
 /* Dark theme (THEME-1). data-bs-theme is set on <html> pre-paint by js/theme.js; Bootstrap 5.3
    re-derives its own --bs-* tokens from the attribute, so only the app's surface tokens and the
    few hardcoded light values below need dark counterparts. Copper lifts so it still reads. */
 [data-bs-theme="dark"] {
-    --app-bg: #15181C;              /* night surface */
-    --app-border: #2F353E;
-    --bs-link-color: #D9865A;
+    /* BACKBAR-1: the dark set, handoff page 01 — the PRIMARY theme; light is its counterpart. */
+    --app-bg: #15181C;              /* night ground */
+    --surface: #1B1F25;             /* one step up from the ground; panels and fields sit here */
+    --app-border: #2F353E;          /* the hairline — never a shadow on dark */
+    --ink: #F2EDE8;
+    --muted: #A79E94;               /* 7.1:1 on the ground */
+    --faint: #8A8178;
+    --bs-link-color: #D9865A;       /* copper, lifted: text-on-dark only, 4.9:1 on the ground */
     --bs-link-hover-color: #F0A87E;
-    /* The dark counterparts of the derived family above. */
-    --bs-primary-text-emphasis: #E5A883;
+    /* The dark counterparts of the derived family above. #D9865A rather than the old #E5A883, so
+       the one emphasis colour is the same lifted copper the links use. */
+    --bs-primary-text-emphasis: #D9865A;
     --bs-primary-bg-subtle: #2A1A12;
     --bs-primary-border-subtle: #5C3620;
+    /* The status colours, handoff page 10. Light keeps Bootstrap's own, which the page quotes
+       verbatim; dark lifts them so a badge still reads on the night ground. Further-away stays
+       neutral — it is not an error. */
+    --bs-success-bg-subtle: #1E3A2B;
+    --bs-success-text-emphasis: #7BD3A0;
+    --bs-warning-bg-subtle: #3A2E12;
+    --bs-warning-text-emphasis: #E8C46A;
+    --bs-danger-bg-subtle: #2C1214;
+    --bs-danger-text-emphasis: #F1AEB5;
+    /* Hairline, never a shadow on dark: Bootstrap's .shadow-sm is !important, so the TOKEN is
+       cleared rather than the rule fought. */
+    --bs-box-shadow-sm: none;
+    --bs-box-shadow: none;
 }
 
 /* The dark-theme link colour, for anchors that are actually LINKS.
