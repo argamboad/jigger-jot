@@ -722,7 +722,10 @@ three widths match pages 16–17.
 
 **Status: ✅ Implemented (2026-09-13).** Not drawn in the handoff. **JJ-039** — all pages, no
 exceptions. Spec: page 02 (components) and the Settings/Household language of pages 16–17, applied
-by analogy. One commit on `feat/backbar`.
+by analogy. One commit on `feat/backbar`. **⚠️ Amended 2026-09-14:** restyling the auth callback
+rewrote the whole file and dropped its `@code` block — the cookie-for-session exchange every web
+sign-in lands on — so every sign-in stopped on "Processing sign-in…" and 45 of 51 journeys failed.
+The page had no test; `AuthCallbackTests` (4) now holds it, and PLAN.md carries the lesson.
 
 **As a** household owner on the billing page, or platform staff on the console
 **I want** the two pages the designer never saw to look like the rest of the app

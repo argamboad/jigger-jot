@@ -324,6 +324,16 @@ selector's last element is rendered by one, it belongs in `app.css`. It shipped,
 that described the right behaviour (`QA-CHROME-04`) had not been run yet — which is the argument for
 running the plan rather than only writing it.
 
+**A restyle that rewrote a file and lost its code.** BACKBAR-8 replaced the auth callback's spinner
+with the brass loading bar by writing the whole file, and the `@code` block — the exchange that turns
+the refresh cookie into a session, the only thing the page is for — went with it. Every web sign-in
+then stopped on "Processing sign-in…"; 45 of 51 browser journeys failed at the same line. The page
+had no test of its own, so 137 UI tests stayed green, and the sweep's "the whole E2E suite,
+unchanged" was written, not run. Two rules from it: **a restyle edits markup and styles and touches
+nothing below the `@code` line** — replace the block above it, never the file; and **a slice is not
+done until the journeys have actually run against it**, locally or in CI, and the number is in the
+commit message. `AuthCallbackTests` now holds the page.
+
 ## CI is now proportional to the change — 2026-09-11
 
 **`LOCALCI-3` shipped**, pulled forward ahead of `LOCALCI-1` and `LOCALCI-2` and needing neither. A
