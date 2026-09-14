@@ -351,8 +351,16 @@
    navigation link in the app copper, while the identical <button> next to it stayed white.
    Two rounds of one-off overrides were written against this (a.btn-primary, then .navbar-brand) and
    both treated a symptom. The exclusions below treat the cause: an anchor that a component has
-   already coloured is not a link to be recoloured. */
-[data-bs-theme="dark"] a:not(.btn):not(.nav-link):not(.navbar-brand),
+   already coloured is not a link to be recoloured.
+
+   The exclusions sit inside :where(), and that is load-bearing. `:not()` carries the specificity of
+   its argument, so written as `a:not(.btn):not(.nav-link):not(.navbar-brand)` this rule was 0,4,1 —
+   above every scoped page rule (a class plus Blazor's scope attribute is 0,2,0) — and in dark theme
+   it repainted every drink name on Home and in the catalog copper, where the handoff draws them in
+   the ink with copper on hover only. :where() contributes nothing, so the rule stays at the 0,1,1
+   this comment claims, still above Bootstrap's bare `a`, still below any page's own colour. Light
+   theme has no such rule and was right the whole time. Held by RestyleGateTests. */
+[data-bs-theme="dark"] a:where(:not(.btn):not(.nav-link):not(.navbar-brand)),
 [data-bs-theme="dark"] .btn-link {
     color: var(--brand-accent-light);
 }

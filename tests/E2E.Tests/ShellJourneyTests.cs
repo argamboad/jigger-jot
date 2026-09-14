@@ -59,6 +59,12 @@ public class ShellJourneyTests : E2ETestBase
         await Expect(Page.GetByTestId("cocktail-list").Or(Page.GetByTestId("cocktail-empty")))
             .ToBeVisibleAsync(new() { Timeout = 30_000 });
 
+        // Still in dark theme: a drink's name is in the ink, copper only on hover (handoff pages 02
+        // and 07). The same dark link rule, once its exclusions were written as `:not()`, sat at
+        // 0,4,1 and repainted every row name copper over the page's own 0,2,0 — a defect only a
+        // browser could show, since the light theme has no such rule and was right all along.
+        await Expect(Page.Locator(".catalog-row-name").First).ToHaveCSSAsync("color", ink);
+
         // ...and the same three at a phone width, without opening anything. Reaching the shelf
         // through a hamburger menu is the trip this slice removes.
         await Page.SetViewportSizeAsync(390, 844);

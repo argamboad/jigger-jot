@@ -175,6 +175,25 @@ public class RestyleGateTests
     }
 
     [Fact]
+    public void DarkThemeLinkColour_NeverOutranksAPagesOwnRule() // BACKBAR-9 amendment, 2026-09-14
+    {
+        var root = RepoRoot();
+        var css = File.ReadAllText(Path.Combine(root, "src", "Shared.Ui", "wwwroot", "css", "app.css"));
+
+        // Seen in the browser, not in a diff: in dark theme every drink name on Home and in the catalog
+        // was copper, where the handoff draws them in the ink with copper on hover only (page 02, page
+        // 07). The rule that paints links copper under dark excludes buttons with `:not()`, and `:not()`
+        // carries the specificity of its argument — three of them took the selector to 0,4,1, which
+        // outranks every scoped page rule (a class plus Blazor's scope attribute is 0,2,0). The
+        // exclusions have to sit inside `:where()`, which contributes nothing, so the rule stays at the
+        // 0,1,1 its own comment claims and a page's own colour wins.
+        var dark = Regex.Match(css, @"\[data-bs-theme=""dark""\]\s*a(?<sel>[^,{]*)");
+        Assert.True(dark.Success, "app.css has no dark-theme anchor rule");
+        Assert.Matches(new Regex(@"^:where\(.*\)$"), dark.Groups["sel"].Value.Trim());
+        Assert.DoesNotMatch(new Regex(@"\[data-bs-theme=""dark""\]\s*a:not\("), css);
+    }
+
+    [Fact]
     public void PrimaryButton_StaysCopperWhenDisabled() // BACKBAR-9
     {
         var root = RepoRoot();
