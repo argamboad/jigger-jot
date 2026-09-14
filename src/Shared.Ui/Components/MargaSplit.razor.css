@@ -93,15 +93,66 @@
     min-height: 100dvh;
 }
 
+/* The scene is a size container: how the square drawing sits in it depends on the COLUMN's aspect,
+   not the viewport's, and the column's aspect is what a media query cannot see. */
 .split-full .split-scene {
     min-height: 0;
+    container-type: size;
 }
 
+/* The pane centres its content, and the form never grows past 440 — on a tablet the pane is the
+   whole width, and a form the width of a tablet is a form nobody finishes. */
 .split-full .split-panel {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
     padding: 48px 44px;
+}
+
+.split-full .split-panel > * {
+    width: 100%;
+    max-width: 440px;
+}
+
+/* The gradient is an element here rather than the ::after every split has, because the rules below
+   are container queries and a container cannot query itself — its pseudo-elements included. */
+.split-full .split-scene-shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(15, 18, 22, 0) 35%, var(--scene-base) 88%);
+}
+
+.split-full .split-scene::after {
+    content: none;
+}
+
+/* A LANDSCAPE column — a laptop or a wide monitor. Covering it would take the top and bottom of the
+   square, which is her hair or her hands, so the whole drawing is shown at the column's full height,
+   set against the form pane so she leans toward the work, and its left edge fades into the night the
+   column already is. The night that is left holds her line. The gradient only has to darken the
+   counter under the line, so it starts low. */
+@container (min-aspect-ratio: 1/1) {
+    .split-scene-art {
+        inset: 0 0 0 auto;
+        width: auto;
+        height: 100%;
+        object-fit: contain;
+        -webkit-mask-image: linear-gradient(90deg, transparent, #000 32%);
+        mask-image: linear-gradient(90deg, transparent, #000 32%);
+    }
+
+    .split-scene-shade {
+        background: linear-gradient(180deg, rgba(15, 18, 22, 0) 62%, var(--scene-base) 100%);
+    }
+}
+
+/* A PORTRAIT column — a tablet held sideways, a narrow desktop window. Covering it takes the SIDES
+   of the square, the lamp and a slice of skyline, and leaves her whole; so it covers. */
+@container (max-aspect-ratio: 1/1) {
+    .split-scene-art {
+        object-position: center;
+    }
 }
 
 @media (min-width: 992px) {
@@ -121,31 +172,6 @@
         font-size: clamp(30px, 1.6rem + 1.4vw, 44px);
     }
 
-    /* The whole drawing, not a crop. Everywhere else the square is `cover`ed into a taller panel
-       and the crop is the price; here the panel is the biggest she is ever shown and the maintainer
-       wants all of her — the shaker, the glass, the bar. So the sharp image is `contain`ed, and
-       the strip the square cannot fill at wider aspects is the same picture blurred and dimmed
-       underneath, so there is no hard band at 1920 and no letterbox at 1440. The gradient starts
-       lower for the same reason: it only needs to darken the counter under her line. */
-    .split-full .split-scene-art {
-        object-fit: contain;
-        /* Against the form pane, so she leans toward the work and the strip the square leaves at
-           wider aspects is on the left, under her line rather than beside it. */
-        object-position: right center;
-    }
-
-    .split-full .split-scene::before {
-        content: "";
-        position: absolute;
-        inset: -32px;
-        background: url("brand/marga_scene_512.png") center / cover no-repeat;
-        filter: blur(28px) brightness(.55);
-        z-index: -1;
-    }
-
-    .split-full .split-scene::after {
-        background: linear-gradient(180deg, rgba(15, 18, 22, 0) 64%, var(--scene-base) 100%);
-    }
 }
 
 @media (max-width: 991.98px) {
@@ -154,18 +180,39 @@
         border-radius: 16px;
     }
 
-    /* Below lg the full bleed keeps the phone layout every split has — her scene 300px on top, the
-       panel sliding up under it — with no radius, since there is no frame. */
+    /* Below lg the full bleed keeps the phone layout every split has — her scene on top, the panel
+       sliding up under it — with no radius, since there is no frame. The scene's height follows the
+       WIDTH: a fixed 300px was a phone number, and on a tablet it showed a 768px-wide strip of her
+       forehead. At 62vw the square keeps her head, shoulders and the shaker at every width in the
+       range, and the form is still above the fold at 390×812. */
     .split-full {
         border-radius: 0;
     }
 
     .split-full .split-scene {
-        min-height: 300px;
+        min-height: clamp(280px, 62vw, 480px);
+    }
+
+    .split-full .split-scene-art {
+        object-position: center 12%;
     }
 
     .split-full .split-panel {
         padding: 28px 20px;
+    }
+
+    /* A tablet held upright has a phone's layout and a laptop's width, so the phone's 23px line
+       ran the whole width as one row. Sized between the two. */
+    @media (min-width: 768px) {
+        .split-full .split-line {
+            font-size: 30px;
+            max-width: 22ch;
+        }
+
+        .split-full .split-scene-text {
+            left: 32px;
+            right: 32px;
+        }
     }
 
     /* The scene 300px tall at the top, the panel sliding 26px up under the gradient so the whole

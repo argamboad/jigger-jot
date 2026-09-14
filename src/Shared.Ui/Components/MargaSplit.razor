@@ -14,6 +14,12 @@
     <div class="split-scene">
         <img class="split-scene-art" src="_content/JiggerJot.Shared.Ui/brand/marga_scene_512.png"
              alt="" aria-hidden="true" width="512" height="512" />
+        @if (Full)
+        {
+            @* The gradient as an element, not ::after: the full bleed's fit rules are container
+               queries on the scene, and a container cannot style its own pseudo-elements. *@
+            <div class="split-scene-shade" aria-hidden="true"></div>
+        }
         <div class="split-scene-text">
             @if (!string.IsNullOrWhiteSpace(Aside))
             {

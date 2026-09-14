@@ -504,10 +504,16 @@ full bleed** (amended 2026-09-14, the maintainer's call, seen on vuelto): no 110
 viewport's full height, her scene taking every column but a fixed 440px form pane at `lg` — the
 shape vuelto's sign-in settled on, as `Full` on the split. Login only: the wizard sits under the app
 header, and Join and the auth error page have one paragraph beside her, so they keep the frame.
-**And she is whole there**: the square is `contain`ed rather than `cover`ed — the shaker, the glass
-and the bar counter are in the drawing, and the login is the one place big enough to show them —
-with the same picture blurred and dimmed behind it to fill whatever the aspect leaves, and the
-gradient starting at 64% so it darkens only the counter under her line.
+**And she is whole there.** The drawing is square and the column is whatever the window makes it,
+so the fit is decided by the COLUMN's aspect (a container query — a media query cannot see it): a
+landscape column shows the whole square at full height against the form pane, its left edge fading
+into the night, with her line in the night that is left and the gradient starting at 62% so it
+darkens only the counter; a portrait column (a tablet held sideways) covers, because covering a
+portrait column takes the lamp and a slice of skyline and leaves her whole. Below `lg` the scene's
+height follows the width (62vw, 280–480px) rather than a fixed 300px, which on a tablet was a
+768px-wide strip of forehead, and the tablet line is sized between the phone's and the laptop's.
+The gradient is an element there rather than `::after`, because a container cannot style its own
+pseudo-elements. Seen at 375×812, 768×1024, 1024×768, 1440×900 and 1920×900.
 Mobile: the scene 300px tall on top (240 below 380px), the panel
 sliding 26px up under the gradient, the whole login form above the fold at 390×812. The code step
 swaps the buttons for the 6-digit field at 24px, letter-spacing .4rem, and she does not move.

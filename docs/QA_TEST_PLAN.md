@@ -1750,8 +1750,10 @@ fork button. A bad id shows her scene, the not-found line and a link back — no
 a 6-digit code. Then sign in as a new household and open `/welcome`, step 1 and step 2. Then open
 `/join` with no token, and `/auth-error`. **Expected:** on login her scene **fills the screen edge to
 edge** — no frame, the full height, the form a 440px pane on the right (the shape vuelto's sign-in
-has) — and **the whole drawing is visible**, shaker, glass and bar counter included, with a blurred
-copy filling the sides at wide aspects rather than a hard band; her sentence is the headline in
+has) — and **the whole drawing is visible**, shaker, glass and bar counter included, its left edge
+fading into flat night with her sentence in that night; at 1024×768 she is whole and the lamp is
+cropped instead; at 768×1024 the scene is about 480px tall showing her head to the glass, the line
+at 30px, the form centred at 440 wide; her sentence is the headline in
 the serif and there is **nothing over her**: the wordmark is on
 the form side only, on all three of login, join and the error page. **Her panel stays night in both
 themes**, only the form side flips. Join and the error page keep the framed split. At 390 the scene is 300px tall at the top, the form slides up
