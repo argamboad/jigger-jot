@@ -1749,7 +1749,8 @@ fork button. A bad id shows her scene, the not-found line and a link back — no
 **Walkthrough:** sign out and open `/login` at 1280 wide in Light, then Dark; then at 390×812. Send
 a 6-digit code. Then sign in as a new household and open `/welcome`, step 1 and step 2. Then open
 `/join` with no token, and `/auth-error`. **Expected:** on login her scene is half the screen with
-the wordmark over it and her sentence as the headline in the serif — **her panel stays night in both
+her sentence as the headline in the serif and **nothing over her** — the wordmark is on the form
+side only, on all three of login, join and the error page — and **her panel stays night in both
 themes**, only the form side flips. At 390 the scene is 300px tall at the top, the form slides up
 under it, and the whole form is above the fold. The code step swaps the two buttons for one 24px
 spaced field and she does not move. The wizard is the same split with a warm base, "Step 1 of 2"

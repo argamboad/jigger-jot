@@ -43,15 +43,6 @@
     background: linear-gradient(180deg, rgba(15, 18, 22, 0) 35%, var(--scene-base) 88%);
 }
 
-.split-scene-lockup {
-    position: absolute;
-    top: 28px;
-    left: 28px;
-    width: 150px;
-    height: auto;
-    z-index: 1;
-}
-
 .split-scene-text {
     position: absolute;
     left: 28px;
@@ -94,8 +85,8 @@
         border-radius: 16px;
     }
 
-    /* The scene 300px tall at the top, the lockup over it, the panel sliding 26px up under the
-       gradient so the whole form stays above the fold on a 390×812 device (page 05). */
+    /* The scene 300px tall at the top, the panel sliding 26px up under the gradient so the whole
+       form stays above the fold on a 390×812 device (page 05). */
     .split-scene,
     .split-compact .split-scene {
         min-height: 300px;
@@ -105,12 +96,6 @@
         left: 20px;
         right: 20px;
         bottom: 44px;
-    }
-
-    .split-scene-lockup {
-        top: 20px;
-        left: 20px;
-        width: 120px;
     }
 
     .split-line {

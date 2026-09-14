@@ -13,7 +13,9 @@
    action on the other. Her line is the login line: the same promise, to someone arriving by
    invitation. Chromeless when anonymous, under the header when signed in; the split does not care. *@
 <div class="join-wrapper">
-  <MargaSplit Line="@Localizer["Marga_LoginLine"]" Aside="@Localizer["Onboard_MargaAside"]" ShowLockup="true" Compact="true">
+  <MargaSplit Line="@Localizer["Marga_LoginLine"]" Aside="@Localizer["Onboard_MargaAside"]" Compact="true">
+    <img src="_content/JiggerJot.Shared.Ui/brand/lockup_light_1520.png" alt="JiggerJot" class="login-lockup mb-4" />
+
     @if (_state == State.Working)
     {
         <div class="spinner-border text-primary" role="status">

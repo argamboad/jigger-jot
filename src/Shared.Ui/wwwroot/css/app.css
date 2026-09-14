@@ -357,6 +357,15 @@
     color: var(--brand-accent-light);
 }
 
+/* The lockup on the working side of the split. Global rather than in Login.razor.css because Join
+   and the auth error page carry it too, and scoped CSS cannot reach a second page. */
+.login-lockup {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    display: block;
+}
+
 /* The wordmark lockups are dark-on-transparent; swap in the light-on-transparent variant
    wherever they render on a dark surface (login card, welcome card). */
 [data-bs-theme="dark"] .login-lockup,

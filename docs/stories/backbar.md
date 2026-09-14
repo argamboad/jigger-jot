@@ -466,7 +466,7 @@ re-run; both themes at three widths match pages 07–10.
 **What was decided while building it.**
 - **One component, `MargaSplit`, for all four screens.** Login, the wizard, Join and the auth error
   page each wanted the same two panels; four copies of the split is how it stops being one. The
-  night ground, the gradient, the brass label and the lockup over the scene are drawn there once —
+  night ground, the gradient and the brass label are drawn there once —
   the "one intentional exception to the theme swap" (page 06) is a rule in one file rather than a
   memory in four. `Warm` gives the wizard its `#2A1A12` base; `Compact` shortens the scene for the
   screens with little beside it.
@@ -495,8 +495,11 @@ Native parity (the MAUI shells render the same split) is the Android smoke's.
 `object-fit: cover`, a bottom gradient to `#0F1216` so her line sits on solid ground), the working
 side on the other. **Her panel keeps its dark ground in both themes** — the illustration is a night
 bar and carries its own light; only the form side flips. On light, Welcome's panel base is `#2A1A12`
-so the gradient lands warm. Over her scene the lockup is always `lockup_dark`; the form side keeps
-today's `content: url()` swap. Mobile: the scene 300px tall on top (240 below 380px), the panel
+so the gradient lands warm. **No wordmark over her scene** (amended 2026-09-14, the maintainer's
+call on sight: the handoff's corner lockup sat on her face at every width, and the working side
+already carries the brand). The form side keeps the lockup with today's `content: url()` swap, and
+Join and the auth error page now put it on their panel too, so no borrowed screen loses the brand;
+`.login-lockup` moved to `app.css` for the same scoped-CSS reason as the shelf sections. Mobile: the scene 300px tall on top (240 below 380px), the panel
 sliding 26px up under the gradient, the whole login form above the fold at 390×812. The code step
 swaps the buttons for the 6-digit field at 24px, letter-spacing .4rem, and she does not move.
 Welcome adds a 3px brass progress rule at 50% / 100% under "Step 1 of 2"; step 2 is the shelf's

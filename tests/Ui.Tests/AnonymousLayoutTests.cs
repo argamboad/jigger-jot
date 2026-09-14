@@ -35,12 +35,12 @@ public class AnonymousLayoutTests : ComponentTestBase
     {
         var page = Render<Login>();
 
-        // The scene is half the screen, her line is its headline, the lockup sits over it; the
-        // form side keeps the light lockup (dark-swapped in app.css) and every id.
+        // The scene is half the screen and her line is its headline; the brand is on the form side
+        // only (the light lockup, dark-swapped in app.css), never over her, and every id is kept.
         var split = page.Find(".split");
         Assert.Contains("Marga_LoginLine", split.QuerySelector(".split-line")!.TextContent);
         Assert.Contains("Onboard_MargaAside", split.QuerySelector(".split-eyebrow")!.TextContent);
-        Assert.NotNull(split.QuerySelector(".split-scene-lockup"));
+        Assert.Single(split.QuerySelectorAll(".split-scene img"));
         Assert.NotNull(page.Find(".split-panel [data-testid='login-email']"));
         Assert.NotNull(page.Find(".split-panel img.login-lockup"));
         Assert.NotNull(page.Find(".split-panel h1.page-title"));
@@ -130,6 +130,11 @@ public class AnonymousLayoutTests : ComponentTestBase
             Assert.NotNull(page.Find(".split-scene img.split-scene-art"));
             Assert.Empty(page.FindAll(".card"));
 
+            // The brand moved off her scene to the panel, the same place Login keeps it, so a page
+            // reached from an email still says whose it is.
+            Assert.Single(page.FindAll(".split-scene img"));
+            Assert.NotNull(page.Find(".split-panel img.login-lockup"));
+
             // BACKBAR-9: the panel's heading is the same serif h1 Login and the auth error use, not the
             // bold sans the split's borrowers kept — the sweep found Join was the one screen still in it.
             var heading = page.Find(".split-panel h1");
@@ -147,5 +152,7 @@ public class AnonymousLayoutTests : ComponentTestBase
         Assert.Empty(page.FindAll(".split-eyebrow"));   // nothing to attribute — it is not her line
         Assert.Contains("AuthError_Body", page.Find(".split-panel").TextContent);
         Assert.NotNull(page.Find(".split-panel a[href='/login']"));
+        Assert.Single(page.FindAll(".split-scene img"));
+        Assert.NotNull(page.Find(".split-panel img.login-lockup"));
     }
 }

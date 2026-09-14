@@ -4,17 +4,16 @@
 
    Her panel keeps its night ground in BOTH themes: the illustration is a night bar scene and carries
    its own light. Only the working side follows the theme. That is the one intentional exception to
-   the theme swap, and it is drawn here once rather than remembered four times. *@
+   the theme swap, and it is drawn here once rather than remembered four times.
+
+   Her scene carries her and her line, and nothing else. The handoff put the wordmark in its top
+   corner, which at every width is over her face; the working side carries the brand instead, so the
+   pages that borrow the split put the lockup there themselves (Login, Join, the auth error page). *@
 
 <div class="split @(Warm ? "split-warm" : null) @(Compact ? "split-compact" : null)">
     <div class="split-scene">
         <img class="split-scene-art" src="_content/JiggerJot.Shared.Ui/brand/marga_scene_512.png"
              alt="" aria-hidden="true" width="512" height="512" />
-        @if (ShowLockup)
-        {
-            @* Over her scene the lockup is ALWAYS the light-on-dark one, whatever the theme. *@
-            <img class="split-scene-lockup" src="_content/JiggerJot.Shared.Ui/brand/lockup_dark_1520.png" alt="JiggerJot" />
-        }
         <div class="split-scene-text">
             @if (!string.IsNullOrWhiteSpace(Aside))
             {
@@ -34,9 +33,6 @@
 
     /// <summary>The small brass label above the line ("Marga · behind the bar"); none when absent.</summary>
     [Parameter] public string? Aside { get; set; }
-
-    /// <summary>The wordmark over her scene, for the anonymous routes where it is the page's brand.</summary>
-    [Parameter] public bool ShowLockup { get; set; }
 
     /// <summary>The wizard's warm base (#2A1A12) under the gradient rather than the login's night.</summary>
     [Parameter] public bool Warm { get; set; }

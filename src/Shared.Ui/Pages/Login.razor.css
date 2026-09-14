@@ -11,13 +11,6 @@
     width: 100%;
 }
 
-.login-lockup {
-    width: 100%;
-    max-width: 200px;
-    height: auto;
-    display: block;
-}
-
 /* The 6-digit field: 24px, letter-spacing .4rem, centred. The MFA field is wider and a little tighter. */
 .login-code {
     font-size: 24px;
