@@ -1736,6 +1736,9 @@ reader announces "radio, 1 of 3"; the deep link lands with the right chip select
 pill; the rows are hairlines with the name in the serif and the book on the right, never wrapping;
 a substituted drink shows Marga at 32px with her line in copper; the pager is text on a hairline. At
 390 the chip row stays at the top while the list scrolls. No box anywhere except the one-away panel.
+**At 600 wide** (a tablet, a narrow window): the search takes the row, Filters and Write a cocktail sit
+**left-aligned** under it rather than pushed to the right edge, and the three chips stay **on one row**
+that scrolls sideways if it must — "Everything" never drops to a line of its own.
 
 ### QA-CHROME-19 — A recipe reads by its measures, and prints 🟠 (Web) — BACKBAR-4
 **Walkthrough:** open a drink you are one bottle short of, whose recipe also has a substitution and
@@ -1848,14 +1851,19 @@ survive the rewrite.
 ```gherkin
 Given I request an OTP code
 When I open the email in Mailpit
-Then it shows the brand logo, brand colours, the 6-digit code, and the tagline
+Then it looks like the app: the lockup, the warm ground and copper, the heading in the display serif, the code, and the tagline
 ```
-**Walkthrough:** trigger an OTP; open it in Mailpit. **Expected:** the logo image renders (CID-embedded,
-not a broken image), brand-green styling, a clearly displayed code, footer wordmark + tagline.
+**Walkthrough:** trigger an OTP; open it in Mailpit, then in Gmail if you have it. **Expected:** the
+JiggerJot lockup renders (CID-embedded, not a broken image) **on the warm ground with no white box
+around it**; a white card on a hairline; the heading and Marga's line in the **display serif**, never
+bold (Gmail and Outlook on Windows drop the embedded face and show **Georgia** — that is the fallback,
+not a bug); body text in the app's sans; the code large in a hairline field; the footer reads
+"JiggerJot · Mix what you have." Nothing in the old cool grey, no bold copper heading.
 
 ### QA-MAIL-02 — Magic-link email 🟠
-**Walkthrough:** trigger a magic link; open in Mailpit. **Expected:** branded layout; a working
-sign-in button/link; sensible subject.
+**Walkthrough:** trigger a magic link; open in Mailpit. **Expected:** the same look as QA-MAIL-01; a
+working sign-in button that is a **copper pill** (square in Outlook on Windows, which ignores the
+radius); sensible subject.
 
 ### QA-MAIL-03 — Invitation email 🟠
 **Walkthrough:** send an invite; open in Mailpit. **Expected:** branded layout; the recipient's
@@ -1863,7 +1871,8 @@ address; a `/join?token=…` link that works (QA-INV-02).
 
 ### QA-MAIL-04 — Logo renders in a real client 🟢
 **Walkthrough (optional, deliverability):** forward/inspect one email in a real Gmail/Outlook client.
-**Expected:** the CID logo still renders. *(Note: from a non-verified domain, real delivery may land
+**Expected:** the CID lockup and Marga still render, and the heading falls back to Georgia rather than
+Times New Roman. *(Note: from a non-verified domain, real delivery may land
 in spam — a domain/DKIM concern, not an app bug.)*
 
 ### QA-MAIL-05 — Marga is on the emails a person asked for, and only those 🟠
@@ -1875,8 +1884,9 @@ But given a system notification — a failed payment, a security alert
 Then she is not there at all
 ```
 **Walkthrough**
-1. Trigger an OTP, a magic link and an invitation. **Expected in each:** her avatar and one line, above
-   the code/button — and **Inline images (2)** in Mailpit's header, the logo plus her.
+1. Trigger an OTP, a magic link and an invitation. **Expected in each:** her avatar at 72px with
+   "MARGA" as a small copper label above her line, the line in the serif, all above the code/button —
+   and **Inline images (2)** in Mailpit's header, the lockup plus her.
 2. Trigger a notification email (a billing or announcement one — §10b, §10c). **Expected:** no Marga,
    and **Inline images (1)**. She is not merely hidden; her 19 KB does not ride along on an email that
    never shows her.

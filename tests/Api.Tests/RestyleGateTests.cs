@@ -212,6 +212,24 @@ public class RestyleGateTests
     }
 
     [Fact]
+    public void CatalogChips_ScrollRatherThanWrap_BelowLg() // BACKBAR-4 F7, amended 2026-09-14
+    {
+        var css = Regex.Replace(
+            File.ReadAllText(Path.Combine(RepoRoot(), "src", "Shared.Ui", "Pages", "Cocktails.razor.css")),
+            @"/\*.*?\*/", "", RegexOptions.Singleline);
+
+        // F7 settled it: the chips carry their FULL labels at every width "and the row scrolls if it
+        // must". It wrapped instead, so at tablet width "Everything · 971" dropped to a line of its own
+        // under the other two — a radio group split across two rows reads as two controls.
+        var media = Regex.Match(css, @"@media\s*\(max-width:\s*991\.98px\)\s*\{(.*?)\n\}", RegexOptions.Singleline);
+        Assert.True(media.Success, "Cocktails.razor.css has no below-lg block");
+        var scope = Regex.Match(media.Groups[1].Value, @"\.catalog-scope\s*\{([^}]*)\}");
+        Assert.True(scope.Success, "the below-lg block has no .catalog-scope rule");
+        Assert.Matches(new Regex(@"flex-wrap:\s*nowrap"), scope.Groups[1].Value);
+        Assert.Matches(new Regex(@"overflow-x:\s*auto"), scope.Groups[1].Value);
+    }
+
+    [Fact]
     public void PrimaryButton_StaysCopperWhenDisabled() // BACKBAR-9
     {
         var root = RepoRoot();

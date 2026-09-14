@@ -153,6 +153,9 @@
 
 @media (max-width: 991.98px) {
     /* The chips stay reachable while a full page of twenty rows scrolls under them. */
+    /* One row that scrolls, never two (F7: full labels at every width, "the row scrolls if it
+       must"). Wrapping put "Everything" on a line of its own at tablet width, and a radio group split
+       over two rows reads as two controls. */
     .catalog-scope {
         position: sticky;
         top: var(--header-height, 60px);
@@ -160,6 +163,18 @@
         background: var(--app-bg);
         padding: .5rem 0;
         margin-top: -.5rem;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .catalog-scope::-webkit-scrollbar {
+        display: none;
+    }
+
+    .catalog-chip {
+        flex: 0 0 auto;
+        white-space: nowrap;
     }
 
     .catalog-search {

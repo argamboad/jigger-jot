@@ -68,6 +68,23 @@ public class CatalogChipsTests : ComponentTestBase
     }
 
     [Fact]
+    public void TheToolbarHangsLeft_UntilThereIsRoomToPushFiltersRight()
+    {
+        // Seen at tablet width (2026-09-14): below lg the search takes the whole row, so Filters and
+        // Write wrapped onto a row of their own — and `ms-auto` still pushed them to the far right,
+        // the one right-aligned thing on a page that hangs left. The push only belongs beside the
+        // 280px search, from lg up.
+        var page = RenderAt("/cocktails");
+
+        page.WaitForAssertion(() =>
+        {
+            var filters = page.Find("[data-testid='cocktail-filters-toggle']");
+            Assert.Contains("ms-lg-auto", filters.ClassList);
+            Assert.DoesNotContain("ms-auto", filters.ClassList);
+        });
+    }
+
+    [Fact]
     public void ADeepLinkPreselectsItsChip()
     {
         var page = RenderAt("/cocktails?almost=true");

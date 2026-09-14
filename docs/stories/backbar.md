@@ -453,6 +453,15 @@ the scenarios; `MakeableJourneyTests` and `CocktailBrowseJourneyTests` green thr
 `CocktailsEmptyStateTests` green; "Everything" in EN and ES; QA-MAKE, QA-CKTL and a new print case
 re-run; both themes at three widths match pages 07–10.
 
+**Amended 2026-09-14, seen by the maintainer at tablet width.** Two things in the toolbar. Below `lg`
+the search takes the whole row, so Filters and Write a cocktail wrapped onto a row of their own — and
+Filters' `ms-auto` still pushed them to the right edge, the one right-aligned thing on a page that
+hangs left. The push is `ms-lg-auto` now, beside the 280px search only. And the chips **wrapped**,
+dropping "Everything · 971" to a line of its own, where F7 had already settled that the row keeps its
+full labels "and scrolls if it must": below `lg` the row is `nowrap` with a hidden horizontal
+scrollbar, and each chip keeps its width. Held by `CatalogChipsTests` (the push starts at `lg`) and
+`RestyleGateTests.CatalogChips_ScrollRatherThanWrap_BelowLg`.
+
 ---
 
 ### BACKBAR-5 — Login and Welcome, her two full appearances

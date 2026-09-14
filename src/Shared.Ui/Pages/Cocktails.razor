@@ -23,7 +23,7 @@
     @* FEATURES §11 lists these alongside the makeability toggles as one combinable set. Behind a
        button because most visits are a search, and four dropdowns above every list is a form nobody
        asked for. *@
-    <button class="btn btn-outline-secondary btn-sm ms-auto" data-testid="cocktail-filters-toggle"
+    <button class="btn btn-outline-secondary btn-sm ms-lg-auto" data-testid="cocktail-filters-toggle"
             @onclick="ToggleFiltersAsync">
         @Localizer["Cocktails_Filters"]@(ActiveFilters > 0 ? $" · {ActiveFilters}" : "")
     </button>
