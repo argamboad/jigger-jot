@@ -5,7 +5,7 @@ Sources (editable):      src/Shared.Ui/wwwroot/brand/{icon_light,icon_dark,locku
                          src/Web/wwwroot/favicon.svg, src/Maui/Resources/{AppIcon,Splash}/*.svg
 Outputs (this script):   the PNGs next to those sources, src/Web/wwwroot/{favicon.ico,favicon.png,
                          apple_touch_180.png,icon-*.png,og_image_1200x630.png},
-                         src/Infrastructure/Email/Assets/logo.png, and the store/marketing set in
+                         src/Infrastructure/Email/Assets/lockup.png, and the store/marketing set in
                          docs/brand/.
 
 Rendering uses headless Microsoft Edge so the lockup wordmark carries the real webfonts, and
@@ -121,9 +121,11 @@ def main():
     Image.open(big).save(WEB / "favicon.ico", sizes=[(16, 16), (32, 32), (48, 48)])
     print("  src/Web/wwwroot/favicon.ico  16/32/48")
 
-    # Email logo: flat PNG, no transparency (email clients)
-    render(page(mark_svg(256, 256, COPPER, bg=WHITE, scale=0.76), 256, 256, bg=WHITE), EMAIL / "logo.png", 256, 256)
-    flatten(EMAIL / "logo.png")
+    # Email header lockup: the light lockup on TRANSPARENT, at 2x the 200px it displays at. It sits on the
+    # email's warm ground, not on the white card, so a flat white render showed as a white box; every
+    # client worth supporting draws PNG alpha. The emails' other two assets are copies, not renders:
+    # marga.png and the display face (src/Infrastructure/Email/Assets/instrument-serif-latin.woff2).
+    render(page(sized_svg(SHARED / "lockup_light.svg", 400, 103), 400, 103), EMAIL / "lockup.png", 400, 103)
 
     # Store / marketing set (docs/brand) — NEW_APP_GUIDE Phase 9
     render(page(mark_svg(1024, 1024, BONE, bg=NIGHT, scale=0.7), 1024, 1024), DOCS_BRAND / "app_store_icon_1024.png", 1024, 1024)

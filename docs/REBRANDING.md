@@ -58,7 +58,8 @@ In-app UI (shared RCL — used by web + desktop + mobile):
   editable source, render the PNGs from them, and point `Login.razor`/`Home.razor` at the PNGs.
 
 **Email logo (CID-embedded — shown in every transactional email):**
-- **`src/Infrastructure/Email/Assets/logo.png`** — keep it a **PNG** (email clients strip SVG and block data-URIs); a ~128px square is plenty.
+- **`src/Infrastructure/Email/Assets/lockup.png`** — the header lockup, rendered from `lockup_light.svg` flat on white at 400×103 (shown at 200) by `docs/brand/build_assets.py`. Keep it a **PNG** (email clients strip SVG and block data-URI images).
+- **`src/Infrastructure/Email/Assets/instrument-serif-latin.woff2`** (+ `OFL.txt`) — the display face, a byte-for-byte **copy** of the RCL's latin subset, embedded in each email as data. A rebrand that changes the display face replaces both copies; `EmailLookTests` fails while they differ. The palette in `BrandedEmail.cs` is a literal copy of `app.css`'s light set — change them together.
 - **`src/Infrastructure/Email/Assets/marga.png`** — the character's avatar, a deliberate **copy** of the RCL's brand asset: `Infrastructure` does not depend on `Shared.Ui` and must not start. Replacing the character means replacing **both** files, and a rebrand that drops the character entirely should remove her lines from `EmailStrings.resx` and the `MargaSays(...)` calls in `BrandedEmail.cs` rather than leaving a stranger's face on the sign-in email.
 
 Web host chrome:

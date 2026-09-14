@@ -56,8 +56,8 @@ own. Full context in `docs/PROJECT_BRIEF.md`; tagline "Mix what you have." (JJ-0
   reverse it.
 - Rebranding (name, logo, colours, tagline) → follow **`docs/REBRANDING.md`** and complete every
   item. It explicitly covers the **transactional email templates** (`src/Infrastructure/Email/` —
-  `BrandedEmail.cs` + `Assets/logo.png` + `Assets/marga.png`), which are inline and easy to miss; a
-  rebrand that skips them is incomplete. **Both assets are copies**, not references: `Infrastructure`
+  `BrandedEmail.cs` + `Assets/lockup.png` + `Assets/marga.png` + `Assets/instrument-serif-latin.woff2`), which are inline and easy to miss; a
+  rebrand that skips them is incomplete. **The assets are copies**, not references: `Infrastructure`
   does not depend on `Shared.Ui` and must not start.
 
 ## Golden rules — constant (do not violate)

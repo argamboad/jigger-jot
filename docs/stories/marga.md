@@ -231,9 +231,38 @@ written Spanish. Mailpit's compatibility check adds no new warnings — every CS
 was already used elsewhere in the template, except the avatar's `border-radius`, which degrades to a
 square in Outlook and is fine.
 
+**Amended 2026-09-14 — the emails wear the restyle** (BACKBAR, the maintainer's request: "fonts and
+everything"). The template still carried the pre-restyle look: a cool grey ground, Segoe UI, a bold
+copper heading, the bare mark in a white box over a bold copper word, a bold copper code, and her at
+52px with her name under the line. It now copies the app's light set — the warm ground, a white card
+on a hairline, ink and muted text, copper for the one action — with the heading and her line in the
+display serif at 29 and 23px, never bold, the body in the app's sans, pill buttons, 12px hairline
+fields, and her in the card tone: 72px, "MARGA" as the small copper label above the line. The header
+is the **lockup** the login shows, rendered transparent so it sits on the ground rather than in a box
+(the first render was flat on white and showed one). Decided while building it:
+- **The serif is embedded, never linked.** A font URL in an email is a request to a server when the
+  message opens. The latin subset (21 KB, which covers Spanish) is a byte-for-byte copy of the RCL's,
+  base64 in the email's `<style>`; every email stays near 32 KB, far under Gmail's 102 KB clip.
+  Apple Mail, iOS and Outlook for Mac draw it; Gmail and Outlook on Windows drop it and show Georgia,
+  the app's own fallback, and an Outlook-only block names Georgia so Word's engine does not reach for
+  Times New Roman.
+- **Light only, and it says so** (`color-scheme: light only`). The app is dark-first, but mail
+  clients disagree about dark mode and a half-inverted email is worse than a light one.
+- **She is still off the notification email** — the look changed, the judgement did not.
+Held by `EmailLookTests`: the palette and no retired value, the serif heading at 400, the embedded
+face equal to the RCL's file with its licence beside it, the size under the clip, the Outlook block,
+the transparent lockup, `lang` following the culture, copper pills, and her card tone.
+
 **Acceptance criteria**
 
 ```gherkin
+Scenario: The emails look like the app (amendment, 2026-09-14)
+  Given any branded email, in either language
+  Then it uses the app's light palette, the display serif for its heading, and the app's sans for its body
+  And the serif travels inside the email as data, identical to the app's file
+  And the header is the transparent lockup, and buttons are copper pills
+  # EmailLookTests
+
 Scenario: The emails someone asked for sound like the app
   Given a sign-in code, a sign-in link or an invitation
   Then Marga says one line above the thing I came for

@@ -9,8 +9,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Brand logo embedded for CID inline-embedding in branded emails (BrandedEmail). -->
-    <EmbeddedResource Include="Email\Assets\logo.png" />
+    <!-- The header lockup, embedded for CID inline-embedding in branded emails (BrandedEmail). Rendered
+         from the RCL's lockup_light.svg by docs/brand/build_assets.py, flat on white. -->
+    <EmbeddedResource Include="Email\Assets\lockup.png" />
+    <!-- The display face, a byte-for-byte COPY of the RCL's latin subset (EmailLookTests holds the two
+         equal), embedded in each email as data rather than linked. OFL.txt travels beside it. -->
+    <EmbeddedResource Include="Email\Assets\instrument-serif-latin.woff2" />
     <!-- Marga's avatar, a COPY of the RCL's brand asset rather than a reference to it: Infrastructure
          does not depend on Shared.Ui and must not start, and REBRANDING.md already treats the email
          assets as their own set for exactly this reason. Attached only to the emails that use her. -->
