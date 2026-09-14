@@ -334,6 +334,22 @@ nothing below the `@code` line** — replace the block above it, never the file;
 done until the journeys have actually run against it**, locally or in CI, and the number is in the
 commit message. `AuthCallbackTests` now holds the page.
 
+**A visual sweep against mocks only sees the shapes the mocks have.** BACKBAR-9 rendered ninety-six
+frames against mocked API responses and read every one, and the maintainer still opened the app
+and found it "defective somehow". Two things: in dark theme every drink name on Home and in the
+catalog was copper, and the wizard's second step stretched Marga's scene to the height of 191
+pills — a face five screens tall. The first was in the mocked frames and was read past, because the
+light frames beside them were right and the eye averaged the pair; the second could not be in them,
+because the mocked shelf had a handful of pills and the column never grew. Both were found in ten
+minutes by signing in to the running app with a stocked household and capturing the same frames
+against the real API (the capture script lives in the session's scratchpad, not the repo). Three
+rules from it: **a restyle's browser pass runs against the real API with real data**, and a mock is
+for the states the data cannot easily reach (an error, an empty list), not for the screens; **read
+dark and light as two questions**, not as one frame with two palettes; and **a specificity written
+in a comment is not a specificity** — `:not()` carries its argument's weight, and the rule that
+claimed 0,1,1 was 0,4,1. Both defects are now held by tests that compute the thing the eye missed:
+a colour, and a height.
+
 ## CI is now proportional to the change — 2026-09-11
 
 **`LOCALCI-3` shipped**, pulled forward ahead of `LOCALCI-1` and `LOCALCI-2` and needing neither. A

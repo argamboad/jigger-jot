@@ -808,7 +808,29 @@ language as pages 16–17.
 
 ### BACKBAR-9 — The sweep
 
-**Status: ✅ Implemented (2026-09-13).** Page 18. One commit on `feat/backbar`.
+**Status: ✅ Implemented (2026-09-13).** Page 18. One commit on `feat/backbar`. **⚠️ Amended
+2026-09-14** — a second pass, this time against the REAL API with a stocked household rather than
+mocked responses, found two things the first pass could not have and one it should have:
+- **Every drink name was copper in dark theme** — Home's three drinks, every catalog row, in all
+  three chip states — where pages 02 and 07 draw them in the ink with copper on hover only. The
+  dark-theme link rule excludes buttons with `:not()`, and `:not()` carries the specificity of its
+  argument: three of them took the selector to 0,4,1, above every scoped page rule (a class plus
+  Blazor's scope attribute is 0,2,0). Its own comment claimed 0,1,1. The exclusions now sit inside
+  `:where()`, which contributes nothing, so the rule is what it said it was. Light theme has no such
+  rule and was right the whole time — which is why a pass that reads dark and light side by side
+  has to read them as two questions, not one. Held by `RestyleGateTests` (the selector's shape) and
+  `ShellJourneyTests` (the computed colour in dark theme equals the body's ink).
+- **The wizard's second step stretched her scene to the height of the list.** Her column is the
+  grid row's height, the art was absolutely positioned against the column, and step 2 is 191 pills
+  — about 5,000 pixels — so the 512 square covered all of it and the page scrolled past a face five
+  screens tall. The mocked shelf in the first pass had a handful of pills, so the column never grew
+  and the frame looked like page 14. The art, the gradient and her line are now ONE sticky block
+  inside the column — the column's height until the column outgrows the viewport, then the
+  viewport's, following the scroll under the app header — so she stays beside whatever part of the
+  shelf someone is ticking; the column keeps the night ground beneath. Held by `MargaSplitTests`
+  (the structure) and `OnboardJourneyTests` (her scene is never taller than the viewport at step 2).
+- The lesson for the pass itself is in PLAN.md: **a visual sweep against mocks only sees the shapes
+  the mocks have**, and a specificity claim in a comment is not a specificity.
 
 **As a** member on any screen
 **I want** the restyle to be finished, not mostly finished
@@ -888,6 +910,18 @@ Scenario: Join's heading is Login's heading
   Given /join in any of its five states
   Then the panel's h1 carries page-title and never fw-bold
   # AnonymousLayoutTests.Join_ReusesTheSplit_AndKeepsItsStates
+
+Scenario: A drink's name is in the ink in dark theme too (amendment, 2026-09-14)
+  Given the catalog in dark theme
+  Then the first row's name computes to the body's own colour, not the link colour
+  And the dark-theme anchor rule in app.css names its exclusions inside :where()
+  # ShellJourneyTests (the computed colour); RestyleGateTests.DarkThemeLinkColour_NeverOutranksAPagesOwnRule
+
+Scenario: Her scene is never taller than the screen (amendment, 2026-09-14)
+  Given the wizard's second step, with every category of the shelf beside her
+  Then the art, the gradient and her line sit in one block inside her column
+  And that block's height is at most the viewport's
+  # MargaSplitTests.HerSceneIsOneStickyBlock_SoALongPanelCannotStretchHer; OnboardJourneyTests (the geometry)
 
 Scenario: Every journey is still green
   # the whole E2E suite, unchanged except the two helpers BACKBAR-2 and BACKBAR-4 introduced
