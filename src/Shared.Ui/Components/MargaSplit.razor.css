@@ -120,6 +120,32 @@
         max-width: 18ch;
         font-size: clamp(30px, 1.6rem + 1.4vw, 44px);
     }
+
+    /* The whole drawing, not a crop. Everywhere else the square is `cover`ed into a taller panel
+       and the crop is the price; here the panel is the biggest she is ever shown and the maintainer
+       wants all of her — the shaker, the glass, the bar. So the sharp image is `contain`ed, and
+       the strip the square cannot fill at wider aspects is the same picture blurred and dimmed
+       underneath, so there is no hard band at 1920 and no letterbox at 1440. The gradient starts
+       lower for the same reason: it only needs to darken the counter under her line. */
+    .split-full .split-scene-art {
+        object-fit: contain;
+        /* Against the form pane, so she leans toward the work and the strip the square leaves at
+           wider aspects is on the left, under her line rather than beside it. */
+        object-position: right center;
+    }
+
+    .split-full .split-scene::before {
+        content: "";
+        position: absolute;
+        inset: -32px;
+        background: url("brand/marga_scene_512.png") center / cover no-repeat;
+        filter: blur(28px) brightness(.55);
+        z-index: -1;
+    }
+
+    .split-full .split-scene::after {
+        background: linear-gradient(180deg, rgba(15, 18, 22, 0) 64%, var(--scene-base) 100%);
+    }
 }
 
 @media (max-width: 991.98px) {

@@ -1750,7 +1750,9 @@ fork button. A bad id shows her scene, the not-found line and a link back — no
 a 6-digit code. Then sign in as a new household and open `/welcome`, step 1 and step 2. Then open
 `/join` with no token, and `/auth-error`. **Expected:** on login her scene **fills the screen edge to
 edge** — no frame, the full height, the form a 440px pane on the right (the shape vuelto's sign-in
-has) — with her sentence as the headline in the serif and **nothing over her**: the wordmark is on
+has) — and **the whole drawing is visible**, shaker, glass and bar counter included, with a blurred
+copy filling the sides at wide aspects rather than a hard band; her sentence is the headline in
+the serif and there is **nothing over her**: the wordmark is on
 the form side only, on all three of login, join and the error page. **Her panel stays night in both
 themes**, only the form side flips. Join and the error page keep the framed split. At 390 the scene is 300px tall at the top, the form slides up
 under it, and the whole form is above the fold. The code step swaps the two buttons for one 24px

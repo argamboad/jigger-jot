@@ -504,6 +504,10 @@ full bleed** (amended 2026-09-14, the maintainer's call, seen on vuelto): no 110
 viewport's full height, her scene taking every column but a fixed 440px form pane at `lg` — the
 shape vuelto's sign-in settled on, as `Full` on the split. Login only: the wizard sits under the app
 header, and Join and the auth error page have one paragraph beside her, so they keep the frame.
+**And she is whole there**: the square is `contain`ed rather than `cover`ed — the shaker, the glass
+and the bar counter are in the drawing, and the login is the one place big enough to show them —
+with the same picture blurred and dimmed behind it to fill whatever the aspect leaves, and the
+gradient starting at 64% so it darkens only the counter under her line.
 Mobile: the scene 300px tall on top (240 below 380px), the panel
 sliding 26px up under the gradient, the whole login form above the fold at 390×812. The code step
 swaps the buttons for the 6-digit field at 24px, letter-spacing .4rem, and she does not move.
