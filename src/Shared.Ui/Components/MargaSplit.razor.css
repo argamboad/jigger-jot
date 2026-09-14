@@ -79,10 +79,67 @@
     min-height: 420px;
 }
 
+/* Full bleed (Login). No frame, no cap, the viewport's height — dvh so a phone's chrome sliding
+   away does not leave a strip, vh as the fallback under it. At lg the working side is a fixed
+   440px pane and she takes everything else, the shape vuelto's sign-in settled on; the pane centres
+   its content vertically. The scene's min-height is released because the grid row IS the height.
+   The 512 square is upscaled here more than anywhere else, which is what the 2× landscape crop
+   (the maintainer's asset action, story F8) is for. */
+.split-full {
+    border: 0;
+    border-radius: 0;
+    max-width: none;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+.split-full .split-scene {
+    min-height: 0;
+}
+
+.split-full .split-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 48px 44px;
+}
+
+@media (min-width: 992px) {
+    .split-full {
+        grid-template-columns: minmax(0, 1fr) 440px;
+    }
+
+    .split-full .split-scene-text {
+        left: 48px;
+        right: 48px;
+        bottom: 48px;
+    }
+
+    /* Her scene is now a thousand pixels wide; the line stays a headline, not a ticker. */
+    .split-full .split-line {
+        max-width: 18ch;
+        font-size: clamp(30px, 1.6rem + 1.4vw, 44px);
+    }
+}
+
 @media (max-width: 991.98px) {
     .split {
         grid-template-columns: 1fr;
         border-radius: 16px;
+    }
+
+    /* Below lg the full bleed keeps the phone layout every split has — her scene 300px on top, the
+       panel sliding up under it — with no radius, since there is no frame. */
+    .split-full {
+        border-radius: 0;
+    }
+
+    .split-full .split-scene {
+        min-height: 300px;
+    }
+
+    .split-full .split-panel {
+        padding: 28px 20px;
     }
 
     /* The scene 300px tall at the top, the panel sliding 26px up under the gradient so the whole

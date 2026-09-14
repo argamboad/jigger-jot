@@ -1,11 +1,5 @@
-/* BACKBAR-5 (pages 05–06). The split does the layout; this is the form side's own furniture. */
-
-.login-wrapper {
-    padding: 2rem 1.5rem;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-}
+/* BACKBAR-5 (pages 05–06). The split does the layout — full bleed here, so the wrapper adds
+   nothing: no padding, no centring, no height of its own. This is the form side's own furniture. */
 
 .login-wrapper > * {
     width: 100%;
@@ -65,13 +59,6 @@
     flex: 1;
     height: 1px;
     background: var(--app-border);
-}
-
-@media (max-width: 991.98px) {
-    .login-wrapper {
-        padding: 0 0 2rem;
-        align-items: flex-start;
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {

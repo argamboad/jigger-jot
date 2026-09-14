@@ -37,6 +37,19 @@ public class MargaSplitTests : ComponentTestBase
     }
 
     [Fact]
+    public void FullScreenIsOptIn_SoTheWizardKeepsItsFrame()
+    {
+        // Login fills the viewport like the sibling apps' sign-in; the wizard sits under the app
+        // header and Join and the auth error page have too little beside her to stretch, so the
+        // frame is the default and the full bleed is asked for.
+        var framed = Render<MargaSplit>(ps => ps.Add(p => p.Line, "x").AddChildContent("x"));
+        Assert.DoesNotContain("split-full", framed.Find(".split").ClassList);
+
+        var full = Render<MargaSplit>(ps => ps.Add(p => p.Line, "x").Add(p => p.Full, true).AddChildContent("x"));
+        Assert.Contains("split-full", full.Find(".split").ClassList);
+    }
+
+    [Fact]
     public void TheAsideIsOptional()
     {
         var cut = Render<MargaSplit>(ps => ps

@@ -38,6 +38,7 @@ public class AnonymousLayoutTests : ComponentTestBase
         // The scene is half the screen and her line is its headline; the brand is on the form side
         // only (the light lockup, dark-swapped in app.css), never over her, and every id is kept.
         var split = page.Find(".split");
+        Assert.Contains("split-full", split.ClassList);   // edge to edge, like the sibling apps' sign-in
         Assert.Contains("Marga_LoginLine", split.QuerySelector(".split-line")!.TextContent);
         Assert.Contains("Onboard_MargaAside", split.QuerySelector(".split-eyebrow")!.TextContent);
         Assert.Single(split.QuerySelectorAll(".split-scene img"));
@@ -150,6 +151,7 @@ public class AnonymousLayoutTests : ComponentTestBase
 
         Assert.Contains("AuthError_Heading", page.Find(".split-line").TextContent);
         Assert.Empty(page.FindAll(".split-eyebrow"));   // nothing to attribute — it is not her line
+        Assert.DoesNotContain("split-full", page.Find(".split").ClassList);   // one paragraph does not fill a screen
         Assert.Contains("AuthError_Body", page.Find(".split-panel").TextContent);
         Assert.NotNull(page.Find(".split-panel a[href='/login']"));
         Assert.Single(page.FindAll(".split-scene img"));

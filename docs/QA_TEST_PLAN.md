@@ -1748,10 +1748,11 @@ fork button. A bad id shows her scene, the not-found line and a link back — no
 ### QA-CHROME-20 — Her two full appearances, and the two screens that borrow them 🟠 (Web) — BACKBAR-5
 **Walkthrough:** sign out and open `/login` at 1280 wide in Light, then Dark; then at 390×812. Send
 a 6-digit code. Then sign in as a new household and open `/welcome`, step 1 and step 2. Then open
-`/join` with no token, and `/auth-error`. **Expected:** on login her scene is half the screen with
-her sentence as the headline in the serif and **nothing over her** — the wordmark is on the form
-side only, on all three of login, join and the error page — and **her panel stays night in both
-themes**, only the form side flips. At 390 the scene is 300px tall at the top, the form slides up
+`/join` with no token, and `/auth-error`. **Expected:** on login her scene **fills the screen edge to
+edge** — no frame, the full height, the form a 440px pane on the right (the shape vuelto's sign-in
+has) — with her sentence as the headline in the serif and **nothing over her**: the wordmark is on
+the form side only, on all three of login, join and the error page. **Her panel stays night in both
+themes**, only the form side flips. Join and the error page keep the framed split. At 390 the scene is 300px tall at the top, the form slides up
 under it, and the whole form is above the fold. The code step swaps the two buttons for one 24px
 spaced field and she does not move. The wizard is the same split with a warm base, "Step 1 of 2"
 over a thin brass rule at half, full at step 2; step 2's categories are the shelf's own sections

@@ -499,7 +499,12 @@ so the gradient lands warm. **No wordmark over her scene** (amended 2026-09-14, 
 call on sight: the handoff's corner lockup sat on her face at every width, and the working side
 already carries the brand). The form side keeps the lockup with today's `content: url()` swap, and
 Join and the auth error page now put it on their panel too, so no borrowed screen loses the brand;
-`.login-lockup` moved to `app.css` for the same scoped-CSS reason as the shelf sections. Mobile: the scene 300px tall on top (240 below 380px), the panel
+`.login-lockup` moved to `app.css` for the same scoped-CSS reason as the shelf sections. **Login is
+full bleed** (amended 2026-09-14, the maintainer's call, seen on vuelto): no 1100px frame, the
+viewport's full height, her scene taking every column but a fixed 440px form pane at `lg` — the
+shape vuelto's sign-in settled on, as `Full` on the split. Login only: the wizard sits under the app
+header, and Join and the auth error page have one paragraph beside her, so they keep the frame.
+Mobile: the scene 300px tall on top (240 below 380px), the panel
 sliding 26px up under the gradient, the whole login form above the fold at 390×812. The code step
 swaps the buttons for the 6-digit field at 24px, letter-spacing .4rem, and she does not move.
 Welcome adds a 3px brass progress rule at 50% / 100% under "Step 1 of 2"; step 2 is the shelf's
@@ -520,6 +525,11 @@ Scenario: The form keeps every id
 Scenario: Her panel does not follow the theme
   Given the login page in light theme
   Then her panel's background is the night ground and the form side is #fff
+
+Scenario: Login fills the screen and the borrowers do not
+  Given the login page at 1280 wide
+  Then the split has no frame and her scene reaches every edge but the 440px form pane
+  And the wizard, /join and /auth-error keep the framed split
 
 Scenario: The wizard keeps every id and the header
   Given /welcome

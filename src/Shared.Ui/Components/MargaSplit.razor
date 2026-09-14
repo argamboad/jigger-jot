@@ -10,7 +10,7 @@
    corner, which at every width is over her face; the working side carries the brand instead, so the
    pages that borrow the split put the lockup there themselves (Login, Join, the auth error page). *@
 
-<div class="split @(Warm ? "split-warm" : null) @(Compact ? "split-compact" : null)">
+<div class="split @(Warm ? "split-warm" : null) @(Compact ? "split-compact" : null) @(Full ? "split-full" : null)">
     <div class="split-scene">
         <img class="split-scene-art" src="_content/JiggerJot.Shared.Ui/brand/marga_scene_512.png"
              alt="" aria-hidden="true" width="512" height="512" />
@@ -39,6 +39,13 @@
 
     /// <summary>A shorter scene, for the small screens (join, auth error) that have little beside it.</summary>
     [Parameter] public bool Compact { get; set; }
+
+    /// <summary>
+    /// Edge to edge and the viewport's full height, with the working side a fixed 440px pane at
+    /// <c>lg</c> and her scene taking the rest — the sibling apps' sign-in shape. Login only: the
+    /// wizard sits under the app header, and Join and the auth error page have one paragraph beside her.
+    /// </summary>
+    [Parameter] public bool Full { get; set; }
 
     [Parameter, EditorRequired] public RenderFragment? ChildContent { get; set; }
 }
