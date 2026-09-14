@@ -27,6 +27,20 @@
     --scene-base: #2A1A12;
 }
 
+/* The art, the gradient and her line are ONE positioned block, and the block sticks. The column is
+   the grid row's height, and the wizard's second step is a few thousand pixels of pills: with the
+   art absolutely positioned against the column it covered all of it, and the page scrolled past a
+   face five screens tall. This block is the column's height until the column outgrows the viewport,
+   then the viewport's, following the scroll under the app header — so she stays beside whatever
+   part of the shelf someone is ticking. Percentages resolve because a stretched grid item's height
+   is definite. Held by OnboardJourneyTests (the geometry) and MargaSplitTests (the structure). */
+.split-scene-stick {
+    position: sticky;
+    top: calc(var(--header-height, 60px) + 1rem);
+    height: min(100%, calc(100vh - var(--header-height, 60px) - 2rem));
+    isolation: isolate;
+}
+
 .split-scene-art {
     position: absolute;
     inset: 0;
@@ -36,7 +50,7 @@
     object-position: center top;
 }
 
-.split-scene::after {
+.split-scene-stick::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -100,6 +114,13 @@
     container-type: size;
 }
 
+/* Full bleed has no header above it and the column IS the viewport, so the block is simply the
+   column: nothing to stick to, nothing to cap. */
+.split-full .split-scene-stick {
+    top: 0;
+    height: 100%;
+}
+
 /* The pane centres its content, and the form never grows past 440 — on a tablet the pane is the
    whole width, and a form the width of a tablet is a form nobody finishes. */
 .split-full .split-panel {
@@ -123,7 +144,7 @@
     background: linear-gradient(180deg, rgba(15, 18, 22, 0) 35%, var(--scene-base) 88%);
 }
 
-.split-full .split-scene::after {
+.split-full .split-scene-stick::after {
     content: none;
 }
 

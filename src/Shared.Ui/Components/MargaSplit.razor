@@ -12,20 +12,27 @@
 
 <div class="split @(Warm ? "split-warm" : null) @(Compact ? "split-compact" : null) @(Full ? "split-full" : null)">
     <div class="split-scene">
-        <img class="split-scene-art" src="_content/JiggerJot.Shared.Ui/brand/marga_scene_512.png"
-             alt="" aria-hidden="true" width="512" height="512" />
-        @if (Full)
-        {
-            @* The gradient as an element, not ::after: the full bleed's fit rules are container
-               queries on the scene, and a container cannot style its own pseudo-elements. *@
-            <div class="split-scene-shade" aria-hidden="true"></div>
-        }
-        <div class="split-scene-text">
-            @if (!string.IsNullOrWhiteSpace(Aside))
+        @* One sticky block for the art, the gradient and her line. The column is the grid ROW's
+           height, and the wizard's second step is a few thousand pixels of pills — so the 512 square
+           was covering the whole column and the page scrolled past a face five screens tall. The
+           block is never taller than the viewport and follows the scroll; the column keeps the night
+           ground beneath it. *@
+        <div class="split-scene-stick">
+            <img class="split-scene-art" src="_content/JiggerJot.Shared.Ui/brand/marga_scene_512.png"
+                 alt="" aria-hidden="true" width="512" height="512" />
+            @if (Full)
             {
-                <span class="split-eyebrow">@Aside</span>
+                @* The gradient as an element, not ::after: the full bleed's fit rules are container
+                   queries on the scene, and a container cannot style its own pseudo-elements. *@
+                <div class="split-scene-shade" aria-hidden="true"></div>
             }
-            <p class="split-line font-display">@Line</p>
+            <div class="split-scene-text">
+                @if (!string.IsNullOrWhiteSpace(Aside))
+                {
+                    <span class="split-eyebrow">@Aside</span>
+                }
+                <p class="split-line font-display">@Line</p>
+            </div>
         </div>
     </div>
     <div class="split-panel">

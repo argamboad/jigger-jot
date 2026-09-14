@@ -50,6 +50,27 @@ public class MargaSplitTests : ComponentTestBase
     }
 
     [Fact]
+    public void HerSceneIsOneStickyBlock_SoALongPanelCannotStretchHer()
+    {
+        // The wizard's second step is 191 pills tall, and her column is the grid row's height — so the
+        // 512 square was covering a 5000px cell and the page scrolled past a giant crop of her face.
+        // The art, the gradient and her line live in ONE positioned block that sticks at viewport
+        // height inside the column; the column keeps the night ground beneath it.
+        var framed = Render<MargaSplit>(ps => ps.Add(p => p.Line, "x").Add(p => p.Aside, "y").AddChildContent("x"));
+        var stick = framed.Find(".split-scene > .split-scene-stick");
+        Assert.NotNull(stick.QuerySelector("img.split-scene-art"));
+        Assert.NotNull(stick.QuerySelector(".split-scene-text .split-line"));
+        Assert.Single(framed.FindAll(".split-scene-stick"));
+
+        // Full bleed too, where the gradient is an element: it rides in the same block.
+        var full = Render<MargaSplit>(ps => ps.Add(p => p.Line, "x").Add(p => p.Full, true).AddChildContent("x"));
+        var fullStick = full.Find(".split-scene > .split-scene-stick");
+        Assert.NotNull(fullStick.QuerySelector("img.split-scene-art"));
+        Assert.NotNull(fullStick.QuerySelector(".split-scene-shade"));
+        Assert.NotNull(fullStick.QuerySelector(".split-scene-text"));
+    }
+
+    [Fact]
     public void TheAsideIsOptional()
     {
         var cut = Render<MargaSplit>(ps => ps
