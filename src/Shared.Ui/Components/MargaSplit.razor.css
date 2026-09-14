@@ -98,9 +98,26 @@
    beside it happens to make. The row is the taller of the square and the panel; when the panel wins
    the cover loses a sliver of the sides, never her. No header above the login, so the sticky block
    pins to the top of the viewport rather than under the app bar. */
+/* The square is a FLOOR, not a ratio. An aspect-ratio on the column failed both ways: unstretched,
+   the column stopped short of a taller form (two OAuth buttons) and the card's surface showed
+   beneath her; stretched, the ratio took its WIDTH from the row's height and her column slid under
+   the form. A spacer whose padding resolves against the column's own width sets the minimum height
+   without touching the width, and the grid stretches the column to the row as it does any item. The
+   sticky block shares the spacer's cell rather than following it in the flow. */
 .split-whole .split-scene {
     min-height: 0;
-    aspect-ratio: 1 / 1;
+    display: grid;
+}
+
+.split-whole .split-scene::before {
+    content: "";
+    grid-area: 1 / 1;
+    padding-top: 100%;
+}
+
+.split-whole .split-scene-stick {
+    grid-area: 1 / 1;
+    align-self: start;
 }
 
 .split-whole .split-scene-art {
@@ -285,7 +302,6 @@
        it — no slide up over her, no cropped face. The card keeps its frame. */
     .split-whole .split-scene {
         min-height: 0;
-        aspect-ratio: 1 / 1;
     }
 
     .split-whole .split-panel {

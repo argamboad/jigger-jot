@@ -194,6 +194,24 @@ public class RestyleGateTests
     }
 
     [Fact]
+    public void WholeScene_StretchesToTheRow_WhenThePanelIsTaller() // BACKBAR-5 amendment, 2026-09-14
+    {
+        var root = RepoRoot();
+        var css = File.ReadAllText(Path.Combine(root, "src", "Shared.Ui", "Components", "MargaSplit.razor.css"));
+
+        // Seen with OAuth providers configured, twice. First: two more buttons made the form taller than
+        // the square, and her column (an aspect-ratio grid item, which `align-self: normal` does not
+        // stretch) stopped short of the panel. Then the "fix": stretching it made the ratio take its
+        // WIDTH from the row's height, and her column slid under the form. So the square is a floor —
+        // a spacer whose padding resolves against the column's width — and never an aspect-ratio.
+        var noRatio = Regex.Replace(css, @"/\*.*?\*/", "", RegexOptions.Singleline);
+        Assert.DoesNotMatch(new Regex(@"\.split-whole\s+\.split-scene\s*\{[^}]*aspect-ratio"), noRatio);
+        var spacer = Regex.Match(noRatio, @"\.split-whole\s+\.split-scene::before\s*\{([^}]*)\}");
+        Assert.True(spacer.Success, "the whole scene has no square spacer");
+        Assert.Matches(new Regex(@"padding-top:\s*100%"), spacer.Groups[1].Value);
+    }
+
+    [Fact]
     public void PrimaryButton_StaysCopperWhenDisabled() // BACKBAR-9
     {
         var root = RepoRoot();
