@@ -1,8 +1,33 @@
-/* BACKBAR-5 (pages 05–06). The split does the layout — full bleed here, so the wrapper adds
-   nothing: no padding, no centring, no height of its own. This is the form side's own furniture. */
+/* BACKBAR-5 (pages 05–06), amended 2026-09-14: the framed split, centred on the page ground both
+   ways — the card floats in the viewport with the ground around it, the form side centres its
+   content vertically beside her. On a phone the card starts at the top and the page scrolls. */
 
-.login-wrapper > * {
+.login-wrapper {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: grid;
+    align-content: center;
+    padding: 2rem 1rem;
+}
+
+/* ::deep, and it is load-bearing: the split's root carries the SPLIT's scope attribute, not this
+   page's, so a scoped `.login-wrapper > *` compiles to a selector that matches nothing — and the
+   card shrank to its content (924px on a laptop, 276px on a phone) before this was written. */
+.login-wrapper ::deep .split {
     width: 100%;
+}
+
+.login-wrapper ::deep .split-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+@media (max-width: 991.98px) {
+    .login-wrapper {
+        align-items: flex-start;
+        padding: 1rem;
+    }
 }
 
 /* The 6-digit field: 24px, letter-spacing .4rem, centred. The MFA field is wider and a little tighter. */

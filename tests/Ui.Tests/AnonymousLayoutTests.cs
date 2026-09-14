@@ -35,11 +35,18 @@ public class AnonymousLayoutTests : ComponentTestBase
     {
         var page = Render<Login>();
 
-        // The scene is half the screen and her line is its headline; the brand is on the form side
+        // The scene is half the card and her line is its headline; the brand is on the form side
         // only (the light lockup, dark-swapped in app.css), never over her, and every id is kept.
+        // A FRAMED card, centred on the page, with the whole drawing (the maintainer's call on sight,
+        // 2026-09-14, reversing the same day's full bleed): not edge to edge, and the scene keeps the
+        // drawing's square so nothing of her is cropped at any width.
         var split = page.Find(".split");
-        Assert.Contains("split-full", split.ClassList);   // edge to edge, like the sibling apps' sign-in
+        Assert.DoesNotContain("split-full", split.ClassList);
+        Assert.Contains("split-whole", split.ClassList);
         Assert.Contains("Marga_LoginLine", split.QuerySelector(".split-line")!.TextContent);
+        // The form side is centred and says how to continue, as the reference does.
+        Assert.Contains("text-center", page.Find(".split-panel .login-head").ClassList);
+        Assert.Contains("Login_Subtitle", page.Find(".split-panel .login-head").TextContent);
         Assert.Contains("Onboard_MargaAside", split.QuerySelector(".split-eyebrow")!.TextContent);
         Assert.Single(split.QuerySelectorAll(".split-scene img"));
         Assert.NotNull(page.Find(".split-panel [data-testid='login-email']"));

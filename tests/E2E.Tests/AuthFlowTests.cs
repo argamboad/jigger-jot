@@ -23,6 +23,22 @@ public class AuthFlowTests : E2ETestBase
 
         await Expect(login.Email).ToBeVisibleAsync(new() { Timeout = 30_000 });
         await Expect(login.SendOtp).ToBeVisibleAsync();
+
+        // A framed card, centred, with the whole drawing (2026-09-14, the maintainer's call on sight):
+        // at a laptop width the card is narrower than the viewport rather than edge to edge, and at
+        // a phone width the scene keeps the drawing's square, so nothing of her is cropped and the
+        // form sits under her rather than sliding up over her face.
+        await Page.SetViewportSizeAsync(1280, 800);
+        var card = await Page.Locator(".split").BoundingBoxAsync();
+        Assert.That(card, Is.Not.Null);
+        Assert.That(card!.Width, Is.LessThan(1280), "the login should be a framed card, not full bleed");
+
+        await Page.SetViewportSizeAsync(390, 812);
+        var art = await Page.Locator(".split-scene-art").BoundingBoxAsync();
+        Assert.That(art, Is.Not.Null);
+        Assert.That(art!.Height, Is.EqualTo(art.Width).Within(2), "her scene should keep the drawing's square on a phone");
+        var panel = await Page.Locator(".split-panel").BoundingBoxAsync();
+        Assert.That(panel!.Y, Is.GreaterThanOrEqualTo(art.Y + art.Height - 1), "the form should sit under her, not over her");
     }
 
     [Test]

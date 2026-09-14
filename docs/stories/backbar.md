@@ -524,9 +524,33 @@ browser cache from the boot screen, so no preload is added. Native: the MAUI she
 two panels; the magic-link button is absent and the code button primary, as today. The 2× landscape
 crop is the maintainer's asset action (F8) and lands whenever it lands.
 
+**Amended again, 2026-09-14, the maintainer's call on sight — Login is a framed card once more.**
+The full bleed above is reversed: the maintainer preferred the 2026-09-10 proposal's arrangement,
+and said so with its picture — a framed card centred on the page ground, her WHOLE drawing on the
+left, the form centred on the right with "Choose how you'd like to continue" back under the title.
+Our type and colours stay (the picture's italic and its "since 1930" label were reference only, not
+asked for); only the placement follows it. `MargaSplit` gains `Whole`: the scene column keeps the
+drawing's square at every width, so the 512 square in it is the whole drawing rather than a crop of
+whatever shape the panel makes, and below `lg` the panel sits UNDER the square rather than sliding
+up over her face — the phone layout the maintainer did not like. `Full` stays on the component,
+unused. Found while building it: a scoped `.login-wrapper > *` cannot reach the split's root, which
+carries the split's own scope attribute, so the card shrank to its content until the width rule
+went through `::deep`. Held by `AnonymousLayoutTests` (framed, whole, centred, the subtitle back),
+`MargaSplitTests` (`Whole` is opt-in) and `AuthFlowTests` (the card is narrower than a laptop
+viewport; on a phone her scene is square and the form starts where she ends).
+
 **Acceptance criteria**
 
 ```gherkin
+Scenario: Login is a framed card with the whole of her (amendment, 2026-09-14)
+  Given the login page at 1280 wide
+  Then the split is framed and narrower than the viewport, centred on the page ground
+  And the scene column is square, so the whole drawing shows
+  And the form side is centred and says how to continue
+  Given the login page at 390 wide
+  Then her scene is a square at the top and the form sits under it, not over it
+  # AnonymousLayoutTests, MargaSplitTests, AuthFlowTests.Login_Page_Renders
+
 Scenario: The form keeps every id
   Given the login page
   Then login-email, login-send-magic-link, login-send-otp, login-otp-code, login-verify-otp, login-mfa-code and login-error render where their step shows them

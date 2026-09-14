@@ -10,7 +10,7 @@
    corner, which at every width is over her face; the working side carries the brand instead, so the
    pages that borrow the split put the lockup there themselves (Login, Join, the auth error page). *@
 
-<div class="split @(Warm ? "split-warm" : null) @(Compact ? "split-compact" : null) @(Full ? "split-full" : null)">
+<div class="split @(Warm ? "split-warm" : null) @(Compact ? "split-compact" : null) @(Full ? "split-full" : null) @(Whole ? "split-whole" : null)">
     <div class="split-scene">
         @* One sticky block for the art, the gradient and her line. The column is the grid ROW's
            height, and the wizard's second step is a few thousand pixels of pills — so the 512 square
@@ -59,6 +59,14 @@
     /// wizard sits under the app header, and Join and the auth error page have one paragraph beside her.
     /// </summary>
     [Parameter] public bool Full { get; set; }
+
+    /// <summary>
+    /// The whole drawing, at every width: the scene column keeps the square's aspect rather than
+    /// covering a column of whatever shape the panel makes, and on a phone the panel sits under the
+    /// scene instead of sliding up over her. Login (2026-09-14, the maintainer's call on sight): a
+    /// framed card centred on the page, her whole on the left, the form beside.
+    /// </summary>
+    [Parameter] public bool Whole { get; set; }
 
     [Parameter, EditorRequired] public RenderFragment? ChildContent { get; set; }
 }

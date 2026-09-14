@@ -71,6 +71,19 @@ public class MargaSplitTests : ComponentTestBase
     }
 
     [Fact]
+    public void WholeIsOptIn_SoTheSceneKeepsHerSquare()
+    {
+        // Login asks for the whole drawing: the scene column keeps the square's aspect at every width
+        // rather than covering a column of whatever shape the panel makes, and on a phone the panel
+        // sits under the scene instead of sliding up over her.
+        var plain = Render<MargaSplit>(ps => ps.Add(p => p.Line, "x").AddChildContent("x"));
+        Assert.DoesNotContain("split-whole", plain.Find(".split").ClassList);
+
+        var whole = Render<MargaSplit>(ps => ps.Add(p => p.Line, "x").Add(p => p.Whole, true).AddChildContent("x"));
+        Assert.Contains("split-whole", whole.Find(".split").ClassList);
+    }
+
+    [Fact]
     public void TheAsideIsOptional()
     {
         var cut = Render<MargaSplit>(ps => ps

@@ -10,18 +10,21 @@
 
 <PageTitle>@Localizer["Login_Title"]</PageTitle>
 
-@* MARGA-1, proposal screen 3... 8, and BACKBAR-5 (pages 05–06): Login_Subtitle described the
-   BUTTONS below it, which the buttons already say for themselves. Her line says what the product is
-   for instead, on the one screen that gets seen before anyone has any data at all — and it is now
-   the page's HEADLINE, on her scene, which is half the screen. The form side keeps every id; the
+@* MARGA-1, proposal screen 3... 8, and BACKBAR-5 (pages 05–06): her line is the page's HEADLINE,
+   on her scene, which is half the card. Amended 2026-09-14 on the maintainer's call, to the
+   2026-09-10 proposal's arrangement: a FRAMED card centred on the page ground (the same day's full
+   bleed reversed), her whole drawing on the left at every width, and the form side centred with
+   Login_Subtitle back under the title — it says how to continue, which the reference keeps. Our
+   type and colours stay; only the placement follows the picture. The form side keeps every id; the
    code step swaps the buttons for the field and she does not move. *@
 <div class="login-wrapper">
-    <MargaSplit Line="@Localizer["Marga_LoginLine"]" Aside="@Localizer["Onboard_MargaAside"]" Full="true">
+    <MargaSplit Line="@Localizer["Marga_LoginLine"]" Aside="@Localizer["Onboard_MargaAside"]" Whole="true">
 
-            <div class="mb-4">
+            <div class="login-head text-center mb-4">
                 <img src="_content/JiggerJot.Shared.Ui/brand/lockup_light_1520.png" alt="JiggerJot"
-                     class="login-lockup mb-3" />
-                <h1 class="page-title mb-0">@Localizer["Login_Title"]</h1>
+                     class="login-lockup mx-auto mb-3" />
+                <h1 class="page-title mb-1">@Localizer["Login_Title"]</h1>
+                <p class="text-muted mb-0">@Localizer["Login_Subtitle"]</p>
             </div>
 
             @if (!string.IsNullOrEmpty(Error))
