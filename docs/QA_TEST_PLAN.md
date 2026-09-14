@@ -1674,9 +1674,10 @@ sits clear of it rather than behind it.
 
 ### QA-CHROME-07 — The boot state shows real progress 🟢 (Web)
 **Walkthrough:** hard-reload with the cache disabled (DevTools → Network → Disable cache) and watch the
-first second. **Expected:** the illustration, gently rocking, with a brass arc and a percentage.
-**Expected:** the arc's length matches the number printed inside it — a quarter turn at 25%, a full
-ring at 100%. *(Also verify on Desktop and Android; the native hosts show a sweeping arc instead,
+first second. **Expected:** the illustration, gently rocking, at up to 480px wide, with the brass arc
+and its percentage **centred on the drawing, on a small night disc**, and the ring does not rock with
+her. **Expected:** the arc's length matches the number printed inside it — a quarter turn at 25%, a
+full ring at 100%. *(Also verify on Desktop and Android; the native hosts show a sweeping arc instead,
 because a WebView has no download to measure.)*
 
 ### QA-CHROME-08 — Reduced motion is respected 🟢 (Web, accessibility)

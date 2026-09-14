@@ -661,20 +661,25 @@ a:focus-visible {
    it from the one stylesheet even though each carries its own index.html. */
 
 .boot {
+    /* The containing block for the meter (2026-09-14, the maintainer's call on sight): the arc
+       UNDER the drawing read as two things waiting; the arc ON it, centred, reads as one. The drawing
+       is the only thing left in the flow, so the centre of this block is the centre of the drawing. */
+    position: relative;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1.5rem;
     padding: 2rem 1rem;
     background: var(--app-bg);
 }
 
 .boot-scene {
-    width: min(60vw, 240px);
+    /* Larger than the 240 it launched at: with the meter on it rather than under it there is room,
+       and the asset is 512 square, so nothing here upscales. */
+    width: min(84vw, 480px);
     height: auto;
-    border-radius: 12px;
+    border-radius: 16px;
     /* The tilt is CSS on a STATIC drawing — she rocks as if shaking, and no second asset or
        animated format is needed to say it. */
     animation: boot-rock 1.8s ease-in-out infinite alternate;
@@ -685,10 +690,27 @@ a:focus-visible {
     to   { transform: rotate(2.5deg); }
 }
 
+/* Centred on the drawing, out of the flow, and NOT rocking with it: the figure is the one thing on
+   this screen that has to be read. It sits on a night disc so the number and the track read the
+   same over her face as over the page ground, in either theme. */
 .boot-meter {
-    position: relative;
-    width: 5rem;
-    height: 5rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 7rem;
+    height: 7rem;
+    border-radius: 50%;
+    background: rgba(15, 18, 22, .78);
+    box-shadow: 0 0 0 1px rgba(242, 237, 232, .12);
+}
+
+.boot-meter .loading-progress circle {
+    stroke: rgba(242, 237, 232, .22);
+}
+
+.boot-meter .loading-progress-text {
+    color: #F2EDE8;
 }
 
 .loading-progress {
