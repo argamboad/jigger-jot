@@ -461,6 +461,97 @@ Scenario: The write form counts the shelf
 
 ---
 
+### MARGA-7 — She pages through the next bottles
+
+**Status: ✅ Implemented (2026-09-15).** Asked for by the maintainer: "a prev/next button pair where she
+can tell us what else we can buy… besides Absinthe, the next one that unlocks a lot of cocktails is
+vodka and the user doesn't know that."
+
+**As a** member of a household deciding what to buy
+**I want** to page through the bottles after the one she names
+**So that** I can see the second- and third-best buys, not only the first
+
+**What the maintainer decided.** Wherever she suggests a bottle; up to **ten**, and only as many as the
+ranking has; the arrows **stop** at both ends rather than wrapping, so "1 of N" always means the best.
+
+| Where | Ranking | Her first line | A later bottle |
+|---|---|---|---|
+| **Home** (panel arrows; her line follows) | `/unlocks` | "Pick up {bottle} and I can make you {n} more." | "Or pick up {bottle}, and I can make you {n} more." |
+| **Shelf, something ticked** | `/unlocks` | "One bottle from {n} more drinks: {bottle}…" | "Or {bottle}: one bottle from {n} more drinks." |
+| **Shelf, nothing ticked** | `/starters` | "…If you are buying, {bottle} is where I would start." | "Or start with {bottle} — {n} of these recipes ask for it." |
+| **Catalog, One ingredient away** | `/unlocks` | "Buy {bottle} and {n} of these open up." | "Or buy {bottle} and {n} of these open up." |
+| **Catalog, nothing one bottle away** | `/starters` | "Starting from nothing? Get {bottle}…" | "Or start with {bottle}. {n} of these recipes ask for it." |
+
+**No engine work.** Both rankings already existed and already returned up to 25; every screen asked for
+one. The screens now ask for `BottlePager.MaxBottles` (10) and keep the list.
+
+**One component, and it knows nothing about bottles.** `BottlePager` renders ‹ "2 of 7" › and moves an
+index; each page owns its ranking and says the line for whichever bottle the index points at. It
+renders nothing for one bottle or none. Real `<button>`s with names a screen reader can say, and the
+line they change sits in an `aria-live="polite"` region, since the arrows change it without moving
+focus.
+
+**Her numbers stay honest while paging.** A drink one ingredient away is missing exactly one bottle, so
+it sits under exactly one bottle in `/unlocks`: the groups never overlap, and the counts she quotes add.
+The starter ranking's counts DO overlap — one recipe asks for several bottles — so those lines keep
+saying "recipes ask for it" and never "opens".
+
+**Everything that named the bottle follows it.** The drink names under the catalog's panel and Home's,
+and the outlined pill on the shelf (BACKBAR-3) — which is how the bottle she names is found on a long
+shelf. The list below the catalog's panel does not: it is the one-away list itself, and paging a
+suggestion must not filter it.
+
+**A new ranking starts again from the best.** A tick on the shelf, or a reload of the catalog's list,
+resets the index — "2 of 7" after a re-rank would point at whatever happens to be second now.
+
+**What she still does not do.** The recipe page's "All you are missing is…" and "You are 3 bottles
+short…" name what THAT recipe needs, not a ranking, and do not page. The welcome wizard ticks the
+starters rather than suggesting one.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: Home pages through the bottles
+  Given three bottles that would open up drinks
+  When I press next in the panel
+  Then her line says "Or pick up Vodka…" and the panel names Vodka and its drinks
+  And the position reads "2 of 3"
+  And with nothing pourable yet the panel still pages
+  And with only one bottle there are no arrows
+
+Scenario: The shelf pages, and the outlined pill follows
+  Given bottles ticked and three bottles that would open more
+  When I press next
+  Then her line names the second bottle with "or" and its pill is the one outlined
+
+Scenario: Ticking a bottle starts her again from the best
+  Given I have paged to the second bottle
+  When I tick a bottle
+  Then the position is back to 1
+
+Scenario: An untouched shelf pages through where to start
+  Then later bottles say how many recipes ask for them, never what they open
+
+Scenario: The catalog's one-away panel pages, and only the panel
+  When I press next
+  Then her line and the drink names under it follow the bottle
+  But the list below does not change
+  And previous at the first bottle is disabled
+
+Scenario: The catalog's empty state pages through where to start
+
+Scenario: The arrows stop at both ends
+  And "1 of N" counts from one
+  And ten is the most she ever offers
+```
+
+**Held by** `BottlePagerTests` (7) and `MargaBottlePagingTests` (8), both new.
+
+**Out of scope:** paging the recipe page's missing bottles; a longer list than ten; remembering which
+bottle someone was on across visits.
+
+---
+
 ## Out of scope for the epic, deliberately
 
 A model behind her, generated text, per-household personalization, and any notion of her

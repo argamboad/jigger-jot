@@ -85,7 +85,11 @@
     @* BACKBAR-3: the page's voice, at 96 with her name as the label. "Marga" is her name, not copy,
        so it is not a resource string. *@
     <div class="shelf-marga mb-4" data-testid="shelf-marga">
-        <MargaSays Tone="MargaTone.Card" Aside="Marga">@_shelfLine</MargaSays>
+        @* MARGA-7: announced when the arrows change the bottle, which they do without moving focus. *@
+        <div aria-live="polite">
+            <MargaSays Tone="MargaTone.Card" Aside="Marga">@_shelfLine</MargaSays>
+        </div>
+        <BottlePager Count="ShelfBottleCount" @bind-Index="_bottleIndex" />
     </div>
 }
 
@@ -244,8 +248,15 @@ else
 
     // MARGA-5. Both read on the same debounce as the payoff total: the bottle that would open the
     // most, and — only for a shelf with nothing on it — where to start instead.
-    private UnlockView? _unlock;
-    private StarterView? _starter;
+    // MARGA-7: each is the whole ranking, best first, up to BottlePager.MaxBottles; the arrows move
+    // `_bottleIndex`, and her line and the outlined pill read the bottle it points at. Only one ranking
+    // is ever in play — starters for a shelf with nothing ticked, unlocks otherwise.
+    private List<UnlockView> _unlocks = [];
+    private List<StarterView> _starters = [];
+    private int _bottleIndex;
+    private UnlockView? _unlock => _unlocks.Count == 0 ? null : _unlocks[Math.Min(_bottleIndex, _unlocks.Count - 1)];
+    private StarterView? _starter => _starters.Count == 0 ? null : _starters[Math.Min(_bottleIndex, _starters.Count - 1)];
+    private int ShelfBottleCount => AvailableCount == 0 ? _starters.Count : _unlocks.Count;
 
     /// <summary>
     /// Whether the last look at her data actually came back. Null on both counts means two different
@@ -267,14 +278,19 @@ else
     private string? _shelfLine => !_margaKnows ? null : (AvailableCount, _unlock, _starter) switch
     {
         // Nothing ticked, and a bottle worth naming. The one moment a suggestion is most useful.
-        (0, _, { } starter) => Localizer["Marga_ShelfEmpty", starter.Ingredient].Value,
+        // MARGA-7: the best bottle keeps her sentence; a later one says "or", with how many recipes ask.
+        (0, _, { } starter) => (_bottleIndex == 0
+            ? Localizer["Marga_ShelfEmpty", starter.Ingredient]
+            : Localizer["Marga_ShelfEmptyOr", starter.Ingredient, starter.Appears]).Value,
 
         // Nothing ticked and nothing to suggest — a household that somehow owns the whole catalog,
         // or a catalog that cannot answer. Say nothing rather than something empty.
         (0, _, null) => null,
 
         // Something ticked, and one bottle away from more. What you came to this screen to act on.
-        (_, { } bottle, _) => Localizer["Marga_ShelfNext", bottle.Ingredient, bottle.Unlocks].Value,
+        (_, { } bottle, _) => (_bottleIndex == 0
+            ? Localizer["Marga_ShelfNext", bottle.Ingredient, bottle.Unlocks]
+            : Localizer["Marga_ShelfNextOr", bottle.Ingredient, bottle.Unlocks]).Value,
 
         // Ticked plenty, nothing within one bottle. Not a failure — an invitation to add something.
         _ => Localizer["Marga_ShelfReached"].Value,
@@ -411,19 +427,24 @@ else
             try
             {
                 var bottles = await Http.GetFromJsonAsync<List<UnlockView>>(
-                    "/api/cocktails/unlocks?limit=1", cts.Token);
-                _unlock = bottles is { Count: > 0 } ? bottles[0] : null;
+                    $"/api/cocktails/unlocks?limit={BottlePager.MaxBottles}", cts.Token);
 
                 // Only for a shelf with nothing on it. `unlocks` ranks the almost-makeable set, which
                 // is empty before anything is ticked — the same gap MARGA-3 settled, answered the
                 // same way.
-                _starter = null;
+                List<StarterView>? starters = null;
                 if (AvailableCount == 0)
                 {
-                    var starters = await Http.GetFromJsonAsync<List<StarterView>>(
-                        "/api/cocktails/starters?limit=1", cts.Token);
-                    _starter = starters is { Count: > 0 } ? starters[0] : null;
+                    starters = await Http.GetFromJsonAsync<List<StarterView>>(
+                        $"/api/cocktails/starters?limit={BottlePager.MaxBottles}", cts.Token);
                 }
+
+                _unlocks = bottles ?? [];
+                _starters = starters ?? [];
+
+                // MARGA-7: the shelf just changed, so the ranking may have; "2 of 7" would now point at
+                // whatever happens to be second. She starts again from the best bottle.
+                _bottleIndex = 0;
 
                 _margaKnows = true;
             }
@@ -433,8 +454,8 @@ else
             }
             catch (Exception)
             {
-                _unlock = null;
-                _starter = null;
+                _unlocks = [];
+                _starters = [];
                 _margaKnows = false;
             }
         }
@@ -448,8 +469,8 @@ else
             // the bottle count still stands on its own — and she is optional furniture, so she goes
             // quiet rather than saying something she cannot back up.
             _makeableTotal = null;
-            _unlock = null;
-            _starter = null;
+            _unlocks = [];
+            _starters = [];
             _margaKnows = false;
         }
         finally

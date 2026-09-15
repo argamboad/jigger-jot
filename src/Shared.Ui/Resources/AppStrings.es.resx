@@ -395,6 +395,14 @@
   <data name="Marga_ShelfNoMatch" xml:space="preserve"><value>No tengo nada que se llame «{0}». Si lo tienes, añádelo abajo.</value></data>
   <data name="Marga_WriteShelf" xml:space="preserve"><value>Tienes {0} botellas para escribir. Guarda la receta y te digo si puedes servirla.</value></data>
   <data name="Marga_WriteEmpty" xml:space="preserve"><value>Tu estantería todavía está vacía. Escribe la receta igual: cuando la guardes, te digo qué falta.</value></data>
+  <data name="Marga_HomeBottleOr" xml:space="preserve"><value>O consigue {0} y te preparo {1} más.</value></data>
+  <data name="Marga_ShelfNextOr" xml:space="preserve"><value>O {0}: a una botella de {1} tragos más.</value></data>
+  <data name="Marga_ShelfEmptyOr" xml:space="preserve"><value>O empieza por {0}: {1} de estas recetas la piden.</value></data>
+  <data name="Marga_UnlocksHeadlineOr" xml:space="preserve"><value>O compra {0} y se abren {1} de estos.</value></data>
+  <data name="Marga_StarterBottleOr" xml:space="preserve"><value>O empieza por {0}. {1} de estas recetas la piden.</value></data>
+  <data name="Marga_BottlePosition" xml:space="preserve"><value>{0} de {1}</value></data>
+  <data name="Marga_BottlePrevious" xml:space="preserve"><value>Botella anterior</value></data>
+  <data name="Marga_BottleNext" xml:space="preserve"><value>Botella siguiente</value></data>
   <data name="Cocktails_OneAway" xml:space="preserve"><value>A un ingrediente</value></data>
   <data name="Cocktails_All" xml:space="preserve"><value>Todo</value></data>
   <data name="Cocktails_Missing" xml:space="preserve"><value>Añade {0} y ya puedes prepararlo</value></data>
