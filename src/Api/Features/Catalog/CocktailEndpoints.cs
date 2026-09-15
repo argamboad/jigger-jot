@@ -100,6 +100,16 @@ public static class CocktailEndpoints
             CancellationToken ct) =>
             Results.Ok(await handler.OptionsAsync(principal.GetUserId(), ct)));
 
+        // AUTHORING-3: the role each line of a recipe being written should start with, from what its
+        // ingredient is. The ingredients arrive as a repeated query (?ingredient=a&ingredient=b) in
+        // recipe order, and come back in the same order — only the first spirit is the base, so the
+        // whole recipe is asked rather than one line. A read, so an unknown id is "Other", not a 400.
+        group.MapGet("/roles", async (
+            Guid[] ingredient,
+            CocktailAuthoringHandler handler,
+            CancellationToken ct) =>
+            Results.Ok(await handler.SuggestRolesAsync(ingredient, ct)));
+
         group.MapGet("/{id:guid}", async (
             Guid id,
             ClaimsPrincipal principal,

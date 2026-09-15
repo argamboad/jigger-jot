@@ -65,6 +65,26 @@ public sealed class CocktailAuthoringEndpointTests(IntegrationTestFactory factor
         Assert.Equal("1 1/2 oz", line.Display);
     }
 
+    private record RoleSuggestion(Guid IngredientId, string Role, bool IsRequired);
+
+    [Fact]
+    public async Task RoleSuggestions_OverHttp_TakeTheIngredientsAsARepeatedQuery_AndKeepTheirOrder()
+    {
+        var user = await factory.SeedUserAsync();
+        var client = factory.CreateClientFor(user);
+
+        var shelf = await client.GetFromJsonAsync<List<ShelfRow>>("/api/inventory");
+        var campari = shelf!.First(i => i.Name == "Campari");
+        var gin = shelf!.First(i => i.Name == "London dry gin");
+
+        // Campari first: order of writing is not order of importance, and the gin is still the base.
+        var suggestions = await client.GetFromJsonAsync<List<RoleSuggestion>>(
+            $"/api/cocktails/roles?ingredient={campari.Id}&ingredient={gin.Id}");
+
+        Assert.Equal([campari.Id, gin.Id], suggestions!.Select(s => s.IngredientId));
+        Assert.Equal(["Modifier", "Base"], suggestions!.Select(s => s.Role));
+    }
+
     [Fact]
     public async Task ABadRequest_OverHttp_ComesBackAsACodeTheFormCanRead()
     {

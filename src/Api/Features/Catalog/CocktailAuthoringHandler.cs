@@ -151,6 +151,36 @@ public class CocktailAuthoringHandler(
             [.. Enum.GetNames<RecipeRole>()]);
     }
 
+    /// <summary>How many lines one suggestion covers. Far past any recipe; it only bounds the query.</summary>
+    public const int MaxRoleSuggestions = 50;
+
+    /// <summary>
+    /// A role for each ingredient, in the order asked (AUTHORING-3) — the same rule the seeded catalog
+    /// was built with (<see cref="RecipeRoles"/>). The whole recipe is asked at once, because only the
+    /// first spirit in it is the base.
+    /// </summary>
+    /// <remarks>
+    /// Through <c>Query()</c>, so the categories read are the shared catalog's and this household's
+    /// own (JJ-031). An ingredient it cannot see is <see cref="RecipeRole.Other"/>, the same as an
+    /// unknown id — answering with its real category would tell one household what another keeps.
+    /// </remarks>
+    public async Task<IReadOnlyList<RoleSuggestion>> SuggestRolesAsync(
+        IReadOnlyList<Guid> ingredientIds, CancellationToken cancellationToken)
+    {
+        var asked = ingredientIds.Take(MaxRoleSuggestions).ToList();
+        var distinct = asked.Distinct().ToList();
+
+        var categories = await ingredients.Query()
+            .Where(i => distinct.Contains(i.Id))
+            .Select(i => new { i.Id, Category = i.Category!.Name })
+            .ToDictionaryAsync(i => i.Id, i => (string?)i.Category, cancellationToken);
+
+        var roles = RecipeRoles.Suggest([.. asked.Select(id => categories.GetValueOrDefault(id))]);
+
+        return [.. asked.Select((id, index) =>
+            new RoleSuggestion(id, roles[index].ToString(), RecipeRoles.IsRequired(roles[index])))];
+    }
+
     /// <summary>
     /// Glass and method, when given. Both are optional by design (JJ-034) — "not stated" is a fact
     /// about a recipe, not a gap to fill with a plausible guess.

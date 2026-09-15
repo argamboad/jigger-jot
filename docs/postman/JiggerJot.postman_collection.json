@@ -1229,6 +1229,48 @@
           ]
         },
         {
+          "name": "Cocktails — suggest line roles",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails/roles?ingredient={{ingredientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cocktails",
+                "roles"
+              ],
+              "query": [
+                {
+                  "key": "ingredient",
+                  "value": "{{ingredientId}}",
+                  "description": "Repeat once per line, in recipe order: ?ingredient=a&ingredient=b."
+                }
+              ]
+            },
+            "description": "The role each line of a recipe being written should start with, from what its ingredient is (AUTHORING-3, FEATURES §14): `[{ ingredientId, role, isRequired }]`, in the order asked.\n\n**The same rule the seeded catalog was built with** — `RecipeRoles` in Core, held to `seed/build_cocktails.py` by `SeedRolesParityTests`. Taken from the ingredient's top-level category: juices, syrups, bitters and mixers take their own role; fruit, herbs and garnishes are `Garnish`, and a garnish is `isRequired: false` (JJ-009); vermouths, liqueurs, amari, wines and beers are `Modifier`; anything else is `Other`.\n\n**The first spirit is the `Base` and every later one a `Modifier`**, whatever order the other lines are in — which is why the whole recipe is asked at once rather than one line.\n\nA read, so nothing is refused: an unknown id, or an ingredient belonging to another household, is `Other` — answering with its real category would tell one household what another keeps (JJ-031). At most 50 ingredients are considered.\n\nThe write form asks after every ingredient change and never overwrites a role or required box someone set by hand."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"one suggestion per ingredient asked\", () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.be.an('array').with.lengthOf(1);",
+                  "  pm.expect(body[0]).to.have.keys('ingredientId', 'role', 'isRequired');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Cocktails — write one from scratch",
           "request": {
             "method": "POST",

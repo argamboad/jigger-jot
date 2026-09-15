@@ -174,6 +174,8 @@ NOT_UNITS = {"juice of", "white of", "yolk of"}
 
 # Role is derived from what the ingredient IS, never tagged by hand (JJ-014 in spirit). Spirits are
 # resolved separately below, because the FIRST spirit in a drink is its base and the rest are not.
+# AUTHORING-3: the write form suggests roles with the SAME rule, in Core (RecipeRoles.cs). Change the
+# two together — SeedRolesParityTests holds every line of the emitted file to the Core copy.
 ROLE_BY_CATEGORY = {
     "Bitters": "Bitters",
     "Juice": "Juice",

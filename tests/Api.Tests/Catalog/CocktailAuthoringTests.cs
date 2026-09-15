@@ -495,6 +495,44 @@ public sealed class CocktailAuthoringTests(PostgresFixture fixture) : PostgresTe
     }
 
     [Fact]
+    public async Task PickingIngredients_SuggestsEachLinesRole_InTheOrderAsked()
+    {
+        await SeedAsync();
+
+        // Another household's bitters: a real row whose category would say "Bitters" if it leaked.
+        var stranger = Guid.CreateVersion7();
+        Guid theirs;
+        await using (var db = Fixture.CreateContext())
+        {
+            var bitters = await db.IngredientCategories.SingleAsync(c => c.ParentId == null && c.Name == "Bitters");
+            var row = new Ingredient { Name = "Their Secret Bitters", TenantId = stranger, CategoryId = bitters.Id };
+            db.Ingredients.Add(row);
+            await db.SaveChangesAsync();
+            theirs = row.Id;
+        }
+
+        Guid[] asked =
+        [
+            await IngredientAsync("London dry gin"),
+            await IngredientAsync("Campari"),
+            await IngredientAsync("Lime juice"),
+            await IngredientAsync("Cognac"),
+            await IngredientAsync("Mint"),
+            theirs,
+        ];
+
+        await using var mine = Fixture.CreateContext(_household);
+        var suggestions = await Handler(mine, _household).SuggestRolesAsync(asked, default);
+
+        // The first spirit leads and the cognac after it modifies; a herb is a garnish, and a garnish is
+        // optional (JJ-009). The stranger's row says nothing at all — a suggestion that read its
+        // category would be how one household learns what another keeps (JJ-031).
+        Assert.Equal(asked, suggestions.Select(s => s.IngredientId));
+        Assert.Equal(["Base", "Modifier", "Juice", "Modifier", "Garnish", "Other"], suggestions.Select(s => s.Role));
+        Assert.Equal([true, true, true, true, false, true], suggestions.Select(s => s.IsRequired));
+    }
+
+    [Fact]
     public async Task ItShowsUpWhenBrowsing_AndTwoOfMineMayShareAName()
     {
         await SeedAsync();

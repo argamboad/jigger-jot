@@ -68,6 +68,14 @@ public enum AuthorCocktailOutcome
     UnknownLookup,
 }
 
+/// <summary>
+/// The role the write form should put on a line, from what its ingredient is (AUTHORING-3). A
+/// suggestion only: the form never overwrites a role or a required box someone set by hand.
+/// </summary>
+/// <param name="Role">By name, like every other enum on this surface.</param>
+/// <param name="IsRequired">False for a garnish (JJ-009).</param>
+public record RoleSuggestion(Guid IngredientId, string Role, bool IsRequired);
+
 /// <param name="Id">The new cocktail, on <see cref="AuthorCocktailOutcome.Created"/> only.</param>
 public record AuthorCocktailResult(AuthorCocktailOutcome Outcome, Guid? Id = null);
 

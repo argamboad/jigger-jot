@@ -211,6 +211,9 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         await Page.GetByTestId("new-line-unit").Nth(0).SelectOptionAsync(new SelectOptionValue { Label = "oz" });
 
         await ingredients.Nth(1).SelectOptionAsync(new SelectOptionValue { Label = "Campari" });
+        // AUTHORING-3: nobody chose a role — the ingredient suggested it. Gin leads, Campari modifies.
+        await Expect(Page.GetByTestId("new-line-role").Nth(1)).ToHaveValueAsync("Modifier", new() { Timeout = 15_000 });
+        await Expect(Page.GetByTestId("new-line-role").Nth(0)).ToHaveValueAsync("Base");
         await Page.GetByTestId("new-line-amount").Nth(1).FillAsync("1");
         await Page.GetByTestId("new-line-unit").Nth(1).SelectOptionAsync(new SelectOptionValue { Label = "oz" });
 

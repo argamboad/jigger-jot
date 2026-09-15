@@ -4,7 +4,8 @@
 > method are optional), **JJ-009**/**JJ-010** (optional lines and roles), **JJ-003**/**JJ-014**
 > (makeability and filtering are derived, never stored) and **JJ-031** (nothing stamps these tables).
 > Stories use Gherkin acceptance criteria.
-> **Status: ✅ COMPLETE for MVP** — AUTHORING-1 shipped. `AUTHORING-2` (editing) is the open follow-on.
+> **Status: ✅ COMPLETE for MVP** — AUTHORING-1 and AUTHORING-3 shipped. `AUTHORING-2` (editing) is the
+> open follow-on.
 
 **Epic key:** `AUTHORING`
 
@@ -116,3 +117,77 @@ to this epic — is `AUTHORING-2`. It needs this form again in an edit shape plu
 happens to a recipe someone else in the household is reading, and folding it in here would have
 doubled the slice. Deleting a household cocktail is likewise unasked-for. Photographs, tags, ratings
 and per-recipe notes are not in `PROJECT_BRIEF`.
+
+---
+
+### AUTHORING-3 — The ingredient suggests the line's role
+
+**Status: ✅ Implemented (2026-09-15).** `GET /api/cocktails/roles` and the write form. Implements
+**FEATURES §14**'s recipe lines.
+
+**As a** member of a household writing a cocktail
+**I want** each line's role filled in from the bottle I pick
+**So that** I am not choosing "Juice" for lime juice by hand, and my drink reads like one from the books
+
+**Context / notes.** The maintainer asked whether the role dropdown under each ingredient should filter
+the ingredient list. It goes the other way: people pick the bottle first, a role is not a set of
+bottles (gin is the base of a Martini and a modifier in a brandy drink), and the list is already
+grouped by category. So picking the ingredient fills in the role — the maintainer's choice.
+
+**The rule already existed, in Python.** `seed/build_cocktails.py` gave every seeded line its role
+from the ingredient's top-level category. It now has a twin in Core, `RecipeRoles`, and
+`SeedRolesParityTests` holds every line of the embedded catalog to it, so neither can change alone.
+The first spirit is the base and every later spirit a modifier; juices, syrups, bitters and mixers
+take their own role; fruit, herbs and garnishes are garnishes, and a garnish starts optional (JJ-009);
+vermouths, liqueurs, amari, wines and beers are modifiers; everything else is other.
+
+**The server suggests; the form asks.** `Shared.Ui` does not reference Core, and a second front end
+should inherit the rule rather than copy it, so the form calls `GET /api/cocktails/roles` with the
+whole recipe in order after every ingredient change and every removed line — the whole recipe, because
+only the first spirit leads, and removing it promotes the next. Each ask carries a ticket and an
+overtaken answer is dropped.
+
+**A person always wins.** A role or required box someone changed by hand is never overwritten, however
+often the suggestion is asked again.
+
+**An ingredient the household cannot see is "Other".** A suggestion that read its real category would
+tell one household what another keeps (JJ-031), so it answers exactly as it would for an unknown id.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: Picking an ingredient fills in its role
+  When I pick lime juice for a line
+  Then its role is Juice, and it is required
+
+Scenario: A garnish arrives optional
+  When I pick mint
+  Then its role is Garnish and "required" is unticked
+
+Scenario: Only the first spirit is the base
+  Given gin on one line
+  When I add Campari and cognac
+  Then gin is Base, and Campari and cognac are Modifiers
+  And a vermouth written before the gin does not make the gin a modifier
+
+Scenario: A role I chose is never overwritten
+  Given I set a line's role or required box by hand
+  When I pick or change its ingredient
+  Then my choice stays
+
+Scenario: Another household's ingredient suggests nothing
+  When its id is asked about
+  Then the answer is Other, the same as an unknown id
+
+Scenario: The seeded catalog and the form agree
+  Then every seeded line has the role the Core rule gives it
+```
+
+**Tests.** `tests/Core.Tests/RecipeRolesTests.cs` (new); `tests/Api.Tests/Catalog/SeedRolesParityTests.cs`
+(new); a handler test in `CocktailAuthoringTests` and an HTTP binding test in
+`CocktailAuthoringEndpointTests`; `tests/Ui.Tests/WriteRoleSuggestionTests.cs` (new, five); and the
+authoring journey in `CocktailBrowseJourneyTests` now asserts Campari arrives as a modifier with nobody
+choosing it (suite unchanged at 52).
+
+**Out of scope:** a searchable ingredient picker (offered, not chosen); suggesting roles on the
+seeded catalog, which already has them; re-suggesting a role on a fork, which is AUTHORING-2's form.
