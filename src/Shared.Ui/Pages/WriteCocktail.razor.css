@@ -111,9 +111,18 @@
         grid-template-columns: 1fr;
     }
 
-    /* The row collapses to amount + name, with role and required on a second line (page 15). */
+    /* The row collapses to amount + name, with role and required on a second line (page 15). 156px
+       rather than 130: split in two, 130 left the unit select too narrow to show "oz". */
     .write-line {
-        grid-template-columns: 130px minmax(0, 1fr) auto;
+        grid-template-columns: 156px minmax(0, 1fr) auto;
+    }
+
+    /* Bootstrap's select keeps a wide gutter for its arrow; in half of that column it clipped "oz" to
+       "o:". A tighter gutter, the arrow tucked in. */
+    .write-unit {
+        padding-left: .5rem;
+        padding-right: 1.5rem;
+        background-position: right .35rem center;
     }
 
     /* Save as a fixed bar above the tab bar; the page pads so the last row clears it. */

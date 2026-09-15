@@ -79,6 +79,24 @@ public class WriteEditTests : ComponentTestBase
     }
 
     [Fact]
+    public void AStoredAmountOpensAsThePlainNumber_NotWithTheColumnsTrailingZeroes()
+    {
+        // Found in the browser, not by the draft above: the amount column is numeric(10,4), so a real
+        // draft sends 1.0000 and 0.7500 — and the form opened reading "1.0000", clipped to "1.00" on a
+        // phone. A person writes 1 and 0.75.
+        var page = RenderEdit($$"""
+            {"id":"{{Id}}","name":"Negroni","glassTypeId":null,"methodId":null,"servingType":"FullDrink",
+             "instructions":null,
+             "lines":[{"ingredientId":"{{Gin}}","amount":1.0000,"unitId":"{{Ml}}","isRequired":true,"role":"Base","notes":null},
+                      {"ingredientId":"{{Lemon}}","amount":0.7500,"unitId":"{{Ml}}","isRequired":true,"role":"Juice","notes":null}]}
+            """);
+
+        page.WaitForAssertion(() => Assert.Equal(2, page.FindAll("[data-testid='new-line']").Count));
+
+        Assert.Equal(["1", "0.75"], Values(page, "new-line-amount"));
+    }
+
+    [Fact]
     public async Task SavingSendsAPut_AndReturnsToTheRecipe()
     {
         var page = RenderEdit();
