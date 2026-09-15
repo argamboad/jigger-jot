@@ -210,7 +210,8 @@ decision are logged as **JJ-036 → JJ-039**:
   **No popover** on the Write rows. **Auto stays the default theme** — it already is.
 
 **One asset action for the maintainer, blocking nothing:** a 2× landscape crop of Marga's scene from
-the uncommitted 2 MB source, for the Login and Welcome panels that upscale the 512 square today.
+the 2 MB source — committed since 2026-09-14 at `docs/brand/source/marga_scene_1254.png` — for the
+Login and Welcome panels that upscale the 512 square today.
 
 ## What is next, in order
 

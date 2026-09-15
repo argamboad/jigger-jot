@@ -36,9 +36,12 @@ The proposal shows her speaking, and the temptation is to read that as an assist
   | `marga_avatar_160.png` | head and shoulders, for the inline component | 19 KB |
   | `marga_scene_512.png` | the whole scene, for the empty states and `SHELL-2` | 115 KB |
 
-  Together that is **7% of what the bundle delivered**. The source PNG is deliberately not committed:
-  these are delivered brand assets like the lockups, not generated ones, and a 2 MB original in git
-  buys nothing.
+  Together that is **7% of what the bundle delivered**. The source PNG was first left out of git as a
+  2 MB original that bought nothing. **Reversed 2026-09-14, the maintainer's call:** it is the only
+  full-resolution copy, both shipped assets were cut from it by hand, and the login's framed card and
+  the planned landscape crop both need it — losing it would cost more than carrying it. It is committed
+  at `docs/brand/source/marga_scene_1254.png`, under `docs/` rather than a `wwwroot`, so it is never
+  served to a browser.
 
 **Her Spanish is a writing job, not a translation.** Her lines are voiced, and a literal translation
 of a voiced line reads like a machine. The placeholders have to survive being rewritten.
