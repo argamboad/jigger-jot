@@ -79,6 +79,18 @@ public abstract class E2ETestBase : PageTest
     };
 
     /// <summary>OTP sign-in on the given page/context and wait for the app shell.</summary>
+    /// <summary>
+    /// The write form's ingredient picker (AUTHORING-4) is a combobox, not a select: type the bottle's
+    /// name into the line's box, then pick the option that names it exactly.
+    /// </summary>
+    protected async Task PickIngredientAsync(int line, string name)
+    {
+        await Page.GetByTestId("new-line-ingredient").Nth(line).FillAsync(name);
+        await Page.GetByTestId("new-line-ingredient-option")
+            .Filter(new() { Has = Page.GetByText(name, new() { Exact = true }) })
+            .First.ClickAsync();
+    }
+
     protected static async Task SignInAsync(IPage page, string email)
     {
         var login = new LoginPage(page);

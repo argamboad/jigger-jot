@@ -235,6 +235,8 @@ Flow:
   order, notes. The form offers the writer's own volume unit (oz or ml) and saves it as ounces
   (JJ-041). Choosing a line's ingredient suggests its role and whether it is required — the first
   spirit is the base, a garnish is optional — and never overwrites a choice made by hand (AUTHORING-3).
+  The ingredient is a searchable picker: type part of a name or a category, pick with the mouse or the
+  keyboard; bottles on the shelf are marked (AUTHORING-4).
 - Same ingredient may appear on multiple lines.
 - Immediately participates in makeable / filtering like any other cocktail.
 

@@ -1,0 +1,58 @@
+/* AUTHORING-4: the combobox's list hangs under its input on the page's own surface and hairline, so
+   it reads as part of the form in both themes rather than as a browser menu. */
+.ing-picker {
+    position: relative;
+}
+
+.ing-picker-list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 6;
+    max-height: 18rem;
+    overflow-y: auto;
+    margin: 0;
+    padding: .25rem 0;
+    list-style: none;
+    background: var(--surface);
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .18);
+}
+
+.ing-picker-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: .45rem .85rem;
+    cursor: pointer;
+}
+
+.ing-picker-option:hover,
+.ing-picker-option.is-active {
+    background: var(--bs-primary-bg-subtle);
+}
+
+.ing-picker-name {
+    color: var(--ink);
+    min-width: 0;
+}
+
+.ing-picker-meta {
+    flex: 0 0 auto;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.ing-picker-shelf {
+    color: var(--copper-ink);
+}
+
+.ing-picker-empty {
+    padding: .6rem .85rem;
+    font-size: 13px;
+    color: var(--muted);
+}

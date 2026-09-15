@@ -403,6 +403,8 @@
   <data name="Marga_BottlePosition" xml:space="preserve"><value>{0} de {1}</value></data>
   <data name="Marga_BottlePrevious" xml:space="preserve"><value>Botella anterior</value></data>
   <data name="Marga_BottleNext" xml:space="preserve"><value>Botella siguiente</value></data>
+  <data name="Cocktail_NoIngredientMatch" xml:space="preserve"><value>No hay ninguna botella con ese nombre. Agrégala primero en tu estantería.</value></data>
+  <data name="Cocktail_OnShelf" xml:space="preserve"><value>en tu estantería</value></data>
   <data name="Cocktails_OneAway" xml:space="preserve"><value>A un ingrediente</value></data>
   <data name="Cocktails_All" xml:space="preserve"><value>Todo</value></data>
   <data name="Cocktails_Missing" xml:space="preserve"><value>Añade {0} y ya puedes prepararlo</value></data>

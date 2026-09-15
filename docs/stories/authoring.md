@@ -4,8 +4,8 @@
 > method are optional), **JJ-009**/**JJ-010** (optional lines and roles), **JJ-003**/**JJ-014**
 > (makeability and filtering are derived, never stored) and **JJ-031** (nothing stamps these tables).
 > Stories use Gherkin acceptance criteria.
-> **Status: ✅ COMPLETE for MVP** — AUTHORING-1 and AUTHORING-3 shipped. `AUTHORING-2` (editing) is the
-> open follow-on.
+> **Status: ✅ COMPLETE for MVP** — AUTHORING-1, AUTHORING-3 and AUTHORING-4 shipped. `AUTHORING-2`
+> (editing) is the open follow-on.
 
 **Epic key:** `AUTHORING`
 
@@ -189,5 +189,65 @@ Scenario: The seeded catalog and the form agree
 authoring journey in `CocktailBrowseJourneyTests` now asserts Campari arrives as a modifier with nobody
 choosing it (suite unchanged at 52).
 
-**Out of scope:** a searchable ingredient picker (offered, not chosen); suggesting roles on the
-seeded catalog, which already has them; re-suggesting a role on a fork, which is AUTHORING-2's form.
+**Out of scope:** a searchable ingredient picker (offered, not chosen then — it is AUTHORING-4);
+suggesting roles on the seeded catalog, which already has them; re-suggesting a role on a fork, which
+is AUTHORING-2's form.
+
+---
+
+### AUTHORING-4 — A searchable ingredient picker
+
+**Status: ✅ Implemented (2026-09-15).** Offered with AUTHORING-3, chosen by the maintainer afterwards.
+Presentation only: no endpoint, no schema.
+
+**As a** member of a household writing a cocktail
+**I want** to type part of a bottle's name and pick it
+**So that** I am not scrolling a list of two hundred bottles for each line
+
+**Context / notes.** Each line's ingredient was a `<select>` grouped by category: correct, and a scroll.
+It is now `IngredientPicker`, a combobox in the RCL.
+
+- **Type a name or a category.** Names that start with what was typed come first, then anything whose
+  name or category contains it, alphabetical within each — so "gin" finds London dry gin and Sloe gin,
+  and "juice" finds every juice. An empty box lists everything, by category then name. At most fifty
+  are shown; typing narrows it.
+- **Mouse or keyboard.** Arrow keys move through the list, Enter picks, Escape leaves the line as it
+  was. Options are picked on mousedown, before the input's blur can close the list.
+- **A screen reader hears it.** The ARIA combobox pattern: the input has `role="combobox"`,
+  `aria-expanded`, `aria-controls` naming the listbox and `aria-activedescendant` naming the option the
+  arrows are on.
+- **It picks from the list and nothing else.** No free text reaches a recipe, because a line must name a
+  bottle this household can see (JJ-031). A bottle that is not there says "No bottle by that name. Add it
+  on your shelf first."
+- **Bottles on the shelf say so**, beside their category.
+- **The test id did not move.** The input is still `new-line-ingredient`, the options are
+  `new-line-ingredient-option`, and picking still asks for the role suggestion (AUTHORING-3). The journey
+  types and picks through one helper in `E2ETestBase`, `PickIngredientAsync`.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: Typing narrows the list
+  When I type "gin" into a line's ingredient
+  Then I see London dry gin and Sloe gin and no juices
+  And names that start with what I typed come first
+
+Scenario: A category finds its bottles
+  When I type "juice"
+  Then every juice is offered
+
+Scenario: I can pick with the mouse or the keyboard
+  When I pick an option, or arrow down to it and press Enter
+  Then the line names that bottle
+
+Scenario: Escape leaves it as it was
+Scenario: Nothing matching says so
+Scenario: Bottles on my shelf are marked
+Scenario: A screen reader can use it as a combobox
+```
+
+**Tests.** `tests/Ui.Tests/IngredientPickerTests.cs` (new, nine); `WriteRoleSuggestionTests` and
+`WriteLayoutTests` now type and pick; the authoring journey picks through `PickIngredientAsync`.
+
+**Out of scope:** adding a new bottle from inside the picker (the shelf does that, INV-2); showing
+substitutes in the list.

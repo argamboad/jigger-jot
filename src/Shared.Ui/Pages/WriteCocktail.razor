@@ -120,25 +120,16 @@ else
                             </select>
                         </div>
                         <div class="write-line-main">
-                            @* Grouped by category, because a flat list of two hundred bottles is not
-                               a picker. The list is everything this household can see — the shared
-                               catalog plus its own additions from INV-2. *@
-                            @* AUTHORING-3: choosing the bottle fills in its role and whether it is
-                               required, unless someone already set those by hand. *@
-                            <select class="form-select" data-testid="new-line-ingredient"
-                                    aria-label="@Localizer["Cocktail_LineIngredient"]"
-                                    @bind="line.IngredientId" @bind:after="SuggestRolesAsync">
-                                <option value="">@Localizer["Cocktail_LineIngredient"]</option>
-                                @foreach (var group in _ingredients.GroupBy(i => i.Category))
-                                {
-                                    <optgroup label="@group.Key">
-                                        @foreach (var i in group)
-                                        {
-                                            <option value="@i.Id">@i.Name</option>
-                                        }
-                                    </optgroup>
-                                }
-                            </select>
+                            @* AUTHORING-4: a combobox rather than a select — two hundred bottles is a
+                               scroll, not a picker. Type a name or a category to narrow it. The list is
+                               everything this household can see: the shared catalog plus its own
+                               additions from INV-2. AUTHORING-3: choosing the bottle fills in its role
+                               and whether it is required, unless someone already set those by hand. *@
+                            <IngredientPicker Options="_ingredientOptions" TestId="new-line-ingredient"
+                                              AriaLabel="@Localizer["Cocktail_LineIngredient"]"
+                                              Placeholder="@Localizer["Cocktail_LineIngredient"]"
+                                              Value="@(Guid.TryParse(line.IngredientId, out var chosen) ? chosen : (Guid?)null)"
+                                              ValueChanged="(Guid? picked) => PickIngredientAsync(line, picked)" />
                             <div class="write-line-sub">
                                 <select class="form-select form-select-sm write-role" data-testid="new-line-role"
                                         aria-label="@Localizer["Cocktail_LineRole"]"
@@ -206,6 +197,9 @@ else
     private OptionsView _options = new([], [], [], [], []);
     private List<ShelfItemView> _ingredients = [];
 
+    // AUTHORING-4: the same bottles, shaped for the picker — by category, then name, for an empty search.
+    private IReadOnlyList<IngredientOption> _ingredientOptions = [];
+
     // MARGA-6: whether the inventory actually came back, so a failed read does not become "nothing on
     // your shelf yet" — the SHELL/MARGA-5 lesson of a line she has nothing behind.
     private bool _shelfKnown;
@@ -225,6 +219,10 @@ else
             _options = await Http.GetFromJsonAsync<OptionsView>("/api/cocktails/lookups")
                        ?? new OptionsView([], [], [], [], []);
             _ingredients = await Http.GetFromJsonAsync<List<ShelfItemView>>("/api/inventory") ?? [];
+            _ingredientOptions = [.. _ingredients
+                .OrderBy(i => i.Category, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(i => i.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(i => new IngredientOption(i.Id, i.Name, i.Category, i.IsAvailable))];
             _shelfKnown = true;
         }
         catch (Exception)
@@ -327,6 +325,12 @@ else
         {
             // Only a suggestion: if it cannot be had, the lines keep whatever they already say.
         }
+    }
+
+    private async Task PickIngredientAsync(LineDraft line, Guid? picked)
+    {
+        line.IngredientId = picked?.ToString() ?? string.Empty;
+        await SuggestRolesAsync();
     }
 
     private async Task RemoveLineAsync(LineDraft line)
