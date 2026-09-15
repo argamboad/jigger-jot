@@ -399,7 +399,9 @@ else
         _lines.AddRange(draft.Lines.Select(l => new LineDraft
         {
             IngredientId = l.IngredientId.ToString(),
-            Amount = l.Amount?.ToString(CultureInfo.InvariantCulture),
+            // "0.####", not ToString(): the amount column is numeric(10,4), so a stored ounce arrives as
+            // 1.0000 and the form opened reading that — clipped to "1.00" on a phone.
+            Amount = l.Amount?.ToString("0.####", CultureInfo.InvariantCulture),
             UnitId = l.UnitId?.ToString() ?? string.Empty,
             IsRequired = l.IsRequired,
             Role = l.Role,

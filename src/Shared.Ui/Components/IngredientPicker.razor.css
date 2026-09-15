@@ -56,3 +56,13 @@
     font-size: 13px;
     color: var(--muted);
 }
+
+/* On a phone the input is a narrow column, and a list only as wide as it wrapped "Ginger ale" onto two
+   lines. The list may be wider than its input — up to 20rem, never wider than the screen — anchored at
+   the right so it grows leftward over the amount column. */
+@media (max-width: 991.98px) {
+    .ing-picker-list {
+        left: auto;
+        width: max(100%, min(20rem, calc(100vw - 2rem)));
+    }
+}

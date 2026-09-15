@@ -55,31 +55,36 @@ async function bootToLogin(device, attempt) {
   return { page, emailBox };
 }
 
-(async () => {
-  const devices = await _android.devices();
-  if (devices.length === 0) throw new Error('no adb device/emulator attached');
-  const device = devices[0];
-  console.log(`device: ${device.serial()}`);
+// The WHOLE journey is retried once, not just the boot wait. MAUI's BlazorWebView is torn down and
+// re-created when Android recreates the Activity early in startup ("Cannot access a disposed
+// object: 'IServiceProvider'" at WebViewManager.AttachToPageAsync; first seen on run 32769356890,
+// where the same APK passed twice that morning) — the WebView the smoke attached to then goes away
+// underneath it. Any failure BEFORE the login box is visible still retries, as it always did. Until
+// 2026-09-15 only the boot wait retried, so the race was
+// survivable ONLY while it landed before the login box rendered; when it lands after (run
+// 34983821740: "connected", login box seen, then `fill` found no element 30 s later) the run failed
+// on a healthy app. A journey-wide retry covers both landings; a real startup fault (the G7 class
+// this canary exists for) still fails BOTH attempts.
+const ATTEMPTS = 2;
 
-  // ONE relaunch retry, boot phase only: MAUI's BlazorWebView has a startup race where an early
-  // Android Activity recreate disposes the service scope while the attach IPC is in flight —
-  // "Cannot access a disposed object: 'IServiceProvider'" at WebViewManager.AttachToPageAsync —
-  // and the login page then never renders (run 32769356890; the same APK passed twice that
-  // morning). A single force-stop + relaunch distinguishes that transient race from a real
-  // startup crash: the G7 class this canary exists for fails BOTH attempts.
-  let boot;
-  try {
-    boot = await bootToLogin(device, 1);
-  } catch (e) {
-    console.error(`boot attempt 1 failed (${e.message}); force-stopping and relaunching once (MAUI attach race)`);
-    await device.shell(`am force-stop ${PKG}`);
-    await new Promise(r => setTimeout(r, 2000));
-    await device.shell(`monkey -p ${PKG} -c android.intent.category.LAUNCHER 1`);
-    boot = await bootToLogin(device, 2);
-  }
-  const { page, emailBox } = boot;
+// The shapes the teardown takes, none of which an app fault produces twice in a row: the attached
+// target is gone, its execution context died, or the DOM the smoke was mid-way through is empty.
+function looksLikeWebViewReplaced(message) {
+  return [
+    'Target page, context or browser has been closed',
+    'Target closed',
+    'Execution context was destroyed',
+    "waiting for getByTestId('login-email')",
+  ].some(s => message.includes(s));
+}
+
+async function journey(device, attempt, seen) {
+  const { page, emailBox } = await bootToLogin(device, attempt);
+  seen.page = page;
+  seen.booted = true;
 
   // OTP sign-in end-to-end through the real API + Mailpit (the native body-token transport).
+  // The address is per-ATTEMPT: a retry must not read the first attempt's code back out of Mailpit.
   const email = `native-smoke-${Date.now()}@example.com`;
   await mailpit('/api/v1/messages', { method: 'DELETE' });
   await emailBox.fill(email);
@@ -100,6 +105,45 @@ async function bootToLogin(device, attempt) {
   await page.getByTestId('household-rename-input').waitFor({ state: 'visible', timeout: 60_000 });
   const members = await page.getByTestId('member-row').count();
   if (members !== 1) throw new Error(`expected 1 roster row for a fresh owner, saw ${members}`);
+  return page;
+}
+
+// What the page looked like when it failed — a closed target and a live-but-empty one are different
+// diagnoses, and CI's `adb logcat -d` after the fact has come back empty (run 34983821740).
+async function describeFailure(page) {
+  if (!page) return 'no page was attached';
+  if (page.isClosed()) return 'the attached WebView target was CLOSED';
+  try {
+    const seen = await page.evaluate(() => ({ url: location.href, chars: document.body.innerText.trim().length }));
+    return `the page is open at ${seen.url} with ${seen.chars} characters of text`;
+  } catch (e) {
+    return `the page is open but unreachable: ${e.message.split('\n')[0]}`;
+  }
+}
+
+(async () => {
+  const devices = await _android.devices();
+  if (devices.length === 0) throw new Error('no adb device/emulator attached');
+  const device = devices[0];
+  console.log(`device: ${device.serial()}`);
+
+  for (let attempt = 1; ; attempt++) {
+    let failed;
+    const seen = {};
+    try {
+      await journey(device, attempt, seen);
+      break;
+    } catch (e) {
+      failed = e;
+    }
+    const message = failed.message ?? String(failed);
+    console.error(`attempt ${attempt}: ${await describeFailure(seen.page)}`);
+    if (attempt >= ATTEMPTS || (seen.booted && !looksLikeWebViewReplaced(message))) throw failed;
+    console.error(`attempt ${attempt} failed (${message.split('\n')[0]}); force-stopping and relaunching once (MAUI WebView re-created)`);
+    await device.shell(`am force-stop ${PKG}`);
+    await new Promise(r => setTimeout(r, 2000));
+    await device.shell(`monkey -p ${PKG} -c android.intent.category.LAUNCHER 1`);
+  }
 
   console.log('native smoke (android): boot + OTP sign-in + household roster OK');
   await device.close();
