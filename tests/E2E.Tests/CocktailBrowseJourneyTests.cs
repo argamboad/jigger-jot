@@ -70,7 +70,8 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         // reads exactly as the IBA wrote it (JJ-007).
         var lines = Page.GetByTestId("cocktail-lines").Locator("li");
         await Expect(lines).ToHaveCountAsync(3);
-        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("30 ml");
+        // The IBA's 30 ml, stored and read as an ounce by a reader who never chose (JJ-041).
+        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("1 oz");
         await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("Campari");
 
         await Expect(Page.GetByTestId("cocktail-instructions")).ToContainTextAsync("Stir");
@@ -206,12 +207,12 @@ public class CocktailBrowseJourneyTests : E2ETestBase
 
         var ingredients = Page.GetByTestId("new-line-ingredient");
         await ingredients.Nth(0).SelectOptionAsync(new SelectOptionValue { Label = "London dry gin" });
-        await Page.GetByTestId("new-line-amount").Nth(0).FillAsync("30");
-        await Page.GetByTestId("new-line-unit").Nth(0).SelectOptionAsync(new SelectOptionValue { Label = "ml" });
+        await Page.GetByTestId("new-line-amount").Nth(0).FillAsync("1");
+        await Page.GetByTestId("new-line-unit").Nth(0).SelectOptionAsync(new SelectOptionValue { Label = "oz" });
 
         await ingredients.Nth(1).SelectOptionAsync(new SelectOptionValue { Label = "Campari" });
-        await Page.GetByTestId("new-line-amount").Nth(1).FillAsync("30");
-        await Page.GetByTestId("new-line-unit").Nth(1).SelectOptionAsync(new SelectOptionValue { Label = "ml" });
+        await Page.GetByTestId("new-line-amount").Nth(1).FillAsync("1");
+        await Page.GetByTestId("new-line-unit").Nth(1).SelectOptionAsync(new SelectOptionValue { Label = "oz" });
 
         await Page.RunAndWaitForResponseAsync(
             () => Page.GetByTestId("new-save").ClickAsync(),
@@ -221,7 +222,7 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         // which is allowed and shows as nothing rather than as a guess (JJ-034).
         await Expect(Page.GetByTestId("cocktail-name")).ToContainTextAsync(name, new() { Timeout = 30_000 });
         await Expect(Page.GetByTestId("cocktail-lines").Locator("li")).ToHaveCountAsync(2);
-        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("30 ml");
+        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("1 oz");
 
         // And the claim §14 actually makes: it is makeable now, because makeability is derived from
         // the lines rather than stored (JJ-003).
@@ -246,29 +247,30 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         await Page.GetByTestId("cocktail-search").FillAsync("negroni");
         await Expect(Page.GetByTestId("cocktail-list")).ToContainTextAsync("Negroni", new() { Timeout = 15_000 });
         await Page.GetByTestId("cocktail-list").GetByText("Negroni", new() { Exact = true }).First.ClickAsync();
-        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("30 ml", new() { Timeout = 15_000 });
+        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("1 oz", new() { Timeout = 15_000 });
         var recipeUrl = Page.Url;
 
         // Settings, and the switcher saves server-side like the language and theme ones.
         await Page.GotoAsync($"{BaseUrl}/settings");
         await Page.RunAndWaitForResponseAsync(
-            // BACKBAR-7: the measurement preference is a segmented control — three radios driven
-            // through their labels — writing the same PUT the select did.
+            // BACKBAR-7: the measurement preference is a segmented control — two radios driven
+            // through their labels since JJ-041 — writing the same PUT the select did.
+            () => Page.Locator("label[for='unit-choice-Metric']").ClickAsync(),
+            r => r.Url.EndsWith("/api/auth/unit-system") && r.Request.Method == "PUT");
+
+        // Same recipe, read in millilitres at the bar's ounce. The stored ounce has not moved — only
+        // the reading of it.
+        await Page.GotoAsync(recipeUrl);
+        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("30 ml", new() { Timeout = 15_000 });
+
+        // ...and back to ounces, the other of the two choices there are.
+        await Page.GotoAsync($"{BaseUrl}/settings");
+        await Page.RunAndWaitForResponseAsync(
             () => Page.Locator("label[for='unit-choice-Imperial']").ClickAsync(),
             r => r.Url.EndsWith("/api/auth/unit-system") && r.Request.Method == "PUT");
 
-        // Same recipe, read in ounces. The stored 30 ml has not moved — only the reading of it.
         await Page.GotoAsync(recipeUrl);
         await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("1 oz", new() { Timeout = 15_000 });
-
-        // ...and "as written" is a choice a reader can come back to, not just where they started.
-        await Page.GotoAsync($"{BaseUrl}/settings");
-        await Page.RunAndWaitForResponseAsync(
-            () => Page.Locator("label[for='unit-choice-AsWritten']").ClickAsync(),
-            r => r.Url.EndsWith("/api/auth/unit-system") && r.Request.Method == "PUT");
-
-        await Page.GotoAsync(recipeUrl);
-        await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("30 ml", new() { Timeout = 15_000 });
     }
 
     [Test]

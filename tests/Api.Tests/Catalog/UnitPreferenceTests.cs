@@ -40,7 +40,7 @@ public sealed class UnitPreferenceTests(IntegrationTestFactory factory)
     }
 
     [Fact]
-    public async Task SetUnitSystem_Empty_ClearsBackToAsWritten()
+    public async Task SetUnitSystem_Empty_IsRejected_BecauseThereIsNoAsWrittenAnyMore()
     {
         var user = await factory.SeedUserAsync();
         var client = factory.CreateClientFor(user);
@@ -48,10 +48,10 @@ public sealed class UnitPreferenceTests(IntegrationTestFactory factory)
 
         var response = await client.PutAsJsonAsync("/api/auth/unit-system", new { unitSystem = (string?)null });
 
-        // "Never chose" is a real state a reader can return to, not just where they started. Without
-        // this there would be no way back to reading the 1930 book in the book's own words.
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Null(await StoredAsync(user.UserId));
+        // JJ-041: every volume is stored in ounces, so "as written" would only ever mean "imperial".
+        // Clearing the preference is refused rather than silently read as a choice nobody made.
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(UnitSystem.Metric, await StoredAsync(user.UserId));
     }
 
     [Fact]
@@ -87,19 +87,19 @@ public sealed class UnitPreferenceTests(IntegrationTestFactory factory)
     }
 
     [Fact]
-    public async Task Profile_CarriesThePreference_AndNullWhenNeverChosen()
+    public async Task Profile_CarriesWhatTheReaderReads_ImperialWhenNeverChosen()
     {
         var client = factory.CreateClientFor(await factory.SeedUserAsync());
 
+        // A reader who never chose reads ounces, because ounces are what is stored (JJ-041). The
+        // profile says so, rather than leaving every client to know that null means imperial.
         var before = await client.GetFromJsonAsync<Profile>("/api/auth/me");
-        Assert.Null(before!.PreferredUnitSystem);
+        Assert.Equal("Imperial", before!.PreferredUnitSystem);
 
-        await client.PutAsJsonAsync("/api/auth/unit-system", new { unitSystem = "Imperial" });
+        await client.PutAsJsonAsync("/api/auth/unit-system", new { unitSystem = "Metric" });
 
         var after = await client.GetFromJsonAsync<Profile>("/api/auth/me");
-        // Null travels as null rather than being collapsed to a default, because the switcher offers
-        // "as written" as a choice and needs to know which one the reader is on.
-        Assert.Equal("Imperial", after!.PreferredUnitSystem);
+        Assert.Equal("Metric", after!.PreferredUnitSystem);
     }
 
     private async Task<UnitSystem?> StoredAsync(Guid userId)

@@ -239,6 +239,7 @@ public sealed class UnlockingBottleTests(PostgresFixture fixture) : PostgresTest
                 new EfRepository<Unit>(db),
                 new EfRepository<GlassType>(db),
                 new EfRepository<Method>(db),
+                new UserRepository(db),
                 new TestCurrentTenant { TenantId = _household });
 
             var result = await authoring.CreateAsync(new AuthorCocktailRequest(

@@ -5,9 +5,9 @@ using JiggerJot.Core.Entities;
 namespace JiggerJot.Infrastructure.Persistence.Configurations;
 
 /// <summary>
-/// Curated global lookup (JJ-022) — no tenant column. The conversion factor is stored with enough
-/// scale that round-tripping an imperial amount through millilitres and back doesn't drift
-/// (JJ-007: amounts are stored as authored, so any drift would show up only at display time).
+/// Curated global lookup (JJ-022) — no tenant column. The exact conversion factor is kept with full
+/// scale, though no recipe reads it: amounts are stored in ounces and read at the bar's 30 ml ounce
+/// by <c>BarMeasure</c> (JJ-041).
 /// </summary>
 public class UnitConfiguration : IEntityTypeConfiguration<Unit>
 {

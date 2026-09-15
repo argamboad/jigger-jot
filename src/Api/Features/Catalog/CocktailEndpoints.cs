@@ -91,9 +91,14 @@ public static class CocktailEndpoints
         // Everything the authoring form may offer. Deliberately NOT the same list as /filters above:
         // that one is derived from the catalog so a filter never offers a dead end, while this is the
         // whole curated lookup, because someone writing down what they pour must be able to reach a
-        // glass no seeded recipe happens to use (JJ-022).
-        group.MapGet("/lookups", async (CocktailAuthoringHandler handler, CancellationToken ct) =>
-            Results.Ok(await handler.OptionsAsync(ct)));
+        // glass no seeded recipe happens to use (JJ-022). The one exception is the units: each reader is
+        // offered their own volume unit — ounces or millilitres — because every volume is stored in
+        // ounces and the others would only be converted away on save (JJ-041).
+        group.MapGet("/lookups", async (
+            ClaimsPrincipal principal,
+            CocktailAuthoringHandler handler,
+            CancellationToken ct) =>
+            Results.Ok(await handler.OptionsAsync(principal.GetUserId(), ct)));
 
         group.MapGet("/{id:guid}", async (
             Guid id,

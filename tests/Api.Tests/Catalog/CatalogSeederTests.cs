@@ -290,28 +290,48 @@ public sealed class CatalogSeederTests(PostgresFixture fixture) : PostgresTestBa
     }
 
     [Fact]
-    public async Task Seed_StoresProportionalAmountsAgainstThePartUnit()
+    public async Task Seed_StoresEveryVolumeInOunces_OnTheJiggersMarks()
     {
         await using (var db = Fixture.CreateContext())
             await Build(db).SeedAsync();
 
         await using var read = Fixture.CreateContext();
-        var part = await read.Units.SingleAsync(u => u.Name == "part");
-        var proportional = await read.CocktailIngredients.IgnoreQueryFilters()
-            .Where(l => l.UnitId == part.Id)
+        var lines = await read.CocktailIngredients.IgnoreQueryFilters()
+            .Where(l => l.TenantId == null)
+            .Select(l => new { l.Amount, Unit = l.Unit == null ? null : l.Unit.Name })
             .ToListAsync();
 
-        // The 1930 recipes are proportional — "2/3 gin, 1/3 vermouth" with no absolute volume in the
-        // book at all. Stored as authored (JJ-007) against a neutral unit that never converts.
-        Assert.NotEmpty(proportional);
-        Assert.Null(part.MillilitreFactor);
-        Assert.All(proportional, l => Assert.True(l.Amount > 0));
+        // JJ-041: no millilitres, glasses or parts reach the table — every volume is an ounce, on a
+        // quarter mark, and teaspoons and dashes are left as the book wrote them.
+        Assert.DoesNotContain(lines, l => l.Unit == BarMeasure.Part);
+        Assert.DoesNotContain(lines, l => l.Unit is not null && l.Unit != BarMeasure.Ounce
+                                          && BarMeasure.MillilitresPer(l.Unit) is not null);
+        Assert.All(lines.Where(l => l.Unit == BarMeasure.Ounce),
+            l => Assert.Equal(0m, l.Amount!.Value % BarMeasure.OunceStep));
 
-        // Both shapes are real and both are as authored: most lines are a bare fraction of the
-        // drink, and a handful say "2 Parts" outright. Asserting only the first would have made a
-        // rule out of the common case.
-        Assert.Contains(proportional, l => l.Amount < 1);
-        Assert.Contains(proportional, l => l.Amount >= 1);
+        // ...and it is a conversion rather than an absence: the source file still carries every shape.
+        var authored = CatalogSeeder.LoadCocktails().Cocktails.SelectMany(c => c.Lines).ToList();
+        Assert.Contains(authored, l => l.Unit == BarMeasure.Part);
+        Assert.Contains(authored, l => l.Unit == BarMeasure.Millilitre);
+        Assert.Contains(authored, l => l.Unit == "glass");
+    }
+
+    [Fact]
+    public async Task Seed_PoursAProportionalRecipe_AsItsShareOfThreeOunces()
+    {
+        await using (var db = Fixture.CreateContext())
+            await Build(db).SeedAsync();
+
+        await using var read = Fixture.CreateContext();
+        var lines = await read.CocktailIngredients.IgnoreQueryFilters()
+            .Where(l => l.Cocktail!.Name == "Hawaiian Cocktail")
+            .OrderBy(l => l.DisplayOrder)
+            .Select(l => new { l.Amount, Unit = l.Unit!.Name })
+            .ToListAsync();
+
+        // The book's 4 : 2 : 1, as sevenths of three ounces on the jigger's marks.
+        Assert.Equal([1.75m, 0.75m, 0.5m], [.. lines.Select(l => l.Amount!.Value)]);
+        Assert.All(lines, l => Assert.Equal(BarMeasure.Ounce, l.Unit));
     }
 
     [Fact]

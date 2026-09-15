@@ -2035,3 +2035,40 @@ added. MARGA-5's "where she deliberately does not go" now reads as history: the 
 far-away recipe and the authoring form are hers; every platform screen still is not.
 
 *Decided 2026-09-14.*
+
+**JJ-041 — Every volume is stored in ounces; a reader sees ounces or millilitres, never parts.
+(2026-09-15; amends JJ-007, JJ-008 and PREFS-2)**
+JJ-007 stored amounts as authored, so a 1930 recipe reached the screen as "2/3 part" and "1 wineglass"
+and the IBA's specifications as millilitres. The maintainer found parts hard to read, and 567 of the
+Savoy's 868 recipes are proportional, so the problem grows with the catalog. Converting at display
+alone could not settle it: the exact 29.5735 ml ounce turned 2 oz into 59 ml, and a proportional
+recipe has no volume until someone decides what one drink is.
+
+*Decision (the maintainer's, taken question by question).*
+1. **Stored in ounces, on the quarter marks of a jigger.** Millilitres, centilitres and the other
+   volumes are converted and rounded — so the IBA's 20 ml and 25 ml both become 3/4 oz, because no
+   modern bar book writes 5/6 oz. Never rounded to nothing: the smallest amount is 1/4 oz.
+2. **An ounce is 30 ml.** The bar's ounce, not the exact one: 1 1/2 oz reads as 45 ml, 3/4 oz as
+   22.5 ml, which is what a metric bar book says.
+3. **Parts share a three-ounce drink** (2/3 absinthe, 1/6 gin, 1/6 anisette → 2, 1/2, 1/2 oz), and a
+   recipe whose fractions do not add up to one keeps its ratio.
+4. **The period glasses are volumes too:** a glass and a wineglass are 2 oz, a liqueur glass 1 oz —
+   the readings the old bar books give. A batch recipe keeps its proportions; its total may differ
+   from what the book meant.
+5. **Teaspoons and tablespoons stay** — they are universal — and so do dashes, barspoons and the other
+   neutral units.
+6. **Two choices, imperial the default.** "As written" is gone: with everything stored in ounces it
+   would only ever mean imperial. A null preference reads as imperial and the profile says so; clearing
+   the preference is a 400.
+7. **The authoring form offers the writer's own volume unit** (oz or ml, never a part or a glass) and
+   stores ounces.
+8. **One implementation.** `BarMeasure` in Core holds the table and the rounding; the seeder and the
+   authoring handler write through it and `AmountDisplay` reads through it. The one-off migration that
+   converts existing rows is a frozen SQL copy, held to `BarMeasure` by a test.
+
+*Consequences.* The seed file (`cocktails.json`) keeps the books' amounts; the table keeps ounces, so
+the extraction is still the record of what each book wrote. The migration has no way down. The
+`Unit` rows keep their exact millilitre factors, which no recipe reads any more. PREFS-3 in
+`docs/stories/prefs.md`; QA-CAT-07 rewritten and QA-CAT-10 added; CLAUDE.md's golden rule 4 restated.
+
+*Decided 2026-09-15.*

@@ -34,7 +34,8 @@ public sealed class CocktailAuthoringEndpointTests(IntegrationTestFactory factor
 
         var lookups = await client.GetFromJsonAsync<Lookups>("/api/cocktails/lookups");
         var shelf = await client.GetFromJsonAsync<List<ShelfRow>>("/api/inventory");
-        var ml = lookups!.Units.Single(u => u.Name == "ml");
+        // A reader who never chose writes in ounces, so that is the volume unit the form offers them.
+        var oz = lookups!.Units.Single(u => u.Name == "oz");
         var gin = shelf!.First(i => i.Name == "London dry gin");
 
         var response = await client.PostAsJsonAsync("/api/cocktails", new
@@ -47,7 +48,7 @@ public sealed class CocktailAuthoringEndpointTests(IntegrationTestFactory factor
             instructions = "Stir.",
             lines = new[]
             {
-                new { ingredientId = gin.Id, amount = 30m, unitId = ml.Id, isRequired = true, role = "Base", notes = (string?)null },
+                new { ingredientId = gin.Id, amount = 1.5m, unitId = oz.Id, isRequired = true, role = "Base", notes = (string?)null },
             },
         });
 
@@ -61,6 +62,7 @@ public sealed class CocktailAuthoringEndpointTests(IntegrationTestFactory factor
         var line = Assert.Single(detail.Lines);
         Assert.Equal("Base", line.Role);
         Assert.Equal("London dry gin", line.Ingredient);
+        Assert.Equal("1 1/2 oz", line.Display);
     }
 
     [Fact]

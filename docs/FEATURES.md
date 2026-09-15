@@ -213,9 +213,10 @@ Filters (combinable):
 
 ### 12. Viewing a cocktail
 Shows: name, recipe lines (ingredient, amount, unit, role grouping, notes), method, glass, serving
-type, instructions. Amounts display in the **viewing user's** unit preference (convertible units
-converted; neutral units as-authored). Indicates makeable / almost-makeable status and any
-substitution in play.
+type, instructions. Amounts display in the **viewing user's** unit preference — ounces, or
+millilitres at 30 to the ounce — and never as parts or period glasses (JJ-041); teaspoons,
+tablespoons and neutral units read the same in both. Indicates makeable / almost-makeable status and
+any substitution in play.
 
 ### 13. "Create my own version" (fork)
 **Goal:** let a household adapt a shared (or any) cocktail (JJ-002, JJ-013).
@@ -231,14 +232,16 @@ Flow:
 Flow:
 - Create a tenant-owned `Cocktail`: name, method, glass, serving type, instructions.
 - Add recipe lines: pick ingredient (shared or custom), amount + unit, required/optional, role,
-  order, notes.
+  order, notes. The form offers the writer's own volume unit (oz or ml) and saves it as ounces
+  (JJ-041).
 - Same ingredient may appear on multiple lines.
 - Immediately participates in makeable / filtering like any other cocktail.
 
 ### 15. Unit preference
-- Per-user setting: metric or imperial (JJ-008), on the Settings → Preferences card next to
-  language and theme (§6).
-- Affects **display only**; storage is always as-authored (JJ-007).
+- Per-user setting: imperial or metric (JJ-008), on the Settings → Preferences card next to
+  language and theme (§6). **Two choices, imperial the default** — there is no "as written" (JJ-041).
+- Affects **display only**; every volume is stored in ounces on the quarter-ounce marks, and metric
+  reads them at the bar's 30 ml to the ounce, in 2.5 ml steps (JJ-041).
 - Two users in the same household may view the same recipe in different units.
 
 ## Flow-to-rule cross-reference

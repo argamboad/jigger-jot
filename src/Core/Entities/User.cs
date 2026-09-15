@@ -29,9 +29,9 @@ public class User
     /// preference — everything else about a drink belongs to the household — so two members of one
     /// household can read the same recipe in different units.
     /// <para>
-    /// Display only: amounts are stored exactly as authored (JJ-007) and converted on the way out.
-    /// Neutral units (a dash, a barspoon) are never converted whatever this says. Null means the user
-    /// never chose, matching how <see cref="Locale"/> and <see cref="Theme"/> behave.
+    /// Display only: every volume is stored in ounces (JJ-041) and read in this system on the way out.
+    /// Teaspoons and neutral units (a dash, a barspoon) are never converted whatever this says. Null
+    /// means the user never chose, and reads as imperial.
     /// </para>
     /// </summary>
     public UnitSystem? PreferredUnitSystem { get; set; }

@@ -262,6 +262,12 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
             var id = SeedId.For($"cocktail:{cocktail.Source}", cocktail.Slug);
             if (existing.Contains(id)) continue;
 
+            // JJ-041: every volume is stored in ounces. The file keeps what the books wrote; the table
+            // keeps what a jigger pours. The whole recipe goes in at once, because a part only has a
+            // volume against the other parts.
+            var measured = BarMeasure.ToStored(
+                [.. cocktail.Lines.Select(line => new BarMeasure.Line(line.Amount, line.Unit))]);
+
             db.Cocktails.Add(new Cocktail
             {
                 Id = id,
@@ -272,13 +278,13 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
                 MethodId = cocktail.Method is null ? null : SeedId.For("method", cocktail.Method),
                 ServingType = Enum.Parse<ServingType>(cocktail.ServingType, ignoreCase: true),
                 Instructions = cocktail.Instructions,
-                Lines = [.. cocktail.Lines.Select(line => new CocktailIngredient
+                Lines = [.. cocktail.Lines.Select((line, index) => new CocktailIngredient
                 {
                     Id = SeedId.For($"line:{cocktail.Source}:{cocktail.Slug}", $"{line.DisplayOrder}"),
                     TenantId = null,
                     IngredientId = SeedId.For("ingredient", line.Ingredient),
-                    Amount = line.Amount,
-                    UnitId = line.Unit is null ? null : SeedId.For("unit", line.Unit),
+                    Amount = measured[index].Amount,
+                    UnitId = measured[index].Unit is { } unit ? SeedId.For("unit", unit) : null,
                     IsRequired = line.IsRequired,
                     Role = Enum.Parse<RecipeRole>(line.Role, ignoreCase: true),
                     DisplayOrder = line.DisplayOrder,
