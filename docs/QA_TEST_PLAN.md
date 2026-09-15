@@ -1703,6 +1703,25 @@ count is unaffected; it is a fact the screen owns rather than something she supp
 4. Switch to Español and repeat 1 and 3. **Expected:** her lines read as written Spanish, and the
    term and the number survive.
 
+### QA-CHROME-27 — She pages through the next bottles 🟠 (Web) — MARGA-7
+**Walkthrough** — a household with a few bottles ticked, and a second one with nothing ticked.
+1. **Home.** In the panel under her line, press **›**. **Expected:** her line changes to "Or pick up
+   …", the panel names the same second bottle and ITS drinks, and the position reads **2 of N**. Keep
+   pressing: it stops at the last bottle — never more than **10** — and **›** is greyed out. **‹** at
+   the first bottle is greyed out too.
+2. **Shelf.** Press **›** under her line. **Expected:** "Or {bottle}: one bottle from N more drinks",
+   and the **outlined pill** moves to that bottle. Tick any bottle. **Expected:** her suggestion goes
+   back to **1 of N**.
+3. **Catalog → One ingredient away.** Press **›**. **Expected:** her line and the drink names under it
+   follow the bottle, while the **list below does not change**.
+4. **The household with nothing ticked.** On the **shelf** and on the catalog's **One ingredient away**
+   empty state, press **›**. **Expected:** later bottles say how many recipes **ask for** them — never
+   how many drinks they open.
+5. With only one bottle to suggest: **Expected:** no arrows at all.
+6. Keyboard only: Tab to the arrows and press Enter. **Expected:** a visible focus ring, and a screen
+   reader announces her new line and the arrows as "Previous bottle" / "Next bottle".
+7. Switch to Español and repeat 1. **Expected:** "O consigue …", "2 de N".
+
 ### QA-CHROME-04 — The destinations follow the width 🟠 (Web) ⚙️ Automated in CI
 **Walkthrough**
 1. At a wide window: **Expected:** Home, Shelf and Cocktails sit in the header beside the brand, and
@@ -3071,6 +3090,7 @@ is the product. Cited decisions are `JJ-nnn` in `docs/DECISIONS.md`.
 | The ingredient suggests the role (AUTHORING-3) | **MINE-07** (⚙️ E2E) + `Core.Tests` (`RecipeRolesTests`) + `Api.Tests` (`SeedRolesParityTests`, `CocktailAuthoringTests`) + `Ui.Tests` (`WriteRoleSuggestionTests`) | `GET /api/cocktails/roles?ingredient=…` — roles in the order asked, from the ingredient's top-level category through Core's `RecipeRoles` (the seed script's rule, held to it by a parity test). First spirit Base, later spirits Modifier, a garnish optional; another household's ingredient is Other (JJ-031). The form never overwrites a role or required box set by hand. |
 | Onboarding wizard (ONBOARD-1) | **START-01/02/03/05** (⚙️ E2E) + START-04/06/07 | `GET /api/inventory` + `GET /api/cocktails/starters?limit=12` + `PUT /api/inventory`. Offered, never forced: **no redirect and no dismissal flag**, so there is no "has this household been onboarded" fact to store — `Tenant` is the platform's. Members joining by invitation skip it for free, because they already have a shelf (FEATURES §7, JJ-021). |
 | Marga (MARGA-1/2/3/5/6) | CHROME-01/02/03/**10/11/12/13/26**, MAKE-08/09/10 + `Ui.Tests` (`MargaPresenceTests`, `MargaEverywhereTests`) | none of her own. **She is a drawn character, not an assistant**: every line is a localized resource string with real data in its placeholders, picked whole rather than assembled, from queries that already exist. Her component takes a FINISHED sentence — it cannot build one, pick one or fetch anything. She is `alt=""`/`aria-hidden`. |
+| She pages through the next bottles (MARGA-7) | **CHROME-27** + `Ui.Tests` (`BottlePagerTests`, `MargaBottlePagingTests`) | `GET /api/cocktails/unlocks?limit=10` and `GET /api/cocktails/starters?limit=10` — no new endpoint; every screen had asked for one. One `BottlePager` component (‹ "2 of N" ›, nothing for a single bottle, stopping at both ends, `MaxBottles` = 10) under every line where she names a bottle: Home's panel (her line follows), the shelf (the outlined pill follows), the catalog's one-away panel (its drink names follow, the list below does not), and both "where to start" lines. A later bottle says "or"; a re-rank resets to the best; the line sits in an `aria-live` region. |
 | The responsive shell (SHELL-1) | **CHROME-04/06** (⚙️ E2E `ShellJourneyTests`) + CHROME-05 | none. ONE element repositioned by CSS, never a second copy hidden at one width — two `nav-shelf` in the DOM fails every journey that clicks it. The current tab is weight plus a drawn indicator, never colour alone, plus `aria-current`. |
 | The boot state (SHELL-2) | CHROME-07/08, and the native legs of §12/§13 | none — it renders before the app exists. It lands in **two** `index.html` files (`NATIVE_PARITY.md`), held by a CI gate; the WebView hosts sweep instead of filling, having no download to measure. A second gate caps the illustration's size, since this is the one place it is fetched before the app is usable. |
 | Marga in the emails (MARGA-4) | **MAIL-05/06/07** + `Api.Tests` (`MargaInEmailTests`) | none — `BrandedEmail` renders her the way it renders the logo: a CID inline image, the one approach Gmail and Outlook both show (they block data-URIs). She is on the three emails a person ASKED for and deliberately not on the notification wrapper, which carries failed payments and security alerts. Attached only when shown, so her 19 KB never rides along unused. Her line is one whole resource string from `EmailStrings.resx`, same contract as in the app. |
@@ -3246,6 +3266,7 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-CHROME-24 | Web | | | | | Billing on; a staff account; a provider sign-in |
 | QA-CHROME-25 | Web | | | | | Both themes; 1440, 768 and 390 wide; OS reduce-motion on |
 | QA-CHROME-26 | Web | | | | | A stocked household and an empty one; both languages |
+| QA-CHROME-27 | Web | | | | | A stocked household and an empty one; keyboard and screen reader; both languages |
 
 **§14a adversarial / tenant-isolation (QA-ADV-*).** All rows are **Not-run** (blank) until executed.
 The formerly pre-seeded **Blocked (known defect)** rows were reset when the v3 remediation completed
@@ -3612,3 +3633,7 @@ Critical/High defects. 🟢 Edge cases triaged (Pass or accepted-known-issue).
   ingredient on the write form fills in its role and required box from the same rule the seeded
   catalog was built with, now in Core; a choice made by hand is never overwritten. New **QA-MINE-07**.
   Suite 231 → **232** cases.
+- **Updated 2026-09-15** — **MARGA-7: she pages through the next bottles.** Wherever Marga names a
+  bottle to buy — Home, the shelf, the catalog's one-away panel and both "where to start" lines — ‹ › pages
+  through up to ten, stopping at both ends, with everything that named the bottle following it. New
+  **QA-CHROME-27**. Suite 232 → **233** cases.

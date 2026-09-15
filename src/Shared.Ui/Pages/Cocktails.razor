@@ -131,12 +131,17 @@
    BACKBAR-4: the copper-subtle panel from Home, her card tone at 72. *@
 @if (_almostOnly && _unlocks is { Count: > 0 })
 {
-    var best = _unlocks[0];
+    @* MARGA-7: whichever bottle the arrows point at; the first is still the best. *@
+    var best = _unlocks[Math.Min(_bottleIndex, _unlocks.Count - 1)];
     @* MARGA-5: it says the same figure, in her voice instead of as a bare statement. The card was
        already hers in shape and colour; it simply had nobody in it. *@
     <div class="card catalog-unlocks mb-3" data-testid="cocktail-unlocks">
         <div class="card-body">
-            <MargaSays Tone="MargaTone.Card" Size="72">@Localizer["Marga_UnlocksHeadline", best.Ingredient, best.Unlocks]</MargaSays>
+            <div aria-live="polite">
+                <MargaSays Tone="MargaTone.Card" Size="72">@(_bottleIndex == 0
+                    ? Localizer["Marga_UnlocksHeadline", best.Ingredient, best.Unlocks]
+                    : Localizer["Marga_UnlocksHeadlineOr", best.Ingredient, best.Unlocks])</MargaSays>
+            </div>
             <p class="catalog-unlocks-drinks mb-0" data-testid="cocktail-unlocks-drinks">
                 @* Four, then a count. Thirteen names is a wall, and the number beside them already
                    says how many there are. The DATA stays whole — see ALMOST-2. *@
@@ -145,6 +150,8 @@
                     : string.Join(" · ", best.Cocktails.Take(4))
                       + " · " + Localizer["Cocktails_UnlocksMore", best.Cocktails.Count - 4])
             </p>
+            @* MARGA-7: pages her suggestion, never the list below — that is the one-away list itself. *@
+            <BottlePager Count="_unlocks.Count" @bind-Index="_bottleIndex" />
         </div>
     </div>
 }
@@ -179,15 +186,19 @@ else if (_page is null || _page.Total == 0)
 
         <p class="catalog-empty-line font-display">@Localizer[EmptyMessage]</p>
 
-        @if (StartingFromNothing && _starter is not null)
+        @if (StartingFromNothing && _starters is { Count: > 0 })
         {
+            var starter = _starters[Math.Min(_bottleIndex, _starters.Count - 1)];
             @* The one line in the app that names a bottle WITHOUT promising drinks. ALMOST-2's
                card can say "buy this and four open up" because it measured that; here there is
                nothing within reach to measure, so she says what is true instead — how many of
                these recipes ask for it. *@
-            <p class="empty-starter" data-testid="cocktail-empty-starter">
-                @Localizer["Marga_StarterBottle", _starter.Ingredient, _starter.Appears]
+            <p class="empty-starter" data-testid="cocktail-empty-starter" aria-live="polite">
+                @(_bottleIndex == 0
+                    ? Localizer["Marga_StarterBottle", starter.Ingredient, starter.Appears]
+                    : Localizer["Marga_StarterBottleOr", starter.Ingredient, starter.Appears])
             </p>
+            <BottlePager Count="_starters.Count" @bind-Index="_bottleIndex" />
         }
 
         @if (_makeableOnly || _almostOnly)
@@ -345,7 +356,11 @@ else
     // MARGA-3. The other end of the same shelf: `_unlocks` says what to buy when something is within
     // reach, this says where to start when nothing is. Only one of the two can ever have anything to
     // say, because one needs a non-empty one-away list and the other needs an empty one.
-    private StarterView? _starter;
+    private List<StarterView> _starters = [];
+
+    // MARGA-7. Which bottle of whichever ranking is showing — the one-away panel's or the empty state's.
+    // Only one of the two ever has anything to say, so one index serves both; every load resets it.
+    private int _bottleIndex;
 
     // MARGA-6 (JJ-040). How many of the listed drinks this shelf can pour, for her line under
     // Everything and under any search or filter. Null when it was not asked (the makeable and one-away
@@ -543,10 +558,15 @@ else
 
             // Only while the one-away filter is on, and behind the same ticket, so a slow summary
             // cannot land on a list that has already moved on.
-            _unlocks = _almostOnly
-                ? await Http.GetFromJsonAsync<List<UnlockView>>("/api/cocktails/unlocks?limit=1") ?? []
+            var unlocks = _almostOnly
+                ? await Http.GetFromJsonAsync<List<UnlockView>>(
+                    $"/api/cocktails/unlocks?limit={BottlePager.MaxBottles}") ?? []
                 : [];
             if (ticket != _requestTicket) return;
+            _unlocks = unlocks;
+
+            // MARGA-7: a new list means a new ranking, so her suggestion starts again from the best.
+            _bottleIndex = 0;
 
             // MARGA-3. Asked for only in the one case that needs it: the one-away list came back
             // EMPTY, which means nothing is within a single bottle and the unlocks summary above has
@@ -555,13 +575,13 @@ else
             if (StartingFromNothing && _page is { Total: 0 })
             {
                 var starters = await Http.GetFromJsonAsync<List<StarterView>>(
-                    "/api/cocktails/starters?limit=1");
+                    $"/api/cocktails/starters?limit={BottlePager.MaxBottles}");
                 if (ticket != _requestTicket) return;
-                _starter = starters is { Count: > 0 } ? starters[0] : null;
+                _starters = starters ?? [];
             }
             else
             {
-                _starter = null;
+                _starters = [];
             }
         }
         catch (Exception)

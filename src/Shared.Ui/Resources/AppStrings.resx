@@ -395,6 +395,14 @@
   <data name="Marga_ShelfNoMatch" xml:space="preserve"><value>Nothing called “{0}” on my list. If you have it, add it below.</value></data>
   <data name="Marga_WriteShelf" xml:space="preserve"><value>Your shelf has {0} bottles to write with. Save it and I will tell you whether you can pour it.</value></data>
   <data name="Marga_WriteEmpty" xml:space="preserve"><value>Nothing on your shelf yet. Write it anyway — once it is saved I will tell you what is missing.</value></data>
+  <data name="Marga_HomeBottleOr" xml:space="preserve"><value>Or pick up {0}, and I can make you {1} more.</value></data>
+  <data name="Marga_ShelfNextOr" xml:space="preserve"><value>Or {0}: one bottle from {1} more drinks.</value></data>
+  <data name="Marga_ShelfEmptyOr" xml:space="preserve"><value>Or start with {0} — {1} of these recipes ask for it.</value></data>
+  <data name="Marga_UnlocksHeadlineOr" xml:space="preserve"><value>Or buy {0} and {1} of these open up.</value></data>
+  <data name="Marga_StarterBottleOr" xml:space="preserve"><value>Or start with {0}. {1} of these recipes ask for it.</value></data>
+  <data name="Marga_BottlePosition" xml:space="preserve"><value>{0} of {1}</value></data>
+  <data name="Marga_BottlePrevious" xml:space="preserve"><value>Previous bottle</value></data>
+  <data name="Marga_BottleNext" xml:space="preserve"><value>Next bottle</value></data>
   <data name="Cocktails_OneAway" xml:space="preserve"><value>One ingredient away</value></data>
   <data name="Cocktails_All" xml:space="preserve"><value>Everything</value></data>
   <data name="Cocktails_Missing" xml:space="preserve"><value>Add {0} and you can make this</value></data>

@@ -1,0 +1,41 @@
+@* MARGA-7: ‹ 2 of 7 › under a line where Marga names a bottle to buy, so the next best bottles are one
+   tap away rather than invisible. The five places she suggests a bottle all page through this one
+   component. It knows nothing about bottles: the page owns the ranked list and the index, and says
+   the line for whichever bottle the index points at.
+
+   Nothing renders for one bottle or none — there is nowhere to go. The ends stop rather than wrap,
+   so "1 of N" always means the best bottle. *@
+
+@inject IStringLocalizer<AppStrings> Localizer
+
+@if (Count > 1)
+{
+    <div class="bottle-pager" data-testid="bottle-pager">
+        <button type="button" class="bottle-pager-step" data-testid="bottle-prev"
+                aria-label="@Localizer["Marga_BottlePrevious"]" disabled="@(Index <= 0)"
+                @onclick="() => MoveAsync(Index - 1)">&lsaquo;</button>
+        <span class="bottle-pager-position" data-testid="bottle-position">@Localizer["Marga_BottlePosition", Index + 1, Count]</span>
+        <button type="button" class="bottle-pager-step" data-testid="bottle-next"
+                aria-label="@Localizer["Marga_BottleNext"]" disabled="@(Index >= Count - 1)"
+                @onclick="() => MoveAsync(Index + 1)">&rsaquo;</button>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// The most bottles she ever pages through — the maintainer's number. Past ten, each bottle
+    /// usually opens a drink or two, and the pages ask the ranking for this many.
+    /// </summary>
+    public const int MaxBottles = 10;
+
+    /// <summary>Which bottle is showing, counting from zero.</summary>
+    [Parameter] public int Index { get; set; }
+
+    [Parameter] public EventCallback<int> IndexChanged { get; set; }
+
+    /// <summary>How many bottles the ranking returned — at most <see cref="MaxBottles"/>.</summary>
+    [Parameter] public int Count { get; set; }
+
+    private Task MoveAsync(int to) =>
+        to < 0 || to >= Count ? Task.CompletedTask : IndexChanged.InvokeAsync(to);
+}
