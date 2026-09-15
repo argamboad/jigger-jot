@@ -233,7 +233,8 @@ Flow:
 - Create a tenant-owned `Cocktail`: name, method, glass, serving type, instructions.
 - Add recipe lines: pick ingredient (shared or custom), amount + unit, required/optional, role,
   order, notes. The form offers the writer's own volume unit (oz or ml) and saves it as ounces
-  (JJ-041).
+  (JJ-041). Choosing a line's ingredient suggests its role and whether it is required — the first
+  spirit is the base, a garnish is optional — and never overwrites a choice made by hand (AUTHORING-3).
 - Same ingredient may appear on multiple lines.
 - Immediately participates in makeable / filtering like any other cocktail.
 

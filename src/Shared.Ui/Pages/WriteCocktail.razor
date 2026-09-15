@@ -123,8 +123,11 @@ else
                             @* Grouped by category, because a flat list of two hundred bottles is not
                                a picker. The list is everything this household can see — the shared
                                catalog plus its own additions from INV-2. *@
+                            @* AUTHORING-3: choosing the bottle fills in its role and whether it is
+                               required, unless someone already set those by hand. *@
                             <select class="form-select" data-testid="new-line-ingredient"
-                                    aria-label="@Localizer["Cocktail_LineIngredient"]" @bind="line.IngredientId">
+                                    aria-label="@Localizer["Cocktail_LineIngredient"]"
+                                    @bind="line.IngredientId" @bind:after="SuggestRolesAsync">
                                 <option value="">@Localizer["Cocktail_LineIngredient"]</option>
                                 @foreach (var group in _ingredients.GroupBy(i => i.Category))
                                 {
@@ -138,7 +141,8 @@ else
                             </select>
                             <div class="write-line-sub">
                                 <select class="form-select form-select-sm write-role" data-testid="new-line-role"
-                                        aria-label="@Localizer["Cocktail_LineRole"]" @bind="line.Role">
+                                        aria-label="@Localizer["Cocktail_LineRole"]"
+                                        @bind="line.Role" @bind:after="() => line.RoleTouched = true">
                                     @foreach (var r in _options.Roles)
                                     {
                                         <option value="@r">@Localizer[$"Cocktail_Role{r}"]</option>
@@ -148,14 +152,15 @@ else
                                    makeability (JJ-009). *@
                                 <div class="form-check form-check-inline mb-0">
                                     <input class="form-check-input" type="checkbox" data-testid="new-line-required"
-                                           id="@($"req-{line.Key}")" @bind="line.IsRequired" />
+                                           id="@($"req-{line.Key}")" @bind="line.IsRequired"
+                                           @bind:after="() => line.RequiredTouched = true" />
                                     <label class="form-check-label small" for="@($"req-{line.Key}")">@Localizer["Cocktail_LineRequired"]</label>
                                 </div>
                             </div>
                         </div>
                         <button class="btn btn-link write-line-remove" data-testid="new-line-remove"
                                 aria-label="@Localizer["Household_Remove"]"
-                                disabled="@(_lines.Count == 1)" @onclick="() => _lines.Remove(line)">×</button>
+                                disabled="@(_lines.Count == 1)" @onclick="() => RemoveLineAsync(line)">×</button>
                     </div>
                 }
             </div>
@@ -206,6 +211,10 @@ else
     private bool _shelfKnown;
 
     private int ShelfBottles => _ingredients.Count(i => i.IsAvailable);
+
+    // AUTHORING-3: each ask gets a ticket, and an answer overtaken by a later ask is dropped — two
+    // quick picks must not let the first answer land on top of the second.
+    private int _roleTicket;
 
     protected override async Task OnInitializedAsync()
     {
@@ -290,6 +299,43 @@ else
     }
 
     /// <summary>
+    /// AUTHORING-3: asks the API what role each chosen ingredient should take and applies it to every
+    /// line whose role — or required box — nobody has touched. The whole recipe is asked in order,
+    /// because only the first spirit is the base: picking a second one changes nothing above it, and
+    /// removing the first can promote the next. The rule is the server's (<c>RecipeRoles</c> in Core),
+    /// so this page never re-derives it.
+    /// </summary>
+    private async Task SuggestRolesAsync()
+    {
+        var ticket = ++_roleTicket;
+        var picked = _lines.Where(l => Guid.TryParse(l.IngredientId, out _)).ToList();
+        if (picked.Count == 0) return;
+
+        try
+        {
+            var query = string.Join("&", picked.Select(l => $"ingredient={l.IngredientId}"));
+            var suggestions = await Http.GetFromJsonAsync<List<RoleSuggestionView>>($"/api/cocktails/roles?{query}");
+            if (ticket != _roleTicket || suggestions is null || suggestions.Count != picked.Count) return;
+
+            for (var i = 0; i < picked.Count; i++)
+            {
+                if (!picked[i].RoleTouched) picked[i].Role = suggestions[i].Role;
+                if (!picked[i].RequiredTouched) picked[i].IsRequired = suggestions[i].IsRequired;
+            }
+        }
+        catch (Exception)
+        {
+            // Only a suggestion: if it cannot be had, the lines keep whatever they already say.
+        }
+    }
+
+    private async Task RemoveLineAsync(LineDraft line)
+    {
+        _lines.Remove(line);
+        await SuggestRolesAsync();
+    }
+
+    /// <summary>
     /// Invariant culture on purpose: this is a wire value, and a Spanish reader typing "22,5" means
     /// the same amount as an English one typing "22.5". Both are accepted and sent as one number.
     /// </summary>
@@ -312,7 +358,13 @@ else
         public string UnitId { get; set; } = string.Empty;
         public bool IsRequired { get; set; } = true;
         public string Role { get; set; } = "Base";
+
+        /// <summary>Set by hand, so a suggestion never overwrites it (AUTHORING-3).</summary>
+        public bool RoleTouched { get; set; }
+        public bool RequiredTouched { get; set; }
     }
+
+    private record RoleSuggestionView(Guid IngredientId, string Role, bool IsRequired);
 
     private record OptionView(Guid Id, string Name);
 

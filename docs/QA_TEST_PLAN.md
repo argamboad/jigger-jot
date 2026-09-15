@@ -1560,6 +1560,18 @@ filters. **Expected:** the form offers MORE — the whole curated set, so someon
 pour can reach a glass no seeded recipe happens to use. The filter offers only what the catalog uses,
 so no filter is a dead end. *(Two endpoints on purpose; they must not be merged.)*
 
+### QA-MINE-07 — The ingredient suggests the line's role 🟢 (Web) ⚙️ Automated in CI
+**Walkthrough**
+1. **Write a cocktail.** Add four lines and pick, in order: **London dry gin**, **Campari**, **Lime
+   juice**, **Mint**. **Expected:** without touching the role dropdowns they read **Base**,
+   **Modifier**, **Juice**, **Garnish** — and the mint line's **Required** box is unticked.
+2. Change the second line to **Cognac**. **Expected:** it reads **Modifier** — only the first spirit is
+   the base.
+3. Remove the gin line. **Expected:** the cognac line becomes **Base**.
+4. Set the lime line's role to **Other** by hand, then change its ingredient to **Soda water**.
+   **Expected:** it stays **Other** — a choice made by hand is never overwritten.
+5. Save. **Expected:** the recipe page lists each line under the role it had on the form.
+
 ---
 
 ## 10h. Web — The first minute (ONBOARD) 🔴
@@ -3056,6 +3068,7 @@ is the product. Cited decisions are `JJ-nnn` in `docs/DECISIONS.md`.
 | Where to start (MARGA-3) | **MAKE-10**, CAT-09 | `GET /api/cocktails/starters?limit=` — a THIRD reading of the catalog, not a variant of `/unlocks`: which bottles the recipes lean on most, minus what the household has. Required lines only (JJ-009), substitutions ignored. **`appears` is how many recipes ASK for it, never how many it would unlock.** |
 | Forking (FORK-1) | **MINE-01** (⚙️ E2E) + MINE-02 | `POST /api/cocktails/{id}/fork` — a SNAPSHOT copy, never a reference (JJ-002, JJ-013): a new tenant-owned `Cocktail` plus copies of every line, `TenantId` set by hand on both tables. The source credit is deliberately NOT copied; provenance rides on `ForkedFromCocktailId`, which is not a foreign key, so deleting the original leaves the copy standing. |
 | Authoring (AUTHORING-1) | **MINE-03/04** (⚙️ E2E) + MINE-05/06 | `POST /api/cocktails`, `GET /api/cocktails/lookups`. **Two lookup endpoints that must not be merged:** `/filters` is catalog-derived so no filter is a dead end, `/lookups` is the whole curated set (JJ-022) so a form can reach a glass no recipe uses. Refuses a lineless recipe, a unit with no amount, and an ingredient the household cannot see. Request enums cross the wire BY NAME. |
+| The ingredient suggests the role (AUTHORING-3) | **MINE-07** (⚙️ E2E) + `Core.Tests` (`RecipeRolesTests`) + `Api.Tests` (`SeedRolesParityTests`, `CocktailAuthoringTests`) + `Ui.Tests` (`WriteRoleSuggestionTests`) | `GET /api/cocktails/roles?ingredient=…` — roles in the order asked, from the ingredient's top-level category through Core's `RecipeRoles` (the seed script's rule, held to it by a parity test). First spirit Base, later spirits Modifier, a garnish optional; another household's ingredient is Other (JJ-031). The form never overwrites a role or required box set by hand. |
 | Onboarding wizard (ONBOARD-1) | **START-01/02/03/05** (⚙️ E2E) + START-04/06/07 | `GET /api/inventory` + `GET /api/cocktails/starters?limit=12` + `PUT /api/inventory`. Offered, never forced: **no redirect and no dismissal flag**, so there is no "has this household been onboarded" fact to store — `Tenant` is the platform's. Members joining by invitation skip it for free, because they already have a shelf (FEATURES §7, JJ-021). |
 | Marga (MARGA-1/2/3/5/6) | CHROME-01/02/03/**10/11/12/13/26**, MAKE-08/09/10 + `Ui.Tests` (`MargaPresenceTests`, `MargaEverywhereTests`) | none of her own. **She is a drawn character, not an assistant**: every line is a localized resource string with real data in its placeholders, picked whole rather than assembled, from queries that already exist. Her component takes a FINISHED sentence — it cannot build one, pick one or fetch anything. She is `alt=""`/`aria-hidden`. |
 | The responsive shell (SHELL-1) | **CHROME-04/06** (⚙️ E2E `ShellJourneyTests`) + CHROME-05 | none. ONE element repositioned by CSS, never a second copy hidden at one width — two `nav-shelf` in the DOM fails every journey that clicks it. The current tab is weight plus a drawn indicator, never colour alone, plus `aria-current`. |
@@ -3199,6 +3212,7 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-MINE-04 | Web | | | | | |
 | QA-MINE-05 | Web | | | | | |
 | QA-MINE-06 | Web | | | | | |
+| QA-MINE-07 | Web | | | | | |
 | QA-START-01 | Web | | | | | Needs a brand-new household |
 | QA-START-02 | Web | | | | | |
 | QA-START-03 | Web | | | | | |
@@ -3594,3 +3608,7 @@ Critical/High defects. 🟢 Edge cases triaged (Pass or accepted-known-issue).
   is gone: two choices, imperial the default. QA-CAT-07 rewritten around the two choices; new
   **QA-CAT-10** (a pour, never parts or glasses; the metric write form; the migrated staging rows).
   Suite 230 → **231** cases.
+- **Updated 2026-09-15** — **AUTHORING-3: the ingredient suggests the line's role.** Picking a line's
+  ingredient on the write form fills in its role and required box from the same rule the seeded
+  catalog was built with, now in Core; a choice made by hand is never overwritten. New **QA-MINE-07**.
+  Suite 231 → **232** cases.
