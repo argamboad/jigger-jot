@@ -55,6 +55,13 @@ public class WriteRoleSuggestionTests : ComponentTestBase
         return page;
     }
 
+    /// <summary>Types the bottle's name into a line's picker and picks it — how a person does it.</summary>
+    private static void Pick(IRenderedComponent<WriteCocktail> page, int line, string name)
+    {
+        page.FindAll("[data-testid='new-line-ingredient']")[line].Input(name);
+        page.Find("[data-testid='new-line-ingredient-option']").MouseDown();
+    }
+
     private static string RoleOf(IRenderedComponent<WriteCocktail> page, int line) =>
         page.FindAll("[data-testid='new-line-role']")[line].GetAttribute("value") ?? "";
 
@@ -66,7 +73,7 @@ public class WriteRoleSuggestionTests : ComponentTestBase
     {
         var page = RenderForm();
 
-        page.Find("[data-testid='new-line-ingredient']").Change(Lime);
+        Pick(page, 0, "Lime juice");
 
         page.WaitForAssertion(() => Assert.Equal("Juice", RoleOf(page, 0)));
         Assert.True(RequiredOf(page, 0));
@@ -78,7 +85,7 @@ public class WriteRoleSuggestionTests : ComponentTestBase
         var page = RenderForm();
         Assert.True(RequiredOf(page, 0));
 
-        page.Find("[data-testid='new-line-ingredient']").Change(Mint);
+        Pick(page, 0, "Mint");
 
         // Optional lines never block makeability (JJ-009), so a sprig of mint must not arrive required.
         page.WaitForAssertion(() =>
@@ -94,7 +101,7 @@ public class WriteRoleSuggestionTests : ComponentTestBase
         var page = RenderForm();
 
         page.Find("[data-testid='new-line-role']").Change("Modifier");
-        page.Find("[data-testid='new-line-ingredient']").Change(Lime);
+        Pick(page, 0, "Lime juice");
 
         // The question was still asked — the suggestion simply does not win over a person.
         page.WaitForAssertion(() => Assert.Contains(Http.Requests, r => r.RequestUri!.AbsolutePath == "/api/cocktails/roles"));
@@ -107,7 +114,7 @@ public class WriteRoleSuggestionTests : ComponentTestBase
         var page = RenderForm();
 
         page.Find("[data-testid='new-line-required']").Change(false);
-        page.Find("[data-testid='new-line-ingredient']").Change(Lime);
+        Pick(page, 0, "Lime juice");
 
         page.WaitForAssertion(() => Assert.Equal("Juice", RoleOf(page, 0)));
         Assert.False(RequiredOf(page, 0));
@@ -119,8 +126,8 @@ public class WriteRoleSuggestionTests : ComponentTestBase
         var page = RenderForm();
 
         await page.Find("[data-testid='new-line-add']").ClickAsync(new());
-        page.FindAll("[data-testid='new-line-ingredient']")[1].Change(Gin);
-        page.FindAll("[data-testid='new-line-ingredient']")[0].Change(Lime);
+        Pick(page, 1, "London dry gin");
+        Pick(page, 0, "Lime juice");
 
         page.WaitForAssertion(() =>
         {

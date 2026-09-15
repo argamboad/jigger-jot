@@ -159,6 +159,16 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         await Expect(Page.GetByTestId("cocktail-forked-from")).ToContainTextAsync("Negroni");
         await Expect(Page.GetByTestId("cocktail-source")).Not.ToBeVisibleAsync();
 
+        // AUTHORING-2: the copy is the household's to change — and editing it keeps it a copy of the Negroni.
+        await Page.GetByTestId("cocktail-edit").ClickAsync();
+        await Expect(Page.GetByTestId("new-name")).ToHaveValueAsync("Negroni", new() { Timeout = 30_000 });
+        await Page.GetByTestId("new-name").FillAsync("Our Negroni");
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("new-save").ClickAsync(),
+            r => r.Request.Method == "PUT" && r.Url.Contains("/api/cocktails/") && r.Status == 200);
+        await Expect(Page.GetByTestId("cocktail-name")).ToContainTextAsync("Our Negroni", new() { Timeout = 30_000 });
+        await Expect(Page.GetByTestId("cocktail-forked-from")).ToContainTextAsync("Negroni");
+
         // The original is still the book's, unchanged, right where it was.
         await Page.GotoAsync(originalUrl);
         await Expect(Page.GetByTestId("cocktail-source")).ToContainTextAsync("IBA", new() { Timeout = 30_000 });
@@ -205,12 +215,11 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         await Page.GetByTestId("new-line-add").ClickAsync();
         await Expect(Page.GetByTestId("new-line")).ToHaveCountAsync(2);
 
-        var ingredients = Page.GetByTestId("new-line-ingredient");
-        await ingredients.Nth(0).SelectOptionAsync(new SelectOptionValue { Label = "London dry gin" });
+        await PickIngredientAsync(0, "London dry gin");
         await Page.GetByTestId("new-line-amount").Nth(0).FillAsync("1");
         await Page.GetByTestId("new-line-unit").Nth(0).SelectOptionAsync(new SelectOptionValue { Label = "oz" });
 
-        await ingredients.Nth(1).SelectOptionAsync(new SelectOptionValue { Label = "Campari" });
+        await PickIngredientAsync(1, "Campari");
         // AUTHORING-3: nobody chose a role — the ingredient suggested it. Gin leads, Campari modifies.
         await Expect(Page.GetByTestId("new-line-role").Nth(1)).ToHaveValueAsync("Modifier", new() { Timeout = 15_000 });
         await Expect(Page.GetByTestId("new-line-role").Nth(0)).ToHaveValueAsync("Base");

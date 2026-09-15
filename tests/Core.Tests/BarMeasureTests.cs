@@ -125,6 +125,32 @@ public class BarMeasureTests
     }
 
     [Theory]
+    [InlineData(1.5, "oz", UnitSystem.Metric, 45, "ml")]
+    [InlineData(0.75, "oz", UnitSystem.Metric, 22.5, "ml")]
+    [InlineData(1.5, "oz", UnitSystem.Imperial, 1.5, "oz")]
+    [InlineData(1.5, "oz", null, 1.5, "oz")]
+    [InlineData(2, "tsp", UnitSystem.Metric, 2, "tsp")]
+    [InlineData(3, "dash", UnitSystem.Metric, 3, "dash")]
+    public void AStoredLine_OpensForEditingInTheWritersOwnUnit(
+        decimal amount, string unit, UnitSystem? writer, decimal expectedAmount, string expectedUnit)
+    {
+        // AUTHORING-2: a metric household member editing a recipe types millilitres, so the form opens
+        // with the stored ounces read back as millilitres — and saving converts them straight back.
+        Assert.Equal(new BarMeasure.Line(expectedAmount, expectedUnit),
+                     BarMeasure.ForWriter(new BarMeasure.Line(amount, unit), writer));
+    }
+
+    [Fact]
+    public void OpeningALineAndSavingItUnchanged_StoresExactlyWhatWasThere()
+    {
+        var stored = BarMeasure.ToStored([new(1.5m, "oz"), new(0.25m, "oz"), new(2m, "dash")]);
+
+        var reopened = stored.Select(l => BarMeasure.ForWriter(l, UnitSystem.Metric)).ToList();
+
+        Assert.Equal(stored, BarMeasure.ToStored(reopened));
+    }
+
+    [Theory]
     [InlineData(null, UnitSystem.Imperial)]
     [InlineData(UnitSystem.Imperial, UnitSystem.Imperial)]
     [InlineData(UnitSystem.Metric, UnitSystem.Metric)]

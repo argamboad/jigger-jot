@@ -1572,6 +1572,34 @@ so no filter is a dead end. *(Two endpoints on purpose; they must not be merged.
    **Expected:** it stays **Other** — a choice made by hand is never overwritten.
 5. Save. **Expected:** the recipe page lists each line under the role it had on the form.
 
+### QA-MINE-08 — The ingredient is a searchable picker 🟢 (Web) ⚙️ Automated in CI
+**Walkthrough**
+1. **Write a cocktail.** Click a line's ingredient box. **Expected:** a list of every bottle, grouped by
+   category then name; bottles you have ticked say **on your shelf**.
+2. Type **gin**. **Expected:** only gins, names starting with "gin" first. Type **juice**. **Expected:**
+   every juice.
+3. Pick one with the mouse. **Expected:** the box shows its name and its role fills in (QA-MINE-07).
+4. On another line, type a few letters, press **↓** twice and **Enter**. **Expected:** the second match
+   is picked. Type again and press **Escape**. **Expected:** the line keeps the bottle it had.
+5. Type **yuzu** (not on the list). **Expected:** "No bottle by that name. Add it on your shelf first."
+6. With a screen reader: **Expected:** the box is announced as a combobox, and each option is read as
+   the arrow keys reach it.
+
+### QA-MINE-09 — Editing a cocktail I wrote or forked 🟠 (Web) ⚙️ Automated in CI
+**Walkthrough**
+1. Open a cocktail your household **wrote**. **Expected:** an **Edit** button beside *Create my own
+   version*. Open a book's recipe (the Negroni). **Expected:** no Edit — only *Create my own version*.
+2. On your own cocktail, **Edit**. **Expected:** "Edit cocktail", every field and line filled in, roles
+   as they were.
+3. As a **Metric** member, edit a recipe with a 1½ oz line. **Expected:** the line reads **45** **ml**.
+4. Change the name, remove a line, add one, save. **Expected:** back on the recipe, which says exactly
+   what you saved, lines in your order; its makeability badge follows the new lines.
+5. **Fork** the Negroni, then **Edit** the copy and save. **Expected:** it still says **Based on
+   Negroni**; the book's Negroni is unchanged.
+6. Save an edit with the name blank. **Expected:** the inline message, and nothing changed.
+7. In two browsers as two members, edit the same recipe and save both. **Expected:** the second save is
+   what the recipe says.
+
 ---
 
 ## 10h. Web — The first minute (ONBOARD) 🔴
@@ -1706,7 +1734,7 @@ count is unaffected; it is a fact the screen owns rather than something she supp
 ### QA-CHROME-27 — She pages through the next bottles 🟠 (Web) — MARGA-7
 **Walkthrough** — a household with a few bottles ticked, and a second one with nothing ticked.
 1. **Home.** In the panel under her line, press **›**. **Expected:** her line changes to "Or pick up
-   …", the panel names the same second bottle and ITS drinks, and the position reads **2 of N**. Keep
+   …", the box directly under her line lists that bottle's drinks, and the position reads **2 of N**. Keep
    pressing: it stops at the last bottle — never more than **10** — and **›** is greyed out. **‹** at
    the first bottle is greyed out too.
 2. **Shelf.** Press **›** under her line. **Expected:** "Or {bottle}: one bottle from N more drinks",
@@ -1774,10 +1802,11 @@ link colour. Hover a destination: it turns copper. The household name is a coppe
 
 ### QA-CHROME-16 — Home is rules, not cards, and never a zero 🟠 (Web) — BACKBAR-3
 **Walkthrough:** with a partial shelf, open Home at 1280 wide, then at 390; then untick everything
-on the shelf and come back. **Expected:** at 1280 two columns — Marga at 96px with her label above
-her line on the left over the big serif count and its two pill buttons; the three drinks on the right
-as rules with the name in the serif and the facets right-aligned, then the copper-tinted unlock panel,
-**the only boxed thing on the page**. **In Dark as well as Light, a drink's name is in the page's
+on the shelf and come back. **Expected:** at 1280 two columns — on the left, Marga at 96px with her
+label above her line, directly under it the copper-tinted box with that bottle's drinks and the ‹ ›
+arrows (**the only boxed thing on the page**, with no headline repeating her), then the big serif count
+and its two pill buttons; on the right, up to eight drinks as rules with the name in the serif and the
+facets right-aligned, the two columns ending near each other. **In Dark as well as Light, a drink's name is in the page's
 ink and turns copper only under the pointer** — the same on every catalog row (a dark-theme link
 rule once repainted all of them copper, and only a browser showed it). At 390 the same in one
 column. With nothing ticked: her scene
@@ -3088,6 +3117,8 @@ is the product. Cited decisions are `JJ-nnn` in `docs/DECISIONS.md`.
 | Forking (FORK-1) | **MINE-01** (⚙️ E2E) + MINE-02 | `POST /api/cocktails/{id}/fork` — a SNAPSHOT copy, never a reference (JJ-002, JJ-013): a new tenant-owned `Cocktail` plus copies of every line, `TenantId` set by hand on both tables. The source credit is deliberately NOT copied; provenance rides on `ForkedFromCocktailId`, which is not a foreign key, so deleting the original leaves the copy standing. |
 | Authoring (AUTHORING-1) | **MINE-03/04** (⚙️ E2E) + MINE-05/06 | `POST /api/cocktails`, `GET /api/cocktails/lookups`. **Two lookup endpoints that must not be merged:** `/filters` is catalog-derived so no filter is a dead end, `/lookups` is the whole curated set (JJ-022) so a form can reach a glass no recipe uses. Refuses a lineless recipe, a unit with no amount, and an ingredient the household cannot see. Request enums cross the wire BY NAME. |
 | The ingredient suggests the role (AUTHORING-3) | **MINE-07** (⚙️ E2E) + `Core.Tests` (`RecipeRolesTests`) + `Api.Tests` (`SeedRolesParityTests`, `CocktailAuthoringTests`) + `Ui.Tests` (`WriteRoleSuggestionTests`) | `GET /api/cocktails/roles?ingredient=…` — roles in the order asked, from the ingredient's top-level category through Core's `RecipeRoles` (the seed script's rule, held to it by a parity test). First spirit Base, later spirits Modifier, a garnish optional; another household's ingredient is Other (JJ-031). The form never overwrites a role or required box set by hand. |
+| A searchable ingredient picker (AUTHORING-4) | **MINE-08** (⚙️ E2E) + `Ui.Tests` (`IngredientPickerTests`) | none — presentation only. `IngredientPicker` in the RCL: an ARIA combobox (input `role="combobox"`, `aria-controls` → listbox, `aria-activedescendant` → the arrowed option) over the bottles this household can see; names starting with the typed text first, then name or category contains it; at most fifty shown; arrows + Enter + Escape; picks only from the list (JJ-031); on-shelf bottles marked. Test ids `new-line-ingredient` / `-option` / `-empty`. |
+| Editing a cocktail (AUTHORING-2) | **MINE-09** (⚙️ E2E) + `Api.Tests` (`CocktailEditingTests`) + `Core.Tests` (`BarMeasureTests`) + `Ui.Tests` (`WriteEditTests`) | `GET /api/cocktails/{id}/draft` (the request's shape, volumes in the caller's writing unit), `PUT /api/cocktails/{id}` (same body and 400 codes as POST). Household-owned only; the shared catalog **403 `catalog_read_only`** (JJ-002), another household **404** (JJ-031). A fork keeps `forkedFrom` (JJ-013). Every line replaced; one `PrepareAsync` behind writing and editing; last save wins. `/cocktails/{id}/edit` is the same page as `/cocktails/new`; `cocktail-edit` on the recipe page for own cocktails only. |
 | Onboarding wizard (ONBOARD-1) | **START-01/02/03/05** (⚙️ E2E) + START-04/06/07 | `GET /api/inventory` + `GET /api/cocktails/starters?limit=12` + `PUT /api/inventory`. Offered, never forced: **no redirect and no dismissal flag**, so there is no "has this household been onboarded" fact to store — `Tenant` is the platform's. Members joining by invitation skip it for free, because they already have a shelf (FEATURES §7, JJ-021). |
 | Marga (MARGA-1/2/3/5/6) | CHROME-01/02/03/**10/11/12/13/26**, MAKE-08/09/10 + `Ui.Tests` (`MargaPresenceTests`, `MargaEverywhereTests`) | none of her own. **She is a drawn character, not an assistant**: every line is a localized resource string with real data in its placeholders, picked whole rather than assembled, from queries that already exist. Her component takes a FINISHED sentence — it cannot build one, pick one or fetch anything. She is `alt=""`/`aria-hidden`. |
 | She pages through the next bottles (MARGA-7) | **CHROME-27** + `Ui.Tests` (`BottlePagerTests`, `MargaBottlePagingTests`) | `GET /api/cocktails/unlocks?limit=10` and `GET /api/cocktails/starters?limit=10` — no new endpoint; every screen had asked for one. One `BottlePager` component (‹ "2 of N" ›, nothing for a single bottle, stopping at both ends, `MaxBottles` = 10) under every line where she names a bottle: Home's panel (her line follows), the shelf (the outlined pill follows), the catalog's one-away panel (its drink names follow, the list below does not), and both "where to start" lines. A later bottle says "or"; a re-rank resets to the best; the line sits in an `aria-live` region. |
@@ -3233,6 +3264,8 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-MINE-05 | Web | | | | | |
 | QA-MINE-06 | Web | | | | | |
 | QA-MINE-07 | Web | | | | | |
+| QA-MINE-08 | Web | | | | | Keyboard only, and a screen reader |
+| QA-MINE-09 | Web | | | | | A Metric member for step 3; two browsers for step 7 |
 | QA-START-01 | Web | | | | | Needs a brand-new household |
 | QA-START-02 | Web | | | | | |
 | QA-START-03 | Web | | | | | |
@@ -3637,3 +3670,10 @@ Critical/High defects. 🟢 Edge cases triaged (Pass or accepted-known-issue).
   bottle to buy — Home, the shelf, the catalog's one-away panel and both "where to start" lines — ‹ › pages
   through up to ten, stopping at both ends, with everything that named the bottle following it. New
   **QA-CHROME-27**. Suite 232 → **233** cases.
+- **Updated 2026-09-15** — **AUTHORING-4: a searchable ingredient picker.** A line's ingredient is a
+  combobox rather than a select of two hundred bottles: type part of a name or a category, pick with the
+  mouse or the keyboard, on-shelf bottles marked. New **QA-MINE-08**. Suite 233 → **234** cases.
+- **Updated 2026-09-15** — **AUTHORING-2: editing a cocktail, including a fork.** An Edit button on a
+  household's own recipes opens the same form, filled in and in the writer's units; the shared catalog
+  stays read-only, a fork keeps "Based on", and the last save wins. New **QA-MINE-09**. Suite 234 →
+  **235** cases.

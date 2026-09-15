@@ -17,6 +17,34 @@ public static class CocktailEndpoints
     {
         var group = app.MapTenantFeatureGroup("/api/cocktails");
 
+        // The refusals writing and editing share, each a 400 with a code the form turns into a sentence.
+        // One mapping, so an edit can never answer the same mistake differently from a new cocktail.
+        static IResult Refused(AuthorCocktailOutcome outcome) => outcome switch
+        {
+            AuthorCocktailOutcome.InvalidName => Results.BadRequest(new ErrorResponse(
+                "invalid_name", "A cocktail name is required")),
+
+            AuthorCocktailOutcome.NoLines => Results.BadRequest(new ErrorResponse(
+                "no_lines", "A cocktail needs at least one ingredient")),
+
+            AuthorCocktailOutcome.UnknownIngredient => Results.BadRequest(new ErrorResponse(
+                "unknown_ingredient", "One of those ingredients is not in your catalog")),
+
+            AuthorCocktailOutcome.InvalidLine => Results.BadRequest(new ErrorResponse(
+                "invalid_line", "Check the amounts and units on each line")),
+
+            // AUTHORING-2. Not a 404: a book's recipe is visible to every household, so saying it does
+            // not exist would be false — it is theirs to read and to fork, not to change (JJ-002).
+            AuthorCocktailOutcome.ReadOnly => Results.Json(new ErrorResponse(
+                "catalog_read_only", "Recipes from the shared catalog cannot be edited. Fork it to make your own."),
+                statusCode: StatusCodes.Status403Forbidden),
+
+            AuthorCocktailOutcome.NotFound => Results.NotFound(),
+
+            _ => Results.BadRequest(new ErrorResponse(
+                "unknown_lookup", "That glass or method does not exist")),
+        };
+
         group.MapGet("/", async (
             string? search,
             int? page,
@@ -132,25 +160,41 @@ public static class CocktailEndpoints
         {
             var result = await handler.CreateAsync(request, ct);
 
+            return result.Outcome == AuthorCocktailOutcome.Created
+                ? Results.Created($"/api/cocktails/{result.Id}", new CocktailCreatedResponse(result.Id!.Value))
+                : Refused(result.Outcome);
+        });
+
+        // AUTHORING-2: edit a household's own cocktail — one it wrote or forked. The same body as the
+        // POST and the same refusals; a shared catalog recipe is a 403, another household's a 404.
+        group.MapPut("/{id:guid}", async (
+            Guid id,
+            AuthorCocktailRequest request,
+            CocktailAuthoringHandler handler,
+            CancellationToken ct) =>
+        {
+            var result = await handler.UpdateAsync(id, request, ct);
+
+            return result.Outcome == AuthorCocktailOutcome.Updated
+                ? Results.Ok(new CocktailCreatedResponse(id))
+                : Refused(result.Outcome);
+        });
+
+        // AUTHORING-2: the cocktail as the write form edits it — the request's own shape, with every
+        // volume in the caller's writing unit (JJ-041), so the form opens with what that person types.
+        group.MapGet("/{id:guid}/draft", async (
+            Guid id,
+            ClaimsPrincipal principal,
+            CocktailAuthoringHandler handler,
+            CancellationToken ct) =>
+        {
+            var result = await handler.DraftAsync(id, principal.GetUserId(), ct);
+
             return result.Outcome switch
             {
-                AuthorCocktailOutcome.Created =>
-                    Results.Created($"/api/cocktails/{result.Id}", new CocktailCreatedResponse(result.Id!.Value)),
-
-                AuthorCocktailOutcome.InvalidName => Results.BadRequest(new ErrorResponse(
-                    "invalid_name", "A cocktail name is required")),
-
-                AuthorCocktailOutcome.NoLines => Results.BadRequest(new ErrorResponse(
-                    "no_lines", "A cocktail needs at least one ingredient")),
-
-                AuthorCocktailOutcome.UnknownIngredient => Results.BadRequest(new ErrorResponse(
-                    "unknown_ingredient", "One of those ingredients is not in your catalog")),
-
-                AuthorCocktailOutcome.InvalidLine => Results.BadRequest(new ErrorResponse(
-                    "invalid_line", "Check the amounts and units on each line")),
-
-                _ => Results.BadRequest(new ErrorResponse(
-                    "unknown_lookup", "That glass or method does not exist")),
+                CocktailDraftOutcome.Found => Results.Ok(result.Draft),
+                CocktailDraftOutcome.ReadOnly => Refused(AuthorCocktailOutcome.ReadOnly),
+                _ => Results.NotFound(),
             };
         });
 

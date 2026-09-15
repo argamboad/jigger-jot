@@ -64,16 +64,15 @@ public class MargaBottlePagingTests : ComponentTestBase
             Assert.Equal("Marga_HomeBottle[Absinthe, 57]", cut.Find("[data-testid='home-marga'] .marga-line").TextContent.Trim());
             Assert.Equal("Marga_BottlePosition[1, 3]", Position(cut));
         });
-        Assert.Contains("Cocktails_UnlocksHeadline[Absinthe, 57]", cut.Find("[data-testid='home-unlocks']").TextContent);
+        Assert.Contains("Blackthorn", cut.Find("[data-testid='home-unlocks']").TextContent);
         Assert.True(Asked("/api/cocktails/unlocks"), "Home asks for up to ten bottles");
 
         await cut.Find("[data-testid='bottle-next']").ClickAsync(new());
 
         // The second bottle is an alternative to the first, so she says "or" rather than repeating
-        // herself — and the panel beside her names the same bottle and ITS drinks.
+        // herself — and the box under her line lists that bottle's drinks.
         Assert.Equal("Marga_HomeBottleOr[Vodka, 31]", cut.Find("[data-testid='home-marga'] .marga-line").TextContent.Trim());
         var panel = cut.Find("[data-testid='home-unlocks']").TextContent;
-        Assert.Contains("Cocktails_UnlocksHeadline[Vodka, 31]", panel);
         Assert.Contains("Screwdriver", panel);
         Assert.DoesNotContain("Blackthorn", panel);
         Assert.Equal("Marga_BottlePosition[2, 3]", Position(cut));

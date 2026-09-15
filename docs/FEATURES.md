@@ -225,7 +225,8 @@ Flow:
 1. From any cocktail, user hits **Create my own version**.
 2. System creates a **full snapshot copy**: a new tenant-owned `Cocktail` + copies of all its recipe
    lines, with `forked_from_cocktail_id` set to the original (provenance only).
-3. The copy is fully independent and editable; later edits to the original never propagate.
+3. The copy is fully independent and editable; later edits to the original never propagate. Editing
+   it keeps "Based on …" (AUTHORING-2).
 4. The fork appears among the household's custom cocktails.
 
 ### 14. Authoring a custom cocktail (from scratch)
@@ -235,8 +236,13 @@ Flow:
   order, notes. The form offers the writer's own volume unit (oz or ml) and saves it as ounces
   (JJ-041). Choosing a line's ingredient suggests its role and whether it is required — the first
   spirit is the base, a garnish is optional — and never overwrites a choice made by hand (AUTHORING-3).
+  The ingredient is a searchable picker: type part of a name or a category, pick with the mouse or the
+  keyboard; bottles on the shelf are marked (AUTHORING-4).
 - Same ingredient may appear on multiple lines.
 - Immediately participates in makeable / filtering like any other cocktail.
+- **Edit** a cocktail the household owns — written or forked — with the same form, opened in the
+  writer's units; the same rules as writing apply. The shared catalog is read-only: fork it to change it.
+  Last save wins (AUTHORING-2).
 
 ### 15. Unit preference
 - Per-user setting: imperial or metric (JJ-008), on the Settings → Preferences card next to

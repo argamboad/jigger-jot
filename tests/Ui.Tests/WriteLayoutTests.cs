@@ -95,7 +95,9 @@ public class WriteLayoutTests : ComponentTestBase
         var page = RenderForm();
 
         page.Find("[data-testid='new-name']").Change("Gamboa Sour");
-        page.Find("[data-testid='new-line-ingredient']").Change("44444444-4444-4444-4444-444444444444");
+        // AUTHORING-4: the ingredient is a combobox now — type the name, pick the option.
+        page.Find("[data-testid='new-line-ingredient']").Input("London dry gin");
+        page.Find("[data-testid='new-line-ingredient-option']").MouseDown();
         await page.Find("[data-testid='new-save']").ClickAsync(new());
 
         page.WaitForAssertion(() =>

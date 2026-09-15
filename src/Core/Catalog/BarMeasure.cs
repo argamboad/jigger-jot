@@ -106,6 +106,18 @@ public static class BarMeasure
         })];
     }
 
+    /// <summary>
+    /// A stored line as its writer edits it (AUTHORING-2): a metric writer types millilitres, so stored
+    /// ounces open as millilitres at the bar's ounce; everything else opens as stored. Saving it back
+    /// through <see cref="ToStored"/> gives exactly what was there.
+    /// </summary>
+    public static Line ForWriter(Line stored, UnitSystem? preference) =>
+        ReaderSystem(preference) == UnitSystem.Metric
+        && stored.Amount is { } amount
+        && string.Equals(stored.Unit, Ounce, StringComparison.OrdinalIgnoreCase)
+            ? new Line(amount * MillilitresPerOunce, Millilitre)
+            : stored;
+
     private static bool IsPart(Line line) =>
         line.Amount is > 0 && string.Equals(line.Unit, Part, StringComparison.OrdinalIgnoreCase);
 

@@ -56,6 +56,41 @@ public class HomeLayoutTests : ComponentTestBase
     }
 
     [Fact]
+    public async Task TheBottleBoxSitsDirectlyUnderHerLine_NotAcrossThePage()
+    {
+        await SignInAsync();
+        Http.On(HttpMethod.Get, "/api/cocktails", TwoMakeable);
+        Http.On(HttpMethod.Get, "/api/cocktails/unlocks", OneBottle);
+
+        var cut = Render<Home>();
+
+        cut.WaitForAssertion(() => cut.Find("[data-testid='home-unlocks']"));
+
+        // The maintainer's call (MARGA-7 amendment): her line named the bottle top-left while the box
+        // with that bottle's drinks and arrows sat bottom-right, so pressing › changed a sentence in
+        // the other corner. The box now follows her line in the same column, before the count.
+        var lead = cut.Find(".home-lead");
+        var order = lead.Children.Select(e => e.GetAttribute("data-testid") ?? e.ClassName ?? "").ToList();
+        var marga = order.IndexOf("home-marga");
+        var box = order.FindIndex(o => o.Contains("home-unlocks"));
+        var count = order.IndexOf("home-count");
+        Assert.True(marga >= 0 && box == marga + 1 && count > box,
+            $"expected her line, then the box, then the count — got: {string.Join(", ", order)}");
+
+        // The right column is the drinks and nothing else.
+        Assert.Empty(cut.Find(".home-side").QuerySelectorAll("[data-testid='home-unlocks']"));
+
+        // Her line directly above already names the bottle and the number, so the box says neither again.
+        Assert.DoesNotContain("Cocktails_UnlocksHeadline", cut.Find("[data-testid='home-unlocks']").TextContent);
+        Assert.Contains("Martini", cut.Find("[data-testid='home-unlocks']").TextContent);
+
+        // With the box under her line the left column is much taller, so the right one lists eight
+        // drinks rather than three and the two columns end near each other.
+        Assert.Contains(Http.Requests, r => r.RequestUri!.AbsolutePath == "/api/cocktails"
+                                            && r.RequestUri.Query.Contains("pageSize=8"));
+    }
+
+    [Fact]
     public async Task AnEmptyShelfGetsHerScene_AndNoZero()
     {
         await SignInAsync();

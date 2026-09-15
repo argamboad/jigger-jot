@@ -66,7 +66,55 @@ public enum AuthorCocktailOutcome
 
     /// <summary>The glass or the method does not exist.</summary>
     UnknownLookup,
+
+    /// <summary>An edit was saved (AUTHORING-2).</summary>
+    Updated,
+
+    /// <summary>No cocktail this household can see has that id — including another household's.</summary>
+    NotFound,
+
+    /// <summary>A shared catalog cocktail: visible, but read-only (JJ-002). Fork it to change it.</summary>
+    ReadOnly,
 }
+
+/// <summary>Whether a cocktail can be opened for editing (AUTHORING-2).</summary>
+public enum CocktailDraftOutcome
+{
+    Found,
+
+    /// <summary>Not one this household can see.</summary>
+    NotFound,
+
+    /// <summary>The shared catalog — visible, not editable (JJ-002).</summary>
+    ReadOnly,
+}
+
+/// <param name="Draft">Only on <see cref="CocktailDraftOutcome.Found"/>.</param>
+public record CocktailDraftResult(CocktailDraftOutcome Outcome, CocktailDraft? Draft = null);
+
+/// <summary>
+/// A household's own cocktail, shaped for the write form to edit (AUTHORING-2): the same fields a
+/// <see cref="AuthorCocktailRequest"/> sends, so the form round-trips it unchanged.
+/// </summary>
+/// <param name="Lines">In order, with every volume in the WRITER's unit — millilitres for a metric
+/// reader, ounces otherwise (JJ-041) — and <c>unitId</c> pointing at that unit.</param>
+public record CocktailDraft(
+    Guid Id,
+    string Name,
+    Guid? GlassTypeId,
+    Guid? MethodId,
+    string ServingType,
+    string? Instructions,
+    IReadOnlyList<CocktailDraftLine> Lines);
+
+/// <param name="Role">By name, like the request takes it.</param>
+public record CocktailDraftLine(
+    Guid IngredientId,
+    decimal? Amount,
+    Guid? UnitId,
+    bool IsRequired,
+    string Role,
+    string? Notes);
 
 /// <summary>
 /// The role the write form should put on a line, from what its ingredient is (AUTHORING-3). A
