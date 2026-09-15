@@ -786,6 +786,10 @@ jobs:
           # The app's compiled Android base URL is http://localhost:5438 — adb reverse maps the
           # emulator's localhost:5438 back to this runner (same trick as local dev).
           adb reverse tcp:5438 tcp:5438
+          # Record the device log for the WHOLE run: the after-the-fact `adb logcat -d` in the Logs step
+          # came back empty on run 34983821740, leaving a WebView teardown with no device evidence.
+          adb logcat -c || true
+          nohup adb logcat -v time > logcat.txt 2>&1 &
           adb shell monkey -p com.jiggerjot.app -c android.intent.category.LAUNCHER 1
 
           echo "Waiting for the app process…"
@@ -813,6 +817,16 @@ jobs:
           # "nothing here may block without a deadline" rule applies to diagnostics too (a hung
           # diagnostics step sat 30+ min on 2026-08-24 until it was cancelled by hand).
           timeout 60 adb logcat -d 2>/dev/null | grep -iE "jiggerjot|FATAL|blazor|chromium" | tail -n 120 || true
+          grep -iE "jiggerjot|FATAL|blazor|chromium|relaunch|Killing" logcat.txt 2>/dev/null | tail -n 120 || true
+
+      - name: Upload the device log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: native-smoke-android-logcat
+          path: logcat.txt
+          if-no-files-found: ignore
+          retention-days: 7
 
   # End-to-end tests (v2 audit B8-5). Boots the REAL stack — Postgres + Mailpit (service containers) +
   # the API + the Blazor WASM Web app — and drives a headless Chromium through the QA smoke journeys,
