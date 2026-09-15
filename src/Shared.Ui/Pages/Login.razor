@@ -10,23 +10,21 @@
 
 <PageTitle>@Localizer["Login_Title"]</PageTitle>
 
+@* MARGA-1, proposal screen 3... 8, and BACKBAR-5 (pages 05–06): her line is the page's HEADLINE,
+   on her scene, which is half the card. Amended 2026-09-14 on the maintainer's call, to the
+   2026-09-10 proposal's arrangement: a FRAMED card centred on the page ground (the same day's full
+   bleed reversed), her whole drawing on the left at every width, and the form side centred with
+   Login_Subtitle back under the title — it says how to continue, which the reference keeps. Our
+   type and colours stay; only the placement follows the picture. The form side keeps every id; the
+   code step swaps the buttons for the field and she does not move. *@
 <div class="login-wrapper">
-    <div class="login-card card shadow-sm">
-        <div class="card-body p-4 p-md-5">
+    <MargaSplit Line="@Localizer["Marga_LoginLine"]" Aside="@Localizer["Onboard_MargaAside"]" Whole="true">
 
-            <div class="text-center mb-4">
+            <div class="login-head text-center mb-4">
                 <img src="_content/JiggerJot.Shared.Ui/brand/lockup_light_1520.png" alt="JiggerJot"
-                     class="login-lockup mb-3" />
-                <h1 class="h5 fw-bold mb-0">@Localizer["Login_Title"]</h1>
-            </div>
-
-            @* MARGA-1, proposal screen 3... 8. Login_Subtitle described the BUTTONS below it
-               ("choose how you'd like to continue"), which the buttons already say for themselves.
-               Her line says what the product is for instead, on the one screen that gets seen
-               before anyone has any data at all. Left-aligned rather than centred: she is speaking,
-               not labelling. *@
-            <div class="mb-4">
-                <MargaSays Size="40">@Localizer["Marga_LoginLine"]</MargaSays>
+                     class="login-lockup mx-auto mb-3" />
+                <h1 class="page-title mb-1">@Localizer["Login_Title"]</h1>
+                <p class="text-muted mb-0">@Localizer["Login_Subtitle"]</p>
             </div>
 
             @if (!string.IsNullOrEmpty(Error))
@@ -132,10 +130,10 @@
             {
                 <p class="text-muted small mb-2">@Localizer["Login_OtpPrompt", _email]</p>
                 <div class="mb-2">
+                    @* The 6-digit field: 24px, letter-spacing .4rem, centred, on the surface (page 05). *@
                     <input type="text" inputmode="numeric" maxlength="6"
                            data-testid="login-otp-code"
-                           class="form-control text-center @(_otpError ? "is-invalid" : "")"
-                           style="letter-spacing:.4rem;font-size:1.25rem"
+                           class="form-control text-center login-code @(_otpError ? "is-invalid" : "")"
                            placeholder="------" @bind="_otpCode" @bind:event="oninput"
                            @onkeydown="OnOtpKeyDown" disabled="@_busy" />
                 </div>
@@ -160,8 +158,7 @@
                 <div class="mb-2">
                     <input type="text" inputmode="text" maxlength="14"
                            data-testid="login-mfa-code"
-                           class="form-control text-center @(_otpError ? "is-invalid" : "")"
-                           style="letter-spacing:.3rem;font-size:1.15rem"
+                           class="form-control text-center login-code login-code-wide @(_otpError ? "is-invalid" : "")"
                            placeholder="------" @bind="_mfaCode" @bind:event="oninput"
                            @onkeydown="OnMfaKeyDown" disabled="@_busy" />
                 </div>
@@ -181,13 +178,12 @@
                 <button class="btn btn-link btn-sm mt-2 p-0" @onclick="Reset">@Localizer["Login_UseDifferentEmail"]</button>
             }
 
-            <div class="d-flex justify-content-center gap-2 mt-4">
+            <div class="d-flex gap-2 mt-4">
                 <div style="max-width:170px;width:100%"><LanguageSwitcher /></div>
                 <div style="max-width:130px;width:100%"><ThemeSwitcher /></div>
             </div>
 
-        </div>
-    </div>
+    </MargaSplit>
 </div>
 
 @code {

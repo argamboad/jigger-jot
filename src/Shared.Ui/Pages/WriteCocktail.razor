@@ -9,8 +9,8 @@
 
 <a class="btn btn-link px-0 mb-2" href="/cocktails">← @Localizer["Nav_Cocktails"]</a>
 
-<h1 class="h4 fw-bold mb-1">@Localizer["Cocktail_New"]</h1>
-<p class="text-muted mb-3">@Localizer["Cocktail_NewSubtitle"]</p>
+<h1 class="page-title mb-1">@Localizer["Cocktail_New"]</h1>
+<p class="text-muted mb-4">@Localizer["Cocktail_NewSubtitle"]</p>
 
 @if (_loading)
 {
@@ -20,14 +20,36 @@
 }
 else
 {
-    <div class="card shadow-sm mb-3">
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-12 col-md-6">
+    @* MARGA-6 (JJ-040): the page's voice, over the bottles this household ticked — the inventory the
+       form already loads for its ingredient picker, so no request of her own. Her promise ("I will tell
+       you whether you can pour it") is kept by the recipe page, which now speaks in every case. Absent
+       when the shelf could not be read, rather than claiming a count of nothing. *@
+    @if (_shelfKnown)
+    {
+        <div class="write-marga mb-4" data-testid="new-marga">
+            <MargaSays Tone="MargaTone.Card" Size="72">@(ShelfBottles > 0
+                ? Localizer["Marga_WriteShelf", ShelfBottles]
+                : Localizer["Marga_WriteEmpty"])</MargaSays>
+        </div>
+    }
+
+    @* BACKBAR-6 (handoff page 15): two columns, not one long form — the drink on the left, its
+       ingredients on the right; one column on a phone with Save as a bar above the tab bar. No
+       cards. Errors attach to the field they belong to; new-error keeps its place above Save for
+       the server's answer. *@
+    <div class="write-grid">
+        <section class="write-drink">
+            <span class="eyebrow mb-3">@Localizer["Cocktail_FieldName"]</span>
+            <div class="write-fields">
+                <div>
                     <label class="form-label small mb-1" for="new-name">@Localizer["Cocktail_FieldName"]</label>
-                    <input class="form-control" id="new-name" data-testid="new-name" @bind="_name" />
+                    <input class="form-control @(_nameError ? "is-invalid" : null)" id="new-name" data-testid="new-name" @bind="_name" />
+                    @if (_nameError)
+                    {
+                        <div class="invalid-feedback">@Localizer["Cocktail_ErrName"]</div>
+                    }
                 </div>
-                <div class="col-12 col-md-6">
+                <div>
                     <label class="form-label small mb-1" for="new-serving">@Localizer["Cocktail_FieldServing"]</label>
                     <select class="form-select" id="new-serving" data-testid="new-serving" @bind="_serving">
                         @foreach (var s in _options.ServingTypes)
@@ -40,51 +62,70 @@ else
                 @* Both optional, and meant to stay that way (JJ-034): a quarter of the seeded catalog
                    never states a glass, and someone writing down what they actually pour should not
                    have to invent one. *@
-                <div class="col-12 col-md-6">
-                    <label class="form-label small mb-1" for="new-glass">@Localizer["Cocktail_FieldGlass"]</label>
-                    <select class="form-select" id="new-glass" data-testid="new-glass" @bind="_glass">
-                        <option value="">@Localizer["Cocktail_NotStated"]</option>
-                        @foreach (var g in _options.Glasses)
-                        {
-                            <option value="@g.Id">@g.Name</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-12 col-md-6">
-                    <label class="form-label small mb-1" for="new-method">@Localizer["Cocktail_FieldMethod"]</label>
-                    <select class="form-select" id="new-method" data-testid="new-method" @bind="_method">
-                        <option value="">@Localizer["Cocktail_NotStated"]</option>
-                        @foreach (var m in _options.Methods)
-                        {
-                            <option value="@m.Id">@m.Name</option>
-                        }
-                    </select>
+                <div class="write-fields-pair">
+                    <div>
+                        <label class="form-label small mb-1" for="new-glass">@Localizer["Cocktail_FieldGlass"]</label>
+                        <select class="form-select" id="new-glass" data-testid="new-glass" @bind="_glass">
+                            <option value="">@Localizer["Cocktail_NotStated"]</option>
+                            @foreach (var g in _options.Glasses)
+                            {
+                                <option value="@g.Id">@g.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label small mb-1" for="new-method">@Localizer["Cocktail_FieldMethod"]</label>
+                        <select class="form-select" id="new-method" data-testid="new-method" @bind="_method">
+                            <option value="">@Localizer["Cocktail_NotStated"]</option>
+                            @foreach (var m in _options.Methods)
+                            {
+                                <option value="@m.Id">@m.Name</option>
+                            }
+                        </select>
+                    </div>
                 </div>
 
-                <div class="col-12">
+                <div>
                     <label class="form-label small mb-1" for="new-instructions">@Localizer["Cocktail_FieldInstructions"]</label>
-                    <textarea class="form-control" id="new-instructions" rows="3"
+                    <textarea class="form-control" id="new-instructions" rows="4"
                               data-testid="new-instructions" @bind="_instructions"></textarea>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
 
-    <div class="card shadow-sm mb-3">
-        <div class="card-body">
-            <h2 class="h6 text-uppercase text-muted mb-3">@Localizer["Cocktail_Ingredients"]</h2>
+        <section class="write-lines">
+            <div class="write-lines-head">
+                <span class="eyebrow">@Localizer["Cocktail_Ingredients"]</span>
+                <span class="write-lines-count">@Localizer["Cocktails_IngredientCount", _lines.Count]</span>
+            </div>
 
             <div data-testid="new-lines">
                 @foreach (var line in _lines)
                 {
-                    <div class="row g-2 align-items-end mb-2 pb-2 border-bottom" data-testid="new-line">
-                        <div class="col-12 col-md-4">
-                            <label class="form-label small mb-1">@Localizer["Cocktail_LineIngredient"]</label>
+                    @* One row per line: the amount and its unit lead, in the display face so the
+                       form previews the recipe it is writing; the ingredient, with its role and
+                       required as a visible sub-line — no popover (JJ-036 F4) — and a remove control. *@
+                    <div class="write-line" data-testid="new-line">
+                        <div class="write-line-amount">
+                            <input class="form-control font-display write-amount" data-testid="new-line-amount"
+                                   aria-label="@Localizer["Cocktail_LineAmount"]"
+                                   placeholder="0" @bind="line.Amount" />
+                            <select class="form-select write-unit" data-testid="new-line-unit"
+                                    aria-label="@Localizer["Cocktail_LineUnit"]" @bind="line.UnitId">
+                                <option value="">—</option>
+                                @foreach (var u in _options.Units)
+                                {
+                                    <option value="@u.Id">@u.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="write-line-main">
                             @* Grouped by category, because a flat list of two hundred bottles is not
                                a picker. The list is everything this household can see — the shared
                                catalog plus its own additions from INV-2. *@
-                            <select class="form-select" data-testid="new-line-ingredient" @bind="line.IngredientId">
-                                <option value="">—</option>
+                            <select class="form-select" data-testid="new-line-ingredient"
+                                    aria-label="@Localizer["Cocktail_LineIngredient"]" @bind="line.IngredientId">
+                                <option value="">@Localizer["Cocktail_LineIngredient"]</option>
                                 @foreach (var group in _ingredients.GroupBy(i => i.Category))
                                 {
                                     <optgroup label="@group.Key">
@@ -95,64 +136,60 @@ else
                                     </optgroup>
                                 }
                             </select>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <label class="form-label small mb-1">@Localizer["Cocktail_LineAmount"]</label>
-                            <input class="form-control" data-testid="new-line-amount" @bind="line.Amount" />
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <label class="form-label small mb-1">@Localizer["Cocktail_LineUnit"]</label>
-                            <select class="form-select" data-testid="new-line-unit" @bind="line.UnitId">
-                                <option value="">—</option>
-                                @foreach (var u in _options.Units)
-                                {
-                                    <option value="@u.Id">@u.Name</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <label class="form-label small mb-1">@Localizer["Cocktail_LineRole"]</label>
-                            <select class="form-select" data-testid="new-line-role" @bind="line.Role">
-                                @foreach (var r in _options.Roles)
-                                {
-                                    <option value="@r">@Localizer[$"Cocktail_Role{r}"]</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-6 col-md-2 d-flex align-items-center gap-3">
-                            @* A garnish is just an optional line, and optional lines never block
-                               makeability (JJ-009). *@
-                            <div class="form-check mb-0">
-                                <input class="form-check-input" type="checkbox" data-testid="new-line-required"
-                                       id="@($"req-{line.Key}")" @bind="line.IsRequired" />
-                                <label class="form-check-label small" for="@($"req-{line.Key}")">@Localizer["Cocktail_LineRequired"]</label>
+                            <div class="write-line-sub">
+                                <select class="form-select form-select-sm write-role" data-testid="new-line-role"
+                                        aria-label="@Localizer["Cocktail_LineRole"]" @bind="line.Role">
+                                    @foreach (var r in _options.Roles)
+                                    {
+                                        <option value="@r">@Localizer[$"Cocktail_Role{r}"]</option>
+                                    }
+                                </select>
+                                @* A garnish is just an optional line, and optional lines never block
+                                   makeability (JJ-009). *@
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input" type="checkbox" data-testid="new-line-required"
+                                           id="@($"req-{line.Key}")" @bind="line.IsRequired" />
+                                    <label class="form-check-label small" for="@($"req-{line.Key}")">@Localizer["Cocktail_LineRequired"]</label>
+                                </div>
                             </div>
-                            <button class="btn btn-link btn-sm text-danger px-0" data-testid="new-line-remove"
-                                    disabled="@(_lines.Count == 1)" @onclick="() => _lines.Remove(line)">×</button>
                         </div>
+                        <button class="btn btn-link write-line-remove" data-testid="new-line-remove"
+                                aria-label="@Localizer["Household_Remove"]"
+                                disabled="@(_lines.Count == 1)" @onclick="() => _lines.Remove(line)">×</button>
                     </div>
                 }
             </div>
 
-            <button class="btn btn-outline-secondary btn-sm mt-2" data-testid="new-line-add"
-                    @onclick="() => _lines.Add(new LineDraft())">@Localizer["Cocktail_AddLine"]</button>
-        </div>
+            @if (_linesError)
+            {
+                <p class="write-lines-error" data-testid="new-lines-error">@Localizer["Cocktail_ErrNoLines"]</p>
+            }
+
+            <button class="btn btn-outline-secondary btn-sm mt-3" data-testid="new-line-add"
+                    @onclick="() => _lines.Add(new LineDraft())">+ @Localizer["Cocktail_AddLine"]</button>
+        </section>
     </div>
 
-    @if (_error is not null)
-    {
-        <div class="alert alert-warning py-2" data-testid="new-error">@_error</div>
-    }
-
-    <button class="btn btn-primary" data-testid="new-save" disabled="@_saving" @onclick="SaveAsync">
-        @Localizer["Cocktail_Save"]
-    </button>
+    <div class="write-save">
+        @if (_error is not null)
+        {
+            <div class="alert alert-warning py-2 mb-2" data-testid="new-error">@_error</div>
+        }
+        <button class="btn btn-primary" data-testid="new-save" disabled="@_saving" @onclick="SaveAsync">
+            @Localizer["Cocktail_Save"]
+        </button>
+    </div>
 }
 
 @code {
     private bool _loading = true;
     private bool _saving;
     private string? _error;
+
+    // BACKBAR-6: the two client-side checks attach to what they are about — the name field and the
+    // lines — rather than to a summary alert at the top. `_error` is the server's answer, above Save.
+    private bool _nameError;
+    private bool _linesError;
 
     private string _name = string.Empty;
     private string _glass = string.Empty;
@@ -164,6 +201,12 @@ else
     private OptionsView _options = new([], [], [], [], []);
     private List<ShelfItemView> _ingredients = [];
 
+    // MARGA-6: whether the inventory actually came back, so a failed read does not become "nothing on
+    // your shelf yet" — the SHELL/MARGA-5 lesson of a line she has nothing behind.
+    private bool _shelfKnown;
+
+    private int ShelfBottles => _ingredients.Count(i => i.IsAvailable);
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -173,6 +216,7 @@ else
             _options = await Http.GetFromJsonAsync<OptionsView>("/api/cocktails/lookups")
                        ?? new OptionsView([], [], [], [], []);
             _ingredients = await Http.GetFromJsonAsync<List<ShelfItemView>>("/api/inventory") ?? [];
+            _shelfKnown = true;
         }
         catch (Exception)
         {
@@ -188,18 +232,12 @@ else
     {
         _error = null;
 
-        if (string.IsNullOrWhiteSpace(_name))
-        {
-            _error = Localizer["Cocktail_ErrName"];
-            return;
-        }
-
+        // BACKBAR-6: both checks run, each marks its own field, and neither reaches the summary
+        // alert — that one is for the server's answer.
+        _nameError = string.IsNullOrWhiteSpace(_name);
         var lines = _lines.Where(l => Guid.TryParse(l.IngredientId, out _)).ToList();
-        if (lines.Count == 0)
-        {
-            _error = Localizer["Cocktail_ErrNoLines"];
-            return;
-        }
+        _linesError = lines.Count == 0;
+        if (_nameError || _linesError) return;
 
         _saving = true;
         try

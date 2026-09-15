@@ -1637,23 +1637,42 @@ And she does not repeat the count the footer already shows
 3. Untick everything. **Expected:** she switches to suggesting where to start — the one-away set is
    empty with nothing ticked, so there is nothing to rank.
 
-### QA-CHROME-11 — She takes the count only where the count is the answer 🟠 (Web)
-**Walkthrough:** open the catalog under **I can make now**. **Expected:** she gives the number in her
-voice, in place of the plain "N cocktails". Turn the filter off. **Expected:** plain text, no Marga —
-"969 cocktails" is a fact about the list, and a character who narrates every number stops being worth
-reading.
+### QA-CHROME-11 — She reads the catalog's count against the shelf 🟠 (Web) — MARGA-5, amended by MARGA-6
+**Walkthrough:** open the catalog under **I can make now** and note the number. Switch to
+**Everything**. Then open Filters and type "gin" in Made with. Then switch to **One ingredient away**.
+**Expected:** under I can make now she gives the number in her voice. Under Everything she says "N
+cocktails here, and you can pour M of them tonight", and **M is the number I can make now showed**.
+With the gin filter both numbers drop, and M is what I can make now shows with the same filter on.
+A household that can pour none of them hears "none you can pour yet", never "0". Under One ingredient
+away the count is plain "N cocktails" — her panel below already speaks there, and two of her on one
+screen is one too many.
 
 ### QA-CHROME-12 — She can say yes 🟢 (Web)
 **Walkthrough:** open a recipe you **can** pour, then one you are **one bottle** short of, then one
-that is further away. **Expected:** "you can pour this now" on the first, the missing bottle named on
-the second, and **nothing from her** on the third — the badge has already said so, and piling on is
-not her job. **Expected:** where a substitution is in play, that outranks all three, since it is the
-reason the drink qualified at all.
+**two or three** bottles short, then one **four or more** short. **Expected:** "you can pour this now"
+on the first; the missing bottle named on the second; **every missing required bottle named** on the
+third ("You are 2 bottles short: Campari and Sweet vermouth") and never an optional garnish; on the
+fourth the count and the first two. Each name matches a line marked "not on your shelf". **Expected:**
+where a substitution is in play, that outranks all of these, since it is the reason the drink
+qualified at all.
 
 ### QA-CHROME-13 — She says nothing rather than something empty 🟢 (Web)
 **Walkthrough:** stop the API, then reload the shelf. **Expected:** she is absent — not a blank
 speech bubble, and not a confident line she has nothing behind. **Expected:** the footer's bottle
 count is unaffected; it is a fact the screen owns rather than something she supplies.
+
+### QA-CHROME-26 — She offers the fix on an empty search, and counts the shelf on the write form 🟢 (Web) — MARGA-6
+**Walkthrough**
+1. On the **shelf**, search for "yuzu". **Expected:** a small inline Marga (32px, no label) says
+   "Nothing called “yuzu” on my list. If you have it, add it below.", with **Add your own** under it;
+   her line at the top of the shelf is still the only large one.
+2. Turn on **Only what I have** and search for a bottle you have NOT ticked. **Expected:** the plain
+   "No ingredients match that." and **no Marga** — the bottle is on the list, just hidden.
+3. Open **Write a cocktail**. **Expected:** she says your shelf has N bottles to write with, and N is
+   the "N on the shelf" figure the shelf footer shows. With a household that has ticked nothing she
+   says to write it anyway.
+4. Switch to Español and repeat 1 and 3. **Expected:** her lines read as written Spanish, and the
+   term and the number survive.
 
 ### QA-CHROME-04 — The destinations follow the width 🟠 (Web) ⚙️ Automated in CI
 **Walkthrough**
@@ -1674,14 +1693,162 @@ sits clear of it rather than behind it.
 
 ### QA-CHROME-07 — The boot state shows real progress 🟢 (Web)
 **Walkthrough:** hard-reload with the cache disabled (DevTools → Network → Disable cache) and watch the
-first second. **Expected:** the illustration, gently rocking, with a brass arc and a percentage.
-**Expected:** the arc's length matches the number printed inside it — a quarter turn at 25%, a full
-ring at 100%. *(Also verify on Desktop and Android; the native hosts show a sweeping arc instead,
+first second. **Expected:** the illustration, gently rocking, at up to 480px wide, with the brass arc
+and its percentage **centred on the drawing, on a small night disc**, and the ring does not rock with
+her. **Expected:** the arc's length matches the number printed inside it — a quarter turn at 25%, a
+full ring at 100%. *(Also verify on Desktop and Android; the native hosts show a sweeping arc instead,
 because a WebView has no download to measure.)*
 
 ### QA-CHROME-08 — Reduced motion is respected 🟢 (Web, accessibility)
 **Walkthrough:** turn on the OS "reduce motion" setting, then hard-reload. **Expected:** nothing on the
 boot screen moves on its own. *(A boot screen is the one thing nobody can choose to skip.)*
+
+### QA-CHROME-14 — The display face is the app's own, in both themes 🟢 (Web) — BACKBAR-1
+**Walkthrough:** open the app with the browser's network panel filtered to fonts, sign in, and open
+Home; then switch the theme to Dark, then Light (§9 QA-SET-08). **Expected:** every font request goes
+to the app's own origin (`_content/JiggerJot.Shared.Ui/fonts/…`) and none to a font host; the serif
+that Marga's card and the headlines use renders as a real serif, not the system fallback, within a
+second of the page appearing; nothing set in it is bold or smeared (the face has one weight). In Dark
+the page ground is the night colour, panels are one step lighter with a hairline and **no shadow**; in
+Light the ground is warm off-white and panels are white with a soft shadow. Buttons are pills and
+fields have rounded corners in both. Tab to any button or field: one copper focus ring with a gap in
+the ground colour, and no ring on a mouse click.
+
+### QA-CHROME-15 — The chrome sits on the page, not on a copper band 🟢 (Web) — BACKBAR-2
+**Walkthrough:** sign in and look at the header at 1280 wide in Light, then Dark (§9 QA-SET-08);
+then narrow to 390 and look at the tab bar in both. **Expected:** the bar is the page's surface
+colour with a 1px hairline beneath it (above it, for the tab bar) — never copper, never a shadow in
+Dark. The mark reads on both grounds (copper on light, bone on dark). Home / Shelf / Cocktails are in
+the page's text colour and the current one is bold with a **2px copper line** under it (over it, in
+the tab bar); the account buttons beside them are quieter, muted with a hairline border, and "Sign
+out" looks exactly like the "Household" and "Settings" buttons next to it — no button is painted the
+link colour. Hover a destination: it turns copper. The household name is a copper-tinted pill.
+
+### QA-CHROME-16 — Home is rules, not cards, and never a zero 🟠 (Web) — BACKBAR-3
+**Walkthrough:** with a partial shelf, open Home at 1280 wide, then at 390; then untick everything
+on the shelf and come back. **Expected:** at 1280 two columns — Marga at 96px with her label above
+her line on the left over the big serif count and its two pill buttons; the three drinks on the right
+as rules with the name in the serif and the facets right-aligned, then the copper-tinted unlock panel,
+**the only boxed thing on the page**. **In Dark as well as Light, a drink's name is in the page's
+ink and turns copper only under the pointer** — the same on every catalog row (a dark-theme link
+rule once repainted all of them copper, and only a browser showed it). At 390 the same in one
+column. With nothing ticked: her scene
+beside her line, "Set up my shelf" as the primary pill and "Tick what you have" as a text link, and
+**no zero anywhere**. Reload with the network throttled: a thin brass bar under the header and a
+dimmed dash where the count will be, no spinner.
+
+### QA-CHROME-17 — The shelf is sections, and the named bottle can be found 🟠 (Web) — BACKBAR-3
+**Walkthrough:** open the shelf with a partial shelf that leaves something one bottle away (§10d
+QA-SHELF-01 fixture). **Expected:** the title is in the serif; Marga at 96px with "MARGA" above her
+line; each category is a serif heading on a hairline with "n of m" on the right — **no boxes** around
+the pills; the bottle her line names is outlined in copper and is **not ticked**; ticking it fills it
+copper like any other. Press "+ Add your own" inside a category: the form opens in place under that
+category's pills as a rounded panel. The sticky footer's count is in the serif and copper, the drinks
+phrase beside it in the sans, and it still clears the tab bar at 390 (QA-CHROME-06).
+
+### QA-CHROME-18 — The catalog's three chips are one control 🟠 (Web) — BACKBAR-4
+**Walkthrough:** open the catalog with a partial shelf. Click "I can make now", then "One
+ingredient away", then "Everything"; then Tab to the chip row and use the arrow keys; then follow
+Home's "Show me them". **Expected:** exactly one chip is filled copper at any time and only that chip
+carries a count ("· 14"); the arrow keys move the selection the way a radio group does and a screen
+reader announces "radio, 1 of 3"; the deep link lands with the right chip selected. The search is a
+pill; the rows are hairlines with the name in the serif and the book on the right, never wrapping;
+a substituted drink shows Marga at 32px with her line in copper; the pager is text on a hairline. At
+390 the chip row stays at the top while the list scrolls. No box anywhere except the one-away panel.
+**At 600 wide** (a tablet, a narrow window): the search takes the row, Filters and Write a cocktail sit
+**left-aligned** under it rather than pushed to the right edge, and the three chips stay **on one row**
+that scrolls sideways if it must — "Everything" never drops to a line of its own.
+
+### QA-CHROME-19 — A recipe reads by its measures, and prints 🟠 (Web) — BACKBAR-4
+**Walkthrough:** open a drink you are one bottle short of, whose recipe also has a substitution and
+an optional garnish (§10f QA-MAKE-05 fixture), at 1280 and at 390; then print preview.
+**Expected:** the title in the serif at up to 52px, wrapping rather than cut; status pill beside the
+facets; "Based on X" in the facet line for a fork, not as its own paragraph; Marga at 72px with her
+line in the serif. Amounts in a 104px column in the serif and copper; the garnish shows a dash, a
+muted name and the word "optional" as plain text — no badge. Exactly two marks: "you'd pour X" on the
+substituted line and "not on your shelf" on the missing one; pourable lines say nothing. At 1280 the
+method sits left and the ingredients right; at 390 the ingredients come first and "Create my own
+version" is a bar fixed above the tab bar. Print preview: white ground, no header, no tab bar, no
+fork button. A bad id shows her scene, the not-found line and a link back — not a yellow alert.
+
+### QA-CHROME-20 — Her two full appearances, and the two screens that borrow them 🟠 (Web) — BACKBAR-5
+**Walkthrough:** sign out and open `/login` at 1280 wide in Light, then Dark; then at 390×812. Send
+a 6-digit code. Then sign in as a new household and open `/welcome`, step 1 and step 2. Then open
+`/join` with no token, and `/auth-error`. **Expected:** on login **a framed card centred on the page
+ground** (not edge to edge): her scene on the left is **square, so the whole drawing shows** —
+shaker, glass and bar counter included — with her sentence in the serif over the counter and the
+"Marga · behind the bar" label above it; the form on the right is centred, the wordmark over
+"Sign in" and "Choose how you'd like to continue" beneath it, then the buttons; there is **nothing
+over her**: the wordmark is on the form side only, on all three of login, join and the error page.
+**Her panel stays night in both themes**, only the form side flips. Join and the error page keep
+their framed split. **At 390 the card stacks: her scene is a full-width square at the top and the
+form starts under it** — no cropped face, nothing sliding up over her; at 768×1024 the same, with
+the form below the fold. The code step swaps the two buttons for one 24px spaced field and she does
+not move. The wizard is the same split with a warm base, "Step 1 of 2"
+over a thin brass rule at half, full at step 2; step 2's categories are the shelf's own sections
+with "n of m", pre-ticked bottles filled copper; the running count is the serif copper figure.
+**On step 2 at 1280, scroll the whole list: her scene stays one screen tall and follows you down
+under the header, never a face stretched to the height of the list**, and the column below her is
+the warm night ground. Join
+and the auth error page use the same split; the error page's line is the error heading with no
+"Marga" label. No box anywhere; the app header stays on the wizard and is absent on login.
+
+### QA-CHROME-21 — Writing a cocktail is two columns, and the amounts preview the recipe 🟢 (Web) — BACKBAR-6
+**Walkthrough:** open "Write a cocktail" at 1280 and at 390. Press Save with nothing filled in;
+then give it a name and press Save with no ingredient chosen; then choose an ingredient, type an
+amount, pick a unit, add a second line, remove it. **Expected:** the drink's fields on the left,
+the ingredients on the right, no boxes; the title in the serif. Save with nothing filled in marks the
+**name field** red with its message under it and shows no alert at the top; a name with no complete
+line shows the message under the lines. Each line is one hairline row: the amount in the serif and
+copper beside its unit, the ingredient with role and required visible on a sub-line — nothing to
+open — and an × at the end (disabled when it is the only line). At 390 it is one column and "Save
+this recipe" is a bar fixed above the tab bar. A server rejection still shows above Save.
+
+### QA-CHROME-22 — Settings is two columns of rows, and the choices are visible 🟠 (Web) — BACKBAR-7
+**Walkthrough:** open Settings at 1280 and at 390 with a provider linked and 2FA off. Click the
+"Dark" pill, then "Light"; click "oz" then "As written"; toggle a notification switch; press "Delete
+my account" and cancel the dialog. **Expected:** sign-in providers and two-factor on the left,
+preferences and notifications on the right, each a labelled group of hairline rows with no box; the
+title in the serif. Theme and Measurements are three pills each with the current one filled copper,
+and each click applies at once (the theme flips live, the header's own switcher follows) and sends
+one save. Language is still a dropdown. Unlink and Link are text links, Unlink red. "Delete my
+account" is a single red text link at the foot, no red box, and it still asks first. Enable 2FA:
+the flow still expands in place — QR on white, manual key, code field, then the codes in a panel.
+
+### QA-CHROME-23 — Household is four groups, and the owner is the only copper badge 🟠 (Web) — BACKBAR-7
+**Walkthrough:** as owner with one member and one pending invitation, open Household at 1280 and at
+390; then as a member. **Expected:** the name and the members on the left; invitations, transfer,
+data and leave on the right; no boxes. Owner's badge is copper-tinted; Admin and Member are neutral.
+Make admin / Remove, Regenerate / Revoke and Download household data are text links, the destructive
+ones red, each still asking first. At 390 a member row shows "···"; tapping it reveals that row's
+links beneath the row and tapping again hides them. As a member: the household name in the serif,
+the roster and nothing else — no rename, no invite, no transfer — and "Leave" as a red text link.
+The notification bell's list is hairline rows with a brass dot on unread.
+
+### QA-CHROME-24 — The pages nobody drew look like the rest 🟢 (Web) — BACKBAR-8
+**Walkthrough:** with billing enabled, open Billing as owner and as a member; as platform staff
+open the console, pick a tenant, send an announcement; then visit a URL that does not exist; then
+sign in through a provider and watch the callback; then impersonate someone. **Expected:** Billing is
+two labelled groups — the plan name in the serif with its status as a green/amber/neutral pill, the
+seats as the serif copper figure — with no box; a member sees a muted one-line pointer, not an alert.
+The console: the broadcast as the one panel; tenants as hairline rows, the chosen one copper; the
+tenant's name in the serif; members as rows with text-link actions, the reset red; every status a
+single inline notice. A missing page shows her scene, the line and "Go home". The callback shows a
+thin brass bar, not a spinner. The impersonation banner is a thin amber strip under the header.
+Force an unhandled error (§14): the error bar at the foot is the red-on-rose error colour.
+
+### QA-CHROME-25 — The sweep: nothing gives the old app away 🟢 (Web) — BACKBAR-9
+**Walkthrough:** in both themes, walk every screen (Home, Shelf, Cocktails with each chip, a recipe,
+Write, Welcome, Settings, Household, Billing, Admin, Login, Join, the auth error page, a missing
+URL) at 1440, 768 and 390 wide. On Household, Join and the console, look at Rename, Invite,
+Transfer, Join and "Send to everyone" BEFORE typing anything. Open the bell. Then switch the OS to
+reduce motion and reload the shelf, the wizard and the boot screen. **Expected:** no box with a
+border on any screen except the copper-tinted unlock panel on Home and Cocktails — the bell's list
+is a floating panel with hairline rows, not a card. Every disabled primary button is copper at
+reduced opacity, never blue. Join's heading is the serif, like Login's. With motion reduced, ticking
+a pill changes colour instantly, the wizard's progress rule jumps rather than slides, and the boot
+arc steps to each figure. Tab through any screen: one copper ring on every control, no element
+skipped and none with the browser's blue outline.
 
 ### QA-CHROME-09 — The app speaks Spanish throughout 🟠 (Web)
 **Walkthrough:** switch the language to Español (§10) and walk the app's own screens — shelf, catalog,
@@ -1703,14 +1870,19 @@ survive the rewrite.
 ```gherkin
 Given I request an OTP code
 When I open the email in Mailpit
-Then it shows the brand logo, brand colours, the 6-digit code, and the tagline
+Then it looks like the app: the lockup, the warm ground and copper, the heading in the display serif, the code, and the tagline
 ```
-**Walkthrough:** trigger an OTP; open it in Mailpit. **Expected:** the logo image renders (CID-embedded,
-not a broken image), brand-green styling, a clearly displayed code, footer wordmark + tagline.
+**Walkthrough:** trigger an OTP; open it in Mailpit, then in Gmail if you have it. **Expected:** the
+JiggerJot lockup renders (CID-embedded, not a broken image) **on the warm ground with no white box
+around it**; a white card on a hairline; the heading and Marga's line in the **display serif**, never
+bold (Gmail and Outlook on Windows drop the embedded face and show **Georgia** — that is the fallback,
+not a bug); body text in the app's sans; the code large in a hairline field; the footer reads
+"JiggerJot · Mix what you have." Nothing in the old cool grey, no bold copper heading.
 
 ### QA-MAIL-02 — Magic-link email 🟠
-**Walkthrough:** trigger a magic link; open in Mailpit. **Expected:** branded layout; a working
-sign-in button/link; sensible subject.
+**Walkthrough:** trigger a magic link; open in Mailpit. **Expected:** the same look as QA-MAIL-01; a
+working sign-in button that is a **copper pill** (square in Outlook on Windows, which ignores the
+radius); sensible subject.
 
 ### QA-MAIL-03 — Invitation email 🟠
 **Walkthrough:** send an invite; open in Mailpit. **Expected:** branded layout; the recipient's
@@ -1718,7 +1890,8 @@ address; a `/join?token=…` link that works (QA-INV-02).
 
 ### QA-MAIL-04 — Logo renders in a real client 🟢
 **Walkthrough (optional, deliverability):** forward/inspect one email in a real Gmail/Outlook client.
-**Expected:** the CID logo still renders. *(Note: from a non-verified domain, real delivery may land
+**Expected:** the CID lockup and Marga still render, and the heading falls back to Georgia rather than
+Times New Roman. *(Note: from a non-verified domain, real delivery may land
 in spam — a domain/DKIM concern, not an app bug.)*
 
 ### QA-MAIL-05 — Marga is on the emails a person asked for, and only those 🟠
@@ -1730,8 +1903,9 @@ But given a system notification — a failed payment, a security alert
 Then she is not there at all
 ```
 **Walkthrough**
-1. Trigger an OTP, a magic link and an invitation. **Expected in each:** her avatar and one line, above
-   the code/button — and **Inline images (2)** in Mailpit's header, the logo plus her.
+1. Trigger an OTP, a magic link and an invitation. **Expected in each:** her avatar at 72px with
+   "MARGA" as a small copper label above her line, the line in the serif, all above the code/button —
+   and **Inline images (2)** in Mailpit's header, the lockup plus her.
 2. Trigger a notification email (a billing or announcement one — §10b, §10c). **Expected:** no Marga,
    and **Inline images (1)**. She is not merely hidden; her 19 KB does not ride along on an email that
    never shows her.
@@ -2865,11 +3039,20 @@ is the product. Cited decisions are `JJ-nnn` in `docs/DECISIONS.md`.
 | Forking (FORK-1) | **MINE-01** (⚙️ E2E) + MINE-02 | `POST /api/cocktails/{id}/fork` — a SNAPSHOT copy, never a reference (JJ-002, JJ-013): a new tenant-owned `Cocktail` plus copies of every line, `TenantId` set by hand on both tables. The source credit is deliberately NOT copied; provenance rides on `ForkedFromCocktailId`, which is not a foreign key, so deleting the original leaves the copy standing. |
 | Authoring (AUTHORING-1) | **MINE-03/04** (⚙️ E2E) + MINE-05/06 | `POST /api/cocktails`, `GET /api/cocktails/lookups`. **Two lookup endpoints that must not be merged:** `/filters` is catalog-derived so no filter is a dead end, `/lookups` is the whole curated set (JJ-022) so a form can reach a glass no recipe uses. Refuses a lineless recipe, a unit with no amount, and an ingredient the household cannot see. Request enums cross the wire BY NAME. |
 | Onboarding wizard (ONBOARD-1) | **START-01/02/03/05** (⚙️ E2E) + START-04/06/07 | `GET /api/inventory` + `GET /api/cocktails/starters?limit=12` + `PUT /api/inventory`. Offered, never forced: **no redirect and no dismissal flag**, so there is no "has this household been onboarded" fact to store — `Tenant` is the platform's. Members joining by invitation skip it for free, because they already have a shelf (FEATURES §7, JJ-021). |
-| Marga (MARGA-1/2/3/5) | CHROME-01/02/03/**10/11/12/13**, MAKE-08/09/10 + `Ui.Tests` (`MargaPresenceTests`) | none of her own. **She is a drawn character, not an assistant**: every line is a localized resource string with real data in its placeholders, picked whole rather than assembled, from queries that already exist. Her component takes a FINISHED sentence — it cannot build one, pick one or fetch anything. She is `alt=""`/`aria-hidden`. |
+| Marga (MARGA-1/2/3/5/6) | CHROME-01/02/03/**10/11/12/13/26**, MAKE-08/09/10 + `Ui.Tests` (`MargaPresenceTests`, `MargaEverywhereTests`) | none of her own. **She is a drawn character, not an assistant**: every line is a localized resource string with real data in its placeholders, picked whole rather than assembled, from queries that already exist. Her component takes a FINISHED sentence — it cannot build one, pick one or fetch anything. She is `alt=""`/`aria-hidden`. |
 | The responsive shell (SHELL-1) | **CHROME-04/06** (⚙️ E2E `ShellJourneyTests`) + CHROME-05 | none. ONE element repositioned by CSS, never a second copy hidden at one width — two `nav-shelf` in the DOM fails every journey that clicks it. The current tab is weight plus a drawn indicator, never colour alone, plus `aria-current`. |
 | The boot state (SHELL-2) | CHROME-07/08, and the native legs of §12/§13 | none — it renders before the app exists. It lands in **two** `index.html` files (`NATIVE_PARITY.md`), held by a CI gate; the WebView hosts sweep instead of filling, having no download to measure. A second gate caps the illustration's size, since this is the one place it is fetched before the app is usable. |
 | Marga in the emails (MARGA-4) | **MAIL-05/06/07** + `Api.Tests` (`MargaInEmailTests`) | none — `BrandedEmail` renders her the way it renders the logo: a CID inline image, the one approach Gmail and Outlook both show (they block data-URIs). She is on the three emails a person ASKED for and deliberately not on the notification wrapper, which carries failed payments and security alerts. Attached only when shown, so her 19 KB never rides along unused. Her line is one whole resource string from `EmailStrings.resx`, same contract as in the app. |
 | The app in Spanish | **CHROME-09**, I18N-01..04 | resx only. Her lines are voiced, so the Spanish is a writing job rather than a translation, and the placeholders have to survive the rewrite. |
+| Billing, Admin and the small screens (BACKBAR-8) | **CHROME-24** + BILL-*, ADM-* (⚙️ E2E `BillingJourneyTests`, `SeatQuotaJourneyTests`, `AnnouncementJourneyTests`, unchanged) + `Ui.Tests` (`UndrawnScreensTests`, `BillingGateUiTests`) | none — presentation only (JJ-039), derived by analogy from pages 02 and 16–17 since the handoff never drew these. Billing as two groups with the status pill in the status colours; the console's six cards and one table as groups with tenants and members as rows and every action a text link; statuses as one `.notice`; not-found as a `NotFoundView` on the empty-state layout; the callback's spinner a brass bar; the impersonation banner a hairline strip; the error bar in the error colours. No admin write added (ADR-021); every gate and id intact. |
+| The sweep (BACKBAR-9) | **CHROME-25** + `Api.Tests` (`RestyleGateTests` — no `.card` outside the unlock panel, every transition and animation named again under `prefers-reduced-motion`, the primary button's disabled tokens set) + `Ui.Tests` (`AnonymousLayoutTests`, Join's heading) | none — presentation only (JJ-039). Ninety-six frames (sixteen screens × three widths × two themes) rendered against mocked responses and read one by one; three findings, each fixed with a test first: the bell's dropdown was still a card, every primary button that STARTS disabled painted in Bootstrap's blue because the copper rule never set the disabled tokens, and Join's headings were the bold sans the split's borrowers had kept. The boot arc's 50ms transition gained the reduced-motion rule the other motions already had. **Amended 2026-09-14** by a second pass against the REAL API with a stocked shelf: every drink name was copper in dark theme (the dark link rule's `:not()` exclusions put it at 0,4,1, above every page's own rule — now inside `:where()`, gated by `RestyleGateTests` and asserted as a computed colour in `ShellJourneyTests`), and the wizard's second step stretched her scene to the height of 191 pills (now one sticky block inside her column, held by `MargaSplitTests` and a geometry assertion in `OnboardJourneyTests`). |
+| Settings and Household restyled (BACKBAR-7) | **CHROME-22/23** + SET-01..08, MFA-01..03, NOTIF-01..04, HH-01..14, INV-01..10 (⚙️ E2E, one journey's two dropdown selects become label clicks) + `Ui.Tests` (`SettingsLayoutTests`, `HouseholdLayoutTests`, `SwitcherStateTests`) | none — presentation only (JJ-039). `ThemeSwitcher`/`UnitSwitcher` gain `Segmented`, radios on their own ids (`theme-choice-*`, `unit-choice-*`) sharing the select's handler and PUT; the header's select keeps `theme-switcher`, so a page no longer carries that id twice. `.settings-group`/`.settings-row` in `app.css`, shared by both pages and both cards; the ··· row menu toggles visibility only, so no id doubles. Owner badge copper, Admin/Member neutral. |
+| The write page restyled (BACKBAR-6) | **CHROME-21** + MINE-03/04 (⚙️ E2E, unchanged) + `Ui.Tests` (`WriteLayoutTests`) | none — presentation only (JJ-036 F4). Two columns; the amount in the display face beside its unit; role and required a visible sub-line, no popover; the two client-side checks attach to the name field and to the lines (new id `new-lines-error`, additive), `new-error` kept above Save for the server's answer; a fixed Save bar on a phone. Every `new-*` id intact. |
+| Login, Welcome, Join, auth error (BACKBAR-5) | **CHROME-20** + SMK-01, AUTH-01..10, START-01..07, INV-02..05 (⚙️ E2E, unchanged) + `Ui.Tests` (`MargaSplitTests`, `AnonymousLayoutTests`) | none — presentation only (JJ-036). One `MargaSplit` component: her scene as half the screen with the line on it, night ground in both themes, the working side beside; Login and Welcome are her two full appearances, Join and the auth error page reuse it. The wizard's step 2 renders the shelf's sections, whose rules moved to `app.css` so two pages share them; a 3px brass progress rule; every id intact. Her art, gradient and line are one sticky block inside her column (2026-09-14), so a long panel beside her — step 2 is the whole shelf — never stretches the scene; `OnboardJourneyTests` asserts her scene is never taller than the viewport there. Login is a framed card again (2026-09-14, the maintainer's call, the 2026-09-10 proposal's placement): `MargaSplit` `Whole` keeps the scene square so the whole drawing shows, the form is centred with the subtitle back, and on a phone the form sits under the square rather than sliding over her; `AuthFlowTests` holds the card's width and the phone geometry. |
+| Catalog and recipe restyled (BACKBAR-4) | **CHROME-18/19** + MAKE-01..10 (⚙️ E2E `MakeableJourneyTests` through the new `SetCatalogFilterAsync` helper) + `Ui.Tests` (`CatalogChipsTests`, `RecipeLayoutTests`) | none — presentation only, but the one slice that touches a journey's MECHANICS (JJ-036): the two switches are three radios (`cocktail-makeable`, `cocktail-almost`, new `cocktail-all`), driven by label like the shelf pills; only the selected chip carries the response's own total, no new fetch. Rows keep their list-group classes. Amounts lead in the serif; two marks only; optional is a dash and plain text; provenance in the facet line; not-found on the empty-state layout; `@media print` on the recipe. |
+| Home and the shelf restyled (BACKBAR-3) | **CHROME-16/17** + `Ui.Tests` (`HomeLayoutTests`, `ShelfSectionsTests`) + the shelf and makeable journeys unchanged | none — presentation only (JJ-036). Home in two columns, rules not cards, the unlock panel the only box, the count in the serif, her scene on an empty shelf; the shelf's cards become sections on a hairline with `#cat-{slug}` intact, the named bottle outlined in the subtle copper and never ticked, the add form a panel in place, the payoff count in the serif. |
+| The chrome off copper (BACKBAR-2) | **CHROME-15** + CHROME-04 (⚙️ E2E `ShellJourneyTests`, colour lines rewritten to the hierarchy) + `Ui.Tests` (`AppHeaderChromeTests`) + `Api.Tests` (`RestyleGateTests`, the two marks) | none — presentation only (JJ-037). The bar and the tab bar on the surface with a hairline in both themes; destinations in the ink, account cluster muted, one theme-aware button variant for all of them so an anchor-shaped button and a `<button>` can never differ; 2px copper indicator; `icon_dark.svg` for the dark surface, swapped by `app.css`, named in `REBRANDING.md` and `build_assets.py`. |
+| The restyle's foundation (BACKBAR-1) | **CHROME-14** + `Api.Tests` (`RestyleGateTests`) + `Ui.Tests` (`MargaSaysToneTests`) | none — presentation only (JJ-036). Both token sets in `app.css`; one self-hosted display serif, one weight, display only, reached through `.font-display` and never bold (JJ-038, gated); the primitives as CSS on Bootstrap's classes so no markup churns; `MargaSays` gains `Tone` with the old `Size`/`Compact` intact. |
 
 **Adversarial & tenant-isolation (§14a, QA-ADV-*) — v3-audit hardening probes.** Rows tagged
 **⚠️ v3** were authored against then-broken behaviour and sat **Blocked** until their finding landed;
@@ -3017,6 +3200,19 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-CHROME-07 | Web/Desktop/Android | | | | | |
 | QA-CHROME-08 | Web | | | | | OS reduce-motion setting |
 | QA-CHROME-09 | Web | | | | | Needs a Spanish reader |
+| QA-CHROME-14 | Web | | | | | Browser network panel, both themes |
+| QA-CHROME-15 | Web | | | | | Both themes, 1280 and 390 wide |
+| QA-CHROME-16 | Web | | | | | 1280 and 390 wide; a throttled reload |
+| QA-CHROME-17 | Web | | | | | A shelf one bottle away from something |
+| QA-CHROME-18 | Web | | | | | Keyboard + screen reader for the radio group |
+| QA-CHROME-19 | Web | | | | | Print preview; 1280 and 390 wide |
+| QA-CHROME-20 | Web | | | | | Both themes; 390×812; a fresh household for the wizard |
+| QA-CHROME-21 | Web | | | | | 1280 and 390 wide |
+| QA-CHROME-22 | Web | | | | | A linked provider; 1280 and 390 wide |
+| QA-CHROME-23 | Web | | | | | Owner and member accounts; 1280 and 390 wide |
+| QA-CHROME-24 | Web | | | | | Billing on; a staff account; a provider sign-in |
+| QA-CHROME-25 | Web | | | | | Both themes; 1440, 768 and 390 wide; OS reduce-motion on |
+| QA-CHROME-26 | Web | | | | | A stocked household and an empty one; both languages |
 
 **§14a adversarial / tenant-isolation (QA-ADV-*).** All rows are **Not-run** (blank) until executed.
 The formerly pre-seeded **Blocked (known defect)** rows were reset when the v3 remediation completed

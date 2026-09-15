@@ -8,7 +8,7 @@
 
 @* Per-user notification center (NOTIFY-1, ADR-013). Bell + unread badge + dropdown list. *@
 <div class="notif-bell position-relative">
-    <button class="btn btn-outline-light btn-sm position-relative" @onclick="Toggle"
+    <button class="btn btn-outline-secondary btn-sm position-relative" @onclick="Toggle"
             data-testid="notif-bell" aria-label="@Localizer["Notif_Title"]">
         <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
             <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.5A.75.75 0 0 1 8.75 2v.61a4 4 0 0 1 3.25 3.93v2.2l1 1.5V12H3v-.76l1-1.5v-2.2A4 4 0 0 1 7.25 2.6V2A.75.75 0 0 1 8 1.5z"/>
@@ -26,9 +26,12 @@
         <div class="notif-backdrop position-fixed top-0 start-0 w-100 h-100" style="z-index:1040"
              @onclick="Close"></div>
 
-        <div class="notif-panel card shadow position-absolute end-0 mt-2"
+        @* BACKBAR-9: a floating panel on the surface with a hairline — not a card, so the
+           definition of done ("no card border except the copper-subtle panel") holds in the header
+           too. Hairline rows inside, a brass dot for unread (page 17). *@
+        <div class="notif-panel position-absolute end-0 mt-2"
              style="z-index:1050;width:320px;max-width:90vw" data-testid="notif-panel">
-            <div class="card-header d-flex align-items-center justify-content-between py-2">
+            <div class="notif-panel-head d-flex align-items-center justify-content-between">
                 <span class="fw-semibold small">@Localizer["Notif_Title"]</span>
                 @if (_count > 0)
                 {
@@ -63,7 +66,8 @@
                                     </button>
                                     @if (n.ReadAt is null)
                                     {
-                                        <span class="notif-dot bg-primary rounded-circle mt-1 flex-shrink-0"
+                                        @* BACKBAR-7 (page 17): a brass dot for unread. *@
+                                        <span class="notif-dot rounded-circle mt-1 flex-shrink-0"
                                               style="width:.5rem;height:.5rem"></span>
                                     }
                                     else
@@ -84,7 +88,7 @@
             @* Bulk clear (NOTIFY: DELETE /api/notifications[?read=true]). Rebrandable — see CLAUDE.md. *@
             @if (!_loading && _items.Count > 0)
             {
-                <div class="card-footer d-flex align-items-center justify-content-between py-2">
+                <div class="notif-panel-foot d-flex align-items-center justify-content-between">
                     <button class="btn btn-link btn-sm p-0 text-muted" data-testid="notif-clear-read"
                             disabled="@(!_items.Any(n => n.ReadAt is not null))" @onclick="ClearRead">@Localizer["Notif_ClearRead"]</button>
                     <button class="btn btn-link btn-sm p-0 text-danger" data-testid="notif-clear-all"

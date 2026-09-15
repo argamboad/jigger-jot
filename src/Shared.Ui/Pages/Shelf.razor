@@ -10,7 +10,7 @@
    context — the empty state, and the moment a duplicate name sends the list somewhere else. *@
 @{
     RenderFragment addForm =
-        @<div class="card-body py-3 px-0">
+        @<div class="shelf-add-form">
             <div class="row g-2 align-items-end">
                 <div class="col-12 col-md-4">
                     <label class="form-label small mb-1" for="add-name">@Localizer["Shelf_AddName"]</label>
@@ -58,7 +58,7 @@
         </div>;
 }
 
-<h1 class="h4 fw-bold mb-1">@Localizer["Nav_Shelf"]</h1>
+<h1 class="page-title mb-1">@Localizer["Nav_Shelf"]</h1>
 <p class="text-muted mb-3">@Localizer["Shelf_Subtitle"]</p>
 
 <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
@@ -82,16 +82,16 @@
    footer counts what you have, she names what you are short of. Two sentences, two jobs, no echo. *@
 @if (!_loading && _shelfLine is not null)
 {
-    <div class="card shadow-sm mb-3" data-testid="shelf-marga">
-        <div class="card-body py-3">
-            <MargaSays Size="48">@_shelfLine</MargaSays>
-        </div>
+    @* BACKBAR-3: the page's voice, at 96 with her name as the label. "Marga" is her name, not copy,
+       so it is not a resource string. *@
+    <div class="shelf-marga mb-4" data-testid="shelf-marga">
+        <MargaSays Tone="MargaTone.Card" Aside="Marga">@_shelfLine</MargaSays>
     </div>
 }
 
 @if (_adding && _addingIn is null)
 {
-    <div class="card shadow-sm mb-3 px-3">@addForm</div>
+    <div class="mb-3">@addForm</div>
 }
 
 @if (_error is not null)
@@ -108,7 +108,19 @@
 else if (!Grouped.Any())
 {
     <div class="p-4 text-center" data-testid="shelf-empty">
-        <p class="text-muted">@Localizer["Shelf_NoMatches"]</p>
+        @if (NoSuchBottle)
+        {
+            @* MARGA-6 (JJ-040). Inline — 32px, no label — because the shelf's page-level line at the top
+               is still the one voice on this screen; this is a footnote to the empty result, offering
+               the fix the button below carries out. *@
+            <div class="shelf-nomatch mb-3" data-testid="shelf-nomatch">
+                <MargaSays Tone="MargaTone.Inline">@Localizer["Marga_ShelfNoMatch", _search.Trim()]</MargaSays>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted">@Localizer["Shelf_NoMatches"]</p>
+        }
         @* The one moment someone most needs to add their own bottle is right after searching for it
            and being told the catalog has never heard of it. *@
         <button class="btn btn-outline-primary btn-sm" data-testid="shelf-add-toggle" @onclick="OpenAddUnfiledAsync">
@@ -139,14 +151,16 @@ else
        The API returns the category so every client groups the same way. *@
     @foreach (var group in Grouped)
     {
-        <div class="card shadow-sm mb-3" id="cat-@Slug(group.Key)" data-testid="shelf-cat-@Slug(group.Key)">
-            <div class="card-body py-3">
-                <div class="d-flex justify-content-between align-items-baseline gap-2 mb-2">
-                    <h2 class="h6 text-uppercase text-muted mb-0">@group.Key</h2>
+        @* BACKBAR-3 (page 11): a section on a hairline, not a card — 191 pills in 16 cards was 16
+           boxes of chrome around the only thing that matters. The anchor and the test id stay on
+           the section; the heading is the serif. *@
+        <section class="shelf-section" id="cat-@Slug(group.Key)" data-testid="shelf-cat-@Slug(group.Key)">
+                <div class="shelf-section-head">
+                    <h2 class="shelf-section-title font-display">@group.Key</h2>
                     @* The count is over the WHOLE category, never over what search has left on screen.
                        It measures progress against the shelf, and a number that changed meaning when
                        someone typed in the search box would measure nothing. *@
-                    <span class="small text-muted text-nowrap" data-testid="shelf-cat-count-@Slug(group.Key)">
+                    <span class="shelf-section-count" data-testid="shelf-cat-count-@Slug(group.Key)">
                         @CountFor(group.Key)
                     </span>
                 </div>
@@ -163,7 +177,10 @@ else
                                data-testid="@($"shelf-item-{item.Id}")"
                                checked="@item.IsAvailable"
                                @onchange="e => ToggleAsync(item, e)" />
-                        <label class="btn btn-sm btn-outline-secondary shelf-pill" for="@($"ing-{item.Id}")">
+                        @* The bottle she just named is outlined (page 11) so it can be found among
+                           190 others — present, never ticked for you. *@
+                        <label class="btn btn-sm btn-outline-secondary shelf-pill @(IsNamed(item) ? "shelf-pill-named" : null)"
+                               for="@($"ing-{item.Id}")">
                             @item.Name
                             @if (item.IsOwn)
                             {
@@ -185,8 +202,7 @@ else
                 {
                     @addForm
                 }
-            </div>
-        </div>
+        </section>
     }
 }
 
@@ -195,7 +211,9 @@ else
    from the catalog and this screen has no business deriving it a second time. *@
 <div class="shelf-payoff" data-testid="shelf-payoff">
     <div class="shelf-payoff-text">
-        <strong data-testid="shelf-count">@Localizer["Shelf_Count", AvailableCount]</strong>
+        @* A span, not a <strong>: the count is in the display face, which has one weight, and a
+           <strong> would ask the browser to fake a bold one. *@
+        <span class="shelf-payoff-count font-display" data-testid="shelf-count">@Localizer["Shelf_Count", AvailableCount]</span>
         <span class="text-body-secondary" data-testid="shelf-payoff-drinks">@PayoffDrinks</span>
     </div>
     @if (_makeableTotal > 0)
@@ -287,6 +305,16 @@ else
     private IEnumerable<IGrouping<string, ShelfItemView>> Grouped => Visible.GroupBy(i => i.Category);
 
     /// <summary>
+    /// A search that matches no bottle on the WHOLE list — not merely nothing left visible once "Only
+    /// what I have" has hidden the unticked ones. Only then is her "nothing called that on my list"
+    /// true (MARGA-6); otherwise the plain no-match line says what is.
+    /// </summary>
+    private bool NoSuchBottle =>
+        !string.IsNullOrWhiteSpace(_search)
+        && !_items.Any(i => i.Name.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase)
+                         || i.Category.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
     /// "3 of 10" for a category — read by the card and by its jump link, so the two cannot disagree.
     /// </summary>
     private string CountFor(string category)
@@ -312,6 +340,14 @@ else
         (_, 1) => Localizer["Shelf_PayoffOneDrink"],
         (_, var total) => Localizer["Shelf_PayoffDrinks", total],
     };
+
+    /// <summary>
+    /// Whether this is the bottle her line names — the one within reach of the most drinks — so its
+    /// pill can be outlined. By name, because that is what her sentence says and what the person
+    /// scanning the page is looking for.
+    /// </summary>
+    private bool IsNamed(ShelfItemView item) =>
+        _unlock is { } bottle && string.Equals(bottle.Ingredient, item.Name, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>An id and an anchor for a category name. Ordinary text, made safe for both.</summary>
     private static string Slug(string category) =>

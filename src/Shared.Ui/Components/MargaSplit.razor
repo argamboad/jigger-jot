@@ -1,0 +1,72 @@
+@* The split (BACKBAR-5, handoff pages 05–06 and 13–14): her scene as half the screen with a line
+   on it, and the working side beside — Login, the wizard, Join and the auth error page. One
+   component so four screens do not each re-spell where she stands.
+
+   Her panel keeps its night ground in BOTH themes: the illustration is a night bar scene and carries
+   its own light. Only the working side follows the theme. That is the one intentional exception to
+   the theme swap, and it is drawn here once rather than remembered four times.
+
+   Her scene carries her and her line, and nothing else. The handoff put the wordmark in its top
+   corner, which at every width is over her face; the working side carries the brand instead, so the
+   pages that borrow the split put the lockup there themselves (Login, Join, the auth error page). *@
+
+<div class="split @(Warm ? "split-warm" : null) @(Compact ? "split-compact" : null) @(Full ? "split-full" : null) @(Whole ? "split-whole" : null)">
+    <div class="split-scene">
+        @* One sticky block for the art, the gradient and her line. The column is the grid ROW's
+           height, and the wizard's second step is a few thousand pixels of pills — so the 512 square
+           was covering the whole column and the page scrolled past a face five screens tall. The
+           block is never taller than the viewport and follows the scroll; the column keeps the night
+           ground beneath it. *@
+        <div class="split-scene-stick">
+            <img class="split-scene-art" src="_content/JiggerJot.Shared.Ui/brand/marga_scene_512.png"
+                 alt="" aria-hidden="true" width="512" height="512" />
+            @if (Full)
+            {
+                @* The gradient as an element, not ::after: the full bleed's fit rules are container
+                   queries on the scene, and a container cannot style its own pseudo-elements. *@
+                <div class="split-scene-shade" aria-hidden="true"></div>
+            }
+            <div class="split-scene-text">
+                @if (!string.IsNullOrWhiteSpace(Aside))
+                {
+                    <span class="split-eyebrow">@Aside</span>
+                }
+                <p class="split-line font-display">@Line</p>
+            </div>
+        </div>
+    </div>
+    <div class="split-panel">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    /// <summary>The sentence on the scene — hers, or the error copy on the auth error page.</summary>
+    [Parameter, EditorRequired] public string Line { get; set; } = string.Empty;
+
+    /// <summary>The small brass label above the line ("Marga · behind the bar"); none when absent.</summary>
+    [Parameter] public string? Aside { get; set; }
+
+    /// <summary>The wizard's warm base (#2A1A12) under the gradient rather than the login's night.</summary>
+    [Parameter] public bool Warm { get; set; }
+
+    /// <summary>A shorter scene, for the small screens (join, auth error) that have little beside it.</summary>
+    [Parameter] public bool Compact { get; set; }
+
+    /// <summary>
+    /// Edge to edge and the viewport's full height, with the working side a fixed 440px pane at
+    /// <c>lg</c> and her scene taking the rest — the sibling apps' sign-in shape. Login only: the
+    /// wizard sits under the app header, and Join and the auth error page have one paragraph beside her.
+    /// </summary>
+    [Parameter] public bool Full { get; set; }
+
+    /// <summary>
+    /// The whole drawing, at every width: the scene column keeps the square's aspect rather than
+    /// covering a column of whatever shape the panel makes, and on a phone the panel sits under the
+    /// scene instead of sliding up over her. Login (2026-09-14, the maintainer's call on sight): a
+    /// framed card centred on the page, her whole on the left, the form beside.
+    /// </summary>
+    [Parameter] public bool Whole { get; set; }
+
+    [Parameter, EditorRequired] public RenderFragment? ChildContent { get; set; }
+}

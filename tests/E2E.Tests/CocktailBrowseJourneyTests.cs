@@ -114,7 +114,10 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         await Page.RunAndWaitForResponseAsync(
             () => Page.GetByTestId("cocktail-filter-method").SelectOptionAsync(new SelectOptionValue { Index = 1 }),
             r => r.Url.Contains("method=") && r.Status == 200);
-        await Expect(Page.GetByTestId("cocktail-filters-toggle")).ToContainTextAsync("(2)");
+        // The button carries the number of active filters. BACKBAR-4 changed its shape from "(2)" to
+        // "· 2", the chips' own "· N", and this line still asked for the parentheses; it asks for the
+        // count in the current shape now.
+        await Expect(Page.GetByTestId("cocktail-filters-toggle")).ToContainTextAsync("· 2");
 
         // And clearing puts the whole catalog back, which is the half a one-way test never notices.
         await Page.GetByTestId("cocktail-filter-clear").ClickAsync();
@@ -249,7 +252,9 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         // Settings, and the switcher saves server-side like the language and theme ones.
         await Page.GotoAsync($"{BaseUrl}/settings");
         await Page.RunAndWaitForResponseAsync(
-            () => Page.GetByTestId("unit-switcher").SelectOptionAsync("Imperial"),
+            // BACKBAR-7: the measurement preference is a segmented control — three radios driven
+            // through their labels — writing the same PUT the select did.
+            () => Page.Locator("label[for='unit-choice-Imperial']").ClickAsync(),
             r => r.Url.EndsWith("/api/auth/unit-system") && r.Request.Method == "PUT");
 
         // Same recipe, read in ounces. The stored 30 ml has not moved — only the reading of it.
@@ -259,7 +264,7 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         // ...and "as written" is a choice a reader can come back to, not just where they started.
         await Page.GotoAsync($"{BaseUrl}/settings");
         await Page.RunAndWaitForResponseAsync(
-            () => Page.GetByTestId("unit-switcher").SelectOptionAsync(""),
+            () => Page.Locator("label[for='unit-choice-AsWritten']").ClickAsync(),
             r => r.Url.EndsWith("/api/auth/unit-system") && r.Request.Method == "PUT");
 
         await Page.GotoAsync(recipeUrl);

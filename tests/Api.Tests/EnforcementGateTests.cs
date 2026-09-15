@@ -262,6 +262,25 @@ public class EnforcementGateTests
     }
 
     [Fact]
+    public void TheBootMeter_SitsOnTheDrawing() // SHELL-2 amendment, 2026-09-14
+    {
+        // The maintainer's call on sight: the arc under the drawing read as two things waiting; the
+        // arc ON the drawing, centred, reads as one. Both hosts' index.html carry the markup under
+        // the parity gate above, so the arrangement is the stylesheet's alone: the boot block is the
+        // containing block, the meter is taken out of the flow and centred on it, and the figure
+        // inside the ring is painted for the drawing it now sits on rather than for the page ground.
+        var css = File.ReadAllText(Path.Combine(RepoRoot(), "src", "Shared.Ui", "wwwroot", "css", "app.css"));
+        static string Rule(string css, string selector) =>
+            Regex.Match(css, @"(?<![\w-])" + Regex.Escape(selector) + @"\s*\{([^}]*)\}").Groups[1].Value;
+
+        Assert.Matches(new Regex(@"position:\s*relative"), Rule(css, ".boot"));
+        var meter = Rule(css, ".boot-meter");
+        Assert.Matches(new Regex(@"position:\s*absolute"), meter);
+        Assert.Matches(new Regex(@"translate\(\s*-50%\s*,\s*-50%\s*\)"), meter);
+        Assert.Matches(new Regex(@"border-radius:\s*50%"), meter);
+    }
+
+    [Fact]
     public void TheBootIllustration_IsTheOptimisedOne() // SHELL-2
     {
         // The boot screen is the one place this drawing is fetched BEFORE the app is usable, so an

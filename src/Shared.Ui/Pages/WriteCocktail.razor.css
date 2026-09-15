@@ -1,0 +1,139 @@
+/* BACKBAR-6, handoff page 15. Two columns, not one long form. */
+
+.write-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 32px 52px;
+    align-items: start;
+    max-width: 1100px;
+}
+
+.write-fields {
+    display: grid;
+    gap: 1rem;
+}
+
+.write-fields-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.write-lines-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: .75rem;
+}
+
+.write-lines-count {
+    font-size: 13px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+/* One row per line on a hairline: the amount and unit in a 160px column, the ingredient with its
+   role and required as a sub-line, and a remove control. Everything visible; nothing behind a step. */
+.write-line {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr) auto;
+    gap: .75rem;
+    align-items: start;
+    padding: 12px 0;
+    border-top: 1px solid var(--app-border);
+}
+
+.write-line:last-child {
+    border-bottom: 1px solid var(--app-border);
+}
+
+.write-line-amount {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: .375rem;
+}
+
+/* The amount previews in the display face, at the recipe's own 21px, so the form previews the
+   recipe it is writing. */
+.write-amount {
+    font-size: 21px;
+    line-height: 1.2;
+    padding-top: .3rem;
+    padding-bottom: .3rem;
+    color: var(--copper-ink);
+}
+
+.write-line-main {
+    display: grid;
+    gap: .375rem;
+}
+
+.write-line-sub {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem 1rem;
+}
+
+.write-role {
+    width: auto;
+}
+
+.write-line-remove {
+    color: var(--muted);
+    font-size: 22px;
+    line-height: 1;
+    padding: .35rem .5rem;
+    text-decoration: none;
+}
+
+.write-line-remove:hover:not(:disabled) {
+    color: var(--mark-missing);
+}
+
+.write-lines-error {
+    color: var(--mark-missing);
+    font-size: 13px;
+    margin: .5rem 0 0;
+}
+
+.write-save {
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 991.98px) {
+    .write-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+
+    .write-fields-pair {
+        grid-template-columns: 1fr;
+    }
+
+    /* The row collapses to amount + name, with role and required on a second line (page 15). */
+    .write-line {
+        grid-template-columns: 130px minmax(0, 1fr) auto;
+    }
+
+    /* Save as a fixed bar above the tab bar; the page pads so the last row clears it. */
+    .write-grid {
+        padding-bottom: 80px;
+    }
+
+    .write-save {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: var(--tab-bar-clearance, 0px);
+        z-index: 4;
+        margin: 0;
+        padding: .6rem 1rem;
+        background: var(--surface);
+        border-top: 1px solid var(--app-border);
+    }
+
+    .write-save .btn {
+        width: 100%;
+    }
+}

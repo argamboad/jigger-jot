@@ -5,7 +5,8 @@
 > Marga given room. **Read with the handoff, `docs/design/2026-09-backbar-handoff.pdf`** (19 pages;
 > page numbers below are the document's own), and with **JJ-036 → JJ-039**, which record what the
 > review accepted, changed and refused. Stories use Gherkin acceptance criteria.
-> **Status: 📋 PLANNED 2026-09-13** — reviewed, decided, sequenced; nothing built.
+> **Status: ✅ COMPLETE** — planned 2026-09-13; BACKBAR-1 ✅ through BACKBAR-9 ✅ built the same day. One branch,
+> `feat/backbar`, one commit per slice or fix, pushed on the word (PLAN, the redesign rule).
 
 **Epic key:** `BACKBAR`
 
@@ -52,9 +53,9 @@ does not re-argue it.
 | F3 | **"Each carries its count"** (page 07) means three totals on every catalog load — two extra requests per visit for numbers the pager line already shows for the active filter. The same page says "same fetch-once behaviour". | The **selected** chip carries the response's `total`; the others carry none. No new fetch. |
 | F4 | **Page 15 puts the Write row's role and required selects "in the row's own popover".** The app loads no Bootstrap JS, a popover is a new interaction, and `new-line-role` / `new-line-required` would sit behind an open step every journey would have to learn. | **Refused.** Role and required stay visible in the row — a sub-line on desktop, a second line on mobile. Everything else on page 15 stands. **JJ-036.** |
 | F5 | **Settings and Household were inherited from the platform** (pages 16–17 restructure them: five cards to two columns, six cards to four groups, segmented theme control, a `···` row menu). The first draft of this review sent that markup upstream first. | **Restyled in full, here.** The UI is the app's own — every screen in the RCL, inherited or not — so pages 16–17 are built as their own slice, BACKBAR-7, with the components' parameters, ids and behaviours kept and no backend change anywhere in the epic. The sibling apps stay a comparison, not a constraint. **JJ-039.** |
-| F6 | **Two of the document's id lists are invented.** Page 15 names `write-name`, `write-serving`, `write-line-{n}-*`, `write-save`…; the page's ids are `new-name`, `new-serving`, `new-line-*`, `new-save`, `new-error`. Page 17 names eight `household-*` ids; three exist (`household-rename-input`, `household-rename-save`, `household-status`). `shelf-item-{id}` and `onboard-item-{id}` do not exist either — the pills are identified by `id` + `label[for]`. | The ids **in the code** are the contract. The document's lists are a reading aid, not a spec, and every "KEEP" list is re-derived from the razor when its slice starts. |
+| F6 | **Two of the document's id lists are invented.** Page 15 names `write-name`, `write-serving`, `write-line-{n}-*`, `write-save`…; the page's ids are `new-name`, `new-serving`, `new-line-*`, `new-save`, `new-error`. Page 17 names eight `household-*` ids; three exist (`household-rename-input`, `household-rename-save`, `household-status`). *(Corrected in BACKBAR-3: `shelf-item-{id}` and `onboard-item-{id}` DO exist, on the hidden inputs — the review's first pass mis-read the razor's interpolated attributes. The pills' labels are reached through `label[for]`.)* | The ids **in the code** are the contract. The document's lists are a reading aid, not a spec, and every "KEEP" list is re-derived from the razor when its slice starts. |
 | F7 | **"No new strings" has two exceptions.** The mobile chip labels "Make now · 14 / One away · 81" (page 07) and the Write footnote "Marga will tell you if you can pour it" (page 15) exist nowhere in `AppStrings.resx`. | The chips use the **full** labels at every width (`Cocktails_MakeableOnly`, `Cocktails_AlmostOnly`) and the row scrolls if it must; the footnote is **dropped** — it promises nothing the page does not already do. The one new pair is "Everything" (F2), EN + ES. |
-| F8 | **The scene is square and the panel is not.** Login and Welcome give `marga_scene_512.png` a ~520×680 panel; the document flags the upscale itself (page 05). The 2 MB source is deliberately not committed (MARGA-1). | Ship with `object-fit: cover` on the 512 asset now. The 2× landscape crop is a **maintainer asset action** from the source; when it lands it takes the same optimisation pass and the same `< 250 KB` gate the boot asset has. Nothing waits on it. |
+| F8 | **The scene is square and the panel is not.** Login and Welcome give `marga_scene_512.png` a ~520×680 panel; the document flags the upscale itself (page 05). The 2 MB source was not committed at first (MARGA-1); since 2026-09-14 it is, at `docs/brand/source/marga_scene_1254.png`. | Ship with `object-fit: cover` on the 512 asset now. The 2× landscape crop is a **maintainer asset action** from the source; when it lands it takes the same optimisation pass and the same `< 250 KB` gate the boot asset has. Nothing waits on it. |
 | F9 | **The serif has one weight, and `fw-bold` is on 31 elements across 14 files.** Faux-bold on a one-weight face is what the document warns about (page 18). | Only the elements the serif reaches lose `fw-bold` (the count, drink names, card headlines, her line). A repo gate refuses `.font-display` and `fw-bold` on the same element. Everything in the sans keeps its weight. |
 | F10 | **The chrome must read on both grounds**, and the header currently hard-codes `navbar-dark` for white text on copper; the mark `icon_light.svg` is bone for dark grounds. | `navbar-dark` goes; the bar follows `data-bs-theme`. `icon_dark.svg` becomes a brand asset generated by `docs/brand/build_assets.py` from the same source and swapped by the existing `content: url()` pattern the lockups use; `REBRANDING.md` §3 gains the row. **JJ-037.** |
 | F11 | **Auto stays the default** (page 04). | Confirmed against `theme.js`: `system` is already the default and tracks the OS live. Nothing to change. |
@@ -110,11 +111,38 @@ browser; Release build with zero warnings; `Core.Tests`, `Api.Tests`, `Ui.Tests`
 
 ### BACKBAR-1 — Foundation: tokens, type, primitives, Marga's tone
 
-**Status: 📋 Planned.** Pages 01–02, and steps 1, 3 and 4 of page 18.
+**Status: ✅ Implemented (2026-09-13).** Pages 01–02, and steps 1, 3 and 4 of page 18. Three
+commits on `feat/backbar`: `1a` tokens and the face, `1b` the primitives, `1c` Marga's tone.
 
 **As a** member of a household
 **I want** every control in the app to share one shape and one palette in both themes
 **So that** the screens that follow are rearrangements of things I already recognise
+
+**What was decided while building it.**
+- **Bootstrap's own tokens are re-pointed, not fought.** `--bs-body-color`, `--bs-secondary-color`,
+  `--bs-border-color` and `--bs-body-bg` now resolve to the app's ink, muted, hairline and surface in
+  both themes, so `.text-muted`, every border and every card take the palette with no rule per
+  component. Dark clears `--bs-box-shadow-sm` rather than overriding `.shadow-sm`, which Bootstrap
+  marks `!important`. The page-10 status colours are the success/warning/danger subtle tokens under
+  dark; light already had Bootstrap's, which the page quotes verbatim.
+- **The face ships as the two subsets Google serves** (latin 21 KB, latin-ext 12 KB) with their
+  `unicode-range`, so an English page never fetches the extended block and a Spanish one pulls it on
+  demand. The one-weight rule is a gate: `RestyleGateTests` refuses `font-display` beside `fw-bold`.
+- **`--label-accent`**: brass on dark, copper on light, for the small uppercase labels — page 01 says
+  brass is a label colour on dark only, and brass on cream fails contrast.
+- **The focus ring moved to `:focus-visible`** so a mouse click does not light it while a keyboard
+  still does; the hidden `.btn-check` input hands its ring to the label.
+- **`Tone` is additive.** `MargaTone.None` is the default and renders exactly the pre-Tone shape, so
+  all seven call sites compile untouched and each moves to a tone in its own slice. On a card the
+  `Aside` becomes the label above the line; inline it is not rendered at all.
+- **The shelf pill grows through Bootstrap's button tokens** (`--bs-btn-padding-*`, `--bs-btn-font-size`)
+  so `.btn-sm` yields by order rather than by `!important`, and its 120ms fill is dropped under
+  `prefers-reduced-motion` beside the boot animation.
+
+**Seen, not proven.** The three gate tests passed on their first run rather than failing first: the
+build took longer than the stylesheet edit, so they ran against the finished CSS. The Tone tests did
+fail to compile first, as the ritual asks. No browser pass was possible in the session that built
+this (no display); QA-CHROME-14 is the case that looks.
 
 **Context / notes.** Everything on page 02, as CSS on Bootstrap's classes so no markup churns.
 
@@ -175,11 +203,36 @@ the three widths; every existing test green with no id or selector edits.
 
 ### BACKBAR-2 — Chrome: the bar leaves copper
 
-**Status: 📋 Planned.** Page 04 (chrome), step 2 of page 18. **JJ-037.**
+**Status: ✅ Implemented (2026-09-13).** Page 04 (chrome), step 2 of page 18. **JJ-037.** One
+commit on `feat/backbar`.
 
 **As a** member of a household
 **I want** the header and the tab bar to sit on the page rather than on a copper band
 **So that** copper means "act here" everywhere it appears
+
+**What was decided while building it.**
+- **The handoff had the marks backwards.** `icon_light.svg` is the mark in copper — for a *light*
+  ground, not a dark one as page 04 says — and it was sitting copper-on-copper in the old header. So
+  the markup keeps naming it, and the new `icon_dark.svg` is the same path in bone for the dark
+  surface, swapped in by `app.css` the way the lockups are. The gate holds both files, the swap, and
+  that `REBRANDING.md` and `build_assets.py` name both.
+- **One button variant for the whole account cluster.** `btn-outline-light` was white lines on
+  copper; on a white bar it vanishes. Every button in the cluster — Household, Billing, Settings, Sign
+  out, and the bell — is `btn-outline-secondary`, recoloured through Bootstrap's button tokens to
+  muted with a hairline border. That is also what makes the old dark-theme bug structurally
+  impossible: an anchor-shaped button and the `<button>` beside it carry the same class, so they
+  cannot be painted apart. The staff-only Admin button keeps `btn-outline-warning`; it is meant to
+  stand out.
+- **The hierarchy is ink against muted now** where it was white against white-alpha: destinations in
+  `--ink`, hover and focus copper, the current one bold with a 2px copper inset. Below `lg` the tab
+  bar takes the surface and a top hairline, and the current tab gets a copper-subtle fill under its
+  2px line.
+- **The journey asserts relations, not literals.** In dark theme: a destination's colour equals the
+  body's ink; the billing anchor's colour equals the sign-out button's; and neither equals
+  `--bs-link-color`. The three assertions survive any future palette.
+
+**Seen, not proven.** The E2E project compiles; the journey itself needs Postgres, Mailpit and a
+browser, so its rewritten lines run first in CI. QA-CHROME-15 is the case that looks.
 
 **Context / notes.** In both themes the bar takes the surface colour and a bottom hairline; the tab
 bar the same with a top hairline. The current tab keeps weight, gains a 2px copper indicator, keeps
@@ -219,11 +272,35 @@ and nothing else; QA-CHROME-04/05 re-run; `REBRANDING.md` §3 lists `icon_dark.s
 
 ### BACKBAR-3 — Home and Shelf, the identity screens
 
-**Status: 📋 Planned.** Pages 03–04 and 11–12.
+**Status: ✅ Implemented (2026-09-13).** Pages 03–04 and 11–12. One commit on `feat/backbar`.
 
 **As a** member of a household
 **I want** the count to be the first thing on the front page and the shelf to be pills on a page rather than pills in boxes
 **So that** the two screens I open most look like the product and not like its admin console
+
+**What was decided while building it.**
+- **A `--copper-ink` token** for copper as TEXT on the ground: copper itself on light, lifted on dark
+  where #B4562A does not reach 4.5:1. The count, a drink name on hover, the unlock link and the
+  payoff count all take it, and it is what page 01's "numeral #D9865A → #B4562A" means.
+- **A `.page-title` class** for every screen's h1 — the type page's "serif h1 29", never bold — so
+  each screen's h1 is the same h1. The shelf takes it here; the others in their slices.
+- **The unlock panel's "ONE BOTTLE AWAY" eyebrow is not drawn.** No such string exists and the
+  handoff promised no new ones; the copper tint and the serif headline say what the panel is.
+- **The shelf's Marga label is her name**, passed literally: a name is not copy and has no
+  translation. Home keeps `Marga_HomeAside` as its label.
+- **The payoff count is a `<span>`, not a `<strong>`.** The gate refuses `fw-bold` beside the display
+  class, but an element that is bold by default slips past it; the face has one weight either way.
+- **The named bottle is drawn in the subtle copper, never the fill** — `--bs-btn-color/bg/border`
+  from the primary-subtle family — so it is findable and cannot be mistaken for owned; ticking it
+  still takes the fill through the active tokens like any other pill. Matched by name, because that
+  is what her sentence says.
+- **Welcome's step 2 inherits the pills, not the sections.** The wizard groups categories with its
+  own markup; the shared control (pill + named-bottle style) reaches it from `app.css`, the section
+  headings do not. BACKBAR-5 brings the sections across.
+
+**Seen, not proven.** The shelf and makeable journeys drive the pills through `label[for]` and read
+`#cat-{slug}`, `shelf-count` and `shelf-payoff` — all kept — so they are expected green in CI; the
+loading bar and the two-column grid have no test and QA-CHROME-16/17 are the cases that look.
 
 **Context / notes.**
 
@@ -279,11 +356,42 @@ green; QA-SHELF and QA-CHROME-10/11 re-run; both themes at three widths match pa
 
 ### BACKBAR-4 — Cocktails and the recipe
 
-**Status: 📋 Planned.** Pages 07–10. **JJ-036 (F2, F3).**
+**Status: ✅ Implemented (2026-09-13).** Pages 07–10. **JJ-036 (F2, F3).** One commit on
+`feat/backbar`.
 
 **As a** member of a household
 **I want** the three ways of looking at the catalog to be one control, and a recipe to be read by its measures
 **So that** the filter I am on is obvious and the quantity is the thing my eye lands on
+
+**What was decided while building it.**
+- **The rows keep their `list-group` classes.** The browse journey reads rows by `.list-group-item`
+  and the recipe's lines by `li`, and the primitives already draw a list-group as hairlines — so the
+  classes stay and the CSS does the restyle, which is the handoff's own rule ("build them as CSS on
+  Bootstrap's classes so no markup churns"). Nothing in `CocktailBrowseJourneyTests` changes.
+- **`MargaSays.Size` became nullable.** Page 02 draws the card tone at 96 on Home and the shelf but
+  at 72 on the catalog, the recipe and the wizard; a set `Size` now overrides the tone's default, an
+  unset one takes it. The three existing tone tests hold both readings.
+- **The "oz · as written" label above the ingredient list is not drawn.** The recipe response does
+  not say which unit system rendered it, and adding that is an API change — out of scope by page 18.
+  `PREFS-2` owns the preference; Settings is one tap away.
+- **An optional line that is missing says nothing.** Page 09's "two marks only" plus JJ-009 (an
+  optional line never blocks): the missing mark is for required lines only, so a garnish you do not
+  have is a dash and the word "optional", not a red "not on your shelf".
+- **A `.eyebrow` class and a `--mark-missing` token** — the small uppercase labels ("METHOD",
+  "INGREDIENTS") and the one red in the app, `#B02A37` light / `#E88A8A` dark, only ever on a line.
+- **The empty-state parts moved to `app.css`** (`.catalog-empty`, `.empty-scene`,
+  `.catalog-empty-line`, `.empty-starter`) because the recipe's not-found now uses the same layout
+  and scoped CSS cannot be shared across two pages.
+- **The chip labels are the switch labels at every width** (F7); "Everything" is the one new string,
+  EN and ES. Only the selected chip carries a count — the response's own `total`, formatted, never a
+  second request — and a test holds that exactly one GET is issued.
+- **The journey helper waits on the list request**, `GET /api/cocktails?…`, not on the unlocks
+  request that follows it; the unlocks panel is then awaited by its own `Expect`, which is what the
+  old `RunAndWaitForResponseAsync` around the almost switch was doing by hand.
+
+**Seen, not proven.** `MakeableJourneyTests` compiles against the helper; its nine rewritten calls
+run first in CI. The print stylesheet, the sticky chip row and the fixed fork bar have no test —
+QA-CHROME-18/19 are the cases that look.
 
 **Context / notes.**
 
@@ -345,22 +453,77 @@ the scenarios; `MakeableJourneyTests` and `CocktailBrowseJourneyTests` green thr
 `CocktailsEmptyStateTests` green; "Everything" in EN and ES; QA-MAKE, QA-CKTL and a new print case
 re-run; both themes at three widths match pages 07–10.
 
+**Amended 2026-09-14, seen by the maintainer at tablet width.** Two things in the toolbar. Below `lg`
+the search takes the whole row, so Filters and Write a cocktail wrapped onto a row of their own — and
+Filters' `ms-auto` still pushed them to the right edge, the one right-aligned thing on a page that
+hangs left. The push is `ms-lg-auto` now, beside the 280px search only. And the chips **wrapped**,
+dropping "Everything · 971" to a line of its own, where F7 had already settled that the row keeps its
+full labels "and scrolls if it must": below `lg` the row is `nowrap` with a hidden horizontal
+scrollbar, and each chip keeps its width. Held by `CatalogChipsTests` (the push starts at `lg`) and
+`RestyleGateTests.CatalogChips_ScrollRatherThanWrap_BelowLg`.
+
 ---
 
 ### BACKBAR-5 — Login and Welcome, her two full appearances
 
-**Status: 📋 Planned.** Pages 05–06 and 13–14.
+**Status: ✅ Implemented (2026-09-13).** Pages 05–06 and 13–14. One commit on `feat/backbar`.
 
 **As a** person who has not yet told the app anything
 **I want** the first screen to be her, and her sentence to be its headline
 **So that** the product's promise is the first thing I read, not a form
 
+**What was decided while building it.**
+- **One component, `MargaSplit`, for all four screens.** Login, the wizard, Join and the auth error
+  page each wanted the same two panels; four copies of the split is how it stops being one. The
+  night ground, the gradient and the brass label are drawn there once —
+  the "one intentional exception to the theme swap" (page 06) is a rule in one file rather than a
+  memory in four. `Warm` gives the wizard its `#2A1A12` base; `Compact` shortens the scene for the
+  screens with little beside it.
+- **Login has no `MargaSays` any more.** She IS the scene; an avatar beside the form would put her
+  face on the screen twice, the same reasoning the empty states used. The login line's label is
+  `Onboard_MargaAside` ("Marga · behind the bar"), which page 05 quotes and which already existed.
+- **The auth error page's line is the error heading, with no label** — it is not her line, so it
+  gets no attribution. Join's line is the login line: the same promise, to someone arriving by
+  invitation, and no new string.
+- **The shelf's section rules moved from `Shelf.razor.css` to `app.css`.** The wizard's second step
+  renders the same sections, and scoped CSS cannot reach a second page. This closes what BACKBAR-3
+  left open ("Welcome's step 2 inherits the pills, not the sections"); it now inherits both. The
+  wizard grew a `CountFor` of its own, read against what is WANTED rather than saved, because nothing
+  there is saved until Finish.
+- **No preload for the scene.** Page 06 asks for one on the anonymous route; the boot screen already
+  fetched the same file, so the browser has it. Nothing to add.
+- **The running total is a `<span>`,** like the shelf's payoff — a `<strong>` would ask the one-weight
+  face for bold.
+
+**Seen, not proven.** The sign-in, onboarding, MFA and invitation journeys drive these screens by
+test id only (checked in the page objects too), so they are expected green; the above-the-fold
+promise at 390×812, the 26px slide and the night panel in light theme are QA-CHROME-20's to look at.
+Native parity (the MAUI shells render the same split) is the Android smoke's.
+
 **Context / notes.** Both screens split: her scene on one side (`marga_scene_512.png`,
 `object-fit: cover`, a bottom gradient to `#0F1216` so her line sits on solid ground), the working
 side on the other. **Her panel keeps its dark ground in both themes** — the illustration is a night
 bar and carries its own light; only the form side flips. On light, Welcome's panel base is `#2A1A12`
-so the gradient lands warm. Over her scene the lockup is always `lockup_dark`; the form side keeps
-today's `content: url()` swap. Mobile: the scene 300px tall on top (240 below 380px), the panel
+so the gradient lands warm. **No wordmark over her scene** (amended 2026-09-14, the maintainer's
+call on sight: the handoff's corner lockup sat on her face at every width, and the working side
+already carries the brand). The form side keeps the lockup with today's `content: url()` swap, and
+Join and the auth error page now put it on their panel too, so no borrowed screen loses the brand;
+`.login-lockup` moved to `app.css` for the same scoped-CSS reason as the shelf sections. **Login is
+full bleed** (amended 2026-09-14, the maintainer's call, seen on vuelto): no 1100px frame, the
+viewport's full height, her scene taking every column but a fixed 440px form pane at `lg` — the
+shape vuelto's sign-in settled on, as `Full` on the split. Login only: the wizard sits under the app
+header, and Join and the auth error page have one paragraph beside her, so they keep the frame.
+**And she is whole there.** The drawing is square and the column is whatever the window makes it,
+so the fit is decided by the COLUMN's aspect (a container query — a media query cannot see it): a
+landscape column shows the whole square at full height against the form pane, its left edge fading
+into the night, with her line in the night that is left and the gradient starting at 62% so it
+darkens only the counter; a portrait column (a tablet held sideways) covers, because covering a
+portrait column takes the lamp and a slice of skyline and leaves her whole. Below `lg` the scene's
+height follows the width (62vw, 280–480px) rather than a fixed 300px, which on a tablet was a
+768px-wide strip of forehead, and the tablet line is sized between the phone's and the laptop's.
+The gradient is an element there rather than `::after`, because a container cannot style its own
+pseudo-elements. Seen at 375×812, 768×1024, 1024×768, 1440×900 and 1920×900.
+Mobile: the scene 300px tall on top (240 below 380px), the panel
 sliding 26px up under the gradient, the whole login form above the fold at 390×812. The code step
 swaps the buttons for the 6-digit field at 24px, letter-spacing .4rem, and she does not move.
 Welcome adds a 3px brass progress rule at 50% / 100% under "Step 1 of 2"; step 2 is the shelf's
@@ -370,9 +533,33 @@ browser cache from the boot screen, so no preload is added. Native: the MAUI she
 two panels; the magic-link button is absent and the code button primary, as today. The 2× landscape
 crop is the maintainer's asset action (F8) and lands whenever it lands.
 
+**Amended again, 2026-09-14, the maintainer's call on sight — Login is a framed card once more.**
+The full bleed above is reversed: the maintainer preferred the 2026-09-10 proposal's arrangement,
+and said so with its picture — a framed card centred on the page ground, her WHOLE drawing on the
+left, the form centred on the right with "Choose how you'd like to continue" back under the title.
+Our type and colours stay (the picture's italic and its "since 1930" label were reference only, not
+asked for); only the placement follows it. `MargaSplit` gains `Whole`: the scene column keeps the
+drawing's square at every width, so the 512 square in it is the whole drawing rather than a crop of
+whatever shape the panel makes, and below `lg` the panel sits UNDER the square rather than sliding
+up over her face — the phone layout the maintainer did not like. `Full` stays on the component,
+unused. Found while building it: a scoped `.login-wrapper > *` cannot reach the split's root, which
+carries the split's own scope attribute, so the card shrank to its content until the width rule
+went through `::deep`. Held by `AnonymousLayoutTests` (framed, whole, centred, the subtitle back),
+`MargaSplitTests` (`Whole` is opt-in) and `AuthFlowTests` (the card is narrower than a laptop
+viewport; on a phone her scene is square and the form starts where she ends).
+
 **Acceptance criteria**
 
 ```gherkin
+Scenario: Login is a framed card with the whole of her (amendment, 2026-09-14)
+  Given the login page at 1280 wide
+  Then the split is framed and narrower than the viewport, centred on the page ground
+  And the scene column is square, so the whole drawing shows
+  And the form side is centred and says how to continue
+  Given the login page at 390 wide
+  Then her scene is a square at the top and the form sits under it, not over it
+  # AnonymousLayoutTests, MargaSplitTests, AuthFlowTests.Login_Page_Renders
+
 Scenario: The form keeps every id
   Given the login page
   Then login-email, login-send-magic-link, login-send-otp, login-otp-code, login-verify-otp, login-mfa-code and login-error render where their step shows them
@@ -381,6 +568,11 @@ Scenario: The form keeps every id
 Scenario: Her panel does not follow the theme
   Given the login page in light theme
   Then her panel's background is the night ground and the form side is #fff
+
+Scenario: Login fills the screen and the borrowers do not
+  Given the login page at 1280 wide
+  Then the split has no frame and her scene reaches every edge but the 440px form pane
+  And the wizard, /join and /auth-error keep the framed split
 
 Scenario: The wizard keeps every id and the header
   Given /welcome
@@ -400,11 +592,35 @@ re-run; both themes at three widths match pages 05–06, 13–14.
 
 ### BACKBAR-6 — Write a cocktail
 
-**Status: 📋 Planned.** Page 15. **JJ-036 (F4, F7).**
+**Status: ✅ Implemented (2026-09-13).** Page 15. **JJ-036 (F4, F7).** One commit on `feat/backbar`.
 
 **As a** member writing my own recipe
 **I want** the drink on one side and its lines on the other, with the amounts reading like a recipe
 **So that** the form previews what it is writing
+
+**What was decided while building it.**
+- **Page 15's "Fork: the same form, pre-filled, with Based on X" describes editing, not forking.**
+  FORK-1 makes the snapshot on the server and lands on the copy's recipe page; the form is not in
+  that flow. Pre-filling it with an existing recipe is AUTHORING-2, the one outstanding story, and it
+  stays outstanding — a restyle does not open a flow. `write-forked-from` never existed (F6).
+- **Client-side checks attach to the field.** A missing name marks the name field with the message
+  under it; no complete line puts the message under the lines, on a new additive id
+  `new-lines-error`. Both checks run rather than the first one returning, so a form with two
+  problems shows two. `new-error` keeps its place above Save for the server's answer, which is
+  still mapped from the API's codes. The one journey that saves a recipe fills the form correctly
+  and reads none of these.
+- **The amount and its unit share a 160px column** so the row reads "2 oz · London dry gin" the way
+  the recipe page does; the amount input is in the display face at the recipe's 21px. Placeholders
+  and `aria-label`s replaced the per-column labels the old grid needed; the field still has a name
+  for a screen reader.
+- **"3 lines" is `Cocktails_IngredientCount`** ("{0} ingredients"), which already existed.
+- **The remove control has an `aria-label`** — `Household_Remove`, "Remove" / "Eliminar", which
+  already existed; an "×" alone announces nothing. (The first draft named a `Common_Remove` that does
+  not exist; the fake localizer echoes keys, so only a grep of the resx caught it. A missing key is
+  the one thing these tests cannot see.)
+
+**Seen, not proven.** The authoring journey (MINE-03/04) drives the form by test id and gets its run
+in CI. The fixed Save bar and the collapsed row at 390 are QA-CHROME-21's to look at.
 
 **Context / notes.** Two columns: the drink (name, served as, glass, method, instructions) left, the
 ingredients right. Each line is an amount field whose value renders in the serif, the ingredient with
@@ -439,11 +655,43 @@ three widths match page 15.
 
 ### BACKBAR-7 — Settings and Household
 
-**Status: 📋 Planned.** Pages 16–17. **JJ-039.** FEATURES §5 (invitations) and §6 (account settings).
+**Status: ✅ Implemented (2026-09-13).** Pages 16–17. **JJ-039.** FEATURES §5 (invitations) and §6
+(account settings). One commit on `feat/backbar`.
 
 **As a** member managing my account or my household
 **I want** the same information at half the height, with the choices visible without opening anything
 **So that** the two screens I visit least stop being the two that still look like a template
+
+**What was decided while building it.**
+- **Two identical ids on one page, found by the restyle.** Settings rendered the same `ThemeSwitcher`
+  as the header, so `/settings` carried `theme-switcher` twice — an ambiguous locator waiting for a
+  journey to visit. The segmented control has its own ids (`theme-choice-*`, `unit-choice-*`) and
+  the header's select keeps the old one; a test now holds that the settings page renders no
+  `theme-switcher` at all.
+- **One handler, two controls.** `Segmented` is a parameter on the existing switchers, not a second
+  component: the radios call the same `OnChange` as the select, so the theme applies live, persists
+  to the device and sends the same `PUT`, and the unit pills send the same `PUT` the dropdown did.
+  `SwitcherStateTests` (the select) pass unchanged.
+- **The one journey that touched the unit dropdown changes two lines** — `SelectOptionAsync` becomes
+  a click on the pill's label, the same mechanics change BACKBAR-4 made for the catalog chips. No
+  helper this time: two calls in one fixture do not earn one.
+- **The ··· menu toggles visibility only.** The row's actions render once, on desktop and phone
+  alike, and the control just adds `is-open`; a second copy behind a menu would double
+  `member-remove` and fail the roster journeys on an ambiguous locator — the SHELL-1 lesson.
+  Labelled with the member's name, since no "more actions" string exists and none was added.
+- **The two cards are restyled inside, same parameters**, as page 16 asks: `MfaCard` and
+  `NotificationPrefsCard` become `.settings-group` sections and keep every id and call. The
+  recovery codes' "copy action" on page 16 is NOT added — it is new behaviour (a clipboard call), and
+  a restyle does not add one. The QR box stays white in both themes, because a code scans dark on
+  light.
+- **Group labels are existing strings.** "SIGN-IN" is `Login_Title`; page 17's "OWNERSHIP & DATA" has
+  no string, so ownership, data and leaving are three small groups under the headings that exist.
+- **`.settings-group` and `.settings-row` live in `app.css`**, since two pages and two components
+  share them; the grids and the name figure stay scoped.
+
+**Seen, not proven.** The roster, membership, MFA, notification, theme, locale and GDPR journeys drive
+these pages by id and get their run in CI; the two rewritten selects run there first. The ··· menu at
+390, the live theme flip from the pills and the QR on white are QA-CHROME-22/23's to look at.
 
 **Context / notes.** Both screens were inherited from the platform and are the app's to restyle in
 full (F5). What changes is arrangement and control shape; what does not change is any call, any
@@ -505,12 +753,36 @@ three widths match pages 16–17.
 
 ### BACKBAR-8 — Billing and Admin, and every small screen
 
-**Status: 📋 Planned.** Not drawn in the handoff. **JJ-039** — all pages, no exceptions. Spec: page 02
-(components) and the Settings/Household language of pages 16–17, applied by analogy.
+**Status: ✅ Implemented (2026-09-13).** Not drawn in the handoff. **JJ-039** — all pages, no
+exceptions. Spec: page 02 (components) and the Settings/Household language of pages 16–17, applied
+by analogy. One commit on `feat/backbar`. **⚠️ Amended 2026-09-14:** restyling the auth callback
+rewrote the whole file and dropped its `@code` block — the cookie-for-session exchange every web
+sign-in lands on — so every sign-in stopped on "Processing sign-in…" and 45 of 51 journeys failed.
+The page had no test; `AuthCallbackTests` (4) now holds it, and PLAN.md carries the lesson.
 
 **As a** household owner on the billing page, or platform staff on the console
 **I want** the two pages the designer never saw to look like the rest of the app
 **So that** there is no screen left that gives the old template away
+
+**What was decided while building it.**
+- **The not-found view became a component** (`NotFoundView`) so it can be rendered in a test; its
+  three English literals are the platform's and stay untranslated as they were — a restyle adds no
+  strings, and localising the platform's 404 is the platform's.
+- **Billing's status pill maps to the app's status colours** (page 10) rather than info-blue: active
+  or trialing is the good state, past-due or cancelled the warning, anything else neutral — never
+  red, since a free plan is not an error. Upgrade stays the primary pill; Manage becomes a text link.
+- **The console's one panel is the broadcast**, because it is the one control that acts
+  platform-wide. Everything else is groups and rows: a tenant row is a `<button>` carrying the
+  `settings-row` class so the whole row is the hit area and `admin-tenant-row` keeps working;
+  members are rows with the checkbox, name, role and two text-link actions; the five green alerts
+  become one `.notice` each, on the same ids.
+- **The error bar recolours in place.** `#blazor-error-ui` lives in both hosts' `index.html`, held by
+  the parity gate, so it is restyled from `app.css` alone and the two files are untouched.
+- **The impersonation banner keeps its alert classes** (the role, the spacing) and only the paint
+  changes, through Bootstrap's alert tokens. The callback's spinner is a shared `.loading-bar`.
+
+**Seen, not proven.** The billing, seat-quota and announcement journeys drive these by id and get
+their run in CI; QA-CHROME-24 looks at the rest, including the error bar, which no journey provokes.
 
 **Context / notes.** These pages were not drawn, so the treatment is derived rather than copied: the
 same labelled groups of hairline rows, the same text-link row actions, the same status colours, and
@@ -569,11 +841,78 @@ language as pages 16–17.
 
 ### BACKBAR-9 — The sweep
 
-**Status: 📋 Planned.** Page 18.
+**Status: ✅ Implemented (2026-09-13).** Page 18. One commit on `feat/backbar`. **⚠️ Amended
+2026-09-14** — a second pass, this time against the REAL API with a stocked household rather than
+mocked responses, found two things the first pass could not have and one it should have:
+- **Every drink name was copper in dark theme** — Home's three drinks, every catalog row, in all
+  three chip states — where pages 02 and 07 draw them in the ink with copper on hover only. The
+  dark-theme link rule excludes buttons with `:not()`, and `:not()` carries the specificity of its
+  argument: three of them took the selector to 0,4,1, above every scoped page rule (a class plus
+  Blazor's scope attribute is 0,2,0). Its own comment claimed 0,1,1. The exclusions now sit inside
+  `:where()`, which contributes nothing, so the rule is what it said it was. Light theme has no such
+  rule and was right the whole time — which is why a pass that reads dark and light side by side
+  has to read them as two questions, not one. Held by `RestyleGateTests` (the selector's shape) and
+  `ShellJourneyTests` (the computed colour in dark theme equals the body's ink).
+- **The wizard's second step stretched her scene to the height of the list.** Her column is the
+  grid row's height, the art was absolutely positioned against the column, and step 2 is 191 pills
+  — about 5,000 pixels — so the 512 square covered all of it and the page scrolled past a face five
+  screens tall. The mocked shelf in the first pass had a handful of pills, so the column never grew
+  and the frame looked like page 14. The art, the gradient and her line are now ONE sticky block
+  inside the column — the column's height until the column outgrows the viewport, then the
+  viewport's, following the scroll under the app header — so she stays beside whatever part of the
+  shelf someone is ticking; the column keeps the night ground beneath. Held by `MargaSplitTests`
+  (the structure) and `OnboardJourneyTests` (her scene is never taller than the viewport at step 2).
+- The lesson for the pass itself is in PLAN.md: **a visual sweep against mocks only sees the shapes
+  the mocks have**, and a specificity claim in a comment is not a specificity.
 
 **As a** member on any screen
 **I want** the restyle to be finished, not mostly finished
 **So that** no screen, state or width is the one that still gives the old app away
+
+**What the pass showed.** Ninety-six frames — sixteen screens (the nine drawn, Billing, Admin, Join,
+the auth error page, a missing URL, and the catalog under each chip) × 1440/768/390 × dark/light —
+rendered from a Release publish of the web app against mocked API responses and read one by one.
+Three findings, each fixed with a failing test first:
+- **The bell's dropdown was still a card** (`card`, `card-header`, `card-footer`), the one place
+  the definition of done's "no card border except the panel" was false. It is a `.notif-panel` now:
+  the surface, a hairline, 16px, hairline rows inside — page 17's own words for it.
+- **Every primary button that STARTS disabled was Bootstrap blue.** Rename, Invite, Transfer, Join
+  and "Send to everyone" all wait for input, and the copper rule for `.btn-primary` named only the
+  enabled states; the disabled one fell through to the framework's `--bs-btn-disabled-*` defaults.
+  A pass with fixtures typed nothing, which is exactly why it showed. The rule sets the three
+  disabled tokens now, same copper, the framework's own opacity.
+- **Join's five headings were still `h5 fw-bold`** — the split's other borrower (the auth error page)
+  and Login itself use `page-title`. Join does too; the states, ids and colours are untouched.
+
+And one thing the gate found rather than the eye: the boot arc's 50ms `stroke-dasharray` transition
+had no reduced-motion rule while the boot rock, the pill fill, the loading bars and the wizard's
+progress rule all did. It steps to each figure now.
+
+**What was decided while building it.**
+- **The definition of done is held by gates, not by a reading.** Three repo tests in
+  `RestyleGateTests`: no `class` in the RCL names `card`, `card-header` or `card-footer` unless it
+  also names the unlock panel (`home-unlocks`, `catalog-unlocks`); every selector that transitions
+  or animates in `app.css` or any `*.razor.css` is named again inside a `prefers-reduced-motion`
+  block **in the same sheet** with the motion set to none — same sheet, because scoped CSS is
+  rewritten per component and a rule in `app.css` cannot reach a scoped selector, so a
+  reduced-motion block in the wrong file passes a reading and fails a user; and the `.btn-primary`
+  rule sets its disabled tokens. The first two failed on the pre-sweep tree, the third on the
+  pre-fix one.
+- **The "200ms panel expand" page 18 names does not exist in this codebase** — the `···` row menu
+  toggles visibility and the bell's panel renders or does not — so there was nothing to drop. The
+  gate covers whatever motion is actually written rather than the two the document lists.
+- **The auth error page says its heading twice on purpose** — once as the split's line (BACKBAR-5:
+  the error heading replaces her line, with no label) and once as the panel's h1 for the reader who
+  lands on the working side. Seen in the frames, left as decided.
+- **The pass is a script, not a test** (`visual_pass.py` in the session's scratchpad, not the
+  repo): it mocks every `/api/**` route, signs an unverified JWT for the authenticated screens, and
+  needs a static server with a single-page fallback — `python -m http.server` has none, and the
+  first run produced sixteen 404 pages before anyone looked. It is not committed because the
+  fixtures are hand-typed and would rot; QA-CHROME-25 is the human version of it.
+
+**Seen, not proven.** Focus rings were checked by reading the one `:focus-visible` rule and not by
+tabbing every screen — QA-CHROME-25 does that. Nothing looks at the frames in CI; the sixteen
+screens are held by ids and the three gates, and by the QA plan.
 
 **Context / notes.** The cross-cutting pass page 18 asks for — focus rings on every interactive
 element, `prefers-reduced-motion` dropping the 120ms fill and the 200ms panel expand, a pass in both
@@ -585,21 +924,50 @@ traceability matrix and sign-off rows, and the PDFs regenerated.
 
 ```gherkin
 Scenario: No card border survives except the panel
-  Given every page in Ui.Tests renders
-  Then every .card resolves to the 16px hairline panel
-  And the copper-subtle panel is the only element with a tinted border
+  Given every razor file in the RCL
+  Then no class names card, card-header or card-footer
+  Unless the same class names the unlock panel
+  # RestyleGateTests.NoCardBorder_SurvivesExceptTheCopperPanel
 
 Scenario: Motion is optional
-  Given prefers-reduced-motion: reduce
-  Then the pill fill and the panel expand have no transition
+  Given every selector that transitions or animates in app.css or a scoped sheet
+  Then the same sheet names it again under prefers-reduced-motion with the motion set to none
+  # RestyleGateTests.EveryMotion_IsOptional
+
+Scenario: A button that waits for input is still copper
+  Given the .btn-primary rule in app.css
+  Then it sets --bs-btn-disabled-bg and --bs-btn-disabled-border-color
+  # RestyleGateTests.PrimaryButton_StaysCopperWhenDisabled
+
+Scenario: Join's heading is Login's heading
+  Given /join in any of its five states
+  Then the panel's h1 carries page-title and never fw-bold
+  # AnonymousLayoutTests.Join_ReusesTheSplit_AndKeepsItsStates
+
+Scenario: A drink's name is in the ink in dark theme too (amendment, 2026-09-14)
+  Given the catalog in dark theme
+  Then the first row's name computes to the body's own colour, not the link colour
+  And the dark-theme anchor rule in app.css names its exclusions inside :where()
+  # ShellJourneyTests (the computed colour); RestyleGateTests.DarkThemeLinkColour_NeverOutranksAPagesOwnRule
+
+Scenario: Her scene is never taller than the screen (amendment, 2026-09-14)
+  Given the wizard's second step, with every category of the shelf beside her
+  Then the art, the gradient and her line sit in one block inside her column
+  And that block's height is at most the viewport's
+  # MargaSplitTests.HerSceneIsOneStickyBlock_SoALongPanelCannotStretchHer; OnboardJourneyTests (the geometry)
 
 Scenario: Every journey is still green
   # the whole E2E suite, unchanged except the two helpers BACKBAR-2 and BACKBAR-4 introduced
 ```
 
 **Out of scope:** nothing the document asks for; anything it does not. **Definition of done:** the
-definition of done on page 18, every line; the whole suite green; `docs/QA_TEST_PLAN.md` updated with
-the artifacts regenerated; the Slice Board updated on "merged".
+definition of done on page 18, every line — ✅ both themes on all nine screens at three widths (and
+the seven the handoff never drew); ✅ no Bootstrap card border anywhere except the copper-subtle panel
+(gated); ✅ Marga at 96px on Home and Shelf and full-bleed on Login and Welcome (BACKBAR-3, -5); ✅
+every existing test green with no id edits (one id ADDED, `cocktail-all`, per F2). The whole suite
+green — `Ui.Tests` 136, `Core.Tests` 80, the gates, Release builds with zero warnings, E2E compiles
+(its run is CI's: no Docker here). `docs/QA_TEST_PLAN.md` updated with the artifacts regenerated
+(QA-CHROME-25, 229 cases). The Slice Board updated on "merged".
 
 ---
 

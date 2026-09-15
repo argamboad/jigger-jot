@@ -1,19 +1,208 @@
-/* MARGA-3, proposal screens 6 and 7. Both empty states used to be a line of grey text in the middle
-   of a blank page, which reads as a broken catalog rather than as an empty shelf. */
+/* BACKBAR-4, handoff pages 07–08. The catalog: a pill search, one chip row, hairline rows. */
 
-.empty-scene {
-    /* Her whole scene, uncropped. Capped rather than fixed: on a phone the illustration must not be
-       the only thing on the screen, or the sentence explaining it falls below the fold. */
-    width: 100%;
-    max-width: 260px;
-    height: auto;
+.catalog-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem .75rem;
 }
 
-.empty-starter {
-    /* The one sentence on this screen that names something to go and buy, so it carries the accent
-       while the verdict above it stays quiet. */
-    color: var(--bs-primary-text-emphasis);
+.catalog-search {
+    border-radius: 999px;
+    max-width: 280px;
+    padding-left: 1rem;
+}
+
+/* The chip row. Real radios styled through their labels — the shelf pill's arrangement — so the
+   selected chip fills copper the way an owned bottle does; it is the same statement: "this one". */
+.catalog-scope {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .375rem;
+}
+
+.catalog-chip {
+    border-radius: 999px;
     font-weight: 500;
-    max-width: 46ch;
-    margin-inline: auto;
+    font-variant-numeric: tabular-nums;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--bs-primary);
+    --bs-btn-active-border-color: var(--bs-primary);
+}
+
+/* The filter panel: 16px on the surface under the chips, four fields in a 4-up grid. */
+.catalog-filters {
+    background: var(--surface);
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    padding: 16px 18px;
+}
+
+.catalog-filters-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .75rem;
+}
+
+.catalog-count {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0 0 .5rem;
+}
+
+.catalog-unlocks {
+    --bs-card-bg: var(--bs-primary-bg-subtle);
+    --bs-card-border-color: var(--bs-primary-border-subtle);
+}
+
+.catalog-unlocks-drinks {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: .75rem;
+}
+
+/* Hairline rows, 18px vertical. The list-group primitives already draw the hairlines; this is the
+   row's own arrangement: name and meta on the left, the source credit on the right. */
+.catalog-rows {
+    border-top: 1px solid var(--app-border);
+}
+
+.catalog-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 18px 0;
+    border-width: 0 0 1px;
+    color: var(--ink);
+}
+
+.catalog-row:hover,
+.catalog-row:focus-visible {
+    background: transparent;
+    color: var(--ink);
+}
+
+.catalog-row:hover .catalog-row-name {
+    color: var(--copper-ink);
+}
+
+.catalog-row-main {
+    min-width: 0;
+}
+
+.catalog-row-name {
+    font-size: 26px;
+    line-height: 1.15;
+}
+
+.catalog-row-yours {
+    vertical-align: middle;
+    margin-left: .5rem;
+}
+
+.catalog-row-meta {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: .15rem;
+}
+
+.catalog-row-swap {
+    margin-top: .5rem;
+}
+
+/* Her line in a row is advice, not a caption — copper, not muted (page 07). */
+.catalog-row-swap ::deep .marga-line,
+.catalog-row-missing {
+    color: var(--copper-ink);
+}
+
+.catalog-row-missing {
+    font-size: 14px;
+    margin-top: .35rem;
+}
+
+/* Load-bearing (duplicate names across the two books), so it never wraps. */
+.catalog-row-source {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    flex: 0 0 auto;
+    padding-top: .5rem;
+}
+
+/* Pagination: text-weight controls on a hairline — no button group. */
+.catalog-pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding-top: .75rem;
+}
+
+.catalog-pager-page {
+    font-size: 13px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.catalog-pager-link {
+    text-decoration: none;
+    font-weight: 500;
+}
+
+@media (max-width: 991.98px) {
+    /* The chips stay reachable while a full page of twenty rows scrolls under them. */
+    /* One row that scrolls, never two (F7: full labels at every width, "the row scrolls if it
+       must"). Wrapping put "Everything" on a line of its own at tablet width, and a radio group split
+       over two rows reads as two controls. */
+    .catalog-scope {
+        position: sticky;
+        top: var(--header-height, 60px);
+        z-index: 5;
+        background: var(--app-bg);
+        padding: .5rem 0;
+        margin-top: -.5rem;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .catalog-scope::-webkit-scrollbar {
+        display: none;
+    }
+
+    .catalog-chip {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    .catalog-search {
+        max-width: none;
+        flex: 1 1 100%;
+    }
+
+    .catalog-filters-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .catalog-row-name {
+        font-size: 22px;
+    }
+
+    /* Below the fold on a phone the credit has nowhere to sit beside a wrapping name; it goes under. */
+    .catalog-row {
+        flex-direction: column;
+        gap: .25rem;
+    }
+
+    .catalog-row-source {
+        padding-top: 0;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .catalog-filters-grid {
+        grid-template-columns: 1fr;
+    }
 }

@@ -44,6 +44,16 @@ public class OnboardJourneyTests : E2ETestBase
         await Page.GetByTestId("onboard-next").ClickAsync();
         await Expect(Page.GetByTestId("onboard-finish")).ToBeVisibleAsync();
 
+        // Step two is the whole shelf — a few thousand pixels of pills — and her scene beside it is
+        // the grid row's height. Found in the browser: the 512 square covered the whole column, and
+        // the page scrolled past a face five screens tall. Her scene is never taller than the
+        // viewport, whatever the panel beside it does (BACKBAR-5 amendment, 2026-09-14).
+        var viewport = Page.ViewportSize!;
+        var scene = await Page.Locator(".split-scene-art").BoundingBoxAsync();
+        Assert.That(scene, Is.Not.Null);
+        Assert.That(scene!.Height, Is.LessThanOrEqualTo(viewport.Height),
+            "her scene stretched to the height of the step-two panel");
+
         // Not one request per tick: the whole shelf goes in a single PUT, so it either arrives as the
         // wizard left it or not at all.
         await Page.RunAndWaitForResponseAsync(

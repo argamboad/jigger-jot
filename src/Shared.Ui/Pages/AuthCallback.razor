@@ -6,14 +6,16 @@
 
 <PageTitle>@Localizer["AuthCallback_Processing"]</PageTitle>
 
-<div class="auth-callback text-center py-5">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">@Localizer["Common_Loading"]</span>
-    </div>
-    <p class="text-muted mt-3">@Localizer["AuthCallback_Processing"]</p>
+@* BACKBAR-8: the 2px brass bar the other screens use while they wait, instead of a spinner. *@
+<div class="auth-callback" role="status">
+    <span class="loading-bar" aria-hidden="true"></span>
+    <p class="text-muted mt-4 text-center">@Localizer["AuthCallback_Processing"]</p>
 </div>
 
 @code {
+    // Restored 2026-09-14. The restyle above replaced the whole file and this block went with the
+    // spinner, so every web sign-in — OTP, magic link, OAuth — stopped here on "Processing sign-in…".
+    // The page had no test of its own; AuthCallbackTests now holds it.
     protected override async Task OnInitializedAsync()
     {
         // MainLayout already ran InitializeAsync (the single refresh), so by now we're
@@ -37,3 +39,4 @@
             Nav.NavigateTo("/", replace: true);
     }
 }
+

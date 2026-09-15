@@ -1,0 +1,15 @@
+/* BACKBAR-7. The QR code is white in both themes — it has to be dark on light to scan. The recovery
+   codes sit in a 12px panel on the surface, monospace, selectable. */
+.mfa-qr {
+    background: #fff;
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    padding: .5rem;
+}
+
+.mfa-codes {
+    background: var(--surface);
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    padding: 1rem;
+}

@@ -34,14 +34,21 @@ public class ShellJourneyTests : E2ETestBase
         await Expect(Page.GetByTestId("nav-home")).ToHaveCSSAsync("font-weight", "700");
         await Expect(Page.GetByTestId("nav-shelf")).ToHaveCSSAsync("font-weight", "500");
 
-        // ...and in DARK theme the chrome must stay white. The dark link colour is painted at
-        // specificity 0,1,1 and Bootstrap colours buttons and nav links at 0,1,0, so it repainted
-        // every anchor-shaped button and every destination in the bar copper — while the identical
-        // <button> beside them stayed white. "Sign out" is that button, so it is the control.
+        // ...and in DARK theme the hierarchy must hold. Two invariants, stated as relations rather
+        // than as literal colours (BACKBAR-2 / JJ-037 moved the bar off copper, and the literals went
+        // with it): a destination is painted in the page's own ink, never fainter than the account
+        // cluster beside it; and an anchor-shaped button takes exactly the colour of the <button>
+        // next to it. The second is the old bug — `[data-bs-theme="dark"] a` at 0,1,1 outranked
+        // Bootstrap's 0,1,0 button colour and repainted every anchor-shaped button copper while the
+        // identical <button> stayed put. "Sign out" is that button, so it is the control.
         await Page.GetByTestId("theme-switcher").SelectOptionAsync("dark");
-        await Expect(Page.GetByTestId("nav-shelf")).ToHaveCSSAsync("color", "rgba(255, 255, 255, 0.85)");
-        await Expect(Page.GetByTestId("nav-billing")).ToHaveCSSAsync("color", "rgb(248, 249, 250)");
-        await Expect(Page.GetByTestId("sign-out")).ToHaveCSSAsync("color", "rgb(248, 249, 250)");
+        var ink = await Page.EvaluateAsync<string>("getComputedStyle(document.body).color");
+        await Expect(Page.GetByTestId("nav-shelf")).ToHaveCSSAsync("color", ink);
+        var buttonColour = await Page.GetByTestId("sign-out").EvaluateAsync<string>("el => getComputedStyle(el).color");
+        await Expect(Page.GetByTestId("nav-billing")).ToHaveCSSAsync("color", buttonColour);
+        var linkColour = await Page.EvaluateAsync<string>(
+            "getComputedStyle(document.documentElement).getPropertyValue('--bs-link-color').trim()");
+        Assert.That(buttonColour, Is.Not.EqualTo(linkColour), "an anchor-shaped button took the link colour");
 
         // A long household name must never push "Sign out" off the end of the bar, and the page must
         // never scroll sideways to reach it.
@@ -51,6 +58,12 @@ public class ShellJourneyTests : E2ETestBase
         await Page.GetByTestId("nav-cocktails").ClickAsync();
         await Expect(Page.GetByTestId("cocktail-list").Or(Page.GetByTestId("cocktail-empty")))
             .ToBeVisibleAsync(new() { Timeout = 30_000 });
+
+        // Still in dark theme: a drink's name is in the ink, copper only on hover (handoff pages 02
+        // and 07). The same dark link rule, once its exclusions were written as `:not()`, sat at
+        // 0,4,1 and repainted every row name copper over the page's own 0,2,0 — a defect only a
+        // browser could show, since the light theme has no such rule and was right all along.
+        await Expect(Page.Locator(".catalog-row-name").First).ToHaveCSSAsync("color", ink);
 
         // ...and the same three at a phone width, without opening anything. Reaching the shelf
         // through a hamburger menu is the trip this slice removes.

@@ -1,0 +1,71 @@
+/* BACKBAR-7, handoff page 17: four groups in two columns; the name in the serif; text-link actions. */
+
+.household-wrapper {
+    max-width: 1100px;
+}
+
+.household-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.household-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 52px;
+    align-items: start;
+}
+
+.household-col {
+    min-width: 0;
+}
+
+/* The household's name renders in the serif, because it is a name. */
+.household-name {
+    font-size: 29px;
+    line-height: 1.2;
+    margin: .5rem 0 0;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+}
+
+.household-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: .5rem;
+}
+
+.household-form .form-control,
+.household-form .form-select {
+    flex: 1 1 200px;
+    max-width: 320px;
+}
+
+.household-notice {
+    background: var(--bs-primary-bg-subtle);
+    border: 1px solid var(--bs-primary-border-subtle);
+    border-radius: 12px;
+    padding: .75rem 1rem;
+    margin-top: .75rem;
+    font-size: 14px;
+}
+
+.household-note {
+    font-size: 13px;
+    color: var(--muted);
+    margin: .5rem 0 0;
+}
+
+@media (max-width: 991.98px) {
+    .household-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .household-head {
+        flex-direction: column;
+    }
+}

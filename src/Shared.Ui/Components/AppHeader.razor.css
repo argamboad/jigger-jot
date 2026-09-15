@@ -1,5 +1,10 @@
 .app-header {
-    background: var(--bs-primary);
+    /* BACKBAR-2 (JJ-037): on the surface, with a hairline, in both themes. Copper is reserved for
+       actions, the count and Marga's advice — "the copper header is what makes today's app read as a
+       Bootstrap admin" (handoff page 04). The colours come from the tokens, so the bar follows the
+       theme without a rule per theme. */
+    background: var(--surface);
+    border-bottom: 1px solid var(--app-border);
     /* min-height (not height): on phones the collapsed menu expands below the bar and
        must not be clipped. Stays 60px tall when closed / on wide screens. */
     min-height: var(--header-height, 60px);
@@ -8,7 +13,6 @@
        edge-to-edge underlap is fixed natively instead (MainActivity pads the content
        view by the status-bar inset). Resolves to 0 on web/desktop. */
     padding-top: env(safe-area-inset-top, 0px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .20);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -21,6 +25,7 @@
     display: flex;
     align-items: center;
     gap: .5rem;
+    color: var(--ink);
 }
 
 .brand-icon {
@@ -33,9 +38,11 @@
     line-height: 1;
 }
 
+/* The household's name: copper-tinted, the way the Owner badge will be — the one thing in the
+   account cluster that is about this household rather than about the app. */
 .tenant-badge {
-    background: rgba(255, 255, 255, .18);
-    color: #fff;
+    background: var(--bs-primary-bg-subtle);
+    color: var(--bs-primary-text-emphasis);
     font-size: .75rem;
     font-weight: 600;
     padding: .25rem .65rem;

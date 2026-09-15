@@ -6,7 +6,8 @@
 > placeholders, filled from queries that already exist or from `ALMOST-2`.
 > Read with the design proposal (`JiggerJot Proposal.dc.html`, nine screens at three widths, both
 > themes) and **JJ-029** (brand). Stories use Gherkin acceptance criteria.
-> **Status: ✅ COMPLETE for MVP** — MARGA-1, MARGA-2 and MARGA-3 all shipped.
+> **Status: ✅ COMPLETE for MVP** — MARGA-1, MARGA-2 and MARGA-3 all shipped; MARGA-4 and MARGA-5
+> since, and MARGA-6 (2026-09-14, JJ-040) puts her on every app screen with something true to say.
 
 **Epic key:** `MARGA`
 
@@ -35,9 +36,12 @@ The proposal shows her speaking, and the temptation is to read that as an assist
   | `marga_avatar_160.png` | head and shoulders, for the inline component | 19 KB |
   | `marga_scene_512.png` | the whole scene, for the empty states and `SHELL-2` | 115 KB |
 
-  Together that is **7% of what the bundle delivered**. The source PNG is deliberately not committed:
-  these are delivered brand assets like the lockups, not generated ones, and a 2 MB original in git
-  buys nothing.
+  Together that is **7% of what the bundle delivered**. The source PNG was first left out of git as a
+  2 MB original that bought nothing. **Reversed 2026-09-14, the maintainer's call:** it is the only
+  full-resolution copy, both shipped assets were cut from it by hand, and the login's framed card and
+  the planned landscape crop both need it — losing it would cost more than carrying it. It is committed
+  at `docs/brand/source/marga_scene_1254.png`, under `docs/` rather than a `wwwroot`, so it is never
+  served to a browser.
 
 **Her Spanish is a writing job, not a translation.** Her lines are voiced, and a literal translation
 of a voiced line reads like a machine. The placeholders have to survive being rewritten.
@@ -231,9 +235,38 @@ written Spanish. Mailpit's compatibility check adds no new warnings — every CS
 was already used elsewhere in the template, except the avatar's `border-radius`, which degrades to a
 square in Outlook and is fine.
 
+**Amended 2026-09-14 — the emails wear the restyle** (BACKBAR, the maintainer's request: "fonts and
+everything"). The template still carried the pre-restyle look: a cool grey ground, Segoe UI, a bold
+copper heading, the bare mark in a white box over a bold copper word, a bold copper code, and her at
+52px with her name under the line. It now copies the app's light set — the warm ground, a white card
+on a hairline, ink and muted text, copper for the one action — with the heading and her line in the
+display serif at 29 and 23px, never bold, the body in the app's sans, pill buttons, 12px hairline
+fields, and her in the card tone: 72px, "MARGA" as the small copper label above the line. The header
+is the **lockup** the login shows, rendered transparent so it sits on the ground rather than in a box
+(the first render was flat on white and showed one). Decided while building it:
+- **The serif is embedded, never linked.** A font URL in an email is a request to a server when the
+  message opens. The latin subset (21 KB, which covers Spanish) is a byte-for-byte copy of the RCL's,
+  base64 in the email's `<style>`; every email stays near 32 KB, far under Gmail's 102 KB clip.
+  Apple Mail, iOS and Outlook for Mac draw it; Gmail and Outlook on Windows drop it and show Georgia,
+  the app's own fallback, and an Outlook-only block names Georgia so Word's engine does not reach for
+  Times New Roman.
+- **Light only, and it says so** (`color-scheme: light only`). The app is dark-first, but mail
+  clients disagree about dark mode and a half-inverted email is worse than a light one.
+- **She is still off the notification email** — the look changed, the judgement did not.
+Held by `EmailLookTests`: the palette and no retired value, the serif heading at 400, the embedded
+face equal to the RCL's file with its licence beside it, the size under the clip, the Outlook block,
+the transparent lockup, `lang` following the culture, copper pills, and her card tone.
+
 **Acceptance criteria**
 
 ```gherkin
+Scenario: The emails look like the app (amendment, 2026-09-14)
+  Given any branded email, in either language
+  Then it uses the app's light palette, the display serif for its heading, and the app's sans for its body
+  And the serif travels inside the email as data, identical to the app's file
+  And the header is the transparent lockup, and buttons are copper pills
+  # EmailLookTests
+
 Scenario: The emails someone asked for sound like the app
   Given a sign-in code, a sign-in link or an invitation
   Then Marga says one line above the thing I came for
@@ -355,6 +388,76 @@ Scenario: She is optional furniture
   Given the data behind a line is unavailable
   Then the screen renders without her rather than with an empty speech line
 ```
+
+---
+
+### MARGA-6 — Every app screen with something true to say
+
+**Status: ✅ Implemented (2026-09-14).** **JJ-040.** Asked for by the maintainer ("Marga can be present
+in more app screens, not platform"), who chose the four places below from a list.
+
+**As a** member of a household
+**I want** her on the screens I use that she was kept off
+**So that** the app keeps its voice wherever a number or an empty result needs reading
+
+| Screen | What she says | The data behind it |
+|---|---|---|
+| **Recipe, two or more bottles short** | "You are 2 bottles short: Campari and sweet vermouth." Past three, the count and the first two. | the lines the API marked `Missing`, required only (JJ-009) |
+| **Catalog, Everything or filtered** | "23 cocktails here, and you can pour 6 of them tonight." — or "none you can pour yet" | the list's total, and the makeable filter's total for the SAME search and filters |
+| **Shelf, a search with no bottle** | "Nothing called “yuzu” on my list. If you have it, add it below." inline, above Add your own | the typed term, and only when no bottle on the whole list matches |
+| **Write a cocktail** | "Your shelf has 24 bottles to write with. Save it and I will tell you whether you can pour it." | the ticked bottles in the inventory the form already loads |
+
+**What was decided while building it.**
+- **MARGA-5's rule reversed in four places, not dropped.** One page-level Marga per screen still holds:
+  under One ingredient away the count stays plain because her panel speaks there, and the shelf's
+  no-match line is inline (32px, no label), beside the page-level line at the top.
+- **A list of names is a whole pattern, not a join.** "{0} and {1}" and "{0}, {1} and {2}" are
+  resource strings of their own (`Marga_ListTwo`, `Marga_ListThree`), so Spanish says "y" without the
+  code knowing either word. Past three names a sentence becomes a shopping list, so it gives the count
+  and two names instead.
+- **The browse count is asked the same question.** One extra `GET /api/cocktails?makeable=true&pageSize=1`
+  with the list's own search and filters, behind the same request ticket, so a slow count cannot land on
+  a list that has moved on. If it fails, the plain "N cocktails" stands and she is absent. The test id
+  `cocktail-count` follows the number onto her line, as it already did under the makeable filter.
+- **"Not on my list" has to be true.** A search that finds nothing only because "Only what I have" hides
+  an unticked bottle keeps the plain "No ingredients match that." — she speaks only when no bottle on
+  the whole list matches.
+- **The write form's promise is kept by this slice.** "I will tell you whether you can pour it" was a
+  footnote BACKBAR-6 dropped because the recipe page did not always answer (F7). With the far-away line
+  it now does — makeable, one away, or the bottles short — so the promise is true.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: A recipe more than one bottle away names what is missing
+  Given a recipe two or three required bottles short, and an optional garnish missing
+  Then she names every required bottle and not the garnish
+  Given a recipe four or more bottles short
+  Then she gives the count and the first two
+  And a substitution in play still outranks either
+
+Scenario: The catalog reads its count against the shelf
+  Given the catalog under Everything, or under a search or filter
+  Then her line carries the list's total and how many of those the shelf can pour
+  And the pourable count is asked with the same search and filters
+  But under One ingredient away the count stays plain
+  And if the pourable count fails the plain count stands
+
+Scenario: A shelf search with no bottle offers the fix
+  Given I search the shelf for a bottle not on the list
+  Then she says so inline above Add your own
+  But given the bottle is on the list and only hidden by Only what I have
+  Then the plain no-match line shows and she does not
+
+Scenario: The write form counts the shelf
+  Given bottles ticked on the shelf
+  Then she says how many there are to write with
+  Given an empty shelf
+  Then she says to write it anyway
+  And if the shelf cannot be read she is absent
+```
+**Held by** `MargaEverywhereTests` (15), and `MargaPresenceTests`' plain-browse test, rewritten from
+"she does not" to the new line.
 
 ---
 

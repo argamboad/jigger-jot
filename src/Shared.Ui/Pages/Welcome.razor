@@ -11,7 +11,12 @@
 
    It is the SHELF, guided: two steps over the same data and the same controls, not a second way to
    record what someone owns. Step one is the short list worth asking about; step two is everything
-   else, for anyone who wants it. Nothing is written until Finish. *@
+   else, for anyone who wants it. Nothing is written until Finish.
+
+   BACKBAR-5 (pages 13–14): her second full appearance. A new household has no data, so the only
+   thing to look at is her — the scene on one side, the work on the other; a 3px brass rule marks
+   the step; step two renders the shelf's own sections, one control on two screens. The app header
+   stays: it is reachable from Home, and trapping people in it was never the intent. *@
 
 <div class="onboard">
 
@@ -27,135 +32,134 @@
     }
     else
     {
-        <div class="card shadow-sm mb-3">
-            <div class="card-body p-4">
-                <MargaSays Size="56" Aside="@Localizer["Onboard_MargaAside"]">
-                    @(_step == 1 ? Localizer["Marga_OnboardStaples"] : Localizer["Marga_OnboardRest"])
-                </MargaSays>
+        <MargaSplit Line="@(_step == 1 ? Localizer["Marga_OnboardStaples"] : Localizer["Marga_OnboardRest"])"
+                    Aside="@Localizer["Onboard_MargaAside"]" Warm="true">
+
+            <p class="onboard-step" data-testid="onboard-step">
+                @Localizer["Onboard_Step", _step, TotalSteps]
+            </p>
+            <div class="onboard-progress" aria-hidden="true">
+                <span class="onboard-progress-fill" style="width: @(_step * 100 / TotalSteps)%"></span>
             </div>
-        </div>
 
-        <div class="card shadow-sm">
-            <div class="card-body p-4">
+            @if (_step == 1)
+            {
+                <h1 class="page-title mb-1">@Localizer["Onboard_StaplesHeading"]</h1>
+                <p class="text-body-secondary mb-3">@Localizer["Onboard_StaplesBody"]</p>
 
-                <p class="onboard-step text-body-secondary" data-testid="onboard-step">
-                    @Localizer["Onboard_Step", _step, TotalSteps]
-                </p>
-
-                @if (_step == 1)
-                {
-                    <h1 class="h4 fw-bold mb-1">@Localizer["Onboard_StaplesHeading"]</h1>
-                    <p class="text-body-secondary mb-3">@Localizer["Onboard_StaplesBody"]</p>
-
-                    @* Pre-ticked, and that is the point: answering "which of these are wrong" is far
-                       faster than picking a dozen bottles out of 191. They are SUGGESTIONS until
-                       Finish — nothing here has been written. *@
-                    <div class="shelf-pills mb-3" data-testid="onboard-staples">
-                        @foreach (var item in _staples)
-                        {
-                            <input class="btn-check" type="checkbox" autocomplete="off"
-                                   id="@($"sug-{item.IngredientId}")"
-                                   data-testid="@($"onboard-item-{item.IngredientId}")"
-                                   checked="@_wanted.Contains(item.IngredientId)"
-                                   @onchange="e => Toggle(item.IngredientId, e)" />
-                            <label class="btn btn-sm btn-outline-secondary shelf-pill" for="@($"sug-{item.IngredientId}")">
-                                @item.Ingredient
-                            </label>
-                        }
-                    </div>
-
-                    @if (_staples.Count == 0)
+                @* Pre-ticked, and that is the point: answering "which of these are wrong" is far
+                   faster than picking a dozen bottles out of 191. They are SUGGESTIONS until
+                   Finish — nothing here has been written. The copper fill has to read as already
+                   yours here — same pill as the shelf, deliberately. *@
+                <div class="shelf-pills mb-3" data-testid="onboard-staples">
+                    @foreach (var item in _staples)
                     {
-                        <p class="text-body-secondary" data-testid="onboard-no-staples">
-                            @Localizer["Onboard_NothingToSuggest"]
-                        </p>
+                        <input class="btn-check" type="checkbox" autocomplete="off"
+                               id="@($"sug-{item.IngredientId}")"
+                               data-testid="@($"onboard-item-{item.IngredientId}")"
+                               checked="@_wanted.Contains(item.IngredientId)"
+                               @onchange="e => Toggle(item.IngredientId, e)" />
+                        <label class="btn btn-sm btn-outline-secondary shelf-pill" for="@($"sug-{item.IngredientId}")">
+                            @item.Ingredient
+                        </label>
                     }
+                </div>
+
+                @if (_staples.Count == 0)
+                {
+                    <p class="text-body-secondary" data-testid="onboard-no-staples">
+                        @Localizer["Onboard_NothingToSuggest"]
+                    </p>
+                }
+            }
+            else
+            {
+                <h1 class="page-title mb-1">@Localizer["Onboard_RestHeading"]</h1>
+                <p class="text-body-secondary mb-3">@Localizer["Onboard_RestBody"]</p>
+
+                <input class="form-control onboard-search mb-3" type="search" data-testid="onboard-search"
+                       placeholder="@Localizer["Shelf_SearchPlaceholder"]"
+                       aria-label="@Localizer["Shelf_SearchPlaceholder"]"
+                       @bind="_search" @bind:event="oninput" />
+
+                @* The same control as the shelf, deliberately — and since BACKBAR-5 the same SECTION:
+                   a serif heading on a hairline with its count. Someone who fills this in and then
+                   opens the shelf next week should find the screen they already know. *@
+                @foreach (var group in Visible.GroupBy(i => i.Category))
+                {
+                    <section class="shelf-section">
+                        <div class="shelf-section-head">
+                            <h2 class="shelf-section-title font-display">@group.Key</h2>
+                            <span class="shelf-section-count">@CountFor(group.Key)</span>
+                        </div>
+                        <div class="shelf-pills">
+                            @foreach (var item in group)
+                            {
+                                <input class="btn-check" type="checkbox" autocomplete="off"
+                                       id="@($"all-{item.Id}")"
+                                       data-testid="@($"onboard-item-{item.Id}")"
+                                       checked="@_wanted.Contains(item.Id)"
+                                       @onchange="e => Toggle(item.Id, e)" />
+                                <label class="btn btn-sm btn-outline-secondary shelf-pill" for="@($"all-{item.Id}")">
+                                    @item.Name
+                                </label>
+                            }
+                        </div>
+                    </section>
+                }
+
+                @if (!Visible.Any())
+                {
+                    <p class="text-body-secondary" data-testid="onboard-no-matches">
+                        @Localizer["Shelf_NoMatches"]
+                    </p>
+                }
+            }
+
+            @if (_saveError is not null)
+            {
+                <div class="alert alert-warning py-2" data-testid="onboard-save-error">@_saveError</div>
+            }
+
+            <div class="onboard-footer">
+                @* The running total is the same serif-and-copper figure the shelf's payoff uses, so
+                   the wizard's ending reads as the shelf's beginning. A span, not a <strong>: the face
+                   has one weight. *@
+                <span class="shelf-payoff-count font-display me-auto" data-testid="onboard-count">
+                    @Localizer["Shelf_Count", _wanted.Count]
+                </span>
+
+                @if (_step > 1)
+                {
+                    <button class="btn btn-outline-secondary" data-testid="onboard-back"
+                            disabled="@_saving" @onclick="() => _step--">
+                        @Localizer["Onboard_Back"]
+                    </button>
+                }
+
+                @if (_step < TotalSteps)
+                {
+                    <button class="btn btn-primary" data-testid="onboard-next" @onclick="() => _step++">
+                        @Localizer["Onboard_Next"]
+                    </button>
                 }
                 else
                 {
-                    <h1 class="h4 fw-bold mb-1">@Localizer["Onboard_RestHeading"]</h1>
-                    <p class="text-body-secondary mb-3">@Localizer["Onboard_RestBody"]</p>
-
-                    <div class="input-group mb-3" style="max-width:360px">
-                        <span class="input-group-text" aria-hidden="true">🔎</span>
-                        <input class="form-control" data-testid="onboard-search"
-                               placeholder="@Localizer["Shelf_SearchPlaceholder"]"
-                               aria-label="@Localizer["Shelf_SearchPlaceholder"]"
-                               @bind="_search" @bind:event="oninput" />
-                    </div>
-
-                    @* The same control as the shelf, deliberately. Someone who fills this in and then
-                       opens the shelf next week should find the screen they already know. *@
-                    @foreach (var group in Visible.GroupBy(i => i.Category))
-                    {
-                        <div class="mb-3">
-                            <h2 class="h6 text-uppercase text-muted mb-2">@group.Key</h2>
-                            <div class="shelf-pills">
-                                @foreach (var item in group)
-                                {
-                                    <input class="btn-check" type="checkbox" autocomplete="off"
-                                           id="@($"all-{item.Id}")"
-                                           data-testid="@($"onboard-item-{item.Id}")"
-                                           checked="@_wanted.Contains(item.Id)"
-                                           @onchange="e => Toggle(item.Id, e)" />
-                                    <label class="btn btn-sm btn-outline-secondary shelf-pill" for="@($"all-{item.Id}")">
-                                        @item.Name
-                                    </label>
-                                }
-                            </div>
-                        </div>
-                    }
-
-                    @if (!Visible.Any())
-                    {
-                        <p class="text-body-secondary" data-testid="onboard-no-matches">
-                            @Localizer["Shelf_NoMatches"]
-                        </p>
-                    }
+                    <button class="btn btn-primary" data-testid="onboard-finish"
+                            disabled="@_saving" @onclick="FinishAsync">
+                        @Localizer["Onboard_Finish"]
+                    </button>
                 }
-
-                @if (_saveError is not null)
-                {
-                    <div class="alert alert-warning py-2" data-testid="onboard-save-error">@_saveError</div>
-                }
-
-                <div class="d-flex flex-wrap align-items-center gap-2 mt-4">
-                    <strong class="me-auto" data-testid="onboard-count">
-                        @Localizer["Shelf_Count", _wanted.Count]
-                    </strong>
-
-                    @if (_step > 1)
-                    {
-                        <button class="btn btn-outline-secondary" data-testid="onboard-back"
-                                disabled="@_saving" @onclick="() => _step--">
-                            @Localizer["Onboard_Back"]
-                        </button>
-                    }
-
-                    @if (_step < TotalSteps)
-                    {
-                        <button class="btn btn-primary" data-testid="onboard-next" @onclick="() => _step++">
-                            @Localizer["Onboard_Next"]
-                        </button>
-                    }
-                    else
-                    {
-                        <button class="btn btn-primary" data-testid="onboard-finish"
-                                disabled="@_saving" @onclick="FinishAsync">
-                            @Localizer["Onboard_Finish"]
-                        </button>
-                    }
-                </div>
-
-                @* A wizard nobody can leave is a wizard people resent. It writes nothing and the
-                   catalog is one tap away regardless. *@
-                <div class="mt-3">
-                    <a class="btn btn-link btn-sm px-0" href="/cocktails" data-testid="onboard-skip">
-                        @Localizer["Onboard_Skip"]
-                    </a>
-                </div>
             </div>
-        </div>
+            @* A wizard nobody can leave is a wizard people resent. It writes nothing and the
+               catalog is one tap away regardless. *@
+            <div class="mt-3">
+                <a class="btn btn-link btn-sm px-0" href="/cocktails" data-testid="onboard-skip">
+                    @Localizer["Onboard_Skip"]
+                </a>
+            </div>
+
+        </MargaSplit>
     }
 </div>
 
@@ -187,6 +191,24 @@
             ? _catalog
             : _catalog.Where(i => i.Name.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase)
                                || i.Category.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// "3 of 10" for a category — the shelf's own count (BACKBAR-5), over the WHOLE category and
+    /// never over what search left visible, read against what is WANTED rather than what is saved,
+    /// because nothing here is saved until Finish.
+    /// </summary>
+    private string CountFor(string category)
+    {
+        var have = 0;
+        var total = 0;
+        foreach (var item in _catalog)
+        {
+            if (!string.Equals(item.Category, category, StringComparison.Ordinal)) continue;
+            total++;
+            if (_wanted.Contains(item.Id)) have++;
+        }
+        return Localizer["Shelf_CategoryCount", have, total];
+    }
 
     protected override async Task OnInitializedAsync()
     {

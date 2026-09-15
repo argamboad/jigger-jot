@@ -165,6 +165,14 @@ it, no room to paste the original back.
 `prefers-reduced-motion` the rocking stops and the sweep becomes a static ring; the determinate arc
 still shows progress, it simply does not move on its own.
 
+**Amended 2026-09-14, the maintainer's call on sight.** The arc sat under the drawing and read as two
+things waiting; it now sits **centred on the drawing**, on a small night disc so the figure and the
+track read the same over her face as over the page ground in either theme, and the drawing grows
+from 240 to up to 480px wide (the asset is 512, so nothing upscales). The ring does not rock with
+her: it is taken out of the flow and centred on the boot block, which is the drawing's centre because
+the drawing is the only thing left in the flow. **Stylesheet only** — both hosts' `index.html` keep
+the markup the parity gate holds. A gate in `EnforcementGateTests` holds the arrangement.
+
 **Acceptance criteria**
 
 ```gherkin
@@ -182,4 +190,10 @@ Scenario: It does not cost what it saves
 Scenario: The motion can be turned off
   Given a viewer who has asked for reduced motion
   Then nothing on the boot screen moves on its own
+
+Scenario: The meter sits on the drawing (amendment, 2026-09-14)
+  Given the boot stylesheet
+  Then the boot block is the containing block and the meter is centred on it, out of the flow
+  And the meter is a disc, so the figure reads over the drawing
+  # EnforcementGateTests.TheBootMeter_SitsOnTheDrawing
 ```

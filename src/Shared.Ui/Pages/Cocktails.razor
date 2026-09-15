@@ -6,41 +6,26 @@
 
 <PageTitle>@Localizer["Nav_Cocktails"]</PageTitle>
 
-<h1 class="h4 fw-bold mb-1">@Localizer["Nav_Cocktails"]</h1>
+<h1 class="page-title mb-1">@Localizer["Nav_Cocktails"]</h1>
 <p class="text-muted mb-3">@Localizer["Cocktails_Subtitle"]</p>
 
-<div class="d-flex flex-wrap gap-3 align-items-center mb-3">
-    <div class="input-group" style="max-width:360px">
-        <span class="input-group-text" aria-hidden="true">🔎</span>
-        <input class="form-control"
-               placeholder="@Localizer["Cocktails_SearchPlaceholder"]"
-               aria-label="@Localizer["Cocktails_SearchPlaceholder"]"
-               data-testid="cocktail-search"
-               value="@_search"
-               @oninput="OnSearchInput" />
-    </div>
-
-    @* FEATURES §11: "makeable now" is one combinable filter on this list, not a separate screen. *@
-    <div class="form-check form-switch">
-        <input class="form-check-input" type="checkbox" id="makeable-now"
-               data-testid="cocktail-makeable" checked="@_makeableOnly" @onchange="OnMakeableChanged" />
-        <label class="form-check-label small" for="makeable-now">@Localizer["Cocktails_MakeableNow"]</label>
-    </div>
-
-    @* FEATURES §10: "adjacent to what you can make" — the next switch along, not the next page.
-       Turning one on turns the other off, because no drink is both zero short and one short. *@
-    <div class="form-check form-switch">
-        <input class="form-check-input" type="checkbox" id="almost-makeable"
-               data-testid="cocktail-almost" checked="@_almostOnly" @onchange="OnAlmostChanged" />
-        <label class="form-check-label small" for="almost-makeable">@Localizer["Cocktails_OneAway"]</label>
-    </div>
+<div class="catalog-toolbar mb-3">
+    @* BACKBAR-4 (page 08): a pill on the surface, 280px at desktop and full width on a phone. Same
+       300ms debounce and request-ticket guard underneath. *@
+    <input class="form-control catalog-search"
+           type="search"
+           placeholder="@Localizer["Cocktails_SearchPlaceholder"]"
+           aria-label="@Localizer["Cocktails_SearchPlaceholder"]"
+           data-testid="cocktail-search"
+           value="@_search"
+           @oninput="OnSearchInput" />
 
     @* FEATURES §11 lists these alongside the makeability toggles as one combinable set. Behind a
        button because most visits are a search, and four dropdowns above every list is a form nobody
        asked for. *@
-    <button class="btn btn-outline-secondary btn-sm ms-auto" data-testid="cocktail-filters-toggle"
+    <button class="btn btn-outline-secondary btn-sm ms-lg-auto" data-testid="cocktail-filters-toggle"
             @onclick="ToggleFiltersAsync">
-        @Localizer["Cocktails_Filters"]@(ActiveFilters > 0 ? $" ({ActiveFilters})" : "")
+        @Localizer["Cocktails_Filters"]@(ActiveFilters > 0 ? $" · {ActiveFilters}" : "")
     </button>
 
     @* FEATURES §14. Next to the catalog rather than hidden in a menu: a household's own drinks live
@@ -50,76 +35,109 @@
     </a>
 </div>
 
+@* BACKBAR-4 (pages 07–08, JJ-036): the two switches become ONE exclusive chip row. Three radios in
+   one group, because the switches already behaved exclusively in code and a radio group is what
+   that is — "Everything" is the state the switches used to leave implicit. FEATURES §11 makes
+   makeable a combinable filter on this list, not a separate screen, and §10 puts one-away next
+   door; both still hold, as chips. The inputs are real radios styled through their labels (the
+   shelf pill's arrangement), so keyboard and screen reader get a radio group for free.
+
+   The ids stay on the inputs — cocktail-makeable and cocktail-almost as before, cocktail-all new —
+   and only the SELECTED chip carries a count: the response's own total, never a second request. *@
+<div class="catalog-scope mb-3" role="radiogroup" data-testid="cocktail-scope">
+    <input class="btn-check" type="radio" name="catalog-scope" id="catalog-makeable" autocomplete="off"
+           data-testid="cocktail-makeable" checked="@_makeableOnly"
+           @onchange="() => SetScopeAsync(makeable: true, almost: false)" />
+    <label class="btn btn-outline-secondary catalog-chip" for="catalog-makeable">
+        @Localizer["Cocktails_MakeableNow"]@ChipCount(_makeableOnly)
+    </label>
+
+    <input class="btn-check" type="radio" name="catalog-scope" id="catalog-almost" autocomplete="off"
+           data-testid="cocktail-almost" checked="@_almostOnly"
+           @onchange="() => SetScopeAsync(makeable: false, almost: true)" />
+    <label class="btn btn-outline-secondary catalog-chip" for="catalog-almost">
+        @Localizer["Cocktails_OneAway"]@ChipCount(_almostOnly)
+    </label>
+
+    <input class="btn-check" type="radio" name="catalog-scope" id="catalog-all" autocomplete="off"
+           data-testid="cocktail-all" checked="@(!_makeableOnly && !_almostOnly)"
+           @onchange="() => SetScopeAsync(makeable: false, almost: false)" />
+    <label class="btn btn-outline-secondary catalog-chip" for="catalog-all">
+        @Localizer["Cocktails_All"]@ChipCount(!_makeableOnly && !_almostOnly)
+    </label>
+</div>
+
 @if (_filtersOpen)
 {
-    <div class="card shadow-sm mb-3">
-        <div class="card-body py-3">
-            <div class="row g-2 align-items-end">
-                <div class="col-12 col-md-4">
-                    @* Text rather than a picker: "everything with vodka" is what someone means, and
-                       one box matches the ingredient's name, its category and its subcategory at
-                       once, so a parent catches every child (JJ-015, JJ-016). *@
-                    <label class="form-label small mb-1" for="filter-ingredient">@Localizer["Cocktails_FilterIngredient"]</label>
-                    <input class="form-control" id="filter-ingredient" data-testid="cocktail-filter-ingredient"
-                           placeholder="@Localizer["Cocktails_FilterIngredientHint"]"
-                           value="@_ingredient" @oninput="OnIngredientInput" />
-                </div>
-                <div class="col-12 col-md-3">
-                    <label class="form-label small mb-1" for="filter-method">@Localizer["Cocktails_FilterMethod"]</label>
-                    <select class="form-select" id="filter-method" data-testid="cocktail-filter-method"
-                            value="@_method" @onchange="e => ApplyAsync(() => _method = e.Value?.ToString() ?? string.Empty)">
-                        <option value="">@Localizer["Cocktails_FilterAny"]</option>
-                        @foreach (var m in _options.Methods)
-                        {
-                            <option value="@m.Id">@m.Name</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-12 col-md-3">
-                    <label class="form-label small mb-1" for="filter-glass">@Localizer["Cocktails_FilterGlass"]</label>
-                    <select class="form-select" id="filter-glass" data-testid="cocktail-filter-glass"
-                            value="@_glass" @onchange="e => ApplyAsync(() => _glass = e.Value?.ToString() ?? string.Empty)">
-                        <option value="">@Localizer["Cocktails_FilterAny"]</option>
-                        @foreach (var g in _options.Glasses)
-                        {
-                            <option value="@g.Id">@g.Name</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-12 col-md-2">
-                    <label class="form-label small mb-1" for="filter-serving">@Localizer["Cocktails_FilterServing"]</label>
-                    <select class="form-select" id="filter-serving" data-testid="cocktail-filter-serving"
-                            value="@_serving" @onchange="e => ApplyAsync(() => _serving = e.Value?.ToString() ?? string.Empty)">
-                        <option value="">@Localizer["Cocktails_FilterAny"]</option>
-                        @foreach (var s in _options.ServingTypes)
-                        {
-                            <option value="@s">@Localizer[$"Cocktails_Serving{s}"]</option>
-                        }
-                    </select>
-                </div>
+    @* The filter panel: 16px on the surface under the chips, four fields in a 4-up grid, "Clear
+       filters" a text link. Same fetch-once behaviour. *@
+    <div class="catalog-filters mb-3">
+        <div class="catalog-filters-grid">
+            <div>
+                @* Text rather than a picker: "everything with vodka" is what someone means, and
+                   one box matches the ingredient's name, its category and its subcategory at
+                   once, so a parent catches every child (JJ-015, JJ-016). *@
+                <label class="form-label small mb-1" for="filter-ingredient">@Localizer["Cocktails_FilterIngredient"]</label>
+                <input class="form-control" id="filter-ingredient" data-testid="cocktail-filter-ingredient"
+                       placeholder="@Localizer["Cocktails_FilterIngredientHint"]"
+                       value="@_ingredient" @oninput="OnIngredientInput" />
             </div>
-
-            @if (ActiveFilters > 0)
-            {
-                <button class="btn btn-link btn-sm px-0 mt-2" data-testid="cocktail-filter-clear"
-                        @onclick="ClearFiltersAsync">@Localizer["Cocktails_FilterClear"]</button>
-            }
+            <div>
+                <label class="form-label small mb-1" for="filter-method">@Localizer["Cocktails_FilterMethod"]</label>
+                <select class="form-select" id="filter-method" data-testid="cocktail-filter-method"
+                        value="@_method" @onchange="e => ApplyAsync(() => _method = e.Value?.ToString() ?? string.Empty)">
+                    <option value="">@Localizer["Cocktails_FilterAny"]</option>
+                    @foreach (var m in _options.Methods)
+                    {
+                        <option value="@m.Id">@m.Name</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="form-label small mb-1" for="filter-glass">@Localizer["Cocktails_FilterGlass"]</label>
+                <select class="form-select" id="filter-glass" data-testid="cocktail-filter-glass"
+                        value="@_glass" @onchange="e => ApplyAsync(() => _glass = e.Value?.ToString() ?? string.Empty)">
+                    <option value="">@Localizer["Cocktails_FilterAny"]</option>
+                    @foreach (var g in _options.Glasses)
+                    {
+                        <option value="@g.Id">@g.Name</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="form-label small mb-1" for="filter-serving">@Localizer["Cocktails_FilterServing"]</label>
+                <select class="form-select" id="filter-serving" data-testid="cocktail-filter-serving"
+                        value="@_serving" @onchange="e => ApplyAsync(() => _serving = e.Value?.ToString() ?? string.Empty)">
+                    <option value="">@Localizer["Cocktails_FilterAny"]</option>
+                    @foreach (var s in _options.ServingTypes)
+                    {
+                        <option value="@s">@Localizer[$"Cocktails_Serving{s}"]</option>
+                    }
+                </select>
+            </div>
         </div>
+
+        @if (ActiveFilters > 0)
+        {
+            <button class="btn btn-link btn-sm px-0 mt-2" data-testid="cocktail-filter-clear"
+                    @onclick="ClearFiltersAsync">@Localizer["Cocktails_FilterClear"]</button>
+        }
     </div>
 }
 
 @* ALMOST-2 (JJ-035): the same set the rows below show, read the other way round. Eighty-one rows
    each naming a bottle is correct and unreadable; one bottle naming four drinks is the sentence
-   someone can act on. MARGA-1 gives this card her face and her voice — the shape is hers already. *@
+   someone can act on. MARGA-1 gives this card her face and her voice — the shape is hers already.
+   BACKBAR-4: the copper-subtle panel from Home, her card tone at 72. *@
 @if (_almostOnly && _unlocks is { Count: > 0 })
 {
     var best = _unlocks[0];
     @* MARGA-5: it says the same figure, in her voice instead of as a bare statement. The card was
        already hers in shape and colour; it simply had nobody in it. *@
-    <div class="card shadow-sm mb-3 border-primary-subtle bg-primary-subtle" data-testid="cocktail-unlocks">
-        <div class="card-body py-3">
-            <MargaSays Size="40">@Localizer["Marga_UnlocksHeadline", best.Ingredient, best.Unlocks]</MargaSays>
-            <p class="mb-0 mt-2 text-body-secondary small" data-testid="cocktail-unlocks-drinks">
+    <div class="card catalog-unlocks mb-3" data-testid="cocktail-unlocks">
+        <div class="card-body">
+            <MargaSays Tone="MargaTone.Card" Size="72">@Localizer["Marga_UnlocksHeadline", best.Ingredient, best.Unlocks]</MargaSays>
+            <p class="catalog-unlocks-drinks mb-0" data-testid="cocktail-unlocks-drinks">
                 @* Four, then a count. Thirteen names is a wall, and the number beside them already
                    says how many there are. The DATA stays whole — see ALMOST-2. *@
                 @(best.Cocktails.Count <= 4
@@ -147,120 +165,129 @@ else if (_page is null || _page.Total == 0)
     @* MARGA-3, proposal screens 6 and 7. Both of these used to state a problem and stop. An empty
        makeable list is almost always an empty shelf, so it points at the fix; an empty ALMOST list
        is the stronger signal — not one drink within reach of a single bottle — and that is where a
-       purchase is worth naming. *@
-    <div class="card shadow-sm" data-testid="cocktail-empty">
-        <div class="card-body p-4 text-center">
-            @if (_makeableOnly || _almostOnly)
-            {
-                @* Her whole scene rather than the MargaSays component: she IS the illustration here,
-                   at 512 rather than beside a line at 40, and rendering the component under this
-                   would put her face on the screen twice. *@
-                <img src="_content/JiggerJot.Shared.Ui/brand/marga_scene_512.png"
-                     alt="" aria-hidden="true" class="empty-scene mb-3" />
-            }
+       purchase is worth naming. BACKBAR-4: her scene at 260, the line beneath, then the button; on
+       the page ground rather than in a card. *@
+    <div class="catalog-empty" data-testid="cocktail-empty">
+        @if (_makeableOnly || _almostOnly)
+        {
+            @* Her whole scene rather than the MargaSays component: she IS the illustration here,
+               at 512 rather than beside a line at 40, and rendering the component under this
+               would put her face on the screen twice. *@
+            <img src="_content/JiggerJot.Shared.Ui/brand/marga_scene_512.png"
+                 alt="" aria-hidden="true" class="empty-scene" width="512" height="512" />
+        }
 
-            <p class="text-body-secondary mb-3">@Localizer[EmptyMessage]</p>
+        <p class="catalog-empty-line font-display">@Localizer[EmptyMessage]</p>
 
-            @if (StartingFromNothing && _starter is not null)
-            {
-                @* The one line in the app that names a bottle WITHOUT promising drinks. ALMOST-2's
-                   card can say "buy this and four open up" because it measured that; here there is
-                   nothing within reach to measure, so she says what is true instead — how many of
-                   these recipes ask for it. *@
-                <p class="empty-starter mb-3" data-testid="cocktail-empty-starter">
-                    @Localizer["Marga_StarterBottle", _starter.Ingredient, _starter.Appears]
-                </p>
-            }
+        @if (StartingFromNothing && _starter is not null)
+        {
+            @* The one line in the app that names a bottle WITHOUT promising drinks. ALMOST-2's
+               card can say "buy this and four open up" because it measured that; here there is
+               nothing within reach to measure, so she says what is true instead — how many of
+               these recipes ask for it. *@
+            <p class="empty-starter" data-testid="cocktail-empty-starter">
+                @Localizer["Marga_StarterBottle", _starter.Ingredient, _starter.Appears]
+            </p>
+        }
 
-            @if (_makeableOnly || _almostOnly)
-            {
-                <a class="btn btn-primary btn-lg" href="/shelf" data-testid="cocktail-empty-shelf">
-                    @Localizer["Make_FillYourShelf"]
-                </a>
-            }
-        </div>
+        @if (_makeableOnly || _almostOnly)
+        {
+            <a class="btn btn-primary btn-lg" href="/shelf" data-testid="cocktail-empty-shelf">
+                @Localizer["Make_FillYourShelf"]
+            </a>
+        }
     </div>
 }
 else
 {
-    @* MARGA-5, and the one place she replaces a number rather than adding to one: under the makeable
-       filter the count IS the answer to the product's question, so she says it. Only there — under a
-       plain browse or a filter, "N cocktails" is a fact about the list and nobody needs a character
-       to read it out. *@
+    @* MARGA-5: under the makeable filter the count IS the answer to the product's question, so she
+       says it. MARGA-6 (JJ-040): under Everything and under any search or filter she reads the total
+       against the shelf — how many of THESE you can pour, from the makeable filter's own total for the
+       same query. Under One ingredient away the count stays plain: her panel below speaks there, and
+       one page-level Marga per screen still holds. If the pourable count failed, the plain line
+       stands. *@
     @* `cocktail-count` stays on whichever element carries the number — her sentence here, the plain
        line otherwise. The id means "where the count is", and the journey that follows the home
        screen's button reads it to check the two agree. Moving the number without moving the id is
        how SHELL-1 broke three suites. *@
     @if (_makeableOnly)
     {
-        <div class="card shadow-sm mb-3" data-testid="cocktail-count">
-            <div class="card-body py-3">
-                <MargaSays Size="40">@Localizer["Marga_MakeableCount", _page.Total]</MargaSays>
-            </div>
+        <div class="catalog-marga mb-3" data-testid="cocktail-count">
+            <MargaSays Tone="MargaTone.Card" Size="72">@Localizer["Marga_MakeableCount", _page.Total]</MargaSays>
+        </div>
+    }
+    else if (!_almostOnly && _pourable is { } pourable)
+    {
+        <div class="catalog-marga mb-3" data-testid="cocktail-count">
+            <MargaSays Tone="MargaTone.Card" Size="72">@(pourable > 0
+                ? Localizer["Marga_BrowseCount", _page.Total, pourable]
+                : Localizer["Marga_BrowseCountNone", _page.Total])</MargaSays>
         </div>
     }
     else
     {
-        <p class="text-muted small" data-testid="cocktail-count">@Localizer["Cocktails_Count", _page.Total]</p>
+        <p class="catalog-count" data-testid="cocktail-count">@Localizer["Cocktails_Count", _page.Total]</p>
     }
 
-    <div class="list-group shadow-sm mb-3" data-testid="cocktail-list">
+    @* Hairline rows, 18px vertical. The list-group classes stay — the browse journey reads rows by
+       them — and the primitives draw them as hairlines rather than a box. *@
+    <div class="list-group catalog-rows mb-3" data-testid="cocktail-list">
         @foreach (var c in _page.Items)
         {
-            <a class="list-group-item list-group-item-action" href="/cocktails/@c.Id">
-                <div class="d-flex justify-content-between align-items-start gap-2">
-                    <div>
-                        <span class="fw-medium">@c.Name</span>
-                        @if (c.IsOwn)
-                        {
-                            <span class="badge text-bg-primary ms-2">@Localizer["Cocktails_Yours"]</span>
-                        }
-                        <div class="text-muted small">
-                            @* Glass and method are optional (JJ-034): a recipe that never said which
-                               glass shows nothing here rather than a guess or an "unknown" chip. *@
-                            @string.Join(" · ", Facets(c))
-                        </div>
-                        @* FEATURES §9: a drink that qualified only because of a substitute has to say
-                           what you would actually pour, or the shelf is a nasty surprise. *@
-                        @* MARGA-1, proposal screen 2. Same swap, same data, out of a washed-out
-                           caveat and into her voice: a substitution is bartender judgement, so it
-                           should read as advice rather than as a system disclaimer. *@
-                        @foreach (var swap in c.Substitutions)
-                        {
-                            <div class="mt-1" data-testid="cocktail-substitution">
-                                <MargaSays Size="24" Compact="true">
-                                    @Localizer["Marga_Swap", swap.AsksFor, swap.YouHave]
-                                </MargaSays>
-                            </div>
-                        }
-                        @* FEATURES §10: the row's reason for existing. "One away" without the bottle
-                           named is just a drink you cannot make. *@
-                        @if (!string.IsNullOrWhiteSpace(c.MissingIngredient))
-                        {
-                            <div class="small text-primary-emphasis" data-testid="cocktail-missing">
-                                @Localizer["Cocktails_Missing", c.MissingIngredient!]
-                            </div>
-                        }
-                    </div>
-                    @if (!string.IsNullOrWhiteSpace(c.Source))
+            <a class="list-group-item list-group-item-action catalog-row" href="/cocktails/@c.Id">
+                <div class="catalog-row-main">
+                    <span class="catalog-row-name font-display">@c.Name</span>
+                    @if (c.IsOwn)
                     {
-                        @* Load-bearing, not decoration: four names appear in both books and one
-                           appears twice in the Savoy alone, so without the source two rows in this
-                           list are indistinguishable. *@
-                        <span class="text-muted small text-nowrap">@c.Source</span>
+                        <span class="badge text-bg-primary catalog-row-yours">@Localizer["Cocktails_Yours"]</span>
+                    }
+                    <div class="catalog-row-meta">
+                        @* Glass and method are optional (JJ-034): a recipe that never said which
+                           glass shows nothing here rather than a guess or an "unknown" chip. *@
+                        @string.Join(" · ", Facets(c))
+                    </div>
+                    @* FEATURES §9: a drink that qualified only because of a substitute has to say
+                       what you would actually pour, or the shelf is a nasty surprise. *@
+                    @* MARGA-1, proposal screen 2. Same swap, same data, out of a washed-out
+                       caveat and into her voice: a substitution is bartender judgement, so it
+                       should read as advice rather than as a system disclaimer. Inline at 32 with
+                       her line in copper (page 07) — advice, not a caption. *@
+                    @foreach (var swap in c.Substitutions)
+                    {
+                        <div class="catalog-row-swap" data-testid="cocktail-substitution">
+                            <MargaSays Tone="MargaTone.Inline">
+                                @Localizer["Marga_Swap", swap.AsksFor, swap.YouHave]
+                            </MargaSays>
+                        </div>
+                    }
+                    @* FEATURES §10: the row's reason for existing. "One away" without the bottle
+                       named is just a drink you cannot make. *@
+                    @if (!string.IsNullOrWhiteSpace(c.MissingIngredient))
+                    {
+                        <div class="catalog-row-missing" data-testid="cocktail-missing">
+                            @Localizer["Cocktails_Missing", c.MissingIngredient!]
+                        </div>
                     }
                 </div>
+                @if (!string.IsNullOrWhiteSpace(c.Source))
+                {
+                    @* Load-bearing, not decoration: four names appear in both books and one
+                       appears twice in the Savoy alone, so without the source two rows in this
+                       list are indistinguishable. Right-aligned, 12px, never wraps. *@
+                    <span class="catalog-row-source">@c.Source</span>
+                }
             </a>
         }
     </div>
 
-    <div class="d-flex align-items-center gap-2">
-        <button class="btn btn-outline-secondary btn-sm"
+    @* Pagination as text-weight controls on a hairline — no button group (page 08). *@
+    <div class="catalog-pager">
+        <button class="btn btn-link btn-sm catalog-pager-link"
                 data-testid="cocktail-prev"
                 disabled="@(_page.Page <= 1)"
                 @onclick="() => GoToAsync(_page.Page - 1)">@Localizer["Common_Previous"]</button>
-        <span class="text-muted small" data-testid="cocktail-page">@Localizer["Cocktails_PageOf", _page.Page, LastPage]</span>
-        <button class="btn btn-outline-secondary btn-sm"
+        <span class="catalog-pager-page" data-testid="cocktail-page">@Localizer["Cocktails_PageOf", _page.Page, LastPage]</span>
+        <button class="btn btn-link btn-sm catalog-pager-link"
                 data-testid="cocktail-next"
                 disabled="@(_page.Page >= LastPage)"
                 @onclick="() => GoToAsync(_page.Page + 1)">@Localizer["Common_Next"]</button>
@@ -277,10 +304,10 @@ else
     private bool _makeableOnly;
 
     /// <summary>
-    /// FEATURES §10 puts "one ingredient away" adjacent to "what I can make", so it is the switch
+    /// FEATURES §10 puts "one ingredient away" adjacent to "what I can make", so it is the chip
     /// next door rather than a second screen. Exclusive with <see cref="_makeableOnly"/>: nothing is
     /// both zero short and one short, and leaving both on would show an empty list with no
-    /// explanation.
+    /// explanation — which is why the two, with "everything", are one radio group.
     /// </summary>
     private bool _almostOnly;
 
@@ -320,6 +347,28 @@ else
     // say, because one needs a non-empty one-away list and the other needs an empty one.
     private StarterView? _starter;
 
+    // MARGA-6 (JJ-040). How many of the listed drinks this shelf can pour, for her line under
+    // Everything and under any search or filter. Null when it was not asked (the makeable and one-away
+    // scopes have their own voice) or when asking failed — then the plain total stands without her.
+    private int? _pourable;
+
+    /// <summary>
+    /// The search and the four filters as a query suffix — shared by the list and the count her line
+    /// quotes, so the two can never be asked different questions (MARGA-6).
+    /// </summary>
+    private string FilterQuery()
+    {
+        var query = string.Empty;
+        if (!string.IsNullOrWhiteSpace(_search))
+            query += $"&search={Uri.EscapeDataString(_search.Trim())}";
+        if (!string.IsNullOrWhiteSpace(_ingredient))
+            query += $"&ingredient={Uri.EscapeDataString(_ingredient.Trim())}";
+        if (_method.Length > 0) query += $"&method={_method}";
+        if (_glass.Length > 0) query += $"&glass={_glass}";
+        if (_serving.Length > 0) query += $"&serving={_serving}";
+        return query;
+    }
+
     /// <summary>How many filters are narrowing the list, so the button can say so while closed.</summary>
     private int ActiveFilters =>
         (string.IsNullOrWhiteSpace(_ingredient) ? 0 : 1)
@@ -345,6 +394,13 @@ else
         : (_page.Total + _page.PageSize - 1) / _page.PageSize;
 
     /// <summary>
+    /// The count on the SELECTED chip, and nothing on the others. It is the response's own total —
+    /// the number the pager already knows — so the chips cost no request of their own (JJ-036).
+    /// </summary>
+    private string ChipCount(bool selected) =>
+        selected && !_loading && _page is not null ? $" · {_page.Total}" : string.Empty;
+
+    /// <summary>
     /// Either toggle can be pre-set from the address bar, so another screen can link straight to the
     /// answer it just quoted (MARGA-2). Without this the home screen's "show me the twelve" would land
     /// on the whole catalog and make the reader find the filter that produced the number they clicked.
@@ -355,7 +411,6 @@ else
         _makeableOnly = string.Equals(query["makeable"], "true", StringComparison.OrdinalIgnoreCase);
         _almostOnly = !_makeableOnly
                       && string.Equals(query["almost"], "true", StringComparison.OrdinalIgnoreCase);
-
         return LoadAsync(1);
     }
 
@@ -379,18 +434,12 @@ else
         }
     }
 
-    private Task OnMakeableChanged(ChangeEventArgs e)
+    /// <summary>One radio, one scope: the pair can never contradict each other.</summary>
+    private Task SetScopeAsync(bool makeable, bool almost)
     {
-        _makeableOnly = e.Value is bool on && on;
-        if (_makeableOnly) _almostOnly = false;
+        _makeableOnly = makeable;
+        _almostOnly = almost;
         return LoadAsync(1);   // narrowing the list always starts again at the first page
-    }
-
-    private Task OnAlmostChanged(ChangeEventArgs e)
-    {
-        _almostOnly = e.Value is bool on && on;
-        if (_almostOnly) _makeableOnly = false;
-        return LoadAsync(1);
     }
 
     /// <summary>
@@ -466,17 +515,31 @@ else
             var url = $"/api/cocktails?page={page}&pageSize={PageSize}";
             if (_makeableOnly) url += "&makeable=true";
             if (_almostOnly) url += "&almost=true";
-            if (!string.IsNullOrWhiteSpace(_search))
-                url += $"&search={Uri.EscapeDataString(_search.Trim())}";
-            if (!string.IsNullOrWhiteSpace(_ingredient))
-                url += $"&ingredient={Uri.EscapeDataString(_ingredient.Trim())}";
-            if (_method.Length > 0) url += $"&method={_method}";
-            if (_glass.Length > 0) url += $"&glass={_glass}";
-            if (_serving.Length > 0) url += $"&serving={_serving}";
+            url += FilterQuery();
 
             var result = await Http.GetFromJsonAsync<PagedResponse<CocktailSummary>>(url);
             if (ticket != _requestTicket) return;
             _page = result;
+
+            // MARGA-6. The pourable figure her line quotes: the makeable filter's own total for the SAME
+            // search and filters, one row of it, behind the same ticket so a slow count cannot land on
+            // a list that has moved on. Optional furniture — a failure leaves the plain total.
+            _pourable = null;
+            if (!_makeableOnly && !_almostOnly && _page is { Total: > 0 })
+            {
+                try
+                {
+                    var pourable = await Http.GetFromJsonAsync<PagedResponse<CocktailSummary>>(
+                        "/api/cocktails?page=1&pageSize=1&makeable=true" + FilterQuery());
+                    if (ticket != _requestTicket) return;
+                    _pourable = pourable?.Total;
+                }
+                catch (Exception)
+                {
+                    // Without the count she is absent; the list and its plain total already stand.
+                }
+                if (ticket != _requestTicket) return;
+            }
 
             // Only while the one-away filter is on, and behind the same ticket, so a slow summary
             // cannot land on a list that has already moved on.

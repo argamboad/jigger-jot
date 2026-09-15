@@ -62,8 +62,9 @@ public class MargaPresenceTests : ComponentTestBase
         var page = RenderShelf(Stocked, OneBottleAway, OneStarter);
 
         page.WaitForAssertion(
+            // Her LINE, not the whole block: BACKBAR-3 put her name above it as a label.
             () => Assert.Equal("Marga_ShelfNext[Sweet vermouth, 4]",
-                page.Find("[data-testid='shelf-marga']").TextContent.Trim()),
+                page.Find("[data-testid='shelf-marga'] .marga-line").TextContent.Trim()),
             TimeSpan.FromSeconds(10));
 
         // The footer two inches below already counts the bottles and the drinks. Her repeating that
@@ -81,7 +82,7 @@ public class MargaPresenceTests : ComponentTestBase
 
         page.WaitForAssertion(
             () => Assert.Equal("Marga_ShelfEmpty[London dry gin]",
-                page.Find("[data-testid='shelf-marga']").TextContent.Trim()),
+                page.Find("[data-testid='shelf-marga'] .marga-line").TextContent.Trim()),
             TimeSpan.FromSeconds(10));
     }
 
@@ -148,14 +149,16 @@ public class MargaPresenceTests : ComponentTestBase
     }
 
     [Fact]
-    public void UnderAPlainBrowse_SheDoesNot()
+    public void UnderAPlainBrowse_SheReadsTheListAgainstTheShelf()
     {
+        // MARGA-5 kept her quiet here ("969 cocktails is a fact about the list"). MARGA-6 (JJ-040)
+        // reversed that on the maintainer's call: the plain count becomes how many of THESE you can
+        // pour, which is a number that does need reading. MargaEverywhereTests holds the detail; this
+        // stub answers the count request with the same total, so only the key is asserted here.
         var page = RenderCatalog("/cocktails", 969);
 
-        // "969 cocktails" is a fact about the list. Nobody needs a character to read it out, and a
-        // character who narrates every number stops being worth reading.
         page.WaitForAssertion(() =>
-            Assert.Contains("Cocktails_Count[969]",
+            Assert.Contains("Marga_BrowseCount[969",
                 page.Find("[data-testid='cocktail-count']").TextContent));
 
         Assert.DoesNotContain("Marga_MakeableCount", page.Markup);

@@ -1,51 +1,66 @@
+/* BACKBAR-5 (pages 05–06), amended 2026-09-14: the framed split, centred on the page ground both
+   ways — the card floats in the viewport with the ground around it, the form side centres its
+   content vertically beside her. On a phone the card starts at the top and the page scrolls. */
+
 .login-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: grid;
+    align-content: center;
     padding: 2rem 1rem;
 }
 
-.login-card {
+/* ::deep, and it is load-bearing: the split's root carries the SPLIT's scope attribute, not this
+   page's, so a scoped `.login-wrapper > *` compiles to a selector that matches nothing — and the
+   card shrank to its content (924px on a laptop, 276px on a phone) before this was written. */
+.login-wrapper ::deep .split {
     width: 100%;
-    max-width: 420px;
-    border-radius: 14px;
-    border: 1px solid var(--app-border, #E0E7EF);
 }
 
-.login-lockup {
-    width: 100%;
-    max-width: 240px;
-    height: auto;
+.login-wrapper ::deep .split-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
-/* OAuth buttons */
+@media (max-width: 991.98px) {
+    .login-wrapper {
+        align-items: flex-start;
+        padding: 1rem;
+    }
+}
+
+/* The 6-digit field: 24px, letter-spacing .4rem, centred. The MFA field is wider and a little tighter. */
+.login-code {
+    font-size: 24px;
+    letter-spacing: .4rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.login-code-wide {
+    font-size: 20px;
+    letter-spacing: .3rem;
+}
+
+/* OAuth buttons: pills on the surface with a hairline, the provider mark beside the label. */
 .btn-oauth {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: .65rem;
     font-weight: 500;
-    background: #fff;
-    border: 1.5px solid #D0D5DD;
-    color: #344054;
+    background: var(--surface);
+    border: 1px solid var(--app-border);
+    color: var(--ink);
     padding: .6rem 1rem;
-    border-radius: 8px;
+    border-radius: 999px;
     text-decoration: none;
-    transition: border-color .15s, box-shadow .15s;
+    transition: border-color .15s;
 }
 
 .btn-oauth:hover {
     border-color: var(--bs-primary);
-    box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), .12);
-    color: #344054;
-}
-
-/* Dark theme: the provider buttons keep their shape but drop the hardcoded light surface. */
-[data-bs-theme="dark"] .btn-oauth,
-[data-bs-theme="dark"] .btn-oauth:hover {
-    background: var(--bs-body-bg);
-    border-color: var(--bs-border-color);
-    color: var(--bs-body-color);
+    color: var(--ink);
 }
 
 .oauth-icon {
@@ -59,7 +74,7 @@
     display: flex;
     align-items: center;
     gap: .75rem;
-    color: #98A2B3;
+    color: var(--muted);
     font-size: .8rem;
 }
 
@@ -68,14 +83,11 @@
     content: '';
     flex: 1;
     height: 1px;
-    background: #E4E7EC;
+    background: var(--app-border);
 }
 
-[data-bs-theme="dark"] .divider-text {
-    color: var(--bs-secondary-color);
-}
-
-[data-bs-theme="dark"] .divider-text::before,
-[data-bs-theme="dark"] .divider-text::after {
-    background: var(--bs-border-color);
+@media (prefers-reduced-motion: reduce) {
+    .btn-oauth {
+        transition: none;
+    }
 }

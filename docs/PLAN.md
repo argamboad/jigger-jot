@@ -32,6 +32,15 @@ of work is the **commit**.
   or a fix plus a small addition, is a different thing — the commits keep them separable, and the PR
   body must list them as separate items rather than blurring them into one story.
 
+**The redesign rule — 2026-09-13, the maintainer's call.** `BACKBAR` is worked on **one branch from
+`develop`** for the whole epic. Every slice and every bug fix is **its own commit**, with its own
+message, revertable alone; the story, the QA cases and the tests ride in the slice's commit. Nothing
+is pushed and no PR is opened until the maintainer says **"P+PR"** — and that word covers the push and
+the PR only, never the next slice, which still waits for "go". The features warning above does not
+apply here because a restyle is not two features: the slices are one change to one thing, delivered
+in an order, and a reviewer reads them as one diff. The branch is cut from `develop` **after PR #36
+(the plan) is merged**, so it carries the plan it executes.
+
 ## The slice ritual — every time, in this order
 
 1. **Read `docs/FEATURES.md` for the flow being built**, and quote the flow number in the report.
@@ -136,10 +145,12 @@ test. All four are written up under SHELL-1 in `docs/stories/shell.md`.
   the current tab's weight, the chrome's colour in dark theme, and that the page does not scroll
   sideways.
 
-**Merged since** (PRs #31–#35): the batch above as one PR (#31); the port block (#32, JJ-030); the
+**Merged since** (PRs #31–#36): the batch above as one PR (#31); the port block (#32, JJ-030); the
 pre-launch gates ported from the platform (#33, ADR-027); the gate-variable doc lines (#34); and
-"a markdown file is never code" (#35, LOCALCI-3 follow-up). **Nothing is committed-not-pushed.** The
-next thing is the restyle below.
+"a markdown file is never code" (#35, LOCALCI-3 follow-up); the restyle's plan (#36, JJ-036 → JJ-039).
+**Committed, not pushed: `feat/backbar`**, the whole restyle ladder BACKBAR-1 → 9 as one commit per
+slice or fix, waiting on the word (the redesign rule above). The next thing after it is a decision,
+not a queue — see "After the ladder" below.
 
 ## The UI wave — 2026-09-10
 
@@ -199,7 +210,8 @@ decision are logged as **JJ-036 → JJ-039**:
   **No popover** on the Write rows. **Auto stays the default theme** — it already is.
 
 **One asset action for the maintainer, blocking nothing:** a 2× landscape crop of Marga's scene from
-the uncommitted 2 MB source, for the Login and Welcome panels that upscale the 512 square today.
+the 2 MB source — committed since 2026-09-14 at `docs/brand/source/marga_scene_1254.png` — for the
+Login and Welcome panels that upscale the 512 square today.
 
 ## What is next, in order
 
@@ -217,6 +229,10 @@ Gherkin, the ids and the pages for each.
 | 7 | **BACKBAR-7** Settings + Household | 16–17 | Five cards to two columns, six to four groups, segmented theme and unit controls, text-link row actions, the `···` menu on mobile, the bell's dropdown. Same calls, parameters and ids. |
 | 8 | **BACKBAR-8** Billing + Admin, every small screen | not drawn | The two pages the handoff never saw, restyled in full to the same language by analogy, plus not-found, the auth callback, the impersonation banner and the error bar. Same calls, gates and ids. |
 | 9 | **BACKBAR-9** Sweep | 18 | Focus rings, reduced motion, both themes at three widths on every screen, the QA cases + regenerated PDFs, the definition of done line by line. |
+
+**Built 2026-09-13, all nine, on `feat/backbar`** — one commit per slice or fix, the story's per-slice
+sections say what each decided, and the sweep's ninety-six frames found three things (the bell's
+card, blue disabled buttons, Join's bold sans), each now held by a test. Waiting on the word.
 
 **Every slice runs both themes at 390, 768 and 1440 in a browser before its commit.** A restyle is the
 one kind of change the suite is weakest at — 54 frames and no test looks at any of them — which is
@@ -308,6 +324,32 @@ correctly and the slice looked finished. **Scoped CSS cannot reach inside a chil
 selector's last element is rendered by one, it belongs in `app.css`. It shipped, and the manual case
 that described the right behaviour (`QA-CHROME-04`) had not been run yet — which is the argument for
 running the plan rather than only writing it.
+
+**A restyle that rewrote a file and lost its code.** BACKBAR-8 replaced the auth callback's spinner
+with the brass loading bar by writing the whole file, and the `@code` block — the exchange that turns
+the refresh cookie into a session, the only thing the page is for — went with it. Every web sign-in
+then stopped on "Processing sign-in…"; 45 of 51 browser journeys failed at the same line. The page
+had no test of its own, so 137 UI tests stayed green, and the sweep's "the whole E2E suite,
+unchanged" was written, not run. Two rules from it: **a restyle edits markup and styles and touches
+nothing below the `@code` line** — replace the block above it, never the file; and **a slice is not
+done until the journeys have actually run against it**, locally or in CI, and the number is in the
+commit message. `AuthCallbackTests` now holds the page.
+
+**A visual sweep against mocks only sees the shapes the mocks have.** BACKBAR-9 rendered ninety-six
+frames against mocked API responses and read every one, and the maintainer still opened the app
+and found it "defective somehow". Two things: in dark theme every drink name on Home and in the
+catalog was copper, and the wizard's second step stretched Marga's scene to the height of 191
+pills — a face five screens tall. The first was in the mocked frames and was read past, because the
+light frames beside them were right and the eye averaged the pair; the second could not be in them,
+because the mocked shelf had a handful of pills and the column never grew. Both were found in ten
+minutes by signing in to the running app with a stocked household and capturing the same frames
+against the real API (the capture script lives in the session's scratchpad, not the repo). Three
+rules from it: **a restyle's browser pass runs against the real API with real data**, and a mock is
+for the states the data cannot easily reach (an error, an empty list), not for the screens; **read
+dark and light as two questions**, not as one frame with two palettes; and **a specificity written
+in a comment is not a specificity** — `:not()` carries its argument's weight, and the rule that
+claimed 0,1,1 was 0,4,1. Both defects are now held by tests that compute the thing the eye missed:
+a colour, and a height.
 
 ## CI is now proportional to the change — 2026-09-11
 

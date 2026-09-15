@@ -47,14 +47,21 @@ Backstop after working through the list: `git grep -i perezosoft` and a search f
 
 ## 3. Logos & images — replace the files (keep the filenames to avoid touching references)
 In-app UI (shared RCL — used by web + desktop + mobile):
-- `src/Shared.Ui/wwwroot/brand/{icon_light.svg, icon_light_1024.png, lockup_light.svg, lockup_light_1520.png, lockup_dark.svg, lockup_dark_1520.png}`
+- `src/Shared.Ui/wwwroot/brand/{icon_light.svg, icon_dark.svg, icon_light_1024.png, lockup_light.svg, lockup_light_1520.png, lockup_dark.svg, lockup_dark_1520.png}`
+- **The header mark comes in two: `icon_light.svg` for the light surface and `icon_dark.svg` for the
+  dark one** (JJ-037 — the bar sits on the page, not on a brand-coloured band, so the mark has to
+  read on both grounds). Same path, different fill; `app.css` swaps them by theme. A rebrand that
+  replaces one and not the other ships a mark that vanishes in one theme; a CI gate
+  (`RestyleGateTests`) checks both exist and that this file and `build_assets.py` name both.
 - **The UI references the PNG lockups, not the SVGs.** Webfonts don't load inside an `<img>`-embedded
   SVG, so an SVG lockup's wordmark silently falls back to Helvetica/Arial. Keep the SVGs as the
   editable source, render the PNGs from them, and point `Login.razor`/`Home.razor` at the PNGs.
 
 **Email logo (CID-embedded — shown in every transactional email):**
-- **`src/Infrastructure/Email/Assets/logo.png`** — keep it a **PNG** (email clients strip SVG and block data-URIs); a ~128px square is plenty.
+- **`src/Infrastructure/Email/Assets/lockup.png`** — the header lockup, rendered from `lockup_light.svg` flat on white at 400×103 (shown at 200) by `docs/brand/build_assets.py`. Keep it a **PNG** (email clients strip SVG and block data-URI images).
+- **`src/Infrastructure/Email/Assets/instrument-serif-latin.woff2`** (+ `OFL.txt`) — the display face, a byte-for-byte **copy** of the RCL's latin subset, embedded in each email as data. A rebrand that changes the display face replaces both copies; `EmailLookTests` fails while they differ. The palette in `BrandedEmail.cs` is a literal copy of `app.css`'s light set — change them together.
 - **`src/Infrastructure/Email/Assets/marga.png`** — the character's avatar, a deliberate **copy** of the RCL's brand asset: `Infrastructure` does not depend on `Shared.Ui` and must not start. Replacing the character means replacing **both** files, and a rebrand that drops the character entirely should remove her lines from `EmailStrings.resx` and the `MargaSays(...)` calls in `BrandedEmail.cs` rather than leaving a stranger's face on the sign-in email.
+- **`docs/brand/source/marga_scene_1254.png`** — the character's master drawing, the only full-resolution copy. `marga_scene_512.png`, `marga_avatar_160.png` and the email's `marga.png` were cut from it by hand, not by `build_assets.py`, so replacing the character means replacing this file too. It lives under `docs/`, never under a `wwwroot`, so it is never served.
 
 Web host chrome:
 - `src/Web/wwwroot/{favicon.ico, favicon.svg, favicon.png, apple_touch_180.png, og_image_1200x630.png}`
