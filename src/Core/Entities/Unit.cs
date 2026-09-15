@@ -1,8 +1,9 @@
 namespace JiggerJot.Core.Entities;
 
 /// <summary>
-/// A measure used on a recipe line. Amounts are stored exactly as authored and converted only at
-/// display time, to the viewing user's <c>PreferredUnitSystem</c> (JJ-007, JJ-008).
+/// A measure used on a recipe line. Every volume is stored in ounces and read in the viewing user's
+/// <c>PreferredUnitSystem</c> (JJ-041, JJ-008); the other volume units stay in the lookup so the seed
+/// file can name what the books wrote, but no line is stored in them.
 /// <para>
 /// <see cref="MillilitreFactor"/> is what makes a unit convertible: it is the number of millilitres
 /// in one of this unit, so any two convertible units interconvert through it. A

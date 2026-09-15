@@ -1342,7 +1342,7 @@ a shelf nobody trusts.)*
 
 ---
 
-## 10e. Web — Browsing the catalog (CKTL, FILTER, PREFS-2) 🟠
+## 10e. Web — Browsing the catalog (CKTL, FILTER, PREFS-2, PREFS-3) 🟠
 
 ### QA-CAT-01 — The catalog is browsable, searchable and paged 🔴 (Web) ⚙️ Automated in CI
 **Gherkin**
@@ -1397,12 +1397,14 @@ filter is a dead end.)*
 
 ### QA-CAT-07 — Measurement preference changes what the recipe says 🟠 (Web) ⚙️ Automated in CI
 **Walkthrough**
-1. Open a recipe and note an amount. **Settings** → Preferences → **Imperial**.
-2. **Expected:** the recipe now reads in ounces, with fractions — ounces always use them.
-3. Switch to **Metric**. **Expected:** millilitres, and never a fraction.
-4. Switch to **As written**. **Expected:** the book's own words are back. *(That is a real choice you
-   can return to, not merely where you start.)*
-5. **Expected in all three:** neutral units — dash, barspoon, piece, to taste — never convert.
+1. As a brand-new account, open **Settings** → Preferences. **Expected:** two choices, **Imperial**
+   and **Metric**, with Imperial already selected — there is no "As written" (JJ-041).
+2. Open the Negroni. **Expected:** it reads **1 oz** of each, with fractions wherever ounces need them.
+3. Switch to **Metric** and reopen it. **Expected:** **30 ml** of each — the bar's 30 ml to the ounce,
+   never 29.6. Any 3/4 oz line reads **22.5 ml**; millilitres are never shown as a fraction.
+4. Switch back to **Imperial**. **Expected:** ounces again.
+5. **Expected in both:** teaspoons, tablespoons and neutral units — dash, barspoon, piece, to taste —
+   read exactly the same.
 
 ### QA-CAT-08 — Another household's cocktail is not found 🟠 (Web) ⚙️ Automated in CI
 **Walkthrough:** in a second household, fork or write a cocktail and copy its URL. Open that URL as the
@@ -1414,6 +1416,21 @@ and saying it would confirm the row exists.)*
 **Walkthrough:** search the catalog for nonsense with no filters on. **Expected:** "No cocktails match
 that." and **no** illustration, **no** shelf button and **no** bottle suggestion — an unfiltered search
 returning nothing says something about the search, not about the household.
+
+### QA-CAT-10 — Every amount reads as a pour, never as parts or glasses 🟠 (Web)
+**Walkthrough**
+1. As Imperial, open the Savoy's **Absinthe (Special) Cocktail**. **Expected:** **2 oz** absinthe,
+   **1/2 oz** gin, **1/2 oz** anisette, then the dashes — no line says "part" (JJ-041).
+2. Open the **Hawaiian Cocktail** (the book's 4 : 2 : 1). **Expected:** **1 3/4 oz**, **3/4 oz**,
+   **1/2 oz**.
+3. Switch to **Metric** and reopen both. **Expected:** 60 / 15 / 15 ml and 52.5 / 22.5 / 15 ml.
+4. Open any recipe that used a glass measure in the book (the batch recipes). **Expected:** ounces or
+   millilitres, never "glass", "wineglass" or "liqueur glass".
+5. **Write a cocktail** as a Metric reader. **Expected:** the unit list starts with **ml** and offers no
+   oz, part or glass; write 45 ml of gin and save. **Expected:** it reads **45 ml**, and switching to
+   Imperial reads **1 1/2 oz**.
+6. On an existing database (staging): **Expected:** the recipes written before this release read in
+   ounces too — the migration converted them.
 
 ---
 
@@ -3030,7 +3047,8 @@ is the product. Cited decisions are `JJ-nnn` in `docs/DECISIONS.md`.
 | Bulk shelf write (ONBOARD-1) | **START-03/05** (⚙️ E2E `OnboardJourneyTests`) + `Api.Tests` (`BulkInventoryTests`) | `PUT /api/inventory` — the whole shelf in one request. State is STATED rather than toggled, safe to send twice, and an id this household cannot see comes back in `unknown` rather than failing the request. |
 | Browse / search / paging (CKTL-2) | **CAT-01** (⚙️ E2E `CocktailBrowseJourneyTests`) | `GET /api/cocktails` (paged; a bad page or size is clamped, never a 400). Ordered name-then-id, because name alone is not a total order in this catalog; the SOURCE is shown per row because four names appear in both books. |
 | Recipe detail (CKTL-3, CKTL-4) | **CAT-02/03/08** (⚙️ E2E) + **MAKE-07** (⚙️ E2E) | `GET /api/cocktails/{id}` — lines in order, `makeability` plus per-line `availability`/`substituteWith`. Another household's cocktail is a **404, never a 403** (JJ-031). Glass and method may be null and are rendered as nothing at all (JJ-034). |
-| Measurement preference (PREFS-2) | **CAT-07** (⚙️ E2E) | `PUT /api/auth/unit-system`; conversion is server-side in Core's `AmountDisplay` with the authored values riding along, so a second front end inherits the rules. Neutral units never convert; metric never uses fractions, ounces always do; null = "never chose" and shows the recipe as written (JJ-007, JJ-008). |
+| Measurement preference (PREFS-2, amended by PREFS-3) | **CAT-07** (⚙️ E2E) | `PUT /api/auth/unit-system` — Metric or Imperial only, empty is a 400; conversion is server-side in Core's `AmountDisplay`, so a second front end inherits the rules. Teaspoons and neutral units never convert; metric reads at 30 ml to the ounce in 2.5 ml steps, never a fraction; null reads as imperial and `/me` says so (JJ-041, JJ-008). |
+| Every amount in oz or ml (PREFS-3) | **CAT-10** + CAT-07 (⚙️ E2E) + `Core.Tests` (`BarMeasureTests`, `AmountDisplayTests`) + `Api.Tests` (`OunceMigrationTests`, `CatalogSeederTests`, `CocktailAuthoringTests`) | `GET /api/cocktails/lookups` (units per reader), `POST /api/cocktails` (stored in oz). Every volume stored in ounces on the quarter marks through Core's `BarMeasure`: parts as their share of 3 oz, a glass or wineglass 2 oz, a liqueur glass 1 oz; the seeder and the authoring handler write through it; a one-off SQL migration converts existing rows and is held to `BarMeasure` by a test (JJ-041). |
 | Filters (FILTER-1) | **CAT-04/05** (⚙️ E2E) + CAT-06/09 | `GET /api/cocktails?ingredient=&method=&glass=&serving=`, `GET /api/cocktails/filters`. The ingredient filter reads the RECIPE LINES — there is no main-spirit column and never will be (JJ-014) — and matches name, category and subcategory at once, so a parent catches every child (JJ-015, JJ-016). Options are derived from the catalog so no filter is a dead end. |
 | Makeable (MAKE-1) | **MAKE-01/02** (⚙️ E2E `MakeableJourneyTests`) + MAKE-05 | `GET /api/cocktails?makeable=true`. Derived at query time, never stored (JJ-003). A required line is satisfied by the exact ingredient or by a substitute **in that direction** — cognac stands in for brandy, not the reverse (JJ-006). Optional lines never block (JJ-009). Each row carries the swaps in play. |
 | One ingredient away (ALMOST-1) | **MAKE-03/04** (⚙️ E2E) + MAKE-05 | `GET /api/cocktails?almost=true` — exactly ONE required line unsatisfied after substitutions (JJ-019), with `missingIngredient` named on every row. The same predicate as makeable, counted rather than negated, so the two lists are adjacent and can never overlap; asking for both returns an empty page rather than one flag winning. |
@@ -3164,6 +3182,7 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-CAT-07 | Web | | | | | |
 | QA-CAT-08 | Web | | | | | Needs two households |
 | QA-CAT-09 | Web | | | | | |
+| QA-CAT-10 | Web | | | | | |
 | QA-MAKE-01 | Web | | | | | |
 | QA-MAKE-02 | Web | | | | | |
 | QA-MAKE-03 | Web | | | | | |
@@ -3569,3 +3588,9 @@ Critical/High defects. 🟢 Edge cases triaged (Pass or accepted-known-issue).
   `BillingWebhookHandlerTests.SubscriptionActivated_*` pin it; the dunning tests now count dunning notices only.
   The cancelled state reads honestly: "Your paid subscription ended on <date>" instead of "renews", and no
   portal button (nothing live to manage; Upgrade is the way back) — `NotifyBillingTests.Billing_CancelledSubscription_*`.
+- **Updated 2026-09-15** — **PREFS-3 (JJ-041): every amount in ounces or millilitres.** Every volume is
+  stored in ounces on the quarter marks — the Savoy's parts as their share of a 3 oz drink, its glasses
+  as 2 oz (a liqueur glass 1 oz) — and metric reads them at the bar's 30 ml to the ounce. "As written"
+  is gone: two choices, imperial the default. QA-CAT-07 rewritten around the two choices; new
+  **QA-CAT-10** (a pour, never parts or glasses; the metric write form; the migrated staging rows).
+  Suite 230 → **231** cases.

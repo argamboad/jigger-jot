@@ -80,7 +80,7 @@ public sealed class CocktailDetailTests(PostgresFixture fixture) : PostgresTestB
     }
 
     [Fact]
-    public async Task Detail_ConvertsAmountsToTheReadersPreference_AndKeepsTheAuthoredOnes()
+    public async Task Detail_ReadsTheStoredOuncesInTheReadersSystem()
     {
         await SeedAsync();
         var id = await NegroniIdAsync();
@@ -89,19 +89,18 @@ public sealed class CocktailDetailTests(PostgresFixture fixture) : PostgresTestB
         var metric = await Handler(db).GetAsync(id, await UserAsync(UnitSystem.Metric), default);
         var imperial = await Handler(db).GetAsync(id, await UserAsync(UnitSystem.Imperial), default);
 
-        // The Negroni is authored in millilitres, so a metric reader sees it untouched and an
-        // imperial reader sees ounces — while BOTH responses still carry the authored 30 ml, because
-        // the stored value never changes (JJ-007).
+        // The IBA writes the Negroni as 30 ml; it is stored as 1 oz (JJ-041), read back as 30 ml at
+        // the bar's ounce — and both responses carry the one stored value.
         Assert.Equal("30 ml", metric!.Lines[0].Display);
         Assert.Equal("1 oz", imperial!.Lines[0].Display);
 
-        Assert.Equal(30m, metric.Lines[0].Amount);
-        Assert.Equal(30m, imperial.Lines[0].Amount);
-        Assert.Equal("ml", imperial.Lines[0].Unit);
+        Assert.Equal(1m, metric.Lines[0].Amount);
+        Assert.Equal(1m, imperial.Lines[0].Amount);
+        Assert.Equal("oz", metric.Lines[0].Unit);
     }
 
     [Fact]
-    public async Task Detail_WithNoPreference_ShowsTheRecipeAsAuthored()
+    public async Task Detail_WithNoPreference_ReadsOunces()
     {
         await SeedAsync();
         var id = await NegroniIdAsync();
@@ -109,30 +108,27 @@ public sealed class CocktailDetailTests(PostgresFixture fixture) : PostgresTestB
         await using var db = Fixture.CreateContext(Guid.CreateVersion7());
         var detail = await Handler(db).GetAsync(id, await UserAsync(null), default);
 
-        Assert.Equal("30 ml", detail!.Lines[0].Display);
+        Assert.Equal("1 oz", detail!.Lines[0].Display);
     }
 
     [Fact]
-    public async Task Detail_ProportionalRecipe_ReadsAsTheFractionTheBookWrote()
+    public async Task Detail_ProportionalRecipe_ReadsAsAPour_NeverAsParts()
     {
         await SeedAsync();
 
         Guid id;
         await using (var read = Fixture.CreateContext())
-        {
-            var part = await read.Units.SingleAsync(u => u.Name == "part");
-            id = await read.CocktailIngredients.IgnoreQueryFilters()
-                .Where(l => l.UnitId == part.Id && l.Amount == 0.6667m)
-                .Select(l => l.CocktailId)
-                .FirstAsync();
-        }
+            id = (await read.Cocktails.IgnoreQueryFilters()
+                .FirstAsync(c => c.Name == "Absinthe (Special) Cocktail")).Id;
 
         await using var db = Fixture.CreateContext(Guid.CreateVersion7());
-        // Even for a reader who asked for metric: a neutral unit has no factor and never converts, so
-        // the 1930 proportion survives intact instead of becoming invented millilitres.
-        var detail = await Handler(db).GetAsync(id, await UserAsync(UnitSystem.Metric), default);
+        var imperial = await Handler(db).GetAsync(id, await UserAsync(UnitSystem.Imperial), default);
+        var metric = await Handler(db).GetAsync(id, await UserAsync(UnitSystem.Metric), default);
 
-        Assert.Contains(detail!.Lines, l => l.Display == "2/3 part");
+        // The book's 2/3 absinthe, 1/6 gin and 1/6 anisette, as their share of a three-ounce drink.
+        Assert.Equal(["2 oz", "1/2 oz", "1/2 oz"], [.. imperial!.Lines.Take(3).Select(l => l.Display)]);
+        Assert.Equal(["60 ml", "15 ml", "15 ml"], [.. metric!.Lines.Take(3).Select(l => l.Display)]);
+        Assert.DoesNotContain(imperial.Lines, l => l.Display.Contains("part"));
     }
 
     [Fact]

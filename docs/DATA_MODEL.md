@@ -42,7 +42,8 @@ A person (identity). A user belongs to exactly one tenant **via `TenantMembershi
 - `theme` (nullable) — per-user UI theme ("light"/"dark"/"system", stored verbatim; null = never
   chose, which lets sign-in adopt a device-local choice — PREFS-1, ADR-022)
 - `preferred_unit_system` — enum `metric` | `imperial` *(JiggerJot, JJ-008: the app's only
-  per-user preference, a per-user carve-out like `locale`/`theme`; drives display conversion only)*
+  per-user preference, a per-user carve-out like `locale`/`theme`; drives display conversion only.
+  Null means never chose and reads as imperial — there is no "as written", JJ-041)*
 - `logins` — navigation to `UserLogin`
 
 ### UserLogin
@@ -200,7 +201,9 @@ Links a cocktail to one ingredient with how it's used. Scoped with its cocktail.
 - `notes` — nullable free text (e.g. "freshly squeezed").
 
 > The same ingredient may appear on multiple lines of one cocktail — **not constrained to
-> unique**. Quantities are structured (amount + unit) and stored as authored (JJ-007).
+> unique**. Quantities are structured (amount + unit), and **every volume is stored in ounces on the
+> quarter-ounce marks** (JJ-041, amending JJ-007): millilitres, glasses and parts are converted on the
+> way in by `BarMeasure` in Core; teaspoons, tablespoons and neutral units are kept as written.
 
 ### IngredientSubstitution
 Global-only substitution graph (MVP; JJ-004, JJ-005). Both substituted ingredients must be
@@ -238,9 +241,12 @@ Curated lookup tables (no tenant additions in MVP — JJ-022).
 - **GlassType:** `id`, `name` (coupe, rocks, highball, …)
 - **Method:** `id`, `name` (shake, stir, build, blend, muddle, …)
 - **Unit:** `id`, `name`, `system` (`metric` | `imperial` | `neutral`), conversion metadata.
-  - Convertible units (oz ↔ ml) carry conversion factors.
+  - Convertible units (oz ↔ ml) carry conversion factors. The row keeps the exact factor; recipes
+    use the bar's 30 ml ounce from `BarMeasure` instead (JJ-041).
   - **Neutral / non-convertible** units (dash, barspoon, piece, leaves, to-taste) display as
-    authored regardless of user preference.
+    authored regardless of user preference — and so do `tsp` and `tbsp` (JJ-041).
+  - `part`, `glass`, `wineglass`, `liqueur glass`, `ml`, `cl` and the other volumes stay in the lookup
+    so the seed file can name them, but no recipe line is stored in them (JJ-041).
 
 ### Supporting types
 
@@ -256,7 +262,8 @@ Not tables, but they live in `src/Core/Entities/` and the schema is written in t
   `other`, on `CocktailIngredient`. **Display grouping only** — makeability keys off `is_required`, so a
   garnish blocks nothing by virtue of its role (JJ-009, JJ-010).
 - **`UnitSystem`** — `metric` | `imperial` | `neutral`, on `Unit` and on `User.preferred_unit_system`.
-  A neutral unit has no millilitre factor and always displays as authored (JJ-007, JJ-008).
+  A neutral unit has no millilitre factor and always displays as written; so do `tsp` and `tbsp`, and
+  a null `preferred_unit_system` reads as imperial (JJ-041, JJ-008).
 
 ## Relationship summary
 - Tenant 1 — N TenantMembership N — 1 User *(constant; unique on `user_id` = one tenant per user)*
@@ -434,9 +441,12 @@ applying substitutions). Surface the missing ingredient(s) as a discovery / shop
 Ubiquitous staples (ice, water) are **assumed always available** and are **not modeled as
 blocking inventory**. Either omit them from required lines or treat them as always-satisfied.
 
-### Unit display conversion (JJ-007, JJ-008)
-Stored **as authored** (2 oz stays "2 oz"). At display time, convert convertible units to the
-viewing user's `preferred_unit_system`. Neutral/non-convertible units pass through unchanged.
+### Unit display conversion (JJ-041, JJ-008)
+Every volume is **stored in ounces** on the quarter marks (45 ml → 1 1/2 oz; a 1930 recipe's parts
+become their share of a 3 oz drink; a glass or wineglass is 2 oz, a liqueur glass 1 oz). At display
+time an imperial reader — or one who never chose — sees the ounces; a metric reader sees them at 30 ml
+to the ounce, in 2.5 ml steps (3/4 oz → 22.5 ml). Teaspoons, tablespoons and neutral units pass
+through unchanged in both.
 
 ### Spirit / ingredient filtering (JJ-014, JJ-016)
 A cocktail's spirit(s) and ingredient facets are derived from its recipe lines and their

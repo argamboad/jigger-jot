@@ -196,9 +196,9 @@ public record CocktailSourceView(string Name, int? Year, string? Url, string? At
 
 /// <summary>
 /// A recipe line as the reader sees it. Both forms are here on purpose: <paramref name="Amount"/> and
-/// <paramref name="Unit"/> are what the author wrote and never change, while
-/// <paramref name="Display"/> is that same amount rendered into the reader's preferred system
-/// (JJ-007, JJ-008). A client that wants to do its own formatting still can.
+/// <paramref name="Unit"/> are what is stored — ounces, for any volume — while
+/// <paramref name="Display"/> is that same amount read in the reader's preferred system
+/// (JJ-041, JJ-008). A client that wants to do its own formatting still can.
 /// </summary>
 /// <param name="IsRequired">False for a garnish, and optional lines never block makeability (JJ-009).</param>
 /// <param name="Availability">Whether the household can pour this line — <c>Have</c>,

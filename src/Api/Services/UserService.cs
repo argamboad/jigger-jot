@@ -42,8 +42,8 @@ public interface IUserService
     Task UpdateThemeAsync(Guid userId, string? theme, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Saves how the user wants recipe amounts shown. Null is a real value meaning "never chose",
-    /// which shows every recipe exactly as its book wrote it (JJ-007) rather than guessing.
+    /// Saves how the user wants recipe amounts shown. The endpoint only ever sends Metric or Imperial;
+    /// a null left in the column means "never chose" and reads as imperial (JJ-041).
     /// </summary>
     Task UpdatePreferredUnitSystemAsync(
         Guid userId, UnitSystem? unitSystem, CancellationToken cancellationToken = default);

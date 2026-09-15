@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Catalog;
 using JiggerJot.Core.Entities;
 using JiggerJot.Core.Repositories;
 
@@ -18,6 +19,10 @@ namespace JiggerJot.Api.Features.Catalog;
 /// Everything here validates against what THIS household can see. A recipe line is a reference, and a
 /// reference to a row you cannot see is how one household learns another exists.
 /// </para>
+/// <para>
+/// <b>Every volume is stored in ounces</b> (JJ-041), whatever the writer typed it in: the lines go
+/// through <see cref="BarMeasure.ToStored"/> before they are written, the same as the seeded catalog.
+/// </para>
 /// </summary>
 public class CocktailAuthoringHandler(
     IRepository<Cocktail> cocktails,
@@ -25,6 +30,7 @@ public class CocktailAuthoringHandler(
     IRepository<Unit> units,
     IRepository<GlassType> glasses,
     IRepository<Method> methods,
+    IUserRepository users,
     ICurrentTenant tenant)
 {
     private const int MaxNameLength = 200;
@@ -62,8 +68,21 @@ public class CocktailAuthoringHandler(
             return new AuthorCocktailResult(AuthorCocktailOutcome.UnknownIngredient);
 
         var wantedUnits = lines.Where(l => l.UnitId is not null).Select(l => l.UnitId!.Value).Distinct().ToList();
-        if (wantedUnits.Count > 0
-            && await units.Query().CountAsync(u => wantedUnits.Contains(u.Id), cancellationToken) != wantedUnits.Count)
+        var unitNames = await units.Query()
+            .Where(u => wantedUnits.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => u.Name, cancellationToken);
+        if (unitNames.Count != wantedUnits.Count)
+            return new AuthorCocktailResult(AuthorCocktailOutcome.InvalidLine);
+
+        // JJ-041: stored in ounces whatever it was written in. The whole recipe goes in at once,
+        // because a part only has a volume against the other parts.
+        var measured = BarMeasure.ToStored(
+            [.. lines.Select(l => new BarMeasure.Line(l.Amount, l.UnitId is { } unit ? unitNames[unit] : null))]);
+        var ounce = await units.Query()
+            .Where(u => u.Name == BarMeasure.Ounce)
+            .Select(u => (Guid?)u.Id)
+            .SingleOrDefaultAsync(cancellationToken);
+        if (ounce is null && measured.Any(m => m.Unit == BarMeasure.Ounce))
             return new AuthorCocktailResult(AuthorCocktailOutcome.InvalidLine);
 
         var cocktail = new Cocktail
@@ -84,8 +103,8 @@ public class CocktailAuthoringHandler(
             {
                 TenantId = tenantId,
                 IngredientId = l.IngredientId,
-                Amount = l.Amount,
-                UnitId = l.UnitId,
+                Amount = measured[position].Amount,
+                UnitId = measured[position].Unit == BarMeasure.Ounce ? ounce : l.UnitId,
                 IsRequired = l.IsRequired,
                 Role = l.Role,
                 // The array's order is the recipe's order.
@@ -104,18 +123,33 @@ public class CocktailAuthoringHandler(
     /// Everything the form may offer: the whole curated lookups, not the subset the catalog happens
     /// to use (JJ-022). See <see cref="AuthoringOptions"/> for why that differs from the filters.
     /// </summary>
-    public async Task<AuthoringOptions> OptionsAsync(CancellationToken cancellationToken) =>
-        new(
+    /// <param name="userId">Whose form it is. The units are the one list that depends on the reader:
+    /// their own volume unit first — ounces, or millilitres for a metric reader — then every unit that
+    /// is not a volume. Never a part, a period glass or another volume unit, because every volume is
+    /// stored in ounces and those would only be converted away on save (JJ-041).</param>
+    public async Task<AuthoringOptions> OptionsAsync(Guid? userId, CancellationToken cancellationToken)
+    {
+        var preference = userId is { } id
+            ? (await users.GetByIdAsync(id, cancellationToken))?.PreferredUnitSystem
+            : null;
+        var mine = BarMeasure.VolumeUnitFor(preference);
+
+        // Units otherwise keep their curated order rather than being alphabetised: it runs from the
+        // ones a person pours most to the ones they pour least, which is the order a picker wants.
+        var curated = await units.Query()
+            .Select(u => new FilterOption(u.Id, u.Name)).ToListAsync(cancellationToken);
+
+        return new(
             await glasses.Query().OrderBy(g => g.Name)
                 .Select(g => new FilterOption(g.Id, g.Name)).ToListAsync(cancellationToken),
             await methods.Query().OrderBy(m => m.Name)
                 .Select(m => new FilterOption(m.Id, m.Name)).ToListAsync(cancellationToken),
-            // Units keep their curated order rather than being alphabetised: it runs from the ones a
-            // person pours most to the ones they pour least, which is the order a picker wants.
-            await units.Query()
-                .Select(u => new FilterOption(u.Id, u.Name)).ToListAsync(cancellationToken),
+            [.. curated
+                .Where(u => BarMeasure.IsOfferedTo(preference, u.Name))
+                .OrderBy(u => u.Name == mine ? 0 : 1)],
             [.. Enum.GetNames<ServingType>()],
             [.. Enum.GetNames<RecipeRole>()]);
+    }
 
     /// <summary>
     /// Glass and method, when given. Both are optional by design (JJ-034) — "not stated" is a fact

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Time.Testing;
 using JiggerJot.Api.Features.Catalog;
 using JiggerJot.Api.Features.Inventory;
 using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Catalog;
 using JiggerJot.Core.Entities;
 using JiggerJot.Infrastructure.Persistence;
 using JiggerJot.Infrastructure.Persistence.Seed;
@@ -31,7 +32,28 @@ public sealed class CocktailAuthoringTests(PostgresFixture fixture) : PostgresTe
             new EfRepository<Unit>(db),
             new EfRepository<GlassType>(db),
             new EfRepository<Method>(db),
+            new UserRepository(db),
             new TestCurrentTenant { TenantId = tenantId });
+
+    private async Task<Guid> ReaderAsync(UnitSystem? preference)
+    {
+        await using var db = Fixture.CreateContext();
+        var user = new User { Email = $"writer-{Guid.CreateVersion7():N}@example.com", PreferredUnitSystem = preference };
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+        return user.Id;
+    }
+
+    private async Task<List<(decimal? Amount, string? Unit)>> StoredLinesAsync(Guid cocktailId)
+    {
+        await using var db = Fixture.CreateContext();
+        var rows = await db.CocktailIngredients.IgnoreQueryFilters()
+            .Where(l => l.CocktailId == cocktailId)
+            .OrderBy(l => l.DisplayOrder)
+            .Select(l => new { l.Amount, Unit = l.Unit == null ? null : l.Unit.Name })
+            .ToListAsync();
+        return [.. rows.Select(r => (r.Amount, r.Unit))];
+    }
 
     private async Task SeedAsync()
     {
@@ -396,7 +418,7 @@ public sealed class CocktailAuthoringTests(PostgresFixture fixture) : PostgresTe
         await SeedAsync();
 
         await using var db = Fixture.CreateContext(_household);
-        var options = await Handler(db, _household).OptionsAsync(default);
+        var options = await Handler(db, _household).OptionsAsync(null, default);
         var browse = new CocktailBrowseHandler(
             new EfRepository<Cocktail>(db),
             new EfRepository<TenantInventory>(db),
@@ -410,6 +432,66 @@ public sealed class CocktailAuthoringTests(PostgresFixture fixture) : PostgresTe
         Assert.NotEmpty(options.Units);
         Assert.Equal(Enum.GetNames<RecipeRole>().Length, options.Roles.Count);
         Assert.Equal(Enum.GetNames<ServingType>().Length, options.ServingTypes.Count);
+    }
+
+    [Fact]
+    public async Task WhatIWriteInMillilitres_IsStoredInOunces()
+    {
+        await SeedAsync();
+
+        // A metric writer's 30 ml of each: stored as the ounce every volume is kept in (JJ-041), so
+        // the recipe reads the same to an imperial member of the household as to its author.
+        var id = (await WriteAsync(await ANegroniOfMyOwnAsync())).Id!.Value;
+
+        Assert.All(await StoredLinesAsync(id), l => Assert.Equal("1 oz", $"{l.Amount:0.##} {l.Unit}"));
+    }
+
+    [Fact]
+    public async Task PartsInARecipeIWrite_BecomeTheirShareOfThreeOunces()
+    {
+        await SeedAsync();
+
+        var request = new AuthorCocktailRequest("Two To One", null, null, ServingType.FullDrink, null,
+        [
+            await LineAsync("London dry gin", 2m, BarMeasure.Part),
+            await LineAsync("Sweet vermouth", 1m, BarMeasure.Part, role: RecipeRole.Modifier),
+            await LineAsync("Angostura bitters", 2m, "dash", role: RecipeRole.Bitters),
+        ]);
+        var id = (await WriteAsync(request)).Id!.Value;
+
+        Assert.Equal(["2 oz", "1 oz", "2 dash"],
+                     [.. (await StoredLinesAsync(id)).Select(l => $"{l.Amount:0.##} {l.Unit}")]);
+    }
+
+    [Fact]
+    public async Task TheFormOffersEachWriterTheirOwnMeasure_AndNoneThatWouldBeConvertedAway()
+    {
+        await SeedAsync();
+
+        await using var db = Fixture.CreateContext(_household);
+        var imperial = (await Handler(db, _household).OptionsAsync(await ReaderAsync(UnitSystem.Imperial), default))
+            .Units.Select(u => u.Name).ToList();
+        var metric = (await Handler(db, _household).OptionsAsync(await ReaderAsync(UnitSystem.Metric), default))
+            .Units.Select(u => u.Name).ToList();
+        var neverChose = (await Handler(db, _household).OptionsAsync(await ReaderAsync(null), default))
+            .Units.Select(u => u.Name).ToList();
+
+        Assert.Contains(BarMeasure.Ounce, imperial);
+        Assert.DoesNotContain(BarMeasure.Millilitre, imperial);
+        Assert.Contains(BarMeasure.Millilitre, metric);
+        Assert.DoesNotContain(BarMeasure.Ounce, metric);
+        Assert.Equal(imperial, neverChose);
+
+        // Their own measure first, then the ones that never convert; never a part or a period glass.
+        foreach (var units in new[] { imperial, metric })
+        {
+            Assert.Equal(BarMeasure.VolumeUnitFor(units == metric ? UnitSystem.Metric : UnitSystem.Imperial), units[0]);
+            Assert.Contains("tsp", units);
+            Assert.Contains("dash", units);
+            Assert.DoesNotContain(BarMeasure.Part, units);
+            Assert.DoesNotContain("glass", units);
+            Assert.DoesNotContain("cl", units);
+        }
     }
 
     [Fact]

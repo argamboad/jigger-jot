@@ -55,12 +55,14 @@ public class SettingsLayoutTests : ComponentTestBase
             Assert.Equal("radio", radio.GetAttribute("type"));
             Assert.Equal("theme-choice", radio.GetAttribute("name"));
         }
-        foreach (var value in new[] { "AsWritten", "Metric", "Imperial" })
+        foreach (var value in new[] { "Imperial", "Metric" })
         {
             var radio = page.Find($"#unit-choice-{value}");
             Assert.Equal("radio", radio.GetAttribute("type"));
             Assert.Equal("unit-choice", radio.GetAttribute("name"));
         }
+        // JJ-041: every volume is stored in ounces, so there is no "as written" left to choose.
+        Assert.Empty(page.FindAll("#unit-choice-AsWritten"));
 
         // The header's select keeps `theme-switcher`; the page no longer renders a second one under
         // the same id, which was two identical ids on one page waiting for a journey to find them.
@@ -87,13 +89,27 @@ public class SettingsLayoutTests : ComponentTestBase
         Http.On(HttpMethod.Put, "/api/auth/unit-system", "{}");
 
         var cut = Render<UnitSwitcher>(ps => ps.Add(p => p.Segmented, true));
-        cut.WaitForAssertion(() => cut.Find("#unit-choice-Imperial"));
+        cut.WaitForAssertion(() => cut.Find("#unit-choice-Metric"));
 
-        await cut.Find("#unit-choice-Imperial").ChangeAsync(new() { Value = "Imperial" });
+        await cut.Find("#unit-choice-Metric").ChangeAsync(new() { Value = "Metric" });
 
         cut.WaitForAssertion(() => Assert.Contains(Http.Requests, r =>
             r.Method == HttpMethod.Put && r.RequestUri!.AbsolutePath == "/api/auth/unit-system"));
-        Assert.True(cut.Find("#unit-choice-Imperial").HasAttribute("checked"));
+        Assert.True(cut.Find("#unit-choice-Metric").HasAttribute("checked"));
+    }
+
+    [Fact]
+    public async Task AReaderWhoNeverChose_SeesImperialSelected()
+    {
+        await SignInAsync();
+        Http.On(HttpMethod.Get, "/api/auth/me", """{"preferredUnitSystem":null}""");
+
+        var cut = Render<UnitSwitcher>(ps => ps.Add(p => p.Segmented, true));
+
+        // Ounces are what is stored (JJ-041), so a reader with no preference is already reading them —
+        // the control says so rather than showing no choice at all.
+        cut.WaitForAssertion(() => Assert.True(cut.Find("#unit-choice-Imperial").HasAttribute("checked")));
+        Assert.False(cut.Find("#unit-choice-Metric").HasAttribute("checked"));
     }
 
     [Fact]

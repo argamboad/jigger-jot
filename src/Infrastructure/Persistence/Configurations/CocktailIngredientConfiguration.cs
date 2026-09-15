@@ -15,7 +15,8 @@ public class CocktailIngredientConfiguration : IEntityTypeConfiguration<Cocktail
         l.Property(x => x.Role).HasConversion<string>().HasMaxLength(20).IsRequired();
         l.Property(x => x.Notes).HasMaxLength(500);
 
-        // Enough scale for a third of an ounce and for "1.5" alike; stored as authored (JJ-007).
+        // Enough scale for a quarter ounce and for a teaspoon's "0.5" alike. Volumes arrive in ounces
+        // on the quarter marks (JJ-041); the scale also holds the 0.6667 of a pre-JJ-041 row.
         l.Property(x => x.Amount).HasPrecision(10, 4);
 
         // Cascade: lines have no meaning without their cocktail, and deleting a household's cocktail

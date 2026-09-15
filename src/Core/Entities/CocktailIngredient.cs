@@ -23,8 +23,9 @@ public class CocktailIngredient : ISharedOrTenantScoped
     public Ingredient? Ingredient { get; set; }
 
     /// <summary>
-    /// How much, as authored — never converted on the way in (JJ-007). Null for "to taste" and for
-    /// garnishes measured by eye.
+    /// How much. Every volume is in ounces on the quarter marks, converted on the way in by
+    /// <c>BarMeasure</c> (JJ-041); teaspoons and neutral units are as written. Null for "to taste" and
+    /// for garnishes measured by eye.
     /// </summary>
     public decimal? Amount { get; set; }
 

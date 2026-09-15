@@ -28,8 +28,9 @@ public record AuthorCocktailRequest(
 /// <summary>
 /// One line of that recipe.
 /// </summary>
-/// <param name="Amount">Stored exactly as written and converted only at display (JJ-007). Null is
-/// allowed and means the recipe does not measure it.</param>
+/// <param name="Amount">In the unit sent; a volume is stored in ounces on the quarter marks and a
+/// part as its share of a 3 oz drink (JJ-041). Null is allowed and means the recipe does not measure
+/// it.</param>
 /// <param name="UnitId">Null for a line whose amount needs no unit — "1 egg". A unit without an
 /// amount is refused, because the display formatter renders an amountless line as nothing at all and
 /// it would be a line its author could never see.</param>

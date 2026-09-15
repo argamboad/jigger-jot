@@ -80,7 +80,8 @@ Postman descriptions updated; app working.
 ### PREFS-2 — Measurement preference
 
 **Status: ✅ Implemented.** `PUT /api/auth/unit-system` and the `UnitSwitcher` beside language and
-theme in Settings.
+theme in Settings. **Amended by PREFS-3 (JJ-041):** two options, not three — "as written" is gone, and
+the scenario below that keeps it is history.
 
 **As a** reader of recipes
 **I want** to choose whether amounts show in millilitres or ounces
@@ -134,3 +135,102 @@ Scenario: The switcher shows where I actually am
 `tests/E2E.Tests/CocktailBrowseJourneyTests.cs` that reads the same Negroni before, during and after
 the choice (suite 38 → 39). The conversion arithmetic itself is tested in
 `tests/Core.Tests/AmountDisplayTests.cs`, from CKTL-3.
+
+---
+
+### PREFS-3 — Every amount in ounces or millilitres
+
+**Status: ✅ Implemented (2026-09-15, JJ-041).** Flows §12, §14 and §15.
+
+**As a** home bartender
+**I want** every recipe in ounces or millilitres
+**So that** I can pour it without working out what "2/3 part" or "1 wineglass" means
+
+**Context / notes.** Parts were JJ-007 working as designed: stored as authored, shown as authored. The
+maintainer found them hard to read, and 567 of the Savoy's 868 recipes are proportional, so the
+problem grows with the catalog. Every decision below was the maintainer's, one question at a time.
+
+**Stored in ounces, not converted at display only.** A display-time conversion was the first
+proposal; the maintainer chose storage, so there is one stored unit and two readings of it.
+`BarMeasure` in Core is the table and the rounding. The seeder and the authoring handler write
+through it, `AmountDisplay` reads through it. The seed JSON keeps the books' own amounts, so the
+extraction is still the record of what each book said.
+
+**The numbers.** An ounce is the bar's **30 ml**; the exact 29.5735 read 2 oz as 59 ml. Stored amounts
+sit on the **quarter-ounce marks**: the IBA's 20 and 25 ml both become 3/4 oz, because no modern bar
+book writes 5/6 oz. Metric reads them in 2.5 ml steps (3/4 oz → 22.5 ml). **Parts share a 3 oz
+drink**, and a recipe whose fractions do not add up to one keeps its ratio. **A glass and a
+wineglass are 2 oz, a liqueur glass 1 oz.** Teaspoons, tablespoons and the neutral units stay as
+written in both systems.
+
+**Two choices, imperial the default.** With everything in ounces, "as written" could only ever mean
+imperial, so it is gone. A null preference reads as imperial, `/api/auth/me` reports `Imperial` for
+it, and an empty `PUT` is a 400 like "Neutral".
+
+**The write form offers the writer's own measure.** `/api/cocktails/lookups` returns ounces or
+millilitres first, depending on the reader, then the units that never convert; never a part, a
+period glass or the other volumes, which would only be converted away on save. The handler still
+accepts any unit it is sent, and stores ounces.
+
+**Existing rows are converted by a one-off migration.** The seeder never rewrites a row it has
+already written, so an existing database would otherwise keep millilitres and parts. The migration
+is SQL, and SQL cannot call Core, so `OunceMigrationTests` runs the migration's own string over rows
+in the old shape and holds every line to `BarMeasure.ToStored`. It sets `app.rls_bypass` for its
+transaction; `CocktailIngredients` forces RLS, and without the bypass the update would match nothing
+and succeed. **It has no way down** — rounding throws information away.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: A 1930 recipe reads as a pour, never as parts
+  Given the Savoy's Absinthe Special, written as 2/3, 1/6 and 1/6
+  When I open it
+  Then it reads 2 oz, 1/2 oz and 1/2 oz — or 60, 15 and 15 ml
+  And no line says "part"
+
+Scenario: Whole parts are the same shape
+  Given the Hawaiian, written as 4 : 2 : 1 parts
+  Then it is stored as 1 3/4, 3/4 and 1/2 oz
+
+Scenario: Metric reads the stored ounce at the bar's 30 ml
+  Given a recipe stored as 1 oz
+  When a metric reader opens it
+  Then it reads 30 ml, and 3/4 oz reads 22.5 ml
+
+Scenario: A reader who never chose reads ounces
+  Given I have never chosen a measurement
+  Then recipes read in ounces
+  And Settings shows Imperial selected
+
+Scenario: There is no "as written"
+  When I open Settings
+  Then the measurement choices are Imperial and Metric
+  And clearing the preference is refused
+
+Scenario: Teaspoons and dashes stay as written
+  Then "4 tsp", "1/2 tbsp" and "2 dashes" read the same in both systems
+
+Scenario: What I write is stored in ounces
+  When I write a recipe in millilitres, or in parts
+  Then it is stored in ounces on the quarter marks
+
+Scenario: The form offers my own measure
+  When I open the write form as an imperial reader
+  Then the units start with oz and offer no ml, part or glass
+  And a metric reader is offered ml instead
+
+Scenario: Rows already in a database are converted
+  Given recipe lines stored in millilitres, glasses and parts
+  When the migration runs, once or twice
+  Then every line is what BarMeasure would have stored
+```
+
+**Tests.** `tests/Core.Tests/BarMeasureTests.cs` (new) and `AmountDisplayTests.cs` (rewritten);
+`tests/Api.Tests/Catalog/OunceMigrationTests.cs` (new); `CatalogSeederTests`, `CocktailDetailTests`,
+`CocktailAuthoringTests`, `CocktailAuthoringEndpointTests` and `UnitPreferenceTests` amended;
+`tests/Ui.Tests/SettingsLayoutTests.cs` amended; and the E2E journey in `CocktailBrowseJourneyTests`
+now reads ounces, switches to Metric and back (suite unchanged at 52).
+
+**Out of scope:** changing the extraction or `seed/build_cocktails.py`'s output (the file keeps what
+the books wrote); dropping the unused volume units from the lookup; converting a recipe's
+instructions prose, which sometimes names an amount in words.

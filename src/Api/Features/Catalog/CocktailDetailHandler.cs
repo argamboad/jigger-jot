@@ -8,11 +8,11 @@ namespace JiggerJot.Api.Features.Catalog;
 /// <summary>
 /// One cocktail, whole (CKTL-3).
 /// <para>
-/// <b>Amounts are converted here and stored nowhere.</b> The reader's <c>PreferredUnitSystem</c> picks
-/// the system, <see cref="AmountDisplay"/> does the arithmetic, and the authored amount and unit ride
-/// along untouched in the response (JJ-007, JJ-008). Converting on the server rather than in each
-/// client means one implementation to get right and one to test, which matters more once there is
-/// more than one front end.
+/// <b>Amounts are read here in the reader's system.</b> Every volume is stored in ounces (JJ-041); the
+/// reader's <c>PreferredUnitSystem</c> picks ounces or millilitres, <see cref="AmountDisplay"/> does the
+/// arithmetic, and the stored amount and unit ride along in the response (JJ-008). Converting on the
+/// server rather than in each client means one implementation to get right and one to test, which
+/// matters more once there is more than one front end.
 /// </para>
 /// <para>
 /// <b>It also says where the drink stands against the shelf</b> (CKTL-4, FEATURES §12): makeable,
@@ -58,8 +58,6 @@ public class CocktailDetailHandler(
                         Ingredient = l.Ingredient!.Name,
                         l.Amount,
                         UnitName = l.Unit!.Name,
-                        UnitSystem = (UnitSystem?)l.Unit!.System,
-                        l.Unit!.MillilitreFactor,
                         l.IsRequired,
                         l.Role,
                         l.Notes,
@@ -77,17 +75,13 @@ public class CocktailDetailHandler(
 
         var lines = cocktail.Lines.Select(l =>
         {
-            var unit = l.UnitName is null || l.UnitSystem is null
-                ? null
-                : new UnitView(l.UnitName, l.UnitSystem.Value, l.MillilitreFactor);
-
             var stands = Makeability.ForLine(l.IngredientId, available, substitutes);
 
             return new RecipeLineView(
                 l.Ingredient,
                 l.Amount,
                 l.UnitName,
-                AmountDisplay.Format(l.Amount, unit, preferred),
+                AmountDisplay.Format(l.Amount, l.UnitName, preferred),
                 l.IsRequired,
                 l.Role.ToString(),
                 l.Notes,
@@ -172,9 +166,8 @@ public class CocktailDetailHandler(
     }
 
     /// <summary>
-    /// The reader's preference, or null when they have never chosen — in which case the recipe is
-    /// shown exactly as its book wrote it, which is the honest default rather than a guess at what
-    /// they would have picked.
+    /// The reader's preference, or null when they have never chosen — in which case they read ounces,
+    /// which is what is stored (<see cref="BarMeasure.ReaderSystem"/>).
     /// </summary>
     /// <remarks>
     /// Through <see cref="IUserRepository"/> rather than the generic repository. User is a platform

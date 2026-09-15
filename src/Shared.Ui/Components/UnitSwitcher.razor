@@ -4,15 +4,15 @@
 
 @if (Segmented)
 {
-    @* BACKBAR-7 (page 16): three fixed options as segmented pills. "As written" is a real choice,
-       not an absence of one (PREFS-2), so it is the first pill rather than a blank. Same OnChange as
+    @* BACKBAR-7 (page 16): the two systems as segmented pills. Imperial first: every volume is stored
+       in ounces (JJ-041), so it is also where a reader who never chose already is. Same OnChange as
        the select, same PUT. *@
     <div class="segmented" role="radiogroup" aria-label="@Localizer["Units_Label"]" data-testid="unit-segmented">
-        @foreach (var (value, id, label) in Choices)
+        @foreach (var (value, label) in Choices)
         {
-            <input class="btn-check" type="radio" name="unit-choice" id="unit-choice-@id" autocomplete="off"
+            <input class="btn-check" type="radio" name="unit-choice" id="unit-choice-@value" autocomplete="off"
                    value="@value" checked="@(_current == value)" @onchange="OnChange" />
-            <label class="btn btn-outline-secondary btn-sm" for="unit-choice-@id">@Localizer[label]</label>
+            <label class="btn btn-outline-secondary btn-sm" for="unit-choice-@value">@Localizer[label]</label>
         }
     </div>
 }
@@ -20,11 +20,10 @@ else
 {
     <select class="form-select form-select-sm" value="@_current" data-testid="unit-switcher"
             @onchange="OnChange" aria-label="@Localizer["Units_Label"]">
-        @* "As written" is a real choice, not an absence of one. A reader who wants the 1930 book in the
-           book's own words picks it deliberately, and it is also where everyone starts. *@
-        <option value="">@Localizer["Units_AsWritten"]</option>
-        <option value="Metric">@Localizer["Units_Metric"]</option>
-        <option value="Imperial">@Localizer["Units_Imperial"]</option>
+        @foreach (var (value, label) in Choices)
+        {
+            <option value="@value">@Localizer[label]</option>
+        }
     </select>
 }
 @if (_syncFailed)
@@ -37,45 +36,44 @@ else
     /// <summary>Segmented pills (Settings) rather than a select. Same preference, same PUT.</summary>
     [Parameter] public bool Segmented { get; set; }
 
-    private static readonly (string Value, string Id, string Label)[] Choices =
+    private const string Imperial = "Imperial";
+
+    private static readonly (string Value, string Label)[] Choices =
     [
-        ("", "AsWritten", "Units_AsWritten"),
-        ("Metric", "Metric", "Units_Metric"),
-        ("Imperial", "Imperial", "Units_Imperial"),
+        (Imperial, "Units_Imperial"),
+        ("Metric", "Units_Metric"),
     ];
 
-    private string _current = string.Empty;
+    private string _current = Imperial;
     private bool _syncFailed;
 
     protected override async Task OnInitializedAsync()
     {
         // Unlike theme and language, this has no device-local copy to read back: nothing renders
         // differently until a recipe is opened, and the server does the conversion. So the server is
-        // the only source, and the select simply reflects it.
+        // the only source, and the control simply reflects it — the profile already says "Imperial"
+        // for a reader who never chose.
         try
         {
             var profile = await Http.GetFromJsonAsync<Profile>("/api/auth/me");
-            _current = profile?.PreferredUnitSystem ?? string.Empty;
+            _current = profile?.PreferredUnitSystem ?? Imperial;
         }
         catch
         {
-            // Leave it on "As written" — which is also what the server does with no preference, so a
-            // failed read shows the truth rather than a guess.
+            // Leave it on Imperial — which is also what the server shows a reader with no preference,
+            // so a failed read shows the truth rather than a guess.
         }
     }
 
     private async Task OnChange(ChangeEventArgs e)
     {
-        var chosen = e.Value?.ToString() ?? string.Empty;
+        var chosen = e.Value?.ToString() ?? Imperial;
         _current = chosen;
         _syncFailed = false;
 
         try
         {
-            // Empty string clears the preference back to "never chose". The endpoint reads null and
-            // empty the same way, so the option needs no special case on the way out.
-            var response = await Http.PutAsJsonAsync("/api/auth/unit-system",
-                new { unitSystem = string.IsNullOrEmpty(chosen) ? null : chosen });
+            var response = await Http.PutAsJsonAsync("/api/auth/unit-system", new { unitSystem = chosen });
             _syncFailed = !response.IsSuccessStatusCode;
         }
         catch

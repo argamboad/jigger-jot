@@ -14,9 +14,9 @@ public record UserProfileResponse
     public required string TenantName { get; init; }
 
     /// <summary>
-    /// How this reader wants recipe amounts shown: "Metric", "Imperial", or null for "never chose",
-    /// which shows every recipe as its book wrote it (JJ-007, JJ-008). Null is a real value here and
-    /// is not collapsed to a default — the unit switcher offers it as a choice.
+    /// How this reader reads recipe amounts: "Metric" or "Imperial". A reader who never chose is sent
+    /// "Imperial", because ounces are what is stored (JJ-041, JJ-008) — said here once rather than
+    /// known by every client.
     /// </summary>
     [JsonPropertyName("preferredUnitSystem")]
     public string? PreferredUnitSystem { get; init; }

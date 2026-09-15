@@ -90,17 +90,18 @@
     "purpose: bar spoons run 2.5-5 ml depending on the spoon, so rendering '1 barspoon' as '5 ml' would",
     "invent a precision the recipe never had.",
     "",
-    "'part' is what makes the proportional recipes of the older books expressible at all - a 1930 recipe",
-    "reading '2/3 gin, 1/3 vermouth' has no absolute volume anywhere in it, and forcing one would be a",
-    "fabrication. Stored as authored, displayed as authored.",
+    "'part' is what makes the proportional recipes of the older books expressible in the seed file - a",
+    "1930 recipe reading '2/3 gin, 1/3 vermouth' has no absolute volume anywhere in it.",
     "",
     "There is no unit for a whole item. '1 egg' is an amount with no unit, which the model already allows.",
     "",
-    "'glass', 'wineglass' and 'liqueur glass' are the period bar measures, and they are Neutral rather",
-    "than carrying the volumes the histories give them (a wineglass of 2 oz, a pony of 1). Those figures",
-    "are real but they are not what the 1930 book meant every time, and rendering '1 wineglass' as '59 ml'",
-    "would state a precision nobody wrote. 'gill' is different and does convert: it is a defined imperial",
-    "measure, and the book is British."
+    "'glass', 'wineglass' and 'liqueur glass' are the period bar measures the 1930 book uses.",
+    "",
+    "JJ-041: no recipe line is STORED in 'part', the glasses, or any volume but 'oz'. They stay here so",
+    "the seed file can name what the books wrote; BarMeasure in Core converts them on the way into the",
+    "table - parts as their share of a 3 oz drink, a glass or wineglass as 2 oz, a liqueur glass as 1 oz,",
+    "everything at the bar's 30 ml ounce and on the quarter marks. The factors below are the exact ones",
+    "and no recipe reads them; 'tsp' and 'tbsp' are never converted."
   ],
 
   "ingredientCategories": [
