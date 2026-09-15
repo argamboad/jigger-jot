@@ -159,6 +159,16 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         await Expect(Page.GetByTestId("cocktail-forked-from")).ToContainTextAsync("Negroni");
         await Expect(Page.GetByTestId("cocktail-source")).Not.ToBeVisibleAsync();
 
+        // AUTHORING-2: the copy is the household's to change — and editing it keeps it a copy of the Negroni.
+        await Page.GetByTestId("cocktail-edit").ClickAsync();
+        await Expect(Page.GetByTestId("new-name")).ToHaveValueAsync("Negroni", new() { Timeout = 30_000 });
+        await Page.GetByTestId("new-name").FillAsync("Our Negroni");
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("new-save").ClickAsync(),
+            r => r.Request.Method == "PUT" && r.Url.Contains("/api/cocktails/") && r.Status == 200);
+        await Expect(Page.GetByTestId("cocktail-name")).ToContainTextAsync("Our Negroni", new() { Timeout = 30_000 });
+        await Expect(Page.GetByTestId("cocktail-forked-from")).ToContainTextAsync("Negroni");
+
         // The original is still the book's, unchanged, right where it was.
         await Page.GotoAsync(originalUrl);
         await Expect(Page.GetByTestId("cocktail-source")).ToContainTextAsync("IBA", new() { Timeout = 30_000 });

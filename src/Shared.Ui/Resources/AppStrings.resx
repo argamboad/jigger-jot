@@ -405,6 +405,12 @@
   <data name="Marga_BottleNext" xml:space="preserve"><value>Next bottle</value></data>
   <data name="Cocktail_NoIngredientMatch" xml:space="preserve"><value>No bottle by that name. Add it on your shelf first.</value></data>
   <data name="Cocktail_OnShelf" xml:space="preserve"><value>on your shelf</value></data>
+  <data name="Cocktail_Edit" xml:space="preserve"><value>Edit cocktail</value></data>
+  <data name="Cocktail_EditSubtitle" xml:space="preserve"><value>Change what your household pours. What you can make follows the new lines.</value></data>
+  <data name="Cocktail_EditButton" xml:space="preserve"><value>Edit</value></data>
+  <data name="Cocktail_BackToRecipe" xml:space="preserve"><value>Back to the recipe</value></data>
+  <data name="Cocktail_ErrReadOnly" xml:space="preserve"><value>Recipes from the shared catalog can't be edited. Create your own version to change it.</value></data>
+  <data name="Cocktail_EditMissing" xml:space="preserve"><value>That cocktail isn't here to edit.</value></data>
   <data name="Cocktails_OneAway" xml:space="preserve"><value>One ingredient away</value></data>
   <data name="Cocktails_All" xml:space="preserve"><value>Everything</value></data>
   <data name="Cocktails_Missing" xml:space="preserve"><value>Add {0} and you can make this</value></data>

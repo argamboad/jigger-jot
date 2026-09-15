@@ -1271,6 +1271,77 @@
           ]
         },
         {
+          "name": "Cocktails — open one to edit",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails/{{cocktailId}}/draft",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cocktails",
+                "{{cocktailId}}",
+                "draft"
+              ]
+            },
+            "description": "A household's own cocktail — one it wrote or forked — shaped for the write form to edit (AUTHORING-2): `{ id, name, glassTypeId, methodId, servingType, instructions, lines: [{ ingredientId, amount, unitId, isRequired, role, notes }] }`, the same fields \"Cocktails — write one from scratch\" sends, so a client round-trips it unchanged.\n\n**Every volume is in the caller's writing unit** (JJ-041): stored ounces come back as millilitres (at the bar's 30 ml ounce) for a metric reader, with `unitId` pointing at ml; ounces otherwise. Saving it back unchanged stores exactly what was there. Teaspoons and neutral units come back as stored.\n\n**403 `catalog_read_only`** for a shared catalog recipe — visible to every household, so not a 404, but read-only (JJ-002): fork it to make your own. **404** for another household's cocktail (JJ-031). Set `{{cocktailId}}` to one written or forked by this household."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200, or 403 for a shared recipe\", () => pm.expect(pm.response.code).to.be.oneOf([200, 403]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cocktails — edit one",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"House Negroni, Stronger\",\n  \"glassTypeId\": \"{{glassTypeId}}\",\n  \"methodId\": \"{{methodId}}\",\n  \"servingType\": \"FullDrink\",\n  \"instructions\": \"Stir over ice, longer than you think.\",\n  \"lines\": [\n    {\n      \"ingredientId\": \"{{ingredientId}}\",\n      \"amount\": 1.5,\n      \"unitId\": \"{{unitId}}\",\n      \"isRequired\": true,\n      \"role\": \"Base\",\n      \"notes\": null\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails/{{cocktailId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cocktails",
+                "{{cocktailId}}"
+              ]
+            },
+            "description": "Edits a household's own cocktail — one it wrote or forked (AUTHORING-2, FEATURES §13, §14). **200** with `{ id }`.\n\n**The same body as \"Cocktails — write one from scratch\", held to the same rules** and answering with the same 400 codes (`invalid_name`, `no_lines`, `unknown_ingredient`, `invalid_line`, `unknown_lookup`); a refused edit writes nothing. Every field is replaced and **every line replaced**, in the array's order, with volumes stored in ounces whatever unit they were sent in (JJ-041).\n\n**A fork stays a fork:** `forkedFrom` still names the recipe it was based on, and the original is untouched (JJ-013). **403 `catalog_read_only`** for a shared catalog recipe (JJ-002) — fork it first; **404** for another household's (JJ-031).\n\n**Last save wins.** There is no lock and no version check, deliberately: a household editing its own recipe book. Makeability and the filters follow the new lines immediately, because both are derived at query time (JJ-003)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200, or 403 for a shared recipe\", () => pm.expect(pm.response.code).to.be.oneOf([200, 403]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Cocktails — write one from scratch",
           "request": {
             "method": "POST",

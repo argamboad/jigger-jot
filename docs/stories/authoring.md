@@ -4,8 +4,7 @@
 > method are optional), **JJ-009**/**JJ-010** (optional lines and roles), **JJ-003**/**JJ-014**
 > (makeability and filtering are derived, never stored) and **JJ-031** (nothing stamps these tables).
 > Stories use Gherkin acceptance criteria.
-> **Status: ✅ COMPLETE for MVP** — AUTHORING-1, AUTHORING-3 and AUTHORING-4 shipped. `AUTHORING-2`
-> (editing) is the open follow-on.
+> **Status: ✅ COMPLETE** — AUTHORING-1 through AUTHORING-4 shipped, editing included.
 
 **Epic key:** `AUTHORING`
 
@@ -251,3 +250,82 @@ Scenario: A screen reader can use it as a combobox
 
 **Out of scope:** adding a new bottle from inside the picker (the shelf does that, INV-2); showing
 substitutes in the list.
+
+---
+
+### AUTHORING-2 — Edit a cocktail, including a fork
+
+**Status: ✅ Implemented (2026-09-15).** `GET /api/cocktails/{id}/draft`, `PUT /api/cocktails/{id}`, an
+**Edit** button on the recipe page and `/cocktails/{id}/edit`. Implements **FEATURES §13** ("the copy is
+fully independent and editable") and **§14**.
+
+**As a** member of a household
+**I want** to change a cocktail we wrote or forked
+**So that** our recipe book says what we actually pour, and a fork can finally become ours
+
+**Context / notes.** AUTHORING-1 left two things to decide: what happens to a recipe someone else in
+the household is reading, and how a fork becomes editable. Decided for the slice, and said in the PR
+rather than invented quietly:
+
+- **Only a household's own cocktails are editable** — one it wrote, or one it forked. **The shared
+  catalog is read-only** (JJ-002): a book's recipe is visible to every household, so editing one is a
+  **403 `catalog_read_only`**, not a 404, and the page offers *Create my own version* instead of Edit.
+  Another household's cocktail is a **404**, as everywhere (JJ-031).
+- **A fork stays a fork.** `ForkedFromCocktailId` is kept, so an edited fork still says "Based on …",
+  and the original is untouched (JJ-013).
+- **Last save wins.** No lock and no version check: two people editing one household's recipe at the
+  same moment is rare, and when it happens the second save is the recipe. Someone reading it sees the
+  new version on their next load.
+- **Held to exactly the rules of writing.** One `PrepareAsync` behind both `CreateAsync` and
+  `UpdateAsync`, and one refusal mapping behind both endpoints, so an edit can never pass a line a new
+  cocktail would refuse. A refused edit writes nothing.
+- **Every line replaced.** The form sends the whole recipe in order and nothing references a line's
+  id, so the old rows go as orphans of a required relationship in the same save.
+- **The form opens in the writer's units.** The draft returns stored ounces as millilitres for a metric
+  reader (`BarMeasure.ForWriter`, JJ-041), so what the form shows is what that person would type, and
+  saving it unchanged stores exactly what was there.
+- **One form, two routes.** `/cocktails/new` and `/cocktails/{id}/edit` are the same `WriteCocktail`
+  page; editing fills it from the draft, titles it *Edit cocktail*, sends `PUT` and returns to the
+  recipe. Lines loaded from the draft count as set by hand, so the role suggestion (AUTHORING-3) never
+  overwrites a role the recipe already has.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: Editing a cocktail I wrote
+  When I open it and choose Edit
+  Then the form opens with its name, instructions, glass, method and every line
+  And when I change them and save
+  Then the recipe says what I saved, lines in the new order
+
+Scenario: Editing a fork
+  Given I forked the Negroni
+  When I edit my copy
+  Then it still says "Based on Negroni"
+  And the book's Negroni is unchanged
+
+Scenario: The shared catalog cannot be edited
+  Given a recipe from a book
+  Then there is no Edit button, only Create my own version
+  And an edit sent anyway is refused with catalog_read_only
+
+Scenario: Another household's cocktail is not found
+
+Scenario: An edit is held to the rules of writing
+  When I save with no name, no lines, or a unit with no amount
+  Then it is refused and nothing changes
+
+Scenario: The form opens in my units
+  Given a line stored as 1 1/2 oz
+  When a metric member edits it
+  Then the amount reads 45 and the unit ml
+
+Scenario: The last save wins
+```
+
+**Tests.** `tests/Api.Tests/Catalog/CocktailEditingTests.cs` (new, seven); `BarMeasureTests` gains the
+writer's-units pair; `tests/Ui.Tests/WriteEditTests.cs` (new); and the fork journey in
+`CocktailBrowseJourneyTests` now edits its copy.
+
+**Out of scope:** deleting a household cocktail (unasked-for); a history of edits; any merge of two
+people's simultaneous edits.

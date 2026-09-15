@@ -139,6 +139,13 @@ else if (_recipe is not null)
                    well want a second version. A primary pill at the foot of the ingredient column on
                    desktop; a fixed bar above the tab bar on a phone (page 10). Hidden in print. *@
                 <div class="recipe-fork">
+                    @* AUTHORING-2: only a household's own cocktail — written or forked — can be edited. A
+                       book's recipe is read-only (JJ-002); the fork button beside it is how to change it. *@
+                    @if (_recipe.IsOwn)
+                    {
+                        <a class="btn btn-outline-secondary" href="/cocktails/@_recipe.Id/edit"
+                           data-testid="cocktail-edit">@Localizer["Cocktail_EditButton"]</a>
+                    }
                     <button class="btn btn-primary" data-testid="cocktail-fork"
                             disabled="@_forking" @onclick="ForkAsync">@Localizer["Cocktail_Fork"]</button>
                     @if (_forkError is not null)

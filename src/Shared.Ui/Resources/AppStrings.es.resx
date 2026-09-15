@@ -405,6 +405,12 @@
   <data name="Marga_BottleNext" xml:space="preserve"><value>Botella siguiente</value></data>
   <data name="Cocktail_NoIngredientMatch" xml:space="preserve"><value>No hay ninguna botella con ese nombre. Agrégala primero en tu estantería.</value></data>
   <data name="Cocktail_OnShelf" xml:space="preserve"><value>en tu estantería</value></data>
+  <data name="Cocktail_Edit" xml:space="preserve"><value>Editar cóctel</value></data>
+  <data name="Cocktail_EditSubtitle" xml:space="preserve"><value>Cambia lo que sirve tu casa. Lo que puedes preparar se actualiza con las líneas nuevas.</value></data>
+  <data name="Cocktail_EditButton" xml:space="preserve"><value>Editar</value></data>
+  <data name="Cocktail_BackToRecipe" xml:space="preserve"><value>Volver a la receta</value></data>
+  <data name="Cocktail_ErrReadOnly" xml:space="preserve"><value>Las recetas del catálogo compartido no se pueden editar. Crea tu propia versión para cambiarla.</value></data>
+  <data name="Cocktail_EditMissing" xml:space="preserve"><value>Ese cóctel no está aquí para editarlo.</value></data>
   <data name="Cocktails_OneAway" xml:space="preserve"><value>A un ingrediente</value></data>
   <data name="Cocktails_All" xml:space="preserve"><value>Todo</value></data>
   <data name="Cocktails_Missing" xml:space="preserve"><value>Añade {0} y ya puedes prepararlo</value></data>
