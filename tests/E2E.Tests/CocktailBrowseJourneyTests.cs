@@ -114,7 +114,10 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         await Page.RunAndWaitForResponseAsync(
             () => Page.GetByTestId("cocktail-filter-method").SelectOptionAsync(new SelectOptionValue { Index = 1 }),
             r => r.Url.Contains("method=") && r.Status == 200);
-        await Expect(Page.GetByTestId("cocktail-filters-toggle")).ToContainTextAsync("(2)");
+        // The button carries the number of active filters. BACKBAR-4 changed its shape from "(2)" to
+        // "· 2", the chips' own "· N", and this line still asked for the parentheses; it asks for the
+        // count in the current shape now.
+        await Expect(Page.GetByTestId("cocktail-filters-toggle")).ToContainTextAsync("· 2");
 
         // And clearing puts the whole catalog back, which is the half a one-way test never notices.
         await Page.GetByTestId("cocktail-filter-clear").ClickAsync();
