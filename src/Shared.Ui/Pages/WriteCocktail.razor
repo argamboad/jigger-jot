@@ -20,6 +20,19 @@
 }
 else
 {
+    @* MARGA-6 (JJ-040): the page's voice, over the bottles this household ticked — the inventory the
+       form already loads for its ingredient picker, so no request of her own. Her promise ("I will tell
+       you whether you can pour it") is kept by the recipe page, which now speaks in every case. Absent
+       when the shelf could not be read, rather than claiming a count of nothing. *@
+    @if (_shelfKnown)
+    {
+        <div class="write-marga mb-4" data-testid="new-marga">
+            <MargaSays Tone="MargaTone.Card" Size="72">@(ShelfBottles > 0
+                ? Localizer["Marga_WriteShelf", ShelfBottles]
+                : Localizer["Marga_WriteEmpty"])</MargaSays>
+        </div>
+    }
+
     @* BACKBAR-6 (handoff page 15): two columns, not one long form — the drink on the left, its
        ingredients on the right; one column on a phone with Save as a bar above the tab bar. No
        cards. Errors attach to the field they belong to; new-error keeps its place above Save for
@@ -188,6 +201,12 @@ else
     private OptionsView _options = new([], [], [], [], []);
     private List<ShelfItemView> _ingredients = [];
 
+    // MARGA-6: whether the inventory actually came back, so a failed read does not become "nothing on
+    // your shelf yet" — the SHELL/MARGA-5 lesson of a line she has nothing behind.
+    private bool _shelfKnown;
+
+    private int ShelfBottles => _ingredients.Count(i => i.IsAvailable);
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -197,6 +216,7 @@ else
             _options = await Http.GetFromJsonAsync<OptionsView>("/api/cocktails/lookups")
                        ?? new OptionsView([], [], [], [], []);
             _ingredients = await Http.GetFromJsonAsync<List<ShelfItemView>>("/api/inventory") ?? [];
+            _shelfKnown = true;
         }
         catch (Exception)
         {

@@ -1637,23 +1637,42 @@ And she does not repeat the count the footer already shows
 3. Untick everything. **Expected:** she switches to suggesting where to start — the one-away set is
    empty with nothing ticked, so there is nothing to rank.
 
-### QA-CHROME-11 — She takes the count only where the count is the answer 🟠 (Web)
-**Walkthrough:** open the catalog under **I can make now**. **Expected:** she gives the number in her
-voice, in place of the plain "N cocktails". Turn the filter off. **Expected:** plain text, no Marga —
-"969 cocktails" is a fact about the list, and a character who narrates every number stops being worth
-reading.
+### QA-CHROME-11 — She reads the catalog's count against the shelf 🟠 (Web) — MARGA-5, amended by MARGA-6
+**Walkthrough:** open the catalog under **I can make now** and note the number. Switch to
+**Everything**. Then open Filters and type "gin" in Made with. Then switch to **One ingredient away**.
+**Expected:** under I can make now she gives the number in her voice. Under Everything she says "N
+cocktails here, and you can pour M of them tonight", and **M is the number I can make now showed**.
+With the gin filter both numbers drop, and M is what I can make now shows with the same filter on.
+A household that can pour none of them hears "none you can pour yet", never "0". Under One ingredient
+away the count is plain "N cocktails" — her panel below already speaks there, and two of her on one
+screen is one too many.
 
 ### QA-CHROME-12 — She can say yes 🟢 (Web)
 **Walkthrough:** open a recipe you **can** pour, then one you are **one bottle** short of, then one
-that is further away. **Expected:** "you can pour this now" on the first, the missing bottle named on
-the second, and **nothing from her** on the third — the badge has already said so, and piling on is
-not her job. **Expected:** where a substitution is in play, that outranks all three, since it is the
-reason the drink qualified at all.
+**two or three** bottles short, then one **four or more** short. **Expected:** "you can pour this now"
+on the first; the missing bottle named on the second; **every missing required bottle named** on the
+third ("You are 2 bottles short: Campari and Sweet vermouth") and never an optional garnish; on the
+fourth the count and the first two. Each name matches a line marked "not on your shelf". **Expected:**
+where a substitution is in play, that outranks all of these, since it is the reason the drink
+qualified at all.
 
 ### QA-CHROME-13 — She says nothing rather than something empty 🟢 (Web)
 **Walkthrough:** stop the API, then reload the shelf. **Expected:** she is absent — not a blank
 speech bubble, and not a confident line she has nothing behind. **Expected:** the footer's bottle
 count is unaffected; it is a fact the screen owns rather than something she supplies.
+
+### QA-CHROME-26 — She offers the fix on an empty search, and counts the shelf on the write form 🟢 (Web) — MARGA-6
+**Walkthrough**
+1. On the **shelf**, search for "yuzu". **Expected:** a small inline Marga (32px, no label) says
+   "Nothing called “yuzu” on my list. If you have it, add it below.", with **Add your own** under it;
+   her line at the top of the shelf is still the only large one.
+2. Turn on **Only what I have** and search for a bottle you have NOT ticked. **Expected:** the plain
+   "No ingredients match that." and **no Marga** — the bottle is on the list, just hidden.
+3. Open **Write a cocktail**. **Expected:** she says your shelf has N bottles to write with, and N is
+   the "N on the shelf" figure the shelf footer shows. With a household that has ticked nothing she
+   says to write it anyway.
+4. Switch to Español and repeat 1 and 3. **Expected:** her lines read as written Spanish, and the
+   term and the number survive.
 
 ### QA-CHROME-04 — The destinations follow the width 🟠 (Web) ⚙️ Automated in CI
 **Walkthrough**
@@ -3020,7 +3039,7 @@ is the product. Cited decisions are `JJ-nnn` in `docs/DECISIONS.md`.
 | Forking (FORK-1) | **MINE-01** (⚙️ E2E) + MINE-02 | `POST /api/cocktails/{id}/fork` — a SNAPSHOT copy, never a reference (JJ-002, JJ-013): a new tenant-owned `Cocktail` plus copies of every line, `TenantId` set by hand on both tables. The source credit is deliberately NOT copied; provenance rides on `ForkedFromCocktailId`, which is not a foreign key, so deleting the original leaves the copy standing. |
 | Authoring (AUTHORING-1) | **MINE-03/04** (⚙️ E2E) + MINE-05/06 | `POST /api/cocktails`, `GET /api/cocktails/lookups`. **Two lookup endpoints that must not be merged:** `/filters` is catalog-derived so no filter is a dead end, `/lookups` is the whole curated set (JJ-022) so a form can reach a glass no recipe uses. Refuses a lineless recipe, a unit with no amount, and an ingredient the household cannot see. Request enums cross the wire BY NAME. |
 | Onboarding wizard (ONBOARD-1) | **START-01/02/03/05** (⚙️ E2E) + START-04/06/07 | `GET /api/inventory` + `GET /api/cocktails/starters?limit=12` + `PUT /api/inventory`. Offered, never forced: **no redirect and no dismissal flag**, so there is no "has this household been onboarded" fact to store — `Tenant` is the platform's. Members joining by invitation skip it for free, because they already have a shelf (FEATURES §7, JJ-021). |
-| Marga (MARGA-1/2/3/5) | CHROME-01/02/03/**10/11/12/13**, MAKE-08/09/10 + `Ui.Tests` (`MargaPresenceTests`) | none of her own. **She is a drawn character, not an assistant**: every line is a localized resource string with real data in its placeholders, picked whole rather than assembled, from queries that already exist. Her component takes a FINISHED sentence — it cannot build one, pick one or fetch anything. She is `alt=""`/`aria-hidden`. |
+| Marga (MARGA-1/2/3/5/6) | CHROME-01/02/03/**10/11/12/13/26**, MAKE-08/09/10 + `Ui.Tests` (`MargaPresenceTests`, `MargaEverywhereTests`) | none of her own. **She is a drawn character, not an assistant**: every line is a localized resource string with real data in its placeholders, picked whole rather than assembled, from queries that already exist. Her component takes a FINISHED sentence — it cannot build one, pick one or fetch anything. She is `alt=""`/`aria-hidden`. |
 | The responsive shell (SHELL-1) | **CHROME-04/06** (⚙️ E2E `ShellJourneyTests`) + CHROME-05 | none. ONE element repositioned by CSS, never a second copy hidden at one width — two `nav-shelf` in the DOM fails every journey that clicks it. The current tab is weight plus a drawn indicator, never colour alone, plus `aria-current`. |
 | The boot state (SHELL-2) | CHROME-07/08, and the native legs of §12/§13 | none — it renders before the app exists. It lands in **two** `index.html` files (`NATIVE_PARITY.md`), held by a CI gate; the WebView hosts sweep instead of filling, having no download to measure. A second gate caps the illustration's size, since this is the one place it is fetched before the app is usable. |
 | Marga in the emails (MARGA-4) | **MAIL-05/06/07** + `Api.Tests` (`MargaInEmailTests`) | none — `BrandedEmail` renders her the way it renders the logo: a CID inline image, the one approach Gmail and Outlook both show (they block data-URIs). She is on the three emails a person ASKED for and deliberately not on the notification wrapper, which carries failed payments and security alerts. Attached only when shown, so her 19 KB never rides along unused. Her line is one whole resource string from `EmailStrings.resx`, same contract as in the app. |
@@ -3193,6 +3212,7 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-CHROME-23 | Web | | | | | Owner and member accounts; 1280 and 390 wide |
 | QA-CHROME-24 | Web | | | | | Billing on; a staff account; a provider sign-in |
 | QA-CHROME-25 | Web | | | | | Both themes; 1440, 768 and 390 wide; OS reduce-motion on |
+| QA-CHROME-26 | Web | | | | | A stocked household and an empty one; both languages |
 
 **§14a adversarial / tenant-isolation (QA-ADV-*).** All rows are **Not-run** (blank) until executed.
 The formerly pre-seeded **Blocked (known defect)** rows were reset when the v3 remediation completed

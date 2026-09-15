@@ -387,6 +387,15 @@
   <data name="Cocktails_Using" xml:space="preserve"><value>Using {0} in place of {1}</value></data>
   <data name="Marga_Swap" xml:space="preserve"><value>No {0}? {1}&apos;s fine — that&apos;s what I&apos;d pour.</value></data>
   <data name="Marga_LoginLine" xml:space="preserve"><value>Tell me what&apos;s on your shelf and I&apos;ll tell you what you can pour tonight.</value></data>
+  <data name="Marga_BrowseCount" xml:space="preserve"><value>{0} cocktails here, and you can pour {1} of them tonight.</value></data>
+  <data name="Marga_BrowseCountNone" xml:space="preserve"><value>{0} cocktails here, and none you can pour yet.</value></data>
+  <data name="Marga_RecipeShort" xml:space="preserve"><value>You are {0} bottles short: {1}.</value></data>
+  <data name="Marga_RecipeFarShort" xml:space="preserve"><value>You are {0} bottles short. {1} and {2} would get you started.</value></data>
+  <data name="Marga_ListTwo" xml:space="preserve"><value>{0} and {1}</value></data>
+  <data name="Marga_ListThree" xml:space="preserve"><value>{0}, {1} and {2}</value></data>
+  <data name="Marga_ShelfNoMatch" xml:space="preserve"><value>Nothing called “{0}” on my list. If you have it, add it below.</value></data>
+  <data name="Marga_WriteShelf" xml:space="preserve"><value>Your shelf has {0} bottles to write with. Save it and I will tell you whether you can pour it.</value></data>
+  <data name="Marga_WriteEmpty" xml:space="preserve"><value>Nothing on your shelf yet. Write it anyway — once it is saved I will tell you what is missing.</value></data>
   <data name="Cocktails_OneAway" xml:space="preserve"><value>One ingredient away</value></data>
   <data name="Cocktails_All" xml:space="preserve"><value>Everything</value></data>
   <data name="Cocktails_Missing" xml:space="preserve"><value>Add {0} and you can make this</value></data>

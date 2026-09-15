@@ -2004,3 +2004,34 @@ with the sweep becoming **BACKBAR-9**. CLAUDE.md's golden rule 8 gains the sente
 re-argued: the UI is the app's; the foundation is the platform's.
 
 *Decided 2026-09-13; corrected the same day before publication.*
+
+**JJ-040 — Marga speaks on every app screen that has something true to say; the platform's screens
+stay without her. (2026-09-14; amends MARGA-5's placement rule)**
+MARGA-5 settled where she speaks with a rule — "where a number needs interpreting, and quiet where
+the screen already says it plainly, one page-level Marga per screen" — and used it to keep her off a
+recipe more than one bottle away, the plain catalog, and the write form. The maintainer asked for
+more of her on the app's own screens and chose the four places, keeping the platform screens
+(Settings, Household, Billing, Admin) as they are.
+
+*Decision.*
+1. **She speaks on:** a recipe two or more bottles short (she names the missing required lines — all
+   of them up to three, the count and the first two past that); the catalog under Everything and under
+   any filter or search (the total read against how many of those the shelf can pour); a shelf search
+   that matches no bottle on the list (a 32px inline line offering to add it); and the write form (the
+   bottles on the shelf to write with).
+2. **The contract does not move.** Every sentence is one whole resource string with real data in its
+   placeholders — lines the API marked missing, a count the API returned, the typed term, the ticked
+   bottles. No model, no generated text, nothing she decides. Lists of two or three names use their
+   own whole patterns ("{0} and {1}") rather than a joined fragment.
+3. **One page-level Marga per screen still holds.** Under One ingredient away the count stays plain,
+   because her panel already speaks there; the shelf's no-match line is inline, beside the page-level
+   line at the top.
+4. **The browse count costs one request, asked the same question.** The pourable figure is the
+   makeable filter's own total for the same search and filters (`pageSize=1`), behind the same request
+   ticket as the list; if it fails the plain count stands.
+
+*Consequences.* MARGA-6 in `docs/stories/marga.md`; QA-CHROME-11 and -12 amended and QA-CHROME-26
+added. MARGA-5's "where she deliberately does not go" now reads as history: the plain browse, the
+far-away recipe and the authoring form are hers; every platform screen still is not.
+
+*Decided 2026-09-14.*

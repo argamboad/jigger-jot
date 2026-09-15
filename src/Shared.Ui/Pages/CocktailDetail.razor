@@ -256,7 +256,7 @@ else if (_recipe is not null)
         : [.. _recipe.Lines.Where(l => l.Availability == "Substitute" && l.SubstituteWith is not null)];
 
     /// <summary>
-    /// What she says about this recipe, or null when there is nothing worth saying (MARGA-5).
+    /// What she says about this recipe, or null when there is nothing worth saying (MARGA-5, MARGA-6).
     /// </summary>
     /// <remarks>
     /// A substitution outranks everything: it is the reason the drink qualified at all, and leaving
@@ -264,8 +264,12 @@ else if (_recipe is not null)
     /// that it follows the same status the badge does — so the two can never disagree, because they
     /// read the one value the API derived.
     /// <para>
-    /// She says nothing at all about a drink that is more than one bottle away. The badge has already
-    /// said so plainly, and a character adding "you cannot make this" to it is piling on.
+    /// MARGA-6 (JJ-040): a drink more than one bottle away used to get nothing from her, on the grounds
+    /// that the badge had said so. The badge says THAT it is out of reach; she now says WHAT — every
+    /// missing required bottle up to three, and past three the count and the first two, since a longer
+    /// list is a shopping list nobody asked for. The names are the lines the API marked missing,
+    /// required only (JJ-009), in recipe order. Two and three names use their own whole patterns, so the
+    /// "and" is the resource's word, not the code's.
     /// </para>
     /// </remarks>
     private string? RecipeLine
@@ -275,18 +279,26 @@ else if (_recipe is not null)
             if (Swaps.Count > 0)
                 return string.Join(" ", Swaps.Select(l => Localizer["Marga_Swap", l.Ingredient, l.SubstituteWith!].Value));
 
+            var missing = MissingLines;
             return _recipe?.Makeability switch
             {
                 "Makeable" => Localizer["Marga_RecipeMakeable"].Value,
-                "AlmostMakeable" when MissingLine is { } missing => Localizer["Marga_RecipeOneAway", missing].Value,
+                "AlmostMakeable" when missing.Count > 0 => Localizer["Marga_RecipeOneAway", missing[0]].Value,
+                "NotMakeable" when missing.Count == 2 =>
+                    Localizer["Marga_RecipeShort", 2, Localizer["Marga_ListTwo", missing[0], missing[1]].Value].Value,
+                "NotMakeable" when missing.Count == 3 =>
+                    Localizer["Marga_RecipeShort", 3, Localizer["Marga_ListThree", missing[0], missing[1], missing[2]].Value].Value,
+                "NotMakeable" when missing.Count > 3 =>
+                    Localizer["Marga_RecipeFarShort", missing.Count, missing[0], missing[1]].Value,
                 _ => null,
             };
         }
     }
 
-    /// <summary>The single line standing between this household and this drink, when there is one.</summary>
-    private string? MissingLine => _recipe?.Lines
-        .FirstOrDefault(l => l.IsRequired && l.Availability == "Missing")?.Ingredient;
+    /// <summary>The required lines standing between this household and this drink, in recipe order.</summary>
+    private List<string> MissingLines => _recipe is null
+        ? []
+        : [.. _recipe.Lines.Where(l => l.IsRequired && l.Availability == "Missing").Select(l => l.Ingredient)];
 
     /// <summary>
     /// The wording and the colour both key off the status the API derived. Switching on it here

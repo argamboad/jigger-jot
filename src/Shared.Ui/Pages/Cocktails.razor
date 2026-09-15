@@ -200,10 +200,12 @@ else if (_page is null || _page.Total == 0)
 }
 else
 {
-    @* MARGA-5, and the one place she replaces a number rather than adding to one: under the makeable
-       filter the count IS the answer to the product's question, so she says it. Only there — under a
-       plain browse or a filter, "N cocktails" is a fact about the list and nobody needs a character
-       to read it out. *@
+    @* MARGA-5: under the makeable filter the count IS the answer to the product's question, so she
+       says it. MARGA-6 (JJ-040): under Everything and under any search or filter she reads the total
+       against the shelf — how many of THESE you can pour, from the makeable filter's own total for the
+       same query. Under One ingredient away the count stays plain: her panel below speaks there, and
+       one page-level Marga per screen still holds. If the pourable count failed, the plain line
+       stands. *@
     @* `cocktail-count` stays on whichever element carries the number — her sentence here, the plain
        line otherwise. The id means "where the count is", and the journey that follows the home
        screen's button reads it to check the two agree. Moving the number without moving the id is
@@ -212,6 +214,14 @@ else
     {
         <div class="catalog-marga mb-3" data-testid="cocktail-count">
             <MargaSays Tone="MargaTone.Card" Size="72">@Localizer["Marga_MakeableCount", _page.Total]</MargaSays>
+        </div>
+    }
+    else if (!_almostOnly && _pourable is { } pourable)
+    {
+        <div class="catalog-marga mb-3" data-testid="cocktail-count">
+            <MargaSays Tone="MargaTone.Card" Size="72">@(pourable > 0
+                ? Localizer["Marga_BrowseCount", _page.Total, pourable]
+                : Localizer["Marga_BrowseCountNone", _page.Total])</MargaSays>
         </div>
     }
     else
@@ -336,6 +346,28 @@ else
     // reach, this says where to start when nothing is. Only one of the two can ever have anything to
     // say, because one needs a non-empty one-away list and the other needs an empty one.
     private StarterView? _starter;
+
+    // MARGA-6 (JJ-040). How many of the listed drinks this shelf can pour, for her line under
+    // Everything and under any search or filter. Null when it was not asked (the makeable and one-away
+    // scopes have their own voice) or when asking failed — then the plain total stands without her.
+    private int? _pourable;
+
+    /// <summary>
+    /// The search and the four filters as a query suffix — shared by the list and the count her line
+    /// quotes, so the two can never be asked different questions (MARGA-6).
+    /// </summary>
+    private string FilterQuery()
+    {
+        var query = string.Empty;
+        if (!string.IsNullOrWhiteSpace(_search))
+            query += $"&search={Uri.EscapeDataString(_search.Trim())}";
+        if (!string.IsNullOrWhiteSpace(_ingredient))
+            query += $"&ingredient={Uri.EscapeDataString(_ingredient.Trim())}";
+        if (_method.Length > 0) query += $"&method={_method}";
+        if (_glass.Length > 0) query += $"&glass={_glass}";
+        if (_serving.Length > 0) query += $"&serving={_serving}";
+        return query;
+    }
 
     /// <summary>How many filters are narrowing the list, so the button can say so while closed.</summary>
     private int ActiveFilters =>
@@ -483,17 +515,31 @@ else
             var url = $"/api/cocktails?page={page}&pageSize={PageSize}";
             if (_makeableOnly) url += "&makeable=true";
             if (_almostOnly) url += "&almost=true";
-            if (!string.IsNullOrWhiteSpace(_search))
-                url += $"&search={Uri.EscapeDataString(_search.Trim())}";
-            if (!string.IsNullOrWhiteSpace(_ingredient))
-                url += $"&ingredient={Uri.EscapeDataString(_ingredient.Trim())}";
-            if (_method.Length > 0) url += $"&method={_method}";
-            if (_glass.Length > 0) url += $"&glass={_glass}";
-            if (_serving.Length > 0) url += $"&serving={_serving}";
+            url += FilterQuery();
 
             var result = await Http.GetFromJsonAsync<PagedResponse<CocktailSummary>>(url);
             if (ticket != _requestTicket) return;
             _page = result;
+
+            // MARGA-6. The pourable figure her line quotes: the makeable filter's own total for the SAME
+            // search and filters, one row of it, behind the same ticket so a slow count cannot land on
+            // a list that has moved on. Optional furniture — a failure leaves the plain total.
+            _pourable = null;
+            if (!_makeableOnly && !_almostOnly && _page is { Total: > 0 })
+            {
+                try
+                {
+                    var pourable = await Http.GetFromJsonAsync<PagedResponse<CocktailSummary>>(
+                        "/api/cocktails?page=1&pageSize=1&makeable=true" + FilterQuery());
+                    if (ticket != _requestTicket) return;
+                    _pourable = pourable?.Total;
+                }
+                catch (Exception)
+                {
+                    // Without the count she is absent; the list and its plain total already stand.
+                }
+                if (ticket != _requestTicket) return;
+            }
 
             // Only while the one-away filter is on, and behind the same ticket, so a slow summary
             // cannot land on a list that has already moved on.

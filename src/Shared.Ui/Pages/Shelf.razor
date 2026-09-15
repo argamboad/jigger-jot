@@ -108,7 +108,19 @@
 else if (!Grouped.Any())
 {
     <div class="p-4 text-center" data-testid="shelf-empty">
-        <p class="text-muted">@Localizer["Shelf_NoMatches"]</p>
+        @if (NoSuchBottle)
+        {
+            @* MARGA-6 (JJ-040). Inline — 32px, no label — because the shelf's page-level line at the top
+               is still the one voice on this screen; this is a footnote to the empty result, offering
+               the fix the button below carries out. *@
+            <div class="shelf-nomatch mb-3" data-testid="shelf-nomatch">
+                <MargaSays Tone="MargaTone.Inline">@Localizer["Marga_ShelfNoMatch", _search.Trim()]</MargaSays>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted">@Localizer["Shelf_NoMatches"]</p>
+        }
         @* The one moment someone most needs to add their own bottle is right after searching for it
            and being told the catalog has never heard of it. *@
         <button class="btn btn-outline-primary btn-sm" data-testid="shelf-add-toggle" @onclick="OpenAddUnfiledAsync">
@@ -291,6 +303,16 @@ else
                        || i.Category.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase));
 
     private IEnumerable<IGrouping<string, ShelfItemView>> Grouped => Visible.GroupBy(i => i.Category);
+
+    /// <summary>
+    /// A search that matches no bottle on the WHOLE list — not merely nothing left visible once "Only
+    /// what I have" has hidden the unticked ones. Only then is her "nothing called that on my list"
+    /// true (MARGA-6); otherwise the plain no-match line says what is.
+    /// </summary>
+    private bool NoSuchBottle =>
+        !string.IsNullOrWhiteSpace(_search)
+        && !_items.Any(i => i.Name.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase)
+                         || i.Category.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
     /// "3 of 10" for a category — read by the card and by its jump link, so the two cannot disagree.

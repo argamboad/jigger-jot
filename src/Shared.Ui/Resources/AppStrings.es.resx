@@ -387,6 +387,15 @@
   <data name="Cocktails_Using" xml:space="preserve"><value>Usando {0} en lugar de {1}</value></data>
   <data name="Marga_Swap" xml:space="preserve"><value>¿No hay {0}? Con {1} va perfecto: es lo que yo serviría.</value></data>
   <data name="Marga_LoginLine" xml:space="preserve"><value>Dime qué tienes en la estantería y yo te digo qué puedes preparar esta noche.</value></data>
+  <data name="Marga_BrowseCount" xml:space="preserve"><value>Aquí hay {0} cócteles, y esta noche puedes servir {1}.</value></data>
+  <data name="Marga_BrowseCountNone" xml:space="preserve"><value>Aquí hay {0} cócteles, y todavía ninguno que puedas servir.</value></data>
+  <data name="Marga_RecipeShort" xml:space="preserve"><value>Te faltan {0} botellas: {1}.</value></data>
+  <data name="Marga_RecipeFarShort" xml:space="preserve"><value>Te faltan {0} botellas. Con {1} y {2} ya empiezas.</value></data>
+  <data name="Marga_ListTwo" xml:space="preserve"><value>{0} y {1}</value></data>
+  <data name="Marga_ListThree" xml:space="preserve"><value>{0}, {1} y {2}</value></data>
+  <data name="Marga_ShelfNoMatch" xml:space="preserve"><value>No tengo nada que se llame «{0}». Si lo tienes, añádelo abajo.</value></data>
+  <data name="Marga_WriteShelf" xml:space="preserve"><value>Tienes {0} botellas para escribir. Guarda la receta y te digo si puedes servirla.</value></data>
+  <data name="Marga_WriteEmpty" xml:space="preserve"><value>Tu estantería todavía está vacía. Escribe la receta igual: cuando la guardes, te digo qué falta.</value></data>
   <data name="Cocktails_OneAway" xml:space="preserve"><value>A un ingrediente</value></data>
   <data name="Cocktails_All" xml:space="preserve"><value>Todo</value></data>
   <data name="Cocktails_Missing" xml:space="preserve"><value>Añade {0} y ya puedes prepararlo</value></data>

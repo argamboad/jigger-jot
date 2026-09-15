@@ -6,7 +6,8 @@
 > placeholders, filled from queries that already exist or from `ALMOST-2`.
 > Read with the design proposal (`JiggerJot Proposal.dc.html`, nine screens at three widths, both
 > themes) and **JJ-029** (brand). Stories use Gherkin acceptance criteria.
-> **Status: ✅ COMPLETE for MVP** — MARGA-1, MARGA-2 and MARGA-3 all shipped.
+> **Status: ✅ COMPLETE for MVP** — MARGA-1, MARGA-2 and MARGA-3 all shipped; MARGA-4 and MARGA-5
+> since, and MARGA-6 (2026-09-14, JJ-040) puts her on every app screen with something true to say.
 
 **Epic key:** `MARGA`
 
@@ -384,6 +385,76 @@ Scenario: She is optional furniture
   Given the data behind a line is unavailable
   Then the screen renders without her rather than with an empty speech line
 ```
+
+---
+
+### MARGA-6 — Every app screen with something true to say
+
+**Status: ✅ Implemented (2026-09-14).** **JJ-040.** Asked for by the maintainer ("Marga can be present
+in more app screens, not platform"), who chose the four places below from a list.
+
+**As a** member of a household
+**I want** her on the screens I use that she was kept off
+**So that** the app keeps its voice wherever a number or an empty result needs reading
+
+| Screen | What she says | The data behind it |
+|---|---|---|
+| **Recipe, two or more bottles short** | "You are 2 bottles short: Campari and sweet vermouth." Past three, the count and the first two. | the lines the API marked `Missing`, required only (JJ-009) |
+| **Catalog, Everything or filtered** | "23 cocktails here, and you can pour 6 of them tonight." — or "none you can pour yet" | the list's total, and the makeable filter's total for the SAME search and filters |
+| **Shelf, a search with no bottle** | "Nothing called “yuzu” on my list. If you have it, add it below." inline, above Add your own | the typed term, and only when no bottle on the whole list matches |
+| **Write a cocktail** | "Your shelf has 24 bottles to write with. Save it and I will tell you whether you can pour it." | the ticked bottles in the inventory the form already loads |
+
+**What was decided while building it.**
+- **MARGA-5's rule reversed in four places, not dropped.** One page-level Marga per screen still holds:
+  under One ingredient away the count stays plain because her panel speaks there, and the shelf's
+  no-match line is inline (32px, no label), beside the page-level line at the top.
+- **A list of names is a whole pattern, not a join.** "{0} and {1}" and "{0}, {1} and {2}" are
+  resource strings of their own (`Marga_ListTwo`, `Marga_ListThree`), so Spanish says "y" without the
+  code knowing either word. Past three names a sentence becomes a shopping list, so it gives the count
+  and two names instead.
+- **The browse count is asked the same question.** One extra `GET /api/cocktails?makeable=true&pageSize=1`
+  with the list's own search and filters, behind the same request ticket, so a slow count cannot land on
+  a list that has moved on. If it fails, the plain "N cocktails" stands and she is absent. The test id
+  `cocktail-count` follows the number onto her line, as it already did under the makeable filter.
+- **"Not on my list" has to be true.** A search that finds nothing only because "Only what I have" hides
+  an unticked bottle keeps the plain "No ingredients match that." — she speaks only when no bottle on
+  the whole list matches.
+- **The write form's promise is kept by this slice.** "I will tell you whether you can pour it" was a
+  footnote BACKBAR-6 dropped because the recipe page did not always answer (F7). With the far-away line
+  it now does — makeable, one away, or the bottles short — so the promise is true.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: A recipe more than one bottle away names what is missing
+  Given a recipe two or three required bottles short, and an optional garnish missing
+  Then she names every required bottle and not the garnish
+  Given a recipe four or more bottles short
+  Then she gives the count and the first two
+  And a substitution in play still outranks either
+
+Scenario: The catalog reads its count against the shelf
+  Given the catalog under Everything, or under a search or filter
+  Then her line carries the list's total and how many of those the shelf can pour
+  And the pourable count is asked with the same search and filters
+  But under One ingredient away the count stays plain
+  And if the pourable count fails the plain count stands
+
+Scenario: A shelf search with no bottle offers the fix
+  Given I search the shelf for a bottle not on the list
+  Then she says so inline above Add your own
+  But given the bottle is on the list and only hidden by Only what I have
+  Then the plain no-match line shows and she does not
+
+Scenario: The write form counts the shelf
+  Given bottles ticked on the shelf
+  Then she says how many there are to write with
+  Given an empty shelf
+  Then she says to write it anyway
+  And if the shelf cannot be read she is absent
+```
+**Held by** `MargaEverywhereTests` (15), and `MargaPresenceTests`' plain-browse test, rewritten from
+"she does not" to the new line.
 
 ---
 

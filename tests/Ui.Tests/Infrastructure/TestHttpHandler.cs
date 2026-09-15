@@ -37,6 +37,20 @@ public sealed class TestHttpHandler : HttpMessageHandler
     }
 
     /// <summary>
+    /// Stub "METHOD /path" with a body chosen per request — for one path asked two different questions,
+    /// told apart by the query (MARGA-6: the catalog list and the pourable count behind it).
+    /// </summary>
+    public TestHttpHandler On(HttpMethod method, string path, Func<HttpRequestMessage, string> json)
+    {
+        _gated.Remove(Key(method, path));
+        _routes[Key(method, path)] = request => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(json(request), Encoding.UTF8, "application/json"),
+        };
+        return this;
+    }
+
+    /// <summary>
     /// Stub "METHOD /path" to HANG until the returned action is invoked — for testing concurrent requests
     /// (e.g. a rapid double-click while the first call is still in flight). Every request to this route
     /// awaits the SAME gate.

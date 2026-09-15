@@ -100,3 +100,11 @@
     gap: .1rem .5rem;
     font-variant-numeric: tabular-nums;
 }
+
+/* MARGA-6: her no-match footnote, centred over "Add your own" like the plain line it replaces. Her
+   component lays itself out; this only places it. */
+.shelf-nomatch {
+    display: flex;
+    justify-content: center;
+    text-align: left;
+}
