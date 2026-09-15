@@ -1706,7 +1706,7 @@ count is unaffected; it is a fact the screen owns rather than something she supp
 ### QA-CHROME-27 — She pages through the next bottles 🟠 (Web) — MARGA-7
 **Walkthrough** — a household with a few bottles ticked, and a second one with nothing ticked.
 1. **Home.** In the panel under her line, press **›**. **Expected:** her line changes to "Or pick up
-   …", the panel names the same second bottle and ITS drinks, and the position reads **2 of N**. Keep
+   …", the box directly under her line lists that bottle's drinks, and the position reads **2 of N**. Keep
    pressing: it stops at the last bottle — never more than **10** — and **›** is greyed out. **‹** at
    the first bottle is greyed out too.
 2. **Shelf.** Press **›** under her line. **Expected:** "Or {bottle}: one bottle from N more drinks",
@@ -1774,10 +1774,11 @@ link colour. Hover a destination: it turns copper. The household name is a coppe
 
 ### QA-CHROME-16 — Home is rules, not cards, and never a zero 🟠 (Web) — BACKBAR-3
 **Walkthrough:** with a partial shelf, open Home at 1280 wide, then at 390; then untick everything
-on the shelf and come back. **Expected:** at 1280 two columns — Marga at 96px with her label above
-her line on the left over the big serif count and its two pill buttons; the three drinks on the right
-as rules with the name in the serif and the facets right-aligned, then the copper-tinted unlock panel,
-**the only boxed thing on the page**. **In Dark as well as Light, a drink's name is in the page's
+on the shelf and come back. **Expected:** at 1280 two columns — on the left, Marga at 96px with her
+label above her line, directly under it the copper-tinted box with that bottle's drinks and the ‹ ›
+arrows (**the only boxed thing on the page**, with no headline repeating her), then the big serif count
+and its two pill buttons; on the right, up to eight drinks as rules with the name in the serif and the
+facets right-aligned, the two columns ending near each other. **In Dark as well as Light, a drink's name is in the page's
 ink and turns copper only under the pointer** — the same on every catalog row (a dark-theme link
 rule once repainted all of them copper, and only a browser showed it). At 390 the same in one
 column. With nothing ticked: her scene

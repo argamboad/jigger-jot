@@ -476,7 +476,7 @@ ranking has; the arrows **stop** at both ends rather than wrapping, so "1 of N" 
 
 | Where | Ranking | Her first line | A later bottle |
 |---|---|---|---|
-| **Home** (panel arrows; her line follows) | `/unlocks` | "Pick up {bottle} and I can make you {n} more." | "Or pick up {bottle}, and I can make you {n} more." |
+| **Home** (the box sits directly under her line; its arrows change both) | `/unlocks` | "Pick up {bottle} and I can make you {n} more." | "Or pick up {bottle}, and I can make you {n} more." |
 | **Shelf, something ticked** | `/unlocks` | "One bottle from {n} more drinks: {bottle}…" | "Or {bottle}: one bottle from {n} more drinks." |
 | **Shelf, nothing ticked** | `/starters` | "…If you are buying, {bottle} is where I would start." | "Or start with {bottle} — {n} of these recipes ask for it." |
 | **Catalog, One ingredient away** | `/unlocks` | "Buy {bottle} and {n} of these open up." | "Or buy {bottle} and {n} of these open up." |
@@ -500,6 +500,13 @@ saying "recipes ask for it" and never "opens".
 and the outlined pill on the shelf (BACKBAR-3) — which is how the bottle she names is found on a long
 shelf. The list below the catalog's panel does not: it is the one-away list itself, and paging a
 suggestion must not filter it.
+
+**Home's box moved under her line** (amended the same day, the maintainer's call, from a screenshot):
+her line named the bottle top-left while the box with its drinks and arrows sat bottom-right, so
+pressing › changed a sentence in the other corner. The box now follows her line in the left column,
+before the count, without a headline repeating her; the right column lists eight drinks rather than
+three so the two columns end together. The empty-shelf layout, where her scene is the page, keeps the
+box and its headline below.
 
 **A new ranking starts again from the best.** A tick on the shelf, or a reload of the catalog's list,
 resets the index — "2 of 7" after a re-rank would point at whatever happens to be second now.

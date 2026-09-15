@@ -306,7 +306,10 @@ loading bar and the two-column grid have no test and QA-CHROME-16/17 are the cas
 
 - **Home** (`/`, FEATURES §9 for the count, §10 for the bottle). Desktop two columns 1.15fr / 1fr,
   gap 52, max-width 1100; mobile one column. The numeral at 128px in the serif and copper; the three
-  drinks as hairline rules, not a list-group; the unlock panel the only boxed thing. Empty shelf: her
+  drinks as hairline rules, not a list-group; the unlock panel the only boxed thing. *Amended by
+  MARGA-7 (2026-09-15, the maintainer's call): the panel moved directly under her line in the left
+  column, without a headline of its own, and the right column lists eight drinks instead of three —
+  her line and the box it talks about had sat in opposite corners.* Empty shelf: her
   scene at 260px beside `Marga_HomeEmpty`, "Set up my shelf" primary, "Tick what you have" a text
   link — no zero. Loading: a 2px indeterminate brass bar under the header and the numeral holding its
   space at 40%, no spinner. Failure unchanged: she and the panel are absent, count and list stand.

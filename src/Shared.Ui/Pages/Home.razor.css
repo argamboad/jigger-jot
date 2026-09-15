@@ -41,6 +41,16 @@
     margin-bottom: 2rem;
 }
 
+/* MARGA-7 amendment: when the bottle box follows her line it belongs to it — close under the line,
+   with the room before the count instead. */
+.home-lead .home-marga:has(+ .home-unlocks) {
+    margin-bottom: 1rem;
+}
+
+.home-lead .home-unlocks {
+    margin-bottom: 2.25rem;
+}
+
 /* The count IS the headline — the product's one question, answered in one figure. 128px in the
    display face, copper, on a line-height that lets the label sit tight beneath it. */
 .home-count {

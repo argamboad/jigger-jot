@@ -15,8 +15,8 @@
        that extends it.
 
        Rules, not cards: the only boxed thing on the screen is the unlock panel, so it reads as the one
-       thing to act on. Desktop is two columns — her line and the count on the left, the drinks and the
-       panel on the right; a phone stacks them in that order. *@
+       thing to act on. Desktop is two columns — her line, the panel about the bottle she names, and
+       the count on the left; the drinks on the right; a phone stacks them in that order. *@
     <div class="home-wrapper">
 
         @if (_loading)
@@ -42,6 +42,23 @@
                         </MargaSays>
                     </div>
 
+                    @* MARGA-7 amendment (the maintainer's call): the box about the bottle she names sits
+                       directly under her line, not across the page — its arrows change that line, and
+                       they read as hers only when they are beside it. No headline: her sentence above
+                       already names the bottle and the number. *@
+                    @if (_bottle is not null)
+                    {
+                        <div class="card home-unlocks" data-testid="home-unlocks">
+                            <div class="card-body">
+                                <p class="home-unlock-drinks">@Named(_bottle.Cocktails)</p>
+                                <BottlePager Count="_bottles.Count" @bind-Index="_bottleIndex" />
+                                <a class="home-unlock-link" href="/cocktails?almost=true" data-testid="home-show-almost">
+                                    @Localizer["Home_ShowAlmost"] &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    }
+
                     <p class="home-count font-display" data-testid="home-count">@_makeable.Total</p>
                     <p class="home-count-label">@Localizer["Home_MakeableLabel"]</p>
 
@@ -58,7 +75,8 @@
                 </div>
 
                 <div class="home-side">
-                    @* The three drinks as hairline rules: name in the serif, its facets right-aligned. *@
+                    @* The drinks as hairline rules: name in the serif, its facets right-aligned. Eight,
+                       so this column ends near the taller left one (MARGA-7 amendment). *@
                     <ul class="home-drinks" data-testid="home-makeable-list">
                         @foreach (var c in _makeable.Items)
                         {
@@ -69,20 +87,6 @@
                         }
                     </ul>
 
-                    @if (_bottle is not null)
-                    {
-                        <div class="card home-unlocks" data-testid="home-unlocks">
-                            <div class="card-body">
-                                <p class="home-unlock-headline font-display">@Localizer["Cocktails_UnlocksHeadline", _bottle.Ingredient, _bottle.Unlocks]</p>
-                                <p class="home-unlock-drinks">@Named(_bottle.Cocktails)</p>
-                                @* MARGA-7: the arrows sit with the bottle they page, and her line follows. *@
-                                <BottlePager Count="_bottles.Count" @bind-Index="_bottleIndex" />
-                                <a class="home-unlock-link" href="/cocktails?almost=true" data-testid="home-show-almost">
-                                    @Localizer["Home_ShowAlmost"] &rarr;
-                                </a>
-                            </div>
-                        </div>
-                    }
                 </div>
             </div>
         }
@@ -143,7 +147,9 @@ else
 }
 
 @code {
-    private const int Preview = 3;
+    // Eight since the MARGA-7 amendment put the bottle box in the left column: three drinks left the
+    // right one ending halfway down a much taller page.
+    private const int Preview = 8;
 
     private PagedResponse<CocktailSummary>? _makeable;
     // MARGA-7: the ranking, best bottle first, and which one she is naming. The panel's arrows move the
@@ -164,7 +170,7 @@ else
         try
         {
             // TWO calls, each internally consistent, and that is the rule this screen turns on.
-            // The headline count and the three drinks under it come from ONE response, so they can
+            // The headline count and the drinks beside it come from ONE response, so they can
             // never disagree; the bottle and the drinks it opens come from another, where the count
             // is the length of the names by construction (ALMOST-2). Her sentence quotes one number
             // from each, and each half agrees with the list beneath it.
