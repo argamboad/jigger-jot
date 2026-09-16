@@ -1000,18 +1000,29 @@ code {
         /* BACKBAR-2: the tab bar sits on the surface with a hairline, like the header it came from. */
         background: var(--surface);
         border-top: 1px solid var(--app-border);
-        /* Clear the iOS home indicator, the same way the header clears the notch. Resolves to 0
-           on Android and on the web. */
+        /* Clear the home indicator or the gesture area, the same way the header clears the notch.
+           Resolves to 0 on the web. */
         padding-bottom: env(safe-area-inset-bottom, 0px);
+        /* Exactly the room --tab-bar-clearance reserves (2026-09-16). Left to its content the bar was
+           ~42px against 56px, and every bar fixed above it floated 14px up with the page showing
+           through the gap. */
+        box-sizing: border-box;
+        height: calc(var(--tab-bar-height, 56px) + env(safe-area-inset-bottom, 0px));
+        align-items: stretch;
     }
 
     .app-header .app-tabs .nav-item {
         flex: 1 1 0;
+        display: flex;
         text-align: center;
     }
 
     .app-header .app-tabs .nav-link {
-        padding: .6rem .25rem;
+        flex: 1 1 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 .25rem;
         font-size: .9rem;
     }
 

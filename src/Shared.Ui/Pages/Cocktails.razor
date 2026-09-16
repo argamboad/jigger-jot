@@ -3,6 +3,7 @@
 @inject HttpClient Http
 @inject NavigationManager Nav
 @inject IStringLocalizer<AppStrings> Localizer
+@inject IJSRuntime JS
 
 <PageTitle>@Localizer["Nav_Cocktails"]</PageTitle>
 
@@ -48,21 +49,21 @@
     <input class="btn-check" type="radio" name="catalog-scope" id="catalog-makeable" autocomplete="off"
            data-testid="cocktail-makeable" checked="@_makeableOnly"
            @onchange="() => SetScopeAsync(makeable: true, almost: false)" />
-    <label class="btn btn-outline-secondary catalog-chip" for="catalog-makeable">
+    <label class="btn btn-outline-secondary catalog-chip" for="catalog-makeable" @ref="_chipMakeable">
         @Localizer["Cocktails_MakeableNow"]@ChipCount(_makeableOnly)
     </label>
 
     <input class="btn-check" type="radio" name="catalog-scope" id="catalog-almost" autocomplete="off"
            data-testid="cocktail-almost" checked="@_almostOnly"
            @onchange="() => SetScopeAsync(makeable: false, almost: true)" />
-    <label class="btn btn-outline-secondary catalog-chip" for="catalog-almost">
+    <label class="btn btn-outline-secondary catalog-chip" for="catalog-almost" @ref="_chipAlmost">
         @Localizer["Cocktails_OneAway"]@ChipCount(_almostOnly)
     </label>
 
     <input class="btn-check" type="radio" name="catalog-scope" id="catalog-all" autocomplete="off"
            data-testid="cocktail-all" checked="@(!_makeableOnly && !_almostOnly)"
            @onchange="() => SetScopeAsync(makeable: false, almost: false)" />
-    <label class="btn btn-outline-secondary catalog-chip" for="catalog-all">
+    <label class="btn btn-outline-secondary catalog-chip" for="catalog-all" @ref="_chipAll">
         @Localizer["Cocktails_All"]@ChipCount(!_makeableOnly && !_almostOnly)
     </label>
 </div>
@@ -454,7 +455,30 @@ else
     {
         _makeableOnly = makeable;
         _almostOnly = almost;
+        _revealChip = true;
         return LoadAsync(1);   // narrowing the list always starts again at the first page
+    }
+
+    // On a phone the chip row scrolls sideways (BACKBAR-4 F7), and at 448px the selected chip —
+    // "Everything" by default — sat past the edge, cut in half (2026-09-16). The row keeps scrolling; the
+    // selected chip is brought into view on the first render and after every pick, horizontally and only
+    // as far as needed ("nearest"), so the page never jumps. On a wide screen it is already in view.
+    private ElementReference _chipMakeable;
+    private ElementReference _chipAlmost;
+    private ElementReference _chipAll;
+    private bool _revealChip = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_revealChip) return;
+        _revealChip = false;
+
+        var chip = _makeableOnly ? _chipMakeable : _almostOnly ? _chipAlmost : _chipAll;
+        try
+        {
+            await JS.InvokeVoidAsync("appUi.revealChip", chip);
+        }
+        catch { /* purely cosmetic — the chip is still one swipe away */ }
     }
 
     /// <summary>
@@ -594,6 +618,8 @@ else
             if (ticket == _requestTicket)
             {
                 _loading = false;
+                // The selected chip just gained its count and grew, so bring it into view again.
+                _revealChip = true;
                 StateHasChanged();
             }
         }
