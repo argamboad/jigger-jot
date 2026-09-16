@@ -795,7 +795,9 @@ jobs:
           # log in /tmp/adb.<uid>.log; both are uploaded with the device log.
           adb logcat -c || true
           nohup bash -c 'while true; do adb logcat -v time; echo "--- logcat exited $(date -u +%T.%3N) ---"; sleep 1; done' > logcat.txt 2>&1 &
-          nohup bash -c 'while true; do echo "$(date -u +%T.%3N) $(timeout 10 adb devices | tail -n +2 | tr "\n" " ")"; sleep 2; done' > adb-devices.txt 2>&1 &
+          # Run 35128350182: the device list went empty for good 50 s into the journey and the emulator's
+          # own log just stopped — so each line also says whether the emulator process is still alive.
+          nohup bash -c 'while true; do echo "$(date -u +%T.%3N) emu=$(pgrep -f qemu-system >/dev/null && echo up || echo GONE) $(timeout 10 adb devices | tail -n +2 | tr "\n" " ")"; sleep 2; done' > adb-devices.txt 2>&1 &
           adb shell monkey -p com.jiggerjot.app -c android.intent.category.LAUNCHER 1
 
           echo "Waiting for the app process…"
@@ -828,6 +830,10 @@ jobs:
           awk '{ state = substr($0, index($0, " ") + 1) } state != last { print; last = state }' adb-devices.txt 2>/dev/null || true
           cp "/tmp/adb.$(id -u).log" adb-server.log 2>/dev/null || true
           tail -n 60 adb-server.log 2>/dev/null || true
+          # Why an emulator vanishes without a word in its own log: the kernel's OOM killer or a crash.
+          free -m || true
+          sudo dmesg 2>/dev/null | grep -iE "out of memory|killed process|oom|qemu|segfault" | tail -n 40 || true
+          tail -n 15 emulator.log 2>/dev/null || true
 
       - name: Upload the device log
         if: always()
