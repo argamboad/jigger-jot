@@ -917,6 +917,23 @@ code {
     text-transform: lowercase;
 }
 
+/* INV-4: the × beside a household's own bottle. Its own button, never inside the pill's label (the
+   checkbox's click target), tucked against the pill it belongs to and muted until it is pointed at. */
+.shelf-own-delete {
+    margin-left: -.25rem;
+    padding: 0 .35rem;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--muted);
+    text-decoration: none;
+    align-self: center;
+}
+
+.shelf-own-delete:hover,
+.shelf-own-delete:focus-visible {
+    color: var(--mark-missing);
+}
+
 /* ── SHELL-1: the app's own destinations ──────────────────────────────────────────────────────
    One element, two positions. At lg and above it sits in the header row; below lg the same element
    is pulled out to the bottom of the viewport. A second copy hidden by CSS would put two

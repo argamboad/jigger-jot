@@ -2,6 +2,7 @@
 @using System.Net.Http.Json
 @inject HttpClient Http
 @inject IStringLocalizer<AppStrings> Localizer
+@inject IJSRuntime JS
 
 <PageTitle>@Localizer["Nav_Shelf"]</PageTitle>
 
@@ -103,6 +104,11 @@
     <div class="alert alert-danger py-2" data-testid="shelf-error">@_error</div>
 }
 
+@if (_deleteError is not null)
+{
+    <div class="alert alert-warning py-2" role="alert" data-testid="shelf-delete-error">@_deleteError</div>
+}
+
 @if (_loading)
 {
     <div class="p-4 text-center text-muted">
@@ -191,6 +197,18 @@ else
                                 <span class="shelf-own">@Localizer["Cocktails_Yours"]</span>
                             }
                         </label>
+                        @* INV-4: a bottle the household added can be deleted. Beside the pill, never inside
+                           the label — the label is the checkbox's click target, so a button in it would tick
+                           the bottle on its way to deleting it. *@
+                        @if (item.IsOwn)
+                        {
+                            <button type="button" class="btn btn-sm btn-link shelf-own-delete"
+                                    data-testid="@($"shelf-delete-{item.Id}")"
+                                    aria-label="@Localizer["Shelf_DeleteLabel", item.Name]"
+                                    title="@Localizer["Shelf_DeleteLabel", item.Name]"
+                                    disabled="@_saving"
+                                    @onclick="() => DeleteIngredientAsync(item)">×</button>
+                        }
                     }
 
                     @* FEATURES §8: adding a custom ingredient is an affordance OF the checklist, not a
@@ -634,6 +652,61 @@ else
         // A bottle you just added is a bottle you have, so it counts towards the payoff like any tick.
         await RefreshPayoffAsync();
     }
+
+    private string? _deleteError;
+
+    /// <summary>
+    /// Deletes a bottle this household added (INV-4), after a confirmation that names it. A bottle one of
+    /// the household's recipes still uses comes back as a 409 naming them, and stays: the first recipe by
+    /// name, and past one, how many more — enough to know where to go without a list in a banner.
+    /// </summary>
+    private async Task DeleteIngredientAsync(ShelfItemView item)
+    {
+        if (!await JS.ConfirmAsync(Localizer["Shelf_DeleteConfirm", item.Name])) return;
+
+        _deleteError = null;
+        _saving = true;
+
+        try
+        {
+            var response = await Http.DeleteAsync($"/api/inventory/ingredients/{item.Id}");
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                var inUse = await response.Content.ReadFromJsonAsync<InUseView>();
+                var recipes = inUse?.UsedIn ?? [];
+                _deleteError = recipes.Count switch
+                {
+                    0 => Localizer["Shelf_DeleteFailed"],
+                    1 => Localizer["Shelf_DeleteInUseOne", item.Name, recipes[0]],
+                    _ => Localizer["Shelf_DeleteInUseMany", item.Name, recipes[0], recipes.Count - 1],
+                };
+                return;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _deleteError = Localizer["Shelf_DeleteFailed"];
+                return;
+            }
+
+            _items.Remove(item);
+        }
+        catch (Exception)
+        {
+            _deleteError = Localizer["Shelf_DeleteFailed"];
+            return;
+        }
+        finally
+        {
+            _saving = false;
+        }
+
+        // A ticked bottle that just went is a bottle the shelf no longer has.
+        await RefreshPayoffAsync();
+    }
+
+    private record InUseView(string Error, List<string> UsedIn);
 
     private record ShelfItemView(
         Guid Id, string Name, string Category, string? Subcategory, bool IsAvailable, bool IsOwn);

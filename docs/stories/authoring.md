@@ -4,7 +4,7 @@
 > method are optional), **JJ-009**/**JJ-010** (optional lines and roles), **JJ-003**/**JJ-014**
 > (makeability and filtering are derived, never stored) and **JJ-031** (nothing stamps these tables).
 > Stories use Gherkin acceptance criteria.
-> **Status: ✅ COMPLETE** — AUTHORING-1 through AUTHORING-4 shipped, editing included.
+> **Status: ✅ COMPLETE** — AUTHORING-1 through AUTHORING-5 shipped, editing and deleting included.
 
 **Epic key:** `AUTHORING`
 
@@ -327,5 +327,62 @@ Scenario: The last save wins
 writer's-units pair; `tests/Ui.Tests/WriteEditTests.cs` (new); and the fork journey in
 `CocktailBrowseJourneyTests` now edits its copy.
 
-**Out of scope:** deleting a household cocktail (unasked-for); a history of edits; any merge of two
-people's simultaneous edits.
+**Out of scope:** deleting a household cocktail (unasked-for then — AUTHORING-5 since); a history of
+edits; any merge of two people's simultaneous edits.
+
+---
+
+### AUTHORING-5 — Delete a cocktail, and the recipe's actions on one row
+
+**Status: ✅ Implemented (2026-09-15, the maintainer's ask).** `DELETE /api/cocktails/{id}` and a
+**Delete** link on the recipe page. Built together with INV-4 (deleting a bottle the household added).
+
+**As a** member of a household
+**I want** to delete a cocktail we wrote or forked
+**So that** our recipe book holds only what we still pour
+
+**Context / notes.**
+
+- **Only a household's own cocktails can be deleted**, exactly the set AUTHORING-2 can edit: the shared
+  catalog is **403 `catalog_read_only`** (JJ-002), another household's a **404** (JJ-031). The endpoint
+  answers through the same refusal mapping as the edit.
+- **Its lines go with it**, through the foreign key's cascade.
+- **A fork of the deleted recipe stays standing**, every line intact: `ForkedFromCocktailId` is
+  provenance, not a foreign key (JJ-013), so its "Based on" simply stops linking.
+- **Behind a confirmation that names it**, through `JsConfirm`, which fails closed. After a delete the
+  page goes back to the catalog — the recipe it stood on is gone.
+- **The actions sit on one row, the primary first** (the maintainer's call — the stacked Edit above Create
+  my own version read as unrelated): *Create my own version*, then *Edit*, then *Delete* as a red text link
+  at the far end. A book's recipe offers the fork alone. On a phone the fixed bar keeps the same single line.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: Deleting a cocktail I wrote or forked
+  Given a cocktail my household owns
+  When I choose Delete and confirm
+  Then it and its lines are gone, and I am back on the catalog
+
+Scenario: Cancelling deletes nothing
+
+Scenario: The shared catalog cannot be deleted
+  Given a recipe from a book
+  Then there is no Delete link
+  And a delete sent anyway is refused with catalog_read_only
+
+Scenario: A fork outlives what it was based on
+  Given a copy of a cocktail I wrote
+  When I delete the original
+  Then the copy stands, with every line
+
+Scenario: Another household's cocktail is not found
+
+Scenario: The recipe's actions are one row, the primary first
+  Then Create my own version leads, Edit follows, and Delete is a link at the end
+```
+
+**Tests.** `tests/Api.Tests/Catalog/CocktailDeletingTests.cs` (new, five), the cocktail half of
+`DeletingEndpointTests` (new), `tests/Ui.Tests/RecipeActionsTests.cs` (new, five), and the fork journey in
+`CocktailBrowseJourneyTests` now deletes its copy.
+
+**Out of scope:** undo, or a bin to restore from; deleting from the catalog list.

@@ -3,8 +3,8 @@
 > One file per epic. What a household has on hand: the checklist every "what can I make" answer is
 > computed from. Read with **JJ-020** (ice and water are always available), **JJ-023** (boolean only,
 > absence means not available) and `docs/DATA_MODEL.md`. Stories use Gherkin acceptance criteria.
-> **Status: ✅ COMPLETE for MVP** — INV-1 (the shelf), INV-2 (custom ingredients) and INV-3 (the
-> shelf rework) all shipped.
+> **Status: ✅ COMPLETE for MVP** — INV-1 (the shelf), INV-2 (custom ingredients), INV-3 (the
+> shelf rework) and INV-4 (deleting a custom ingredient) all shipped.
 
 **Epic key:** `INV`
 
@@ -295,3 +295,62 @@ Scenario: Everything INV-1 and INV-2 did still works
 
 **Out of scope, deliberately:** quantities and "running low" stay out (JJ-023), and reordering or
 hiding categories is not asked for.
+
+---
+
+### INV-4 — Delete a bottle I added
+
+**Status: ✅ Implemented (2026-09-15, the maintainer's ask).** `DELETE /api/inventory/ingredients/{id}`
+and a **×** beside each of the household's own bottles on the shelf. Built together with AUTHORING-5.
+
+**As a** member of a household
+**I want** to delete a bottle we added ourselves
+**So that** a typo or a bottle long gone does not sit on the shelf forever
+
+**Context / notes.**
+
+- **Only the household's own bottles** — INV-2's. A shared catalog bottle is **403
+  `catalog_read_only`** (JJ-002); another household's is a **404**, never a 403 (JJ-031). The shared
+  catalog has no delete button at all: unticking is how a household says it does not have one (JJ-023).
+- **A bottle one of the household's recipes still uses is refused, and the refusal names them** (the
+  maintainer's call, over removing it from those recipes or deleting them too). **409
+  `ingredient_in_use`** carries `usedIn`, the recipe names in order; the shelf says the first and how
+  many more. Quietly taking the bottle out of a recipe would change what the recipe says and whether it
+  is makeable without anyone deciding to — and a recipe left with no lines would be "makeable" out of
+  nothing. The recipe lines reference ingredients with `Restrict`, so the database agrees. Only this
+  household's lines can reference its bottle, because no other household can see it.
+- **Its shelf row goes with it** through `TenantInventory`'s cascade, and the payoff re-asks what the shelf
+  reaches. The substitution graph never references a household's bottle (JJ-005).
+- **Its own handler**, `IngredientRemovalHandler`, because it reads the recipe lines and nothing else on
+  the shelf does — and `InventoryHandler`'s constructor is built by a dozen tests.
+- **The × is beside the pill, never inside its label.** The label is the hidden checkbox's click target
+  (INV-3), so a button in it would tick the bottle on its way to deleting it. Behind a confirmation that
+  names the bottle, through `JsConfirm`, which fails closed.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: Deleting a bottle I added
+  Given a bottle my household added
+  When I choose its delete button and confirm
+  Then it leaves the shelf, and its shelf row with it
+
+Scenario: A bottle my recipes use is refused, and they are named
+  Given my household's Tiki Sour and Painkiller use it
+  When I delete it
+  Then I am told it is used in Painkiller and 1 more
+  And it stays on my shelf
+
+Scenario: The shared catalog has no delete
+  Then a catalog bottle has no delete button
+  And a delete sent anyway is refused with catalog_read_only
+
+Scenario: Another household's bottle is not found
+
+Scenario: Cancelling deletes nothing
+```
+
+**Tests.** `tests/Api.Tests/Catalog/CustomIngredientDeletingTests.cs` (new, four), the bottle half of
+`DeletingEndpointTests` (new), and `tests/Ui.Tests/ShelfDeleteTests.cs` (new).
+
+**Out of scope:** renaming or re-filing a bottle; deleting from the onboarding wizard.

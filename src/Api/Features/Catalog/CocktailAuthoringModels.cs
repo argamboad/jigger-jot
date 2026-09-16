@@ -75,6 +75,9 @@ public enum AuthorCocktailOutcome
 
     /// <summary>A shared catalog cocktail: visible, but read-only (JJ-002). Fork it to change it.</summary>
     ReadOnly,
+
+    /// <summary>A household's own cocktail was deleted (AUTHORING-5).</summary>
+    Deleted,
 }
 
 /// <summary>Whether a cocktail can be opened for editing (AUTHORING-2).</summary>

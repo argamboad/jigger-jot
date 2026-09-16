@@ -1342,6 +1342,37 @@
           ]
         },
         {
+          "name": "Cocktails — delete one",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cocktails/{{cocktailId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cocktails",
+                "{{cocktailId}}"
+              ]
+            },
+            "description": "Deletes a household's own cocktail — one it wrote or forked (AUTHORING-5). **204**, and its recipe lines go with it through the foreign key's cascade.\n\n**The same answers as an edit, through the same mapping:** **403 `catalog_read_only`** for a shared catalog recipe (JJ-002) — it is visible, so not a 404, and not the household's to remove; **404** for another household's (JJ-031), and for one already deleted.\n\n**A fork of the deleted recipe stays standing** with every line: `ForkedFromCocktailId` is provenance, not a foreign key (JJ-013), so its `forkedFrom` simply stops resolving.\n\nRun it last in a pass — it removes `{{cocktailId}}`."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"204, 403 for a shared recipe, or 404 if already gone\", () => pm.expect(pm.response.code).to.be.oneOf([204, 403, 404]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Cocktails — write one from scratch",
           "request": {
             "method": "POST",
@@ -1725,6 +1756,43 @@
                   "} else {",
                   "  pm.test(\"points at what is already there\", () =>",
                   "    pm.expect(pm.response.json().existingIngredientId).to.be.a('string'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Shelf — delete a custom ingredient",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/ingredients/{{ingredientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "ingredients",
+                "{{ingredientId}}"
+              ]
+            },
+            "description": "Deletes a bottle the household added (INV-4) — the other half of \"Shelf — add a custom ingredient\", which sets `{{ingredientId}}`. **204**, and its shelf row goes with it through the cascade.\n\n**409 `ingredient_in_use`** while one of the household's own recipes uses it, with `usedIn` — the recipe names, each once, in name order. Nothing is taken out of a recipe behind anyone's back: change those recipes first. Only this household's recipes can use its bottle, since no other household can see it (JJ-031).\n\n**403 `catalog_read_only`** for a shared catalog bottle (JJ-002) — untick it instead (JJ-023). **404** for another household's bottle, never a 403, and for one already deleted."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"204, 409 while a recipe uses it, or 404 if already gone\", () =>",
+                  "  pm.expect(pm.response.code).to.be.oneOf([204, 404, 409]));",
+                  "if (pm.response.code === 409) {",
+                  "  pm.test(\"names the recipes that use it\", () =>",
+                  "    pm.expect(pm.response.json().usedIn).to.be.an('array').that.is.not.empty);",
                   "}"
                 ]
               }

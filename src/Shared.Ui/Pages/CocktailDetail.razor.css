@@ -109,16 +109,30 @@
     color: var(--mark-missing);
 }
 
-.recipe-fork {
+/* One row, the primary first (2026-09-15): Create my own version, Edit, and Delete as a red text link
+   pushed to the far end — two buttons of one height on a line, and the destructive one kept apart. */
+.recipe-actions {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    flex-wrap: wrap;
+    align-items: center;
     gap: .5rem;
+}
+
+.recipe-delete {
+    margin-left: auto;
+    padding-inline: .25rem;
+    text-decoration: none;
+}
+
+.recipe-delete:hover,
+.recipe-delete:focus-visible {
+    text-decoration: underline;
 }
 
 .recipe-fork-error {
     color: var(--mark-missing);
     font-size: 13px;
+    margin-top: .5rem;
 }
 
 .recipe-method {
@@ -163,10 +177,16 @@
         padding: .6rem 1rem;
         background: var(--surface);
         border-top: 1px solid var(--app-border);
-        align-items: stretch;
+        flex-wrap: nowrap;
     }
 
-    .recipe-fork .btn {
-        width: 100%;
+    /* Still one line on a phone: the primary takes the room, Edit sizes to its word, Delete to its link. */
+    .recipe-actions .btn-primary {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .recipe-actions .btn {
+        white-space: nowrap;
     }
 }

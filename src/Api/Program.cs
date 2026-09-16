@@ -132,6 +132,7 @@ builder.Services.AddScoped<CocktailDetailHandler>();
 builder.Services.AddScoped<CocktailForkHandler>();
 builder.Services.AddScoped<CocktailAuthoringHandler>();
 builder.Services.AddScoped<InventoryHandler>();
+builder.Services.AddScoped<IngredientRemovalHandler>();
 builder.Services.AddScoped<ITenantDataContributor, InventoryDataContributor>();
 
 // Caches + session (LinkTokenService uses IMemoryCache; session backed by distributed cache).

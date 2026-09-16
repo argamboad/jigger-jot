@@ -1340,6 +1340,26 @@ its label, precisely so the semantics are the browser's.)*
 as something to tick). *(They are always assumed available; a shelf that asks whether you have water is
 a shelf nobody trusts.)*
 
+### QA-SHELF-14 — Deleting a bottle I added, and the refusal while a recipe uses it 🟠 (Web)
+**Gherkin**
+```gherkin
+Given a bottle my household added
+When one of our recipes uses it and I delete it
+Then I am told which recipe, and it stays
+And once no recipe uses it, deleting takes it off the shelf
+```
+**Walkthrough**
+1. Add a bottle (QA-SHELF-07), e.g. `Test orgeat <today's date>`. **Expected:** a small **×** beside its
+   pill. No catalog bottle has one.
+2. Click the **×** (not the pill) and **Cancel**. **Expected:** nothing changed, and the pill was not
+   ticked or unticked by the click.
+3. Write a cocktail that uses it (QA-MINE-01). Back on the shelf, **×** and confirm. **Expected:** a
+   warning: *Can't delete Test orgeat…: it's used in <your cocktail>. Take it out of that recipe first.*
+   The bottle stays.
+4. Delete that cocktail (QA-MINE-10), then **×** the bottle and confirm. **Expected:** it leaves the shelf,
+   its category count drops, and the payoff footer re-counts. Reload — still gone.
+5. Switch to **Español** and repeat step 3 with a second bottle. **Expected:** the warning reads in Spanish.
+
 ---
 
 ## 10e. Web — Browsing the catalog (CKTL, FILTER, PREFS-2, PREFS-3) 🟠
@@ -1599,6 +1619,26 @@ so no filter is a dead end. *(Two endpoints on purpose; they must not be merged.
 6. Save an edit with the name blank. **Expected:** the inline message, and nothing changed.
 7. In two browsers as two members, edit the same recipe and save both. **Expected:** the second save is
    what the recipe says.
+
+### QA-MINE-10 — Deleting a cocktail I wrote or forked, and the actions row 🟠 (Web) ⚙️ Automated in CI
+**Gherkin**
+```gherkin
+Given a cocktail my household owns
+When I choose Delete and confirm
+Then it is gone and I am back on the catalog
+And a book's recipe offers no Delete at all
+```
+**Walkthrough**
+1. Open a cocktail your household **wrote**. **Expected:** under the ingredients, ONE row: **Create my
+   own version** (copper), **Edit**, and a red **Delete** link at the far end. Open the Negroni.
+   **Expected:** only *Create my own version*.
+2. On a phone width (390px), open your own cocktail. **Expected:** the fixed bar at the bottom holds all
+   three on a single line, nothing clipped.
+3. **Delete**, then **Cancel** in the dialog. **Expected:** nothing happens; the recipe is still there.
+4. **Delete** again and confirm. **Expected:** the dialog named the cocktail; you land on the catalog and
+   it is no longer listed. Its old URL shows the not-found state.
+5. Write a cocktail, fork it, then delete the **original**. **Expected:** the fork is still there with every
+   line.
 
 ---
 
@@ -3237,6 +3277,7 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-SHELF-11 | Web | | | | | |
 | QA-SHELF-12 | Web | | | | | Screen reader |
 | QA-SHELF-13 | Web | | | | | |
+| QA-SHELF-14 | Web | | | | | Needs a cocktail using the bottle (QA-MINE-01) |
 | QA-CAT-01 | Web | | | | | |
 | QA-CAT-02 | Web | | | | | |
 | QA-CAT-03 | Web | | | | | |
@@ -3266,6 +3307,7 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-MINE-07 | Web | | | | | |
 | QA-MINE-08 | Web | | | | | Keyboard only, and a screen reader |
 | QA-MINE-09 | Web | | | | | A Metric member for step 3; two browsers for step 7 |
+| QA-MINE-10 | Web | | | | | A phone width for step 2 |
 | QA-START-01 | Web | | | | | Needs a brand-new household |
 | QA-START-02 | Web | | | | | |
 | QA-START-03 | Web | | | | | |
@@ -3677,3 +3719,8 @@ Critical/High defects. 🟢 Edge cases triaged (Pass or accepted-known-issue).
   household's own recipes opens the same form, filled in and in the writer's units; the shared catalog
   stays read-only, a fork keeps "Based on", and the last save wins. New **QA-MINE-09**. Suite 234 →
   **235** cases.
+- **Updated 2026-09-15** — **AUTHORING-5 and INV-4: deleting what a household made.** A household's own
+  cocktail can be deleted behind a confirmation, with the recipe's actions now one row (Create my own
+  version, Edit, Delete); a bottle it added can be deleted from the shelf, refused while its recipes use it
+  and naming them. The shared catalog has neither. New **QA-MINE-10** and **QA-SHELF-14**. Suite 235 →
+  **237** cases.

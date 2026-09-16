@@ -411,6 +411,14 @@
   <data name="Cocktail_BackToRecipe" xml:space="preserve"><value>Volver a la receta</value></data>
   <data name="Cocktail_ErrReadOnly" xml:space="preserve"><value>Las recetas del catálogo compartido no se pueden editar. Crea tu propia versión para cambiarla.</value></data>
   <data name="Cocktail_EditMissing" xml:space="preserve"><value>Ese cóctel no está aquí para editarlo.</value></data>
+  <data name="Cocktail_Delete" xml:space="preserve"><value>Eliminar</value></data>
+  <data name="Cocktail_DeleteConfirm" xml:space="preserve"><value>¿Eliminar {0}? No se puede deshacer.</value></data>
+  <data name="Cocktail_DeleteFailed" xml:space="preserve"><value>No se pudo eliminar. Inténtalo de nuevo.</value></data>
+  <data name="Shelf_DeleteLabel" xml:space="preserve"><value>Eliminar {0}</value></data>
+  <data name="Shelf_DeleteConfirm" xml:space="preserve"><value>¿Eliminar {0} de tu estantería? No se puede deshacer.</value></data>
+  <data name="Shelf_DeleteInUseOne" xml:space="preserve"><value>No se puede eliminar {0}: se usa en {1}. Quítalo primero de esa receta.</value></data>
+  <data name="Shelf_DeleteInUseMany" xml:space="preserve"><value>No se puede eliminar {0}: se usa en {1} y {2} más. Quítalo primero de esas recetas.</value></data>
+  <data name="Shelf_DeleteFailed" xml:space="preserve"><value>No se pudo eliminar. Inténtalo de nuevo.</value></data>
   <data name="Cocktails_OneAway" xml:space="preserve"><value>A un ingrediente</value></data>
   <data name="Cocktails_All" xml:space="preserve"><value>Todo</value></data>
   <data name="Cocktails_Missing" xml:space="preserve"><value>Añade {0} y ya puedes prepararlo</value></data>
