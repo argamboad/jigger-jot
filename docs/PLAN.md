@@ -284,6 +284,18 @@ Not on this list, deliberately: the Savoy transcription-source question (JJ-032,
 nothing), the two scrape-merged recipe lines, and restoring the 969-recipe catalog — that is a
 flag, not a slice, and it happens when the slices are done.
 
+**Written down, not started — 2026-09-16: `COMMUNITY`, cocktails from other households.** The
+maintainer wants to consider sharing a household's recipe with every household, on a page of its
+own that never mixes with the seeded catalog, and asked for it planned so it can start any time and
+explicitly not built yet — "it can be messy in many ways in terms of data". `docs/stories/community.md`
+holds the shape, three slices, the seventeen data questions with their default answers, and the
+draft JJ-042 that would amend JJ-024. **Pick-up rule:** the decision is pasted into `DECISIONS.md`
+and the OUT list moves the day it starts, not before. The one finding worth carrying even if it
+never starts: a request has **no sanctioned path to write a null-tenant row** — the RLS bypass is set
+for a tenant-less context or a tagged query only, and tags never render on `SaveChanges` — so
+"publish" is a stamp on the household's own row and a one-clause widening of the READ wall, never a
+copy into the catalog.
+
 ## What went wrong, in one paragraph each — so it is not repeated
 
 **Publishing without being asked.** After the user had typed "C+P+PR" explicitly a few times, "go"

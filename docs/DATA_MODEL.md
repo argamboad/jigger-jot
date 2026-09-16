@@ -689,7 +689,11 @@ stateDiagram-v2
   - Custom ingredients in the substitution graph / "treat as equivalent to" a shared ingredient.
   - Brand/product granularity (a "specific product *is a* generic ingredient" hierarchy).
   - Recipe-level substitutions (accepted subs enumerated per recipe line).
-  - Publishing custom cocktails to a public pool (visibility/moderation fields on Cocktail).
+  - Publishing custom cocktails to a public pool — **planned 2026-09-16, not started**
+    (`docs/stories/community.md`): a nullable `published_at` on `Cocktail`, `CocktailIngredient` and
+    `Ingredient` — a household's own row that every household may READ, writable by its owner only;
+    the read wall (EF filter + RLS `SELECT` policy) gains `OR published_at IS NOT NULL`, changed
+    together per JJ-031; the write policies do not change and no null-tenant row is ever written.
   - Manual "primary classification" on Cocktail.
   - User-added lookup values (tenant_id on GlassType / Method / Unit).
   - Multi-state inventory ("running low").

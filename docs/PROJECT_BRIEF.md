@@ -69,7 +69,9 @@ candidate for the OUT list below.
   first-native-release checklist (`NEW_APP_GUIDE.md` Phase 9). The platform proves capability via
   the CI build gate + boot smokes only. *(constant)*
 - **Publishing household cocktails to a public/community pool** (community-extended database).
-  The vision, but private-only for now (JJ-024).
+  The vision, but private-only for now (JJ-024). **Planned, not decided (2026-09-16):**
+  `docs/stories/community.md` holds the shape, the slices and the draft JJ-042 that would move this
+  line to IN; it stays OUT until that decision is pasted into `DECISIONS.md`.
 - **Tenant-level (household-specific) substitutions.** Global-only for MVP (JJ-005).
 - **Custom ingredients participating in the substitution graph** (e.g. "my homemade coffee liqueur
   subs for Kahlúa"). Custom ingredients satisfy recipe lines by exact match only (JJ-018).

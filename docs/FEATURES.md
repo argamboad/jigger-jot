@@ -269,7 +269,10 @@ Flow:
 ## Out of scope
 - SMS OTP — deferred until phone-based OTP is needed (no phone field / SMS provider yet).
 - Social login beyond Google + Microsoft — infrastructure is provider-agnostic; add per-app.
-- JiggerJot pins (see the OUT list in `PROJECT_BRIEF.md`): publishing to a community pool,
+- JiggerJot pins (see the OUT list in `PROJECT_BRIEF.md`): publishing to a community pool
+  (**planned, not started** — `docs/stories/community.md` outlines the flow that becomes §16 the day
+  it starts: publish / publish again / unpublish on a household's own recipe, a `/community` page
+  that never mixes with the catalog, forks that bring the publisher's custom bottles along),
   tenant-level substitutions, custom ingredients in the substitution graph, brand/product
   granularity, recipe-level substitutions, manual primary classification, user-added lookup values,
   "running low" inventory.
