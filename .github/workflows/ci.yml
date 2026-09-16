@@ -11,6 +11,14 @@ on:
   schedule:
     - cron: "0 6 * * 1" # Mondays, 06:00 UTC
   workflow_dispatch:
+    inputs:
+      smoke:
+        # `android` proves a change to the Android smoke on a branch without also buying the
+        # 87-minute Apple smoke (`gh workflow run ci.yml --ref <branch> -f smoke=android`).
+        description: Which native smokes a manual run starts
+        type: choice
+        options: [all, android]
+        default: all
 
 # Least privilege for every job (v3 audit DEP-8). No job here consumes GITHUB_TOKEN — nothing pushes,
 # comments, or releases — but several execute freshly-downloaded third-party binaries (gitleaks, mailpit,
@@ -405,7 +413,8 @@ jobs:
     # as empty, which is exactly the hosted-fallback branch. Nothing here waits on that slice.
     if: >-
       needs.changes.outputs.native == 'true'
-      && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      && (github.event_name == 'schedule'
+          || (github.event_name == 'workflow_dispatch' && inputs.smoke != 'android')
           || (github.event_name == 'push' && github.ref == 'refs/heads/develop'
               && vars.CI_MACOS_RUNNER != ''))
     # Same Xcode reasoning as native-build-apple: pinned image + workload set 10.0.400.1 (iOS
@@ -661,9 +670,12 @@ jobs:
   # the app process is up.
   native-smoke-android:
     needs: changes
+    # Also on a manual dispatch, from any branch: a change to this job can then be proven before it
+    # merges, instead of by breaking develop (2026-09-16).
     if: >-
-      github.event_name == 'push' && github.ref == 'refs/heads/develop'
-      && needs.changes.outputs.native == 'true'
+      (github.event_name == 'push' && github.ref == 'refs/heads/develop'
+       && needs.changes.outputs.native == 'true')
+      || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     services:
@@ -727,9 +739,10 @@ jobs:
         run: |
           set -e
           SDK="$ANDROID_HOME"
+          IMAGE="system-images;android-34;google_apis;x86_64"
           echo "::group::sdkmanager (licenses + system image)"
           yes | timeout 120 "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-          timeout 900 "$SDK/cmdline-tools/latest/bin/sdkmanager" --install "system-images;android-34;google_apis;x86_64" "emulator" "platform-tools"
+          timeout 900 "$SDK/cmdline-tools/latest/bin/sdkmanager" --install "$IMAGE" "emulator" "platform-tools"
           echo "::endgroup::"
 
           # avdmanager and the emulator resolve the AVD directory DIFFERENTLY unless it's pinned:
@@ -740,12 +753,20 @@ jobs:
           mkdir -p "$ANDROID_AVD_HOME"
 
           echo "creating AVD…"
-          echo no | timeout 120 "$SDK/cmdline-tools/latest/bin/avdmanager" create avd -n smoke -k "system-images;android-34;google_apis;x86_64" --force
+          echo no | timeout 120 "$SDK/cmdline-tools/latest/bin/avdmanager" create avd -n smoke -k "$IMAGE" --force
           "$SDK/emulator/emulator" -list-avds | grep -qx smoke || {
             echo "::error::the AVD is not visible to the emulator"; ls -la "$ANDROID_AVD_HOME" || true; exit 1; }
 
           echo "launching emulator…"
-          nohup "$SDK/emulator/emulator" -avd smoke -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect > emulator.log 2>&1 &
+          # swangle_indirect, not swiftshader_indirect (2026-09-16). Every run since #38 (the Back bar
+          # restyle, whose sign-in screen is far heavier to draw) froze the guest at the app's first
+          # render: its logcat stops dead, the emulator process stays up, adb reports "connection
+          # terminated: read failed" and the device is gone — 8 develop runs, from 34983821740 on; the
+          # platform and y-el-vuelto, with plain screens, pass on swiftshader_indirect. On the
+          # maintainer's machine, same emulator and APK: swiftshader_indirect never drew the sign-in
+          # screen in 100 s; swangle_indirect ran the full two-theme sweep of every screen.
+          nohup "$SDK/emulator/emulator" -avd smoke -no-window -no-audio -no-snapshot -no-boot-anim \
+            -gpu swangle_indirect > emulator.log 2>&1 &
           EMU_PID=$!
           echo "emulator pid $EMU_PID"
 
@@ -786,18 +807,8 @@ jobs:
           # The app's compiled Android base URL is http://localhost:5438 — adb reverse maps the
           # emulator's localhost:5438 back to this runner (same trick as local dev).
           adb reverse tcp:5438 tcp:5438
-          # Record the device log for the WHOLE run: the after-the-fact `adb logcat -d` in the Logs step
-          # came back empty on run 34983821740, leaving a WebView teardown with no device evidence.
-          # Run 35024411715 lost the adb connection mid-journey and this recorder ended with it, nine
-          # seconds in. It now restarts (the buffer replays, so a gap is duplicated rather than lost),
-          # marks each restart, and a second recorder notes what `adb devices` said every 2 s, so the
-          # next drop shows when the device went and whether it came back. The adb server keeps its own
-          # log in /tmp/adb.<uid>.log; both are uploaded with the device log.
-          adb logcat -c || true
-          nohup bash -c 'while true; do adb logcat -v time; echo "--- logcat exited $(date -u +%T.%3N) ---"; sleep 1; done' > logcat.txt 2>&1 &
-          # Run 35128350182: the device list went empty for good 50 s into the journey and the emulator's
-          # own log just stopped — so each line also says whether the emulator process is still alive.
-          nohup bash -c 'while true; do echo "$(date -u +%T.%3N) emu=$(pgrep -f qemu-system >/dev/null && echo up || echo GONE) $(timeout 10 adb devices | tail -n +2 | tr "\n" " ")"; sleep 2; done' > adb-devices.txt 2>&1 &
+          # No streaming recorders on the device's one adb connection (they ran from #43 to #46 and found
+          # the freeze above); the device log is dumped once, in the Logs step, like the platform does.
           adb shell monkey -p com.jiggerjot.app -c android.intent.category.LAUNCHER 1
 
           echo "Waiting for the app process…"
@@ -824,10 +835,9 @@ jobs:
           # timeout: with a half-dead emulator, adb logcat can block forever — the boot step's
           # "nothing here may block without a deadline" rule applies to diagnostics too (a hung
           # diagnostics step sat 30+ min on 2026-08-24 until it was cancelled by hand).
-          timeout 60 adb logcat -d 2>/dev/null | grep -iE "jiggerjot|FATAL|blazor|chromium" | tail -n 120 || true
-          grep -iE "jiggerjot|FATAL|blazor|chromium|relaunch|Killing|logcat exited" logcat.txt 2>/dev/null | tail -n 120 || true
-          # Only the lines where the device list changed.
-          awk '{ state = substr($0, index($0, " ") + 1) } state != last { print; last = state }' adb-devices.txt 2>/dev/null || true
+          timeout 60 adb logcat -d -v time > logcat.txt 2>/dev/null || true
+          grep -iE "jiggerjot|FATAL|blazor|chromium" logcat.txt 2>/dev/null | tail -n 120 || true
+          timeout 10 adb devices || true
           cp "/tmp/adb.$(id -u).log" adb-server.log 2>/dev/null || true
           tail -n 60 adb-server.log 2>/dev/null || true
           # Why an emulator vanishes without a word in its own log: the kernel's OOM killer or a crash.
@@ -842,7 +852,6 @@ jobs:
           name: native-smoke-android-logcat
           path: |
             logcat.txt
-            adb-devices.txt
             adb-server.log
           if-no-files-found: ignore
           retention-days: 7
