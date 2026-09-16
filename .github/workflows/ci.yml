@@ -788,8 +788,14 @@ jobs:
           adb reverse tcp:5438 tcp:5438
           # Record the device log for the WHOLE run: the after-the-fact `adb logcat -d` in the Logs step
           # came back empty on run 34983821740, leaving a WebView teardown with no device evidence.
+          # Run 35024411715 lost the adb connection mid-journey and this recorder ended with it, nine
+          # seconds in. It now restarts (the buffer replays, so a gap is duplicated rather than lost),
+          # marks each restart, and a second recorder notes what `adb devices` said every 2 s, so the
+          # next drop shows when the device went and whether it came back. The adb server keeps its own
+          # log in /tmp/adb.<uid>.log; both are uploaded with the device log.
           adb logcat -c || true
-          nohup adb logcat -v time > logcat.txt 2>&1 &
+          nohup bash -c 'while true; do adb logcat -v time; echo "--- logcat exited $(date -u +%T.%3N) ---"; sleep 1; done' > logcat.txt 2>&1 &
+          nohup bash -c 'while true; do echo "$(date -u +%T.%3N) $(timeout 10 adb devices | tail -n +2 | tr "\n" " ")"; sleep 2; done' > adb-devices.txt 2>&1 &
           adb shell monkey -p com.jiggerjot.app -c android.intent.category.LAUNCHER 1
 
           echo "Waiting for the app process…"
@@ -817,14 +823,21 @@ jobs:
           # "nothing here may block without a deadline" rule applies to diagnostics too (a hung
           # diagnostics step sat 30+ min on 2026-08-24 until it was cancelled by hand).
           timeout 60 adb logcat -d 2>/dev/null | grep -iE "jiggerjot|FATAL|blazor|chromium" | tail -n 120 || true
-          grep -iE "jiggerjot|FATAL|blazor|chromium|relaunch|Killing" logcat.txt 2>/dev/null | tail -n 120 || true
+          grep -iE "jiggerjot|FATAL|blazor|chromium|relaunch|Killing|logcat exited" logcat.txt 2>/dev/null | tail -n 120 || true
+          # Only the lines where the device list changed.
+          awk '{ state = substr($0, index($0, " ") + 1) } state != last { print; last = state }' adb-devices.txt 2>/dev/null || true
+          cp "/tmp/adb.$(id -u).log" adb-server.log 2>/dev/null || true
+          tail -n 60 adb-server.log 2>/dev/null || true
 
       - name: Upload the device log
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: native-smoke-android-logcat
-          path: logcat.txt
+          path: |
+            logcat.txt
+            adb-devices.txt
+            adb-server.log
           if-no-files-found: ignore
           retention-days: 7
 
