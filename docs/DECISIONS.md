@@ -1402,6 +1402,9 @@ graph shared/clean; revisit alongside tenant-level subs.
 **JJ-024 — Household cocktails are private only in MVP.**
 No publishing to a community pool yet. *Rationale:* the community database is the long-term
 vision but adds visibility/moderation complexity; defer. Pinned.
+*Note (2026-09-16):* still in force. A plan to amend it exists — `docs/stories/community.md`,
+epic `COMMUNITY`, with **JJ-042 drafted inside the story** — and is pasted here only on the day
+the epic starts. Nothing is decided by the plan's existence.
 
 **JJ-025 — Documentation set for solo+Claude Code: BRIEF, FEATURES, DATA_MODEL, DECISIONS,
 CLAUDE.**
