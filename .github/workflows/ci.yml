@@ -11,6 +11,14 @@ on:
   schedule:
     - cron: "0 6 * * 1" # Mondays, 06:00 UTC
   workflow_dispatch:
+    inputs:
+      smoke:
+        # `android` proves a change to the Android smoke on a branch without also buying the
+        # 87-minute Apple smoke (`gh workflow run ci.yml --ref <branch> -f smoke=android`).
+        description: Which native smokes a manual run starts
+        type: choice
+        options: [all, android]
+        default: all
 
 # Least privilege for every job (v3 audit DEP-8). No job here consumes GITHUB_TOKEN — nothing pushes,
 # comments, or releases — but several execute freshly-downloaded third-party binaries (gitleaks, mailpit,
@@ -405,7 +413,8 @@ jobs:
     # as empty, which is exactly the hosted-fallback branch. Nothing here waits on that slice.
     if: >-
       needs.changes.outputs.native == 'true'
-      && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      && (github.event_name == 'schedule'
+          || (github.event_name == 'workflow_dispatch' && inputs.smoke != 'android')
           || (github.event_name == 'push' && github.ref == 'refs/heads/develop'
               && vars.CI_MACOS_RUNNER != ''))
     # Same Xcode reasoning as native-build-apple: pinned image + workload set 10.0.400.1 (iOS
@@ -661,9 +670,12 @@ jobs:
   # the app process is up.
   native-smoke-android:
     needs: changes
+    # Also on a manual dispatch, from any branch: a change to this job can then be proven before it
+    # merges, instead of by breaking develop (2026-09-16).
     if: >-
-      github.event_name == 'push' && github.ref == 'refs/heads/develop'
-      && needs.changes.outputs.native == 'true'
+      (github.event_name == 'push' && github.ref == 'refs/heads/develop'
+       && needs.changes.outputs.native == 'true')
+      || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     services:
@@ -727,9 +739,15 @@ jobs:
         run: |
           set -e
           SDK="$ANDROID_HOME"
+          # The plain AOSP image, not google_apis (2026-09-16). On runs 35128350182 and 35132061552 the
+          # guest froze mid-journey — its log stops dead, the emulator process stays up, adb reports
+          # "connection terminated: read failed" — while Google Messaging, Play Services and the
+          # keyboard were all cold-starting beside our app, frames took ~1.9 s to draw on the software
+          # GPU and an app logged memory reclaim. The smoke uses none of Google's services.
+          IMAGE="system-images;android-34;default;x86_64"
           echo "::group::sdkmanager (licenses + system image)"
           yes | timeout 120 "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-          timeout 900 "$SDK/cmdline-tools/latest/bin/sdkmanager" --install "system-images;android-34;google_apis;x86_64" "emulator" "platform-tools"
+          timeout 900 "$SDK/cmdline-tools/latest/bin/sdkmanager" --install "$IMAGE" "emulator" "platform-tools"
           echo "::endgroup::"
 
           # avdmanager and the emulator resolve the AVD directory DIFFERENTLY unless it's pinned:
@@ -740,12 +758,15 @@ jobs:
           mkdir -p "$ANDROID_AVD_HOME"
 
           echo "creating AVD…"
-          echo no | timeout 120 "$SDK/cmdline-tools/latest/bin/avdmanager" create avd -n smoke -k "system-images;android-34;google_apis;x86_64" --force
+          echo no | timeout 120 "$SDK/cmdline-tools/latest/bin/avdmanager" create avd -n smoke -k "$IMAGE" --force
           "$SDK/emulator/emulator" -list-avds | grep -qx smoke || {
             echo "::error::the AVD is not visible to the emulator"; ls -la "$ANDROID_AVD_HOME" || true; exit 1; }
 
           echo "launching emulator…"
-          nohup "$SDK/emulator/emulator" -avd smoke -no-window -no-audio -no-snapshot -no-boot-anim -gpu swiftshader_indirect > emulator.log 2>&1 &
+          # 4 GB and 4 cores (the runner has 4 vCPUs and 16 GB): the defaults left a guest that froze
+          # under the app's first render on the software GPU.
+          nohup "$SDK/emulator/emulator" -avd smoke -no-window -no-audio -no-snapshot -no-boot-anim \
+            -gpu swiftshader_indirect -memory 4096 -cores 4 > emulator.log 2>&1 &
           EMU_PID=$!
           echo "emulator pid $EMU_PID"
 
@@ -759,6 +780,19 @@ jobs:
             sleep 5
           done
           [ "$booted" = "1" ] || { echo "::error::emulator did not finish booting in 8 min"; tail -60 emulator.log; exit 1; }
+
+          # Less to draw, and a moment for the boot's own work to finish before our app adds its
+          # heaviest screen: animations off, then wait for the package manager and settle.
+          ADB="$SDK/platform-tools/adb"
+          for key in window_animation_scale transition_animation_scale animator_duration_scale; do
+            timeout 30 "$ADB" shell settings put global "$key" 0 || true
+          done
+          for i in $(seq 1 24); do   # up to 2 min
+            timeout 15 "$ADB" shell pm path android > /dev/null 2>&1 && break
+            sleep 5
+          done
+          sleep 20
+          echo "settled"
 
       - name: Boot API + app, run the Android smoke
         # One step for everything process-bound (the runner tears down a step's process tree).
