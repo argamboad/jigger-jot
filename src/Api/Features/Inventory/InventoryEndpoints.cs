@@ -49,6 +49,32 @@ public static class InventoryEndpoints
             };
         });
 
+        // INV-4: delete a bottle the household added. 204; 403 for a shared catalog bottle (JJ-002); 404 for
+        // one this household cannot see; 409 naming the recipes that still use it, which must change first.
+        group.MapDelete("/ingredients/{ingredientId:guid}", async (
+            Guid ingredientId,
+            IngredientRemovalHandler handler,
+            CancellationToken ct) =>
+        {
+            var result = await handler.DeleteAsync(ingredientId, ct);
+
+            return result.Outcome switch
+            {
+                RemoveIngredientOutcome.Deleted => Results.NoContent(),
+
+                RemoveIngredientOutcome.ReadOnly => Results.Json(new ErrorResponse(
+                    "catalog_read_only", "Bottles from the shared catalog cannot be deleted"),
+                    statusCode: StatusCodes.Status403Forbidden),
+
+                RemoveIngredientOutcome.InUse => Results.Conflict(new IngredientInUseResponse(
+                    "ingredient_in_use",
+                    "Recipes still use that ingredient. Take it out of them first.",
+                    result.UsedIn)),
+
+                _ => Results.NotFound(),
+            };
+        });
+
         // ONBOARD-1, FEATURES §7: the wizard's write. A whole shelf in one request, because nothing
         // in the wizard is confirmed until Finish — writing as it goes would leave a half-filled
         // shelf behind for anyone who closed the tab midway. The per-ingredient PUT below stays for

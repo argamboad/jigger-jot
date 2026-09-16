@@ -8,9 +8,37 @@
 // from a plain `adb install`), `adb reverse tcp:5438 tcp:5438`, the API on
 // http://localhost:5438, Mailpit on MAILPIT_BASE_URL (default http://localhost:8027).
 const { _android } = require('playwright-core');
+const { execFileSync } = require('child_process');
 
 const PKG = process.env.NATIVE_SMOKE_PKG || 'com.jiggerjot.app';
 const MAILPIT = process.env.MAILPIT_BASE_URL || 'http://localhost:8027';
+
+const stamp = () => new Date().toISOString();
+
+// A device handle, fresh each time. Run 35024411715 lost the whole adb connection mid-journey: the
+// WebView target closed, the separately-recorded `adb logcat` ended in the same second, and the retry's
+// first `device.shell` threw "Device is closed" — Playwright never hands a closed AndroidDevice back to
+// life, so a retry on the old handle cannot succeed. Every attempt asks for a new one, restarting the
+// adb server if the old one is gone, within a deadline like every other wait here.
+//
+// omitDriverInstall: the smoke drives the WebView over CDP and never uses Playwright's on-device driver
+// (taps and fills on native widgets). Installing it is a package change on the device, and the last
+// line logcat recorded on that run was logd re-reading the package list.
+async function acquireDevice(timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    try {
+      const devices = await _android.devices({ omitDriverInstall: true });
+      if (devices.length > 0) return devices[0];
+      console.error(`${stamp()} no adb device listed yet`);
+    } catch (e) {
+      console.error(`${stamp()} adb server unreachable (${e.message.split('\n')[0]}); starting it`);
+      try { execFileSync('adb', ['start-server'], { timeout: 30_000, stdio: 'inherit' }); } catch { /* retried below */ }
+    }
+    if (Date.now() >= deadline) throw new Error(`no adb device within ${timeoutMs / 1000}s`);
+    await new Promise(r => setTimeout(r, 3000));
+  }
+}
 
 async function mailpit(path, init) {
   const res = await fetch(`${MAILPIT}${path}`, init);
@@ -74,6 +102,7 @@ function looksLikeWebViewReplaced(message) {
     'Target page, context or browser has been closed',
     'Target closed',
     'Execution context was destroyed',
+    'Device is closed',
     "waiting for getByTestId('login-email')",
   ].some(s => message.includes(s));
 }
@@ -121,13 +150,28 @@ async function describeFailure(page) {
   }
 }
 
-(async () => {
-  const devices = await _android.devices();
-  if (devices.length === 0) throw new Error('no adb device/emulator attached');
-  const device = devices[0];
-  console.log(`device: ${device.serial()}`);
+// Whether the adb side is still there, asked of adb itself rather than of Playwright's handle — the two
+// failures this smoke has seen differ exactly here (a replaced WebView keeps the device; a dropped
+// connection loses both).
+function adbDevices() {
+  try {
+    return execFileSync('adb', ['devices'], { timeout: 15_000, encoding: 'utf8' }).trim().replace(/\s*\n\s*/g, ' | ');
+  } catch (e) {
+    return `adb devices failed: ${e.message.split('\n')[0]}`;
+  }
+}
 
+(async () => {
+  let device;
   for (let attempt = 1; ; attempt++) {
+    device = await acquireDevice(90_000);
+    console.log(`${stamp()} device (attempt ${attempt}): ${device.serial()}`);
+    if (attempt > 1) {
+      await device.shell(`am force-stop ${PKG}`);
+      await new Promise(r => setTimeout(r, 2000));
+      await device.shell(`monkey -p ${PKG} -c android.intent.category.LAUNCHER 1`);
+    }
+
     let failed;
     const seen = {};
     try {
@@ -137,12 +181,10 @@ async function describeFailure(page) {
       failed = e;
     }
     const message = failed.message ?? String(failed);
-    console.error(`attempt ${attempt}: ${await describeFailure(seen.page)}`);
+    console.error(`${stamp()} attempt ${attempt}: ${await describeFailure(seen.page)}; adb reports: ${adbDevices()}`);
     if (attempt >= ATTEMPTS || (seen.booted && !looksLikeWebViewReplaced(message))) throw failed;
-    console.error(`attempt ${attempt} failed (${message.split('\n')[0]}); force-stopping and relaunching once (MAUI WebView re-created)`);
-    await device.shell(`am force-stop ${PKG}`);
-    await new Promise(r => setTimeout(r, 2000));
-    await device.shell(`monkey -p ${PKG} -c android.intent.category.LAUNCHER 1`);
+    console.error(`attempt ${attempt} failed (${message.split('\n')[0]}); reconnecting, force-stopping and relaunching once`);
+    try { await device.close(); } catch { /* already closed is the case being handled */ }
   }
 
   console.log('native smoke (android): boot + OTP sign-in + household roster OK');

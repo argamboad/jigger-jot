@@ -85,6 +85,35 @@ public record AddIngredientResult(
     ShelfItem? Item = null,
     Guid? ExistingIngredientId = null);
 
+/// <summary>What deleting a household's bottle did (INV-4).</summary>
+public enum RemoveIngredientOutcome
+{
+    Deleted,
+
+    /// <summary>Not a bottle this household can see.</summary>
+    NotFound,
+
+    /// <summary>A shared catalog bottle — visible, and not the household's to remove (JJ-002).</summary>
+    ReadOnly,
+
+    /// <summary>One or more of the household's own recipes still use it.</summary>
+    InUse,
+}
+
+/// <param name="UsedIn">On <see cref="RemoveIngredientOutcome.InUse"/>: the names of the recipes that use
+/// the bottle, each once, in name order — what someone must change before the bottle can go.</param>
+public record RemoveIngredientResult(RemoveIngredientOutcome Outcome, IReadOnlyList<string>? UsedIn = null)
+{
+    public IReadOnlyList<string> UsedIn { get; init; } = UsedIn ?? [];
+}
+
+/// <summary>
+/// The 409 body when a bottle cannot be deleted because recipes use it. A named record, like
+/// <see cref="IngredientExistsResponse"/>, because it carries a third thing the shared error shape cannot:
+/// which recipes, so the shelf can say where to go.
+/// </summary>
+public record IngredientInUseResponse(string Error, string Message, IReadOnlyList<string> UsedIn);
+
 /// <summary>One top-level category and its children, for the picker (JJ-015: two levels, always).</summary>
 public record CategoryOption(Guid Id, string Name, IReadOnlyList<CategoryOption> Subcategories);
 

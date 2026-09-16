@@ -3,6 +3,7 @@
 @inject HttpClient Http
 @inject NavigationManager Nav
 @inject IStringLocalizer<AppStrings> Localizer
+@inject IJSRuntime JS
 
 <PageTitle>@(_recipe?.Name ?? Localizer["Nav_Cocktails"])</PageTitle>
 
@@ -135,24 +136,30 @@ else if (_recipe is not null)
                     }
                 </ul>
 
-                @* FEATURES §13: from ANY cocktail, including one you already forked — a household may
-                   well want a second version. A primary pill at the foot of the ingredient column on
-                   desktop; a fixed bar above the tab bar on a phone (page 10). Hidden in print. *@
-                <div class="recipe-fork">
-                    @* AUTHORING-2: only a household's own cocktail — written or forked — can be edited. A
-                       book's recipe is read-only (JJ-002); the fork button beside it is how to change it. *@
+                @* The recipe's actions, one row with the primary first (the maintainer's call, 2026-09-15):
+                   FEATURES §13's fork, from ANY cocktail, including one you already forked; then, on a
+                   household's own cocktail only, Edit (AUTHORING-2) and Delete as a red text link at the
+                   far end (AUTHORING-5). A book's recipe is read-only (JJ-002), so it offers the fork alone.
+                   A fixed bar above the tab bar on a phone (page 10). Hidden in print. *@
+                <div class="recipe-fork recipe-actions">
+                    <button class="btn btn-primary" data-testid="cocktail-fork"
+                            disabled="@_forking" @onclick="ForkAsync">@Localizer["Cocktail_Fork"]</button>
                     @if (_recipe.IsOwn)
                     {
                         <a class="btn btn-outline-secondary" href="/cocktails/@_recipe.Id/edit"
                            data-testid="cocktail-edit">@Localizer["Cocktail_EditButton"]</a>
-                    }
-                    <button class="btn btn-primary" data-testid="cocktail-fork"
-                            disabled="@_forking" @onclick="ForkAsync">@Localizer["Cocktail_Fork"]</button>
-                    @if (_forkError is not null)
-                    {
-                        <div class="recipe-fork-error" data-testid="cocktail-fork-error">@_forkError</div>
+                        <button class="btn btn-link text-danger recipe-delete" data-testid="cocktail-delete"
+                                disabled="@_deleting" @onclick="DeleteAsync">@Localizer["Cocktail_Delete"]</button>
                     }
                 </div>
+                @if (_forkError is not null)
+                {
+                    <div class="recipe-fork-error" data-testid="cocktail-fork-error">@_forkError</div>
+                }
+                @if (_deleteError is not null)
+                {
+                    <div class="recipe-fork-error" data-testid="cocktail-delete-error">@_deleteError</div>
+                }
             </section>
 
             <aside class="recipe-aside">
@@ -192,6 +199,8 @@ else if (_recipe is not null)
     private string? _error;
     private bool _forking;
     private string? _forkError;
+    private bool _deleting;
+    private string? _deleteError;
 
     // OnParametersSetAsync rather than OnInitializedAsync: Blazor reuses the component when the route
     // parameter changes, so initialising once would leave the old recipe on screen.
@@ -250,6 +259,35 @@ else if (_recipe is not null)
         finally
         {
             _forking = false;
+        }
+    }
+
+    /// <summary>
+    /// Deletes this household's own cocktail (AUTHORING-5), after a confirmation that names it, and goes
+    /// back to the catalog — the recipe it was standing on no longer exists. The confirmation fails closed
+    /// (<see cref="JsConfirm"/>), so nothing is deleted if it cannot be asked.
+    /// </summary>
+    private async Task DeleteAsync()
+    {
+        if (_recipe is null) return;
+        if (!await JS.ConfirmAsync(Localizer["Cocktail_DeleteConfirm", _recipe.Name])) return;
+
+        _deleting = true;
+        _deleteError = null;
+
+        try
+        {
+            var response = await Http.DeleteAsync($"/api/cocktails/{Id}");
+            response.EnsureSuccessStatusCode();
+            Nav.NavigateTo("/cocktails");
+        }
+        catch (Exception)
+        {
+            _deleteError = Localizer["Cocktail_DeleteFailed"];
+        }
+        finally
+        {
+            _deleting = false;
         }
     }
 

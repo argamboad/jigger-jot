@@ -353,7 +353,7 @@
   <data name="Units_Label" xml:space="preserve"><value>Medidas</value></data>
   <data name="Units_Metric" xml:space="preserve"><value>Métrico (ml)</value></data>
   <data name="Units_Imperial" xml:space="preserve"><value>Imperial (oz)</value></data>
-  <data name="Units_Hint" xml:space="preserve"><value>Los golpes, las cucharillas y las proporciones siempre se leen como los escribió la receta.</value></data>
+  <data name="Units_Hint" xml:space="preserve"><value>Los golpes, las cucharillas y las cucharaditas se leen igual en ambos sistemas.</value></data>
   <data name="Nav_Shelf" xml:space="preserve"><value>Estantería</value></data>
   <data name="Shelf_Subtitle" xml:space="preserve"><value>Marca lo que tiene tu hogar. Lo demás cuenta como que falta.</value></data>
   <data name="Shelf_SearchPlaceholder" xml:space="preserve"><value>Buscar ingredientes</value></data>
@@ -411,6 +411,14 @@
   <data name="Cocktail_BackToRecipe" xml:space="preserve"><value>Volver a la receta</value></data>
   <data name="Cocktail_ErrReadOnly" xml:space="preserve"><value>Las recetas del catálogo compartido no se pueden editar. Crea tu propia versión para cambiarla.</value></data>
   <data name="Cocktail_EditMissing" xml:space="preserve"><value>Ese cóctel no está aquí para editarlo.</value></data>
+  <data name="Cocktail_Delete" xml:space="preserve"><value>Eliminar</value></data>
+  <data name="Cocktail_DeleteConfirm" xml:space="preserve"><value>¿Eliminar {0}? No se puede deshacer.</value></data>
+  <data name="Cocktail_DeleteFailed" xml:space="preserve"><value>No se pudo eliminar. Inténtalo de nuevo.</value></data>
+  <data name="Shelf_DeleteLabel" xml:space="preserve"><value>Eliminar {0}</value></data>
+  <data name="Shelf_DeleteConfirm" xml:space="preserve"><value>¿Eliminar {0} de tu estantería? No se puede deshacer.</value></data>
+  <data name="Shelf_DeleteInUseOne" xml:space="preserve"><value>No se puede eliminar {0}: se usa en {1}. Quítalo primero de esa receta.</value></data>
+  <data name="Shelf_DeleteInUseMany" xml:space="preserve"><value>No se puede eliminar {0}: se usa en {1} y {2} más. Quítalo primero de esas recetas.</value></data>
+  <data name="Shelf_DeleteFailed" xml:space="preserve"><value>No se pudo eliminar. Inténtalo de nuevo.</value></data>
   <data name="Cocktails_OneAway" xml:space="preserve"><value>A un ingrediente</value></data>
   <data name="Cocktails_All" xml:space="preserve"><value>Todo</value></data>
   <data name="Cocktails_Missing" xml:space="preserve"><value>Añade {0} y ya puedes prepararlo</value></data>

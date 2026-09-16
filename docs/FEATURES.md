@@ -174,6 +174,8 @@ Flow:
 - Toggling an item writes/updates its `is_available` in `TenantInventory`; absence = not available.
 - Add a **custom ingredient** inline (name + category + subcategory) → creates a tenant-owned
   `Ingredient` and is immediately checkable.
+- **Delete** a custom ingredient the household added (INV-4). Refused while one of the household's
+  recipes uses it, naming those recipes; the shared catalog has no delete — untick instead.
 - Boolean only — no "running low" (pinned, JJ-023).
 
 ### 9. "What can I make right now" (the makeable engine)
@@ -243,6 +245,8 @@ Flow:
 - **Edit** a cocktail the household owns — written or forked — with the same form, opened in the
   writer's units; the same rules as writing apply. The shared catalog is read-only: fork it to change it.
   Last save wins (AUTHORING-2).
+- **Delete** a cocktail the household owns, after a confirmation; its lines go with it, and a fork of it
+  stays standing. The recipe's actions sit on one row: Create my own version, Edit, Delete (AUTHORING-5).
 
 ### 15. Unit preference
 - Per-user setting: imperial or metric (JJ-008), on the Settings → Preferences card next to

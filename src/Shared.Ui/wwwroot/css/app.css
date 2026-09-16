@@ -917,6 +917,23 @@ code {
     text-transform: lowercase;
 }
 
+/* INV-4: the × beside a household's own bottle. Its own button, never inside the pill's label (the
+   checkbox's click target), tucked against the pill it belongs to and muted until it is pointed at. */
+.shelf-own-delete {
+    margin-left: -.25rem;
+    padding: 0 .35rem;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--muted);
+    text-decoration: none;
+    align-self: center;
+}
+
+.shelf-own-delete:hover,
+.shelf-own-delete:focus-visible {
+    color: var(--mark-missing);
+}
+
 /* ── SHELL-1: the app's own destinations ──────────────────────────────────────────────────────
    One element, two positions. At lg and above it sits in the header row; below lg the same element
    is pulled out to the bottom of the viewport. A second copy hidden by CSS would put two
@@ -983,18 +1000,29 @@ code {
         /* BACKBAR-2: the tab bar sits on the surface with a hairline, like the header it came from. */
         background: var(--surface);
         border-top: 1px solid var(--app-border);
-        /* Clear the iOS home indicator, the same way the header clears the notch. Resolves to 0
-           on Android and on the web. */
+        /* Clear the home indicator or the gesture area, the same way the header clears the notch.
+           Resolves to 0 on the web. */
         padding-bottom: env(safe-area-inset-bottom, 0px);
+        /* Exactly the room --tab-bar-clearance reserves (2026-09-16). Left to its content the bar was
+           ~42px against 56px, and every bar fixed above it floated 14px up with the page showing
+           through the gap. */
+        box-sizing: border-box;
+        height: calc(var(--tab-bar-height, 56px) + env(safe-area-inset-bottom, 0px));
+        align-items: stretch;
     }
 
     .app-header .app-tabs .nav-item {
         flex: 1 1 0;
+        display: flex;
         text-align: center;
     }
 
     .app-header .app-tabs .nav-link {
-        padding: .6rem .25rem;
+        flex: 1 1 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 .25rem;
         font-size: .9rem;
     }
 

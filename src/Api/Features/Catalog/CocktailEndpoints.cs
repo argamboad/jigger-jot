@@ -180,6 +180,18 @@ public static class CocktailEndpoints
                 : Refused(result.Outcome);
         });
 
+        // AUTHORING-5: delete a household's own cocktail. 204; a shared catalog recipe is a 403, another
+        // household's a 404 — the same answers an edit gives, through the same mapping.
+        group.MapDelete("/{id:guid}", async (
+            Guid id,
+            CocktailAuthoringHandler handler,
+            CancellationToken ct) =>
+        {
+            var outcome = await handler.DeleteAsync(id, ct);
+
+            return outcome == AuthorCocktailOutcome.Deleted ? Results.NoContent() : Refused(outcome);
+        });
+
         // AUTHORING-2: the cocktail as the write form edits it — the request's own shape, with every
         // volume in the caller's writing unit (JJ-041), so the form opens with what that person types.
         group.MapGet("/{id:guid}/draft", async (

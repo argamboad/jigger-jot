@@ -168,6 +168,7 @@ public class CocktailBrowseJourneyTests : E2ETestBase
             r => r.Request.Method == "PUT" && r.Url.Contains("/api/cocktails/") && r.Status == 200);
         await Expect(Page.GetByTestId("cocktail-name")).ToContainTextAsync("Our Negroni", new() { Timeout = 30_000 });
         await Expect(Page.GetByTestId("cocktail-forked-from")).ToContainTextAsync("Negroni");
+        var copyUrl = Page.Url;
 
         // The original is still the book's, unchanged, right where it was.
         await Page.GotoAsync(originalUrl);
@@ -181,6 +182,23 @@ public class CocktailBrowseJourneyTests : E2ETestBase
             r => r.Url.Contains("search=negroni") && r.Status == 200);
         await Expect(Page.GetByTestId("cocktail-list").GetByText("Yours").First)
             .ToBeVisibleAsync(new() { Timeout = 30_000 });
+
+        // AUTHORING-5: the book's recipe offers no Delete, the copy does — behind a confirmation — and
+        // deleting it goes back to the catalog with the copy gone and the book's Negroni still there.
+        await Page.GotoAsync(originalUrl);
+        await Expect(Page.GetByTestId("cocktail-fork")).ToBeVisibleAsync(new() { Timeout = 30_000 });
+        await Expect(Page.GetByTestId("cocktail-delete")).ToHaveCountAsync(0);
+
+        await Page.GotoAsync(copyUrl);
+        await Expect(Page.GetByTestId("cocktail-name")).ToContainTextAsync("Our Negroni", new() { Timeout = 30_000 });
+        Page.Dialog += async (_, dialog) => await dialog.AcceptAsync();
+        await Page.RunAndWaitForResponseAsync(
+            () => Page.GetByTestId("cocktail-delete").ClickAsync(),
+            r => r.Request.Method == "DELETE" && r.Url.Contains("/api/cocktails/") && r.Status == 204);
+        await Expect(Page).ToHaveURLAsync($"{BaseUrl}/cocktails", new() { Timeout = 30_000 });
+
+        await Page.GotoAsync(copyUrl);
+        await Expect(Page.GetByTestId("cocktail-notfound")).ToBeVisibleAsync(new() { Timeout = 30_000 });
     }
 
     /// <summary>

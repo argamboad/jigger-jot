@@ -131,6 +131,29 @@ public class CocktailAuthoringHandler(
     }
 
     /// <summary>
+    /// Deletes a household cocktail — one it wrote, or one it forked (AUTHORING-5). Its lines go with it
+    /// through the foreign key's cascade.
+    /// </summary>
+    /// <remarks>
+    /// The same three answers as an edit: a book's recipe is <see cref="AuthorCocktailOutcome.ReadOnly"/>
+    /// (JJ-002), another household's is <see cref="AuthorCocktailOutcome.NotFound"/> (JJ-031). A fork OF the
+    /// deleted recipe stays standing with every line, because <c>ForkedFromCocktailId</c> is provenance and
+    /// not a foreign key (JJ-013) — its "Based on" simply stops linking.
+    /// </remarks>
+    public async Task<AuthorCocktailOutcome> DeleteAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var cocktail = await cocktails.Query().SingleOrDefaultAsync(c => c.Id == id, cancellationToken);
+
+        if (cocktail is null || tenant.TenantId is not { } tenantId) return AuthorCocktailOutcome.NotFound;
+        if (cocktail.TenantId != tenantId) return AuthorCocktailOutcome.ReadOnly;
+
+        cocktails.Remove(cocktail);
+        await cocktails.SaveChangesAsync(cancellationToken);
+
+        return AuthorCocktailOutcome.Deleted;
+    }
+
+    /// <summary>
     /// A household cocktail shaped for the write form to edit (AUTHORING-2), with its volumes in the
     /// writer's own unit — the stored ounces as millilitres for a metric reader (JJ-041), so what the
     /// form shows is what that person would type.
