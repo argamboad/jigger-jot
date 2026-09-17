@@ -198,3 +198,5 @@ Ordered, each a mergeable vertical slice. TDD throughout.
 **Known sharp edges (from ADR-010):** never trust the client path — **validate keys server-side**
 (traversal, rooted, cross-tenant); **stream, don't buffer**; signed URLs are **short-lived + single-key**;
 no content sniffing/AV here (downstream); deleting a missing key is a **no-op**, not an error.
+
+*Fix (2026-09-17, synced from perezosoft-platform #236):* the container runs as the non-root `app` user and `/app` is created by root, so local-disk storage (`/app/storage`) could not be created and every stored file would fail with "Access to the path '/app/storage' is denied" (it did on a sibling app's staging). The Dockerfile now creates the folder owned by `app` before `USER app`; `EnforcementGateTests.Dockerfile_GivesTheAppUserAWritableStorageDir` holds it and the `docker-build` CI job writes a probe file in the built image.
