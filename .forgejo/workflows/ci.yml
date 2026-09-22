@@ -920,9 +920,12 @@ jobs:
         # One step for everything process-bound (the runner tears down a step's process tree).
         env:
           ASPNETCORE_ENVIRONMENT: Development
+          # LOCALCI-4: host networking on the Forgejo runners ignores the service `ports:` mapping, so Mailpit
+          # listens on its native 1025 (SMTP) / 8025 (API), not this repo's dev 1027 / 8027.
+          Email__Smtp__Port: "1025"
           ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=smoke;Username=smoke;Password=smoke"
           Jwt__Secret: "ci-native-smoke-jwt-signing-key-0123"
-          MAILPIT_BASE_URL: "http://localhost:8027"
+          MAILPIT_BASE_URL: "http://localhost:8025"  # LOCALCI-4: native port, see Email__Smtp__Port
         run: |
           set -e
           # platform-tools was installed by sdkmanager this job — it is NOT on the runner's PATH
@@ -1078,6 +1081,9 @@ jobs:
         # tree when the step ends. Start API + Web in the background, wait for readiness, then test.
         env:
           ASPNETCORE_ENVIRONMENT: Development
+          # LOCALCI-4: host networking on the Forgejo runners ignores the service `ports:` mapping, so Mailpit
+          # listens on its native 1025 (SMTP) / 8025 (API), not this repo's dev 1027 / 8027.
+          Email__Smtp__Port: "1025"
           ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=e2e;Username=e2e;Password=e2e"
           Jwt__Secret: "ci-e2e-jwt-signing-secret-0123456789ab"
           # The whole browser suite shares one source IP, so raise the per-IP passwordless limit well
@@ -1108,7 +1114,7 @@ jobs:
           done
           [ "$api" = "200" ] && [ "$web" = "200" ] || { echo "::error::stack did not become ready"; tail -40 api.log web.log; exit 1; }
 
-          PLAYWRIGHT_BASE_URL=http://localhost:5369 MAILPIT_BASE_URL=http://localhost:8027 \
+          PLAYWRIGHT_BASE_URL=http://localhost:5369 MAILPIT_BASE_URL=http://localhost:8025 \
             E2E_API_BASE_URL=http://localhost:5438 \
             dotnet test tests/E2E.Tests/JiggerJot.E2E.Tests.csproj -c Debug --no-build
 
