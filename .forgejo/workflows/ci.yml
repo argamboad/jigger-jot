@@ -1,3 +1,37 @@
+# LOCALCI-4 (ADR-028) — the SAME pipeline as .github/workflows/ci.yml, run by the self-hosted Forgejo
+# (the primary remote). GitHub ignores .forgejo/; Forgejo ignores .github/ once this directory exists, so
+# each forge runs only its own copy. The runners carry the hosted labels (`ubuntu-latest` is a container
+# image on the WSL runner, `windows-latest` is the Windows desk in host mode, `macos-26` the MacBook), so
+# every job id and `runs-on` line matches GitHub's and `ForgejoCiParityTests` can hold the two files
+# together. The deliberate differences, each marked `LOCALCI-4:` below:
+#   - Unspecified shells are pinned to GitHub's `bash -e {0}` (Forgejo's default adds pipefail).
+#   - Apple jobs need `vars.CI_MACOS_RUNNER` (a Mac with no runner would queue them forever).
+#   - Windows jobs declare `pwsh` (Forgejo's default shell is bash even on Windows) and bring their own
+#     Postgres (no preinstalled service on the desk).
+#   - The hosted-image-only steps (freeing disk, the udev KVM rule) are replaced by what the desk needs.
+#   - e2e and native-smoke-android run on `ubuntu-host-ports` (same image, one job at a time): they bind
+#     fixed ports, and the WSL runner's jobs share one network namespace.
+#   - The native SMOKES run on demand (`smokes` input) and on the Monday schedule, not on every develop
+#     push: they are the slow, CPU-hungry legs and the desk is one machine. The native BUILDS still run
+#     on every push — they are cheap and catch compile rot within one merge (NATIVE-1).
+#   - Deploys run ONLY from "Run workflow" (`deploy` input), never on a push. A deploy pushes the commit
+#     to the same branch on GitHub (Render follows GitHub's develop/main; GitHub's own pipeline runs and
+#     re-deploys the same commit, harmlessly) and only after every gate — and every smoke selected in the
+#     same run — is green.
+#
+# KNOBS — repo variables (Settings → Actions → Variables) that change the behaviour above without a
+# commit. Unset means the default. Documented for operators in docs/DEPLOYMENT.md §10.
+#   CI_SMOKES_ON_PUSH   none* | windows | android | apple | all — also run these smokes on every code
+#                       push to develop (GitHub's behaviour), not only on demand.
+#   CI_DEPLOY_ON_PUSH   none* | staging — also deploy staging on every green code push to develop
+#                       (GitHub's behaviour). Prod is never deployed on a push, whatever this says.
+#   CI_WEEKLY_SMOKES    on* | off — the Monday 06:00 UTC smoke run.
+#   CI_MACOS_RUNNER     unset* | anything — set once the MacBook runner is Online; until then the Apple
+#                       jobs skip instead of queueing forever.
+#   CI_MACOS_PROBE      unset* | host:port — TCP address that answers while the MacBook is awake (its
+#                       Tailscale IP and SSH port). The `mac` job probes it so an asleep Mac SKIPS the
+#                       Apple jobs with a warning instead of queueing them for 24 h or failing the run.
+#                       Unset ⇒ assume the Mac is there.
 name: CI
 
 on:
@@ -5,27 +39,35 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
-  # LOCALCI-3. The Apple smoke bills 87 minutes because macOS runners cost 10x, so in hosted-fallback
-  # mode it runs on a cadence instead of on every push. A scheduled run is ONLY that job — every
-  # other one carries `github.event_name != 'schedule'`.
+  # LOCALCI-3/4. A scheduled run is ONLY the native smokes (all three, the Apple one once a Mac exists) —
+  # the weekly safety net for legs that no longer run per push. Every other job carries
+  # `github.event_name != 'schedule'`.
   schedule:
     - cron: "0 6 * * 1" # Mondays, 06:00 UTC
   workflow_dispatch:
     inputs:
-      smoke:
-        # `android` proves a change to the Android smoke on a branch without also buying the
-        # 87-minute Apple smoke (`gh workflow run ci.yml --ref <branch> -f smoke=android`).
-        description: Which native smokes a manual run starts
+      smokes:
+        description: Native smokes to run (the gates and builds always run)
         type: choice
-        options: [all, android]
-        default: all
+        default: none
+        options: [none, windows, android, apple, all]
+      deploy:
+        description: Deploy after everything is green (staging from develop, prod from main)
+        type: choice
+        default: none
+        options: [none, staging, prod]
 
-# Least privilege for every job (v3 audit DEP-8). No job here consumes GITHUB_TOKEN — nothing pushes,
-# comments, or releases — but several execute freshly-downloaded third-party binaries (gitleaks, mailpit,
-# dotnet tools), so the default write-all token would hand those a repo-write credential for no reason.
-# `contents: read` is all `actions/checkout` needs. Grant any future write scope per-job, never here.
-permissions:
-  contents: read
+# LOCALCI-4: GitHub's copy carries `permissions: contents: read` (v3 audit DEP-8, least privilege for the
+# job token). Forgejo does not support that key — it warns on every run and ignores it — so it is left out
+# here. Nothing in this pipeline writes with the job token: the one push (to GitHub, in the deploy jobs)
+# uses DEPLOY_MIRROR_TOKEN. Job-token capabilities on Forgejo are granted under Authorized Integrations.
+
+# LOCALCI-4: GitHub runs an unspecified `run:` shell as `bash -e {0}` — NO pipefail. Forgejo's default adds
+# `-o pipefail`, which turns steps written for GitHub into failures (`pid=$(adb shell pidof … | tr …)` while
+# the app is still starting; `grep -rl … | xargs -r` when nothing matches). Pin GitHub's semantics here.
+defaults:
+  run:
+    shell: bash -e {0}
 
 jobs:
   build-test:
@@ -234,6 +276,10 @@ jobs:
             os: windows-latest
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
+    # LOCALCI-4: Forgejo's default shell is bash on every OS; the Windows desk runs these in pwsh.
+    defaults:
+      run:
+        shell: ${{ matrix.os == 'windows-latest' && 'pwsh' || 'bash -e {0}' }}
     steps:
       - uses: actions/checkout@v5
 
@@ -291,6 +337,47 @@ jobs:
   # WHOLE workflow, and two gates must run no matter what the change looks like (see below). A
   # skipped job is not a failed one — GitHub reports a skipped required check as passing — so a
   # docs-only pull request still merges.
+  # LOCALCI-4, Forgejo only: is the MacBook there right now? It is a laptop, not a datacenter VM — it
+  # sleeps, closes and leaves the network. Forgejo would otherwise leave an Apple job "waiting" for
+  # ABANDONED_JOB_TIMEOUT (24 h), or, if the Mac vanishes mid-job, kill it as a zombie after
+  # ZOMBIE_TASK_TIMEOUT (10 m) and mark the run RED — for a machine being asleep, which is not a
+  # defect. This job answers the question on an always-on runner, so the Apple jobs can SKIP with a
+  # warning instead: a skipped job is neutral, the run stays green, and re-running it later once the
+  # Mac is awake picks the Apple legs up.
+  #
+  # The probe is a TCP connect to `vars.CI_MACOS_PROBE` (host:port, e.g. the Mac's Tailscale IP and its
+  # SSH port). Unset ⇒ assume the Mac is there, which is the behaviour of any clone that never
+  # configured this. It follows that turning Remote Login off on the Mac reads as "asleep".
+  mac:
+    if: github.event_name != 'schedule' || vars.CI_WEEKLY_SMOKES != 'off'
+    runs-on: ubuntu-latest
+    outputs:
+      online: ${{ steps.probe.outputs.online }}
+    steps:
+      - id: probe
+        env:
+          RUNNER: ${{ vars.CI_MACOS_RUNNER }}
+          PROBE: ${{ vars.CI_MACOS_PROBE }}
+        run: |
+          if [ -z "$RUNNER" ]; then
+            echo "online=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::CI_MACOS_RUNNER is not set — the Apple jobs are off. Set it once the Mac runner is registered."
+            exit 0
+          fi
+          if [ -z "$PROBE" ]; then
+            echo "online=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::CI_MACOS_PROBE is not set — assuming the Mac is online."
+            exit 0
+          fi
+          host=${PROBE%:*}; port=${PROBE##*:}
+          if timeout 5 bash -c "</dev/tcp/$host/$port" 2>/dev/null; then
+            echo "online=true" >> "$GITHUB_OUTPUT"
+            echo "The Mac runner answered at $PROBE."
+          else
+            echo "online=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::The Mac ($PROBE) is not reachable — the Apple jobs are skipped, not failed. Wake it and re-run this workflow to build and smoke them."
+          fi
+
   changes:
     runs-on: ubuntu-latest
     outputs:
@@ -330,11 +417,12 @@ jobs:
           # Anything that can change what the code DOES or how it is built. Lockfiles and the
           # workflow itself are in here on purpose: a change to either can break a build that no
           # source file touched.
-          code=$(match "$codefiles" '^(src/|tests/|Directory\.Packages\.props|Directory\.Build\.props|global\.json|Dockerfile|docker-compose\.yml|\.config/dotnet-tools\.json|\.github/(workflows/ci\.yml|scripts/)|.*packages\.lock\.json)')
+          # LOCALCI-4: the Forgejo copy also counts its own workflow file (`\.forgejo/workflows/ci\.yml`).
+          code=$(match "$codefiles" '^(src/|tests/|Directory\.Packages\.props|Directory\.Build\.props|global\.json|Dockerfile|docker-compose\.yml|\.config/dotnet-tools\.json|\.github/(workflows/ci\.yml|scripts/)|.*packages\.lock\.json|\.forgejo/workflows/ci\.yml)')
 
           # Narrower, and unchanged from the old native-paths regex: what the expensive native legs
           # can actually be broken by.
-          native=$(match "$codefiles" '^(src/|tests/E2E\.Tests/|tests/native-smoke-android/|Directory\.Packages\.props|\.github/workflows/ci\.yml|global\.json)')
+          native=$(match "$codefiles" '^(src/|tests/E2E\.Tests/|tests/native-smoke-android/|Directory\.Packages\.props|\.github/workflows/ci\.yml|global\.json|\.forgejo/workflows/ci\.yml)')
 
           {
             echo "code=$code"
@@ -347,12 +435,14 @@ jobs:
   # Apple half of the native build gate (NATIVE-1). Develop pushes only, and only when the push
   # touched native-relevant paths (see `changes`): macOS runners bill at 10× on a private repo.
   native-build-apple:
-    needs: changes
+    needs: [changes, mac]
     # Develop pushes only, and only when the push could have broken it. The develop-only test moved
     # here from the gate job when LOCALCI-3 made that gate serve every job.
+    # LOCALCI-4: + a Mac that is registered AND awake right now (see the `mac` job).
     if: >-
       github.event_name == 'push' && github.ref == 'refs/heads/develop'
       && needs.changes.outputs.native == 'true'
+      && needs.mac.outputs.online == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -407,7 +497,7 @@ jobs:
   # email is sent in a boot smoke. Not in deploy-staging needs (same accepted-risk note as the
   # other native smokes). macOS bills 10× — develop pushes with native-relevant changes only.
   native-smoke-apple:
-    needs: changes
+    needs: [changes, mac]
     # LOCALCI-3, and the one cadence change in this slice. At 87 billed minutes it is the most
     # expensive job in the workflow, so in hosted-fallback mode it moves to Monday mornings and to
     # manual dispatch. The moment a self-hosted Mac is configured it is free, and it goes back to
@@ -415,12 +505,16 @@ jobs:
     #
     # `vars.CI_MACOS_RUNNER` is LOCALCI-1's variable and does not exist yet; an unset variable reads
     # as empty, which is exactly the hosted-fallback branch. Nothing here waits on that slice.
+    # LOCALCI-4: on demand, on the schedule, or per develop push when CI_SMOKES_ON_PUSH says so — and
+    # only with a Mac that is registered and awake (see the `mac` job).
     if: >-
       needs.changes.outputs.native == 'true'
-      && (github.event_name == 'schedule'
-          || (github.event_name == 'workflow_dispatch' && inputs.smoke != 'android')
+      && needs.mac.outputs.online == 'true'
+      && ((github.event_name == 'schedule' && vars.CI_WEEKLY_SMOKES != 'off')
+          || (github.event_name == 'workflow_dispatch'
+              && (github.event.inputs.smokes == 'apple' || github.event.inputs.smokes == 'all'))
           || (github.event_name == 'push' && github.ref == 'refs/heads/develop'
-              && vars.CI_MACOS_RUNNER != ''))
+              && (vars.CI_SMOKES_ON_PUSH == 'apple' || vars.CI_SMOKES_ON_PUSH == 'all')))
     # Same Xcode reasoning as native-build-apple: pinned image + workload set 10.0.400.1 (iOS
     # 26.5.10315, requires Xcode 26.6) + DEVELOPER_DIR pinning the image's default Xcode 26.6.
     runs-on: macos-26
@@ -455,6 +549,11 @@ jobs:
           brew services start postgresql@17
           for i in $(seq 1 30); do "$PGBIN/pg_isready" -h localhost && break; sleep 2; done
           "$PGBIN/pg_isready" -h localhost || { echo "::error::Postgres never became ready"; exit 1; }
+          # LOCALCI-4 (the LOCALCI-1b idempotency fix): the Mac is not a fresh VM — the database from the
+          # previous run is still there (`createdb` alone failed the second run ever made), and a previous
+          # run's API may still hold a connection to it (`dropdb` without --force failed the third).
+          pkill -f "JiggerJot.Api" || true
+          "$PGBIN/dropdb" -h localhost --if-exists --force smoke
           "$PGBIN/createdb" -h localhost smoke
 
       - name: Boot a simulator
@@ -535,8 +634,12 @@ jobs:
           [ "$ok" = "1" ] || { echo "::error::the iOS app never reached /api/auth/providers — Blazor did not boot or cannot reach the API"; tail -40 api.log; exit 1; }
 
       - name: Screenshot artifacts
+        # LOCALCI-4: upload-artifact v4+ refuses to run anywhere but github.com ("not currently supported
+        # on GHES"); v3 uses the artifact API Forgejo implements. And a screenshot is a diagnostic, never
+        # the verdict — the smoke above passed or failed on its own — so this step cannot turn it red.
         if: always()
-        uses: actions/upload-artifact@v7
+        continue-on-error: true
+        uses: actions/upload-artifact@v3
         with:
           name: apple-smoke-screenshots
           path: |
@@ -553,6 +656,16 @@ jobs:
           tail -n 30 catalyst-app.log || true
           xcrun simctl spawn "$UDID" log show --last 5m --predicate 'process == "JiggerJot.Maui"' --style compact 2>/dev/null | tail -n 40 || true
 
+      - name: Leave the Mac as we found it
+        # LOCALCI-4: a hosted runner is thrown away after the job; the MacBook is not. Stop what the
+        # smoke started so it is not still running Postgres, a simulator and an API an hour later.
+        if: always()
+        continue-on-error: true
+        run: |
+          pkill -f "JiggerJot.Api" || true
+          [ -n "${UDID:-}" ] && xcrun simctl shutdown "$UDID" || true
+          brew services stop postgresql@17 || true
+
   # Native smoke — Windows (NATIVE-7, ADR-018). Runs the REAL MAUI Windows app against a real API +
   # Postgres and asserts BOOT-TO-LOGIN: the app process stays up and its Blazor login page reaches the
   # API (a GET /api/auth/providers 200 in api.log) — proving the WebView booted and can talk to the
@@ -565,11 +678,20 @@ jobs:
   # Deliberately NOT in the deploy-staging needs — a native run must not block web deploys (ADR-018).
   native-smoke-windows:
     needs: changes
+    # LOCALCI-4: on demand (`smokes` input), on the Monday schedule, or per develop push when the
+    # CI_SMOKES_ON_PUSH knob says so.
     if: >-
-      github.event_name == 'push' && github.ref == 'refs/heads/develop'
-      && needs.changes.outputs.native == 'true'
+      needs.changes.outputs.native == 'true'
+      && ((github.event_name == 'schedule' && vars.CI_WEEKLY_SMOKES != 'off')
+          || (github.event_name == 'workflow_dispatch'
+              && (github.event.inputs.smokes == 'windows' || github.event.inputs.smokes == 'all'))
+          || (github.event_name == 'push' && github.ref == 'refs/heads/develop'
+              && (vars.CI_SMOKES_ON_PUSH == 'windows' || vars.CI_SMOKES_ON_PUSH == 'all')))
     runs-on: windows-latest
     timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh # LOCALCI-4: Forgejo's default shell is bash even on Windows
     steps:
       - uses: actions/checkout@v5
 
@@ -588,17 +710,21 @@ jobs:
           dotnet build src/Api/JiggerJot.Api.csproj -c Debug --no-restore
           dotnet build src/Maui/JiggerJot.Maui.csproj -f net10.0-windows10.0.19041.0 -c Debug
 
-      - name: Start Postgres (preinstalled)
-        # The Windows runner image ships PostgreSQL with its service disabled (creds
-        # postgres/root via PGUSER/PGPASSWORD). No Mailpit: the boot-probe never signs in, so no
-        # email is sent (that path is exercised by the Android leg's full sign-in journey).
+      - name: Start Postgres (container on the desk's Docker Desktop)
+        # LOCALCI-4 (the LOCALCI-1b idempotency fix): the hosted image ships a PostgreSQL service; the
+        # desk does not, so a persistent container stands in, recreated fresh each run. Same creds as
+        # the hosted image (postgres/root). No Mailpit: the boot-probe never signs in.
+        # Port rule: stop the dev stack (`docker compose stop db`) before the desk takes jobs.
         run: |
-          $svc = Get-Service postgresql* | Select-Object -First 1
-          if (-not $svc) { Write-Error "no preinstalled PostgreSQL service on this image"; exit 1 }
-          Set-Service $svc.Name -StartupType Manual
-          Start-Service $svc.Name
-          $env:PGPASSWORD = "root"
-          & "$env:PGBIN\psql" -U postgres -c "CREATE DATABASE smoke;"
+          if (Get-NetTCPConnection -State Listen -LocalPort 5432,5438 -ErrorAction SilentlyContinue) {
+            Write-Host "::error::port 5432 or 5438 is busy on the desk — stop the dev stack/API (docker compose stop db) and re-run"
+            exit 1
+          }
+          docker rm -f ci-smoke-pg 2>$null | Out-Null
+          docker run -d --name ci-smoke-pg -e POSTGRES_PASSWORD=root -p 5432:5432 postgres:17 | Out-Null
+          foreach ($i in 1..30) { docker exec ci-smoke-pg pg_isready -U postgres *> $null; if ($LASTEXITCODE -eq 0) { break }; Start-Sleep 2 }
+          docker exec ci-smoke-pg psql -U postgres -c "CREATE DATABASE smoke;"
+          if ($LASTEXITCODE -ne 0) { exit 1 }
 
       - name: Boot API + app, assert boot-to-login
         # Everything process-bound lives in ONE step (the runner tears down a step's process tree).
@@ -664,6 +790,12 @@ jobs:
         continue-on-error: true
         run: if (Test-Path api.log) { Get-Content api.log -Tail 100 }
 
+      - name: Remove the smoke Postgres
+        # LOCALCI-4: the desk is not a throwaway VM — leave nothing running on 5432.
+        if: always()
+        continue-on-error: true
+        run: docker rm -f ci-smoke-pg 2>$null | Out-Null; exit 0
+
   # Native smoke — Android (NATIVE-7, ADR-018). Same canary as the Windows leg, on a real emulator.
   # Android WebView's CDP lacks the browser-context management Playwright's ConnectOverCDP needs, so
   # this leg uses playwright-core's Node-only _android module (adb + WebView attach) — the tiny spec
@@ -674,13 +806,17 @@ jobs:
   # the app process is up.
   native-smoke-android:
     needs: changes
-    # Also on a manual dispatch, from any branch: a change to this job can then be proven before it
-    # merges, instead of by breaking develop (2026-09-16).
+    # LOCALCI-4: on demand (`smokes` input), on the Monday schedule, or per develop push when the
+    # CI_SMOKES_ON_PUSH knob says so.
     if: >-
-      (github.event_name == 'push' && github.ref == 'refs/heads/develop'
-       && needs.changes.outputs.native == 'true')
-      || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+      needs.changes.outputs.native == 'true'
+      && ((github.event_name == 'schedule' && vars.CI_WEEKLY_SMOKES != 'off')
+          || (github.event_name == 'workflow_dispatch'
+              && (github.event.inputs.smokes == 'android' || github.event.inputs.smokes == 'all'))
+          || (github.event_name == 'push' && github.ref == 'refs/heads/develop'
+              && (vars.CI_SMOKES_ON_PUSH == 'android' || vars.CI_SMOKES_ON_PUSH == 'all')))
+    # LOCALCI-4: the one-job-at-a-time WSL runner — see e2e.
+    runs-on: ubuntu-host-ports
     timeout-minutes: 45
     services:
       db:
@@ -707,16 +843,10 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Free disk space (the emulator needs ~7.4 GB free for its userdata partition)
-        # Run 32748305585 attempt 1 died at launch: "Not enough space to create userdata
-        # partition. Available: 2220 MB, need 7372 MB" — free space on ubuntu-latest varies per
-        # runner instance, and this job stacks workloads + system image + APK on top. Drop the
-        # biggest preinstalled toolchains it never uses (never /usr/share/dotnet, the Android SDK,
-        # Java, or /usr/local/lib/node_modules — npm itself lives there and the smoke runs npm ci).
-        run: |
-          df -h / | tail -1
-          sudo rm -rf /usr/share/swift /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/share/miniconda
-          df -h / | tail -1
+      - name: Disk space (the emulator needs ~7.4 GB free for its userdata partition)
+        # LOCALCI-4: the hosted leg deletes preinstalled toolchains here; the desk's image has none of
+        # them and its disk is not the constraint, so this only reports.
+        run: df -h / | tail -1
 
       - name: Install the MAUI workloads (host-aware)
         run: dotnet workload restore src/Maui/JiggerJot.Maui.csproj --version 10.0.400.1
@@ -730,10 +860,11 @@ jobs:
           npm ci --prefix tests/native-smoke-android
 
       - name: Enable KVM (hardware-accelerated emulator)
+        # LOCALCI-4: no udev in a job container. The runner passes the WSL kernel's /dev/kvm through
+        # (`--device /dev/kvm` in its config); without it the emulator would crawl, so fail loudly.
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
+          [ -e /dev/kvm ] || { echo "::error::/dev/kvm is not passed into the job container (runner config)"; exit 1; }
+          sudo chmod 666 /dev/kvm
 
       - name: Create and boot the emulator
         # Every phase is bounded and narrated — the first CI run hung silently for 30+ minutes to
@@ -789,9 +920,12 @@ jobs:
         # One step for everything process-bound (the runner tears down a step's process tree).
         env:
           ASPNETCORE_ENVIRONMENT: Development
+          # LOCALCI-4: host networking on the Forgejo runners ignores the service `ports:` mapping, so Mailpit
+          # listens on its native 1025 (SMTP) / 8025 (API), not this repo's dev 1027 / 8027.
+          Email__Smtp__Port: "1025"
           ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=smoke;Username=smoke;Password=smoke"
           Jwt__Secret: "ci-native-smoke-jwt-signing-key-0123"
-          MAILPIT_BASE_URL: "http://localhost:8027"
+          MAILPIT_BASE_URL: "http://localhost:8025"  # LOCALCI-4: native port, see Email__Smtp__Port
         run: |
           set -e
           # platform-tools was installed by sdkmanager this job — it is NOT on the runner's PATH
@@ -856,8 +990,11 @@ jobs:
           tail -n 15 emulator.log 2>/dev/null || true
 
       - name: Upload the device log
+        # LOCALCI-4: v3 on Forgejo (v4+ refuses to run off github.com), and never the verdict — see the Apple
+        # screenshots step.
         if: always()
-        uses: actions/upload-artifact@v7
+        continue-on-error: true
+        uses: actions/upload-artifact@v3
         with:
           name: native-smoke-android-logcat
           path: |
@@ -873,9 +1010,17 @@ jobs:
   # the HTTP API, and appsettings.Development already allow-lists the Web origin for CORS + Mailpit SMTP.
   # OAuth/desktop/Android stay manual (they need an external provider / native runners).
   e2e:
-    needs: changes
+    # LOCALCI-4: after the heavy builds, not beside them. On one machine, Blazor's boot inside the
+    # test browser died ("An unhandled error has occurred" at NN%) in 5 of the first 14 runs, every
+    # time while build-test and the native builds were compiling in parallel, never once the machine
+    # was quiet. Waiting for them costs ~3 minutes per run and gives the browser the machine to itself.
+    # A red build also skips e2e, which is fine: there is nothing to test.
+    needs: [changes, build-test, native-build]
     if: github.event_name != 'schedule' && needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
+    # LOCALCI-4: the WSL runner's jobs share one network namespace, and this job binds fixed ports
+    # (5432/1025/8025 services, 5438/5369 servers). `ubuntu-host-ports` is the same image on a runner that
+    # takes one job at a time, so no two port-binding jobs — from any run or repo — ever overlap.
+    runs-on: ubuntu-host-ports
     services:
       db:
         image: postgres:17
@@ -936,6 +1081,9 @@ jobs:
         # tree when the step ends. Start API + Web in the background, wait for readiness, then test.
         env:
           ASPNETCORE_ENVIRONMENT: Development
+          # LOCALCI-4: host networking on the Forgejo runners ignores the service `ports:` mapping, so Mailpit
+          # listens on its native 1025 (SMTP) / 8025 (API), not this repo's dev 1027 / 8027.
+          Email__Smtp__Port: "1025"
           ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=e2e;Username=e2e;Password=e2e"
           Jwt__Secret: "ci-e2e-jwt-signing-secret-0123456789ab"
           # The whole browser suite shares one source IP, so raise the per-IP passwordless limit well
@@ -966,7 +1114,7 @@ jobs:
           done
           [ "$api" = "200" ] && [ "$web" = "200" ] || { echo "::error::stack did not become ready"; tail -40 api.log web.log; exit 1; }
 
-          PLAYWRIGHT_BASE_URL=http://localhost:5369 MAILPIT_BASE_URL=http://localhost:8027 \
+          PLAYWRIGHT_BASE_URL=http://localhost:5369 MAILPIT_BASE_URL=http://localhost:8025 \
             E2E_API_BASE_URL=http://localhost:5438 \
             dotnet test tests/E2E.Tests/JiggerJot.E2E.Tests.csproj -c Debug --no-build
 
@@ -976,26 +1124,47 @@ jobs:
         # this diagnostic silently print nothing on every failure.
         run: tail -n 80 api.log web.log || true
 
-  # Deploy staging (DEPLOY-3, ADR-017). Runs ONLY on a push to develop, and only after every test/build
-  # gate above is green — so staging always reflects a passing develop. Triggers the Render deploy via a
-  # deploy hook (repo secret), then polls the public URL and smoke-tests it. Both the hook and the base
-  # URL are optional: absent ⇒ the job logs a notice and passes, so the platform is green out of the box
-  # and a downstream app opts in by adding the secret + variable (see docs/DEPLOYMENT.md).
+  # Deploy staging (DEPLOY-3, ADR-017; LOCALCI-4, ADR-028 addendum). Runs ONLY from "Run workflow" with
+  # deploy=staging on develop — never on a push — and only after every gate, and every native smoke
+  # selected in the same run, is green (a smoke that was not selected is skipped, and a skip is not a
+  # failure). Render builds from GitHub's develop, so the commit is first pushed there — a plain
+  # fast-forward, never forced: if GitHub's develop has a commit Forgejo does not, the deploy stops and
+  # says so. GitHub's own pipeline then runs on that push and re-deploys the same commit (harmless; the
+  # user accepted it). Then the hook fires and the same version-gated smoke as GitHub's job verifies what
+  # went live. Everything optional stays optional: no hook ⇒ notice and pass; a hook without the mirror
+  # token fails (Render would rebuild a stale develop and the smoke could never see this commit).
   deploy-staging:
-    needs: [build-test, secret-scan, qa-artifacts, license-scan, docker-build, e2e]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
-    # Back-to-back merges: Render supersedes the older build, so the older run's version-gated smoke
-    # can never see its own SHA go live and fails spuriously. Cancel the older in-flight deploy job
-    # instead — cancelled reads as neutral, and the newest push still gets its full smoke. When the
-    # runs reach this job out of order (the OLDER run's tests finish last and it cancels the NEWER
-    # job), the smoke script itself accepts a live build that is a descendant of the expected commit,
-    # so the surviving job still verifies what is actually deployed instead of timing out red.
+    needs: [build-test, secret-scan, qa-artifacts, license-scan, docker-build, e2e, native-build,
+            native-smoke-windows, native-smoke-android, native-smoke-apple]
+    # The trigger: a dispatch that asked for staging, or — with the CI_DEPLOY_ON_PUSH knob — every code
+    # push to develop (GitHub's behaviour). Either way, on develop only and behind everything below.
+    if: >-
+      !cancelled()
+      && github.ref == 'refs/heads/develop'
+      && ((github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'staging')
+          || (github.event_name == 'push' && vars.CI_DEPLOY_ON_PUSH == 'staging'))
+      && needs.build-test.result == 'success' && needs.secret-scan.result == 'success'
+      && needs.qa-artifacts.result == 'success' && needs.license-scan.result == 'success'
+      && needs.docker-build.result == 'success' && needs.e2e.result == 'success'
+      && needs.native-build.result == 'success'
+      && needs.native-smoke-windows.result != 'failure' && needs.native-smoke-windows.result != 'cancelled'
+      && needs.native-smoke-android.result != 'failure' && needs.native-smoke-android.result != 'cancelled'
+      && needs.native-smoke-apple.result != 'failure' && needs.native-smoke-apple.result != 'cancelled'
     concurrency:
       group: deploy-staging
       cancel-in-progress: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5 # for .github/scripts/deploy-smoke.sh
+        with:
+          fetch-depth: 0 # the push to GitHub needs the full history, not a shallow tip
+
+      - name: Push develop to GitHub
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_STAGING }}
+          MIRROR_TOKEN: ${{ secrets.DEPLOY_MIRROR_TOKEN }}
+          MIRROR_REPO: ${{ vars.DEPLOY_MIRROR_REPO }}
+        run: bash .forgejo/scripts/push-to-github.sh develop
 
       - name: Trigger Render deploy
         env:
@@ -1013,38 +1182,52 @@ jobs:
           HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_STAGING }}
           BASE: ${{ vars.STAGING_BASE_URL }}
           EXPECT: ${{ github.sha }}
-          GH_TOKEN: ${{ github.token }} # lets the smoke recognise a NEWER build that superseded this commit (compare API)
+          # The superseded-build check asks GitHub's compare API — every deployed commit is on GitHub.
+          GH_TOKEN: ${{ secrets.DEPLOY_MIRROR_TOKEN }}
+          GITHUB_REPOSITORY: ${{ vars.DEPLOY_MIRROR_REPO }}
         run: |
-          # Skip ONLY when no deploy happened. If the hook fired but STAGING_BASE_URL is unset we cannot
-          # verify what we just shipped — that must fail, not pass quietly (v3 audit DEP-6): the old code
-          # exited 0 here, so a real, entirely unverified deploy reported a green pipeline.
           if [ -z "$HOOK" ]; then
             echo "::notice::RENDER_DEPLOY_HOOK_STAGING not set — no deploy fired, nothing to smoke."
             exit 0
           fi
           if [ -z "$BASE" ]; then
-            echo "::error::a staging deploy was TRIGGERED but STAGING_BASE_URL is not set — the deploy cannot be verified. Set the STAGING_BASE_URL repo variable (Settings → Variables) to the service URL."
+            echo "::error::a staging deploy was TRIGGERED but STAGING_BASE_URL is not set — the deploy cannot be verified. Set the STAGING_BASE_URL repo variable (Settings → Actions → Variables) to the service URL."
             exit 1
           fi
           bash .github/scripts/deploy-smoke.sh "$BASE" "$EXPECT"
 
-  # Deploy prod (DEPLOY-3). Runs ONLY on a push to main, behind the `production` GitHub Environment — add a
-  # required reviewer to that environment (repo Settings → Environments) to make prod a manual approval, so
-  # main stays deploy-only + deliberate. That reviewer lives in repo settings, NOT in this file: a clone that
-  # skips it gets un-gated auto-deploy-to-prod on any main push, so it's an explicit step in
-  # docs/DEPLOYMENT.md §6. Skips cleanly until a prod service + its deploy hook exist.
+  # Deploy prod (DEPLOY-3; LOCALCI-4). GitHub gates prod behind the `production` Environment; Forgejo has no
+  # environments, so the gate is the trigger itself: "Run workflow" with deploy=prod on main. A plain push
+  # to main runs every gate and deploys nothing. Same green-everything rule and same GitHub push as staging.
   deploy-prod:
-    needs: [build-test, secret-scan, qa-artifacts, license-scan, docker-build, e2e]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    # Same rationale as deploy-staging: back-to-back merges supersede each other's builds, so an older
-    # run's version-gated smoke could never see its own SHA go live (v3 audit DEP-7).
+    needs: [build-test, secret-scan, qa-artifacts, license-scan, docker-build, e2e, native-build,
+            native-smoke-windows, native-smoke-android, native-smoke-apple]
+    if: >-
+      !cancelled()
+      && github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'prod'
+      && github.ref == 'refs/heads/main'
+      && needs.build-test.result == 'success' && needs.secret-scan.result == 'success'
+      && needs.qa-artifacts.result == 'success' && needs.license-scan.result == 'success'
+      && needs.docker-build.result == 'success' && needs.e2e.result == 'success'
+      && needs.native-build.result == 'success'
+      && needs.native-smoke-windows.result != 'failure' && needs.native-smoke-windows.result != 'cancelled'
+      && needs.native-smoke-android.result != 'failure' && needs.native-smoke-android.result != 'cancelled'
+      && needs.native-smoke-apple.result != 'failure' && needs.native-smoke-apple.result != 'cancelled'
     concurrency:
       group: deploy-prod
       cancel-in-progress: true
     runs-on: ubuntu-latest
-    environment: production
     steps:
       - uses: actions/checkout@v5 # for .github/scripts/deploy-smoke.sh
+        with:
+          fetch-depth: 0
+
+      - name: Push main to GitHub
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_PROD }}
+          MIRROR_TOKEN: ${{ secrets.DEPLOY_MIRROR_TOKEN }}
+          MIRROR_REPO: ${{ vars.DEPLOY_MIRROR_REPO }}
+        run: bash .forgejo/scripts/push-to-github.sh main
 
       - name: Trigger Render prod deploy
         env:
@@ -1057,21 +1240,20 @@ jobs:
           curl -fsS -X POST "$HOOK" > /dev/null
           echo "Triggered Render prod deploy."
 
-      # Prod got NO post-deploy verification at all until v3 audit DEP-7 — it fired the hook and reported
-      # green. Same version-gated smoke as staging, same fail-not-skip rule (DEP-6).
       - name: Wait for prod + smoke test
         env:
           HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_PROD }}
           BASE: ${{ vars.PROD_BASE_URL }}
           EXPECT: ${{ github.sha }}
-          GH_TOKEN: ${{ github.token }} # same superseded-build recognition as staging
+          GH_TOKEN: ${{ secrets.DEPLOY_MIRROR_TOKEN }}
+          GITHUB_REPOSITORY: ${{ vars.DEPLOY_MIRROR_REPO }}
         run: |
           if [ -z "$HOOK" ]; then
             echo "::notice::RENDER_DEPLOY_HOOK_PROD not set — no deploy fired, nothing to smoke."
             exit 0
           fi
           if [ -z "$BASE" ]; then
-            echo "::error::a PROD deploy was TRIGGERED but PROD_BASE_URL is not set — the deploy cannot be verified. Set the PROD_BASE_URL repo variable (Settings → Variables) to the service URL."
+            echo "::error::a PROD deploy was TRIGGERED but PROD_BASE_URL is not set — the deploy cannot be verified. Set the PROD_BASE_URL repo variable (Settings → Actions → Variables) to the service URL."
             exit 1
           fi
           bash .github/scripts/deploy-smoke.sh "$BASE" "$EXPECT"
