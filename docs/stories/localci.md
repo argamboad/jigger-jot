@@ -432,6 +432,16 @@ stale branch `ci/local-gates` deleted; merged after green CI.
 
 ---
 
+### LOCALCI-4 — Forgejo as the primary forge ✅ (ported from the platform 2026-09-22, ADR-028)
+
+The self-hosted Forgejo on the maintainer's desk is home: `origin` is `argamboad/jigger-jot` there, `github` is the
+mirror. `.forgejo/workflows/ci.yml` is a held copy of the GitHub pipeline (R80, `ForgejoCiParityTests`) running on the
+desk's runners (`ubuntu-latest` + `ubuntu-host-ports` in WSL, `windows-latest` host mode, `macos-26` on the MacBook).
+Pushes and PRs run the gates, `e2e` and the native builds; the native smokes and the deploys run from *Run workflow*
+(`smokes`, `deploy`) or the Monday schedule; a staging deploy fast-forwards GitHub's `develop` and fires the Render hook.
+Knobs, secrets and the step-by-step are in `DEPLOYMENT.md` §10. Supersedes LOCALCI-1 (self-hosted GitHub runners)
+for this repo.
+
 ### LOCALCI-3 — Trigger diet: paths gate for every non-deploy job, Apple smoke on a schedule
 
 **Status: ✅ Implemented** (2026-09-11), ahead of LOCALCI-1 and LOCALCI-2 and needing neither. It was
