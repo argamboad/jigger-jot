@@ -135,7 +135,7 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         await Mailpit.ClearAsync();
         await SignInAsync(Page, UniqueEmail("fork"));
 
-        await Page.GotoAsync($"{BaseUrl}/cocktails");
+        await BlazorBoot.GotoAsync(Page, $"{BaseUrl}/cocktails");
         await Page.RunAndWaitForResponseAsync(
             () => Page.GetByTestId("cocktail-search").FillAsync("negroni"),
             r => r.Url.Contains("search=negroni") && r.Status == 200);
@@ -171,12 +171,12 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         var copyUrl = Page.Url;
 
         // The original is still the book's, unchanged, right where it was.
-        await Page.GotoAsync(originalUrl);
+        await BlazorBoot.GotoAsync(Page, originalUrl);
         await Expect(Page.GetByTestId("cocktail-source")).ToContainTextAsync("IBA", new() { Timeout = 30_000 });
         await Expect(Page.GetByTestId("cocktail-forked-from")).Not.ToBeVisibleAsync();
 
         // And the copy sits in the catalog beside it, marked as the household's own.
-        await Page.GotoAsync($"{BaseUrl}/cocktails");
+        await BlazorBoot.GotoAsync(Page, $"{BaseUrl}/cocktails");
         await Page.RunAndWaitForResponseAsync(
             () => Page.GetByTestId("cocktail-search").FillAsync("negroni"),
             r => r.Url.Contains("search=negroni") && r.Status == 200);
@@ -185,11 +185,11 @@ public class CocktailBrowseJourneyTests : E2ETestBase
 
         // AUTHORING-5: the book's recipe offers no Delete, the copy does — behind a confirmation — and
         // deleting it goes back to the catalog with the copy gone and the book's Negroni still there.
-        await Page.GotoAsync(originalUrl);
+        await BlazorBoot.GotoAsync(Page, originalUrl);
         await Expect(Page.GetByTestId("cocktail-fork")).ToBeVisibleAsync(new() { Timeout = 30_000 });
         await Expect(Page.GetByTestId("cocktail-delete")).ToHaveCountAsync(0);
 
-        await Page.GotoAsync(copyUrl);
+        await BlazorBoot.GotoAsync(Page, copyUrl);
         await Expect(Page.GetByTestId("cocktail-name")).ToContainTextAsync("Our Negroni", new() { Timeout = 30_000 });
         Page.Dialog += async (_, dialog) => await dialog.AcceptAsync();
         await Page.RunAndWaitForResponseAsync(
@@ -197,7 +197,7 @@ public class CocktailBrowseJourneyTests : E2ETestBase
             r => r.Request.Method == "DELETE" && r.Url.Contains("/api/cocktails/") && r.Status == 204);
         await Expect(Page).ToHaveURLAsync($"{BaseUrl}/cocktails", new() { Timeout = 30_000 });
 
-        await Page.GotoAsync(copyUrl);
+        await BlazorBoot.GotoAsync(Page, copyUrl);
         await Expect(Page.GetByTestId("cocktail-notfound")).ToBeVisibleAsync(new() { Timeout = 30_000 });
     }
 
@@ -221,7 +221,7 @@ public class CocktailBrowseJourneyTests : E2ETestBase
             await SetShelfAsync(ingredient, wanted: true);
         }
 
-        await Page.GotoAsync($"{BaseUrl}/cocktails/new");
+        await BlazorBoot.GotoAsync(Page, $"{BaseUrl}/cocktails/new");
         await Expect(Page.GetByTestId("new-name")).ToBeVisibleAsync(new() { Timeout = 30_000 });
 
         var name = $"House Special {Guid.NewGuid():N}"[..24];
@@ -258,7 +258,7 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         // the lines rather than stored (JJ-003).
         await Expect(Page.GetByTestId("cocktail-makeability")).ToContainTextAsync("You can make this");
 
-        await Page.GotoAsync($"{BaseUrl}/cocktails");
+        await BlazorBoot.GotoAsync(Page, $"{BaseUrl}/cocktails");
         await Page.RunAndWaitForResponseAsync(
             () => Page.GetByTestId("cocktail-search").FillAsync(name),
             r => r.Url.Contains("search=") && r.Status == 200);
@@ -273,7 +273,7 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         await SignInAsync(Page, UniqueEmail("units"));
 
         // The Negroni is authored in millilitres, so it is the drink that shows the difference.
-        await Page.GotoAsync($"{BaseUrl}/cocktails");
+        await BlazorBoot.GotoAsync(Page, $"{BaseUrl}/cocktails");
         await Page.GetByTestId("cocktail-search").FillAsync("negroni");
         await Expect(Page.GetByTestId("cocktail-list")).ToContainTextAsync("Negroni", new() { Timeout = 15_000 });
         await Page.GetByTestId("cocktail-list").GetByText("Negroni", new() { Exact = true }).First.ClickAsync();
@@ -281,7 +281,7 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         var recipeUrl = Page.Url;
 
         // Settings, and the switcher saves server-side like the language and theme ones.
-        await Page.GotoAsync($"{BaseUrl}/settings");
+        await BlazorBoot.GotoAsync(Page, $"{BaseUrl}/settings");
         await Page.RunAndWaitForResponseAsync(
             // BACKBAR-7: the measurement preference is a segmented control — two radios driven
             // through their labels since JJ-041 — writing the same PUT the select did.
@@ -290,16 +290,16 @@ public class CocktailBrowseJourneyTests : E2ETestBase
 
         // Same recipe, read in millilitres at the bar's ounce. The stored ounce has not moved — only
         // the reading of it.
-        await Page.GotoAsync(recipeUrl);
+        await BlazorBoot.GotoAsync(Page, recipeUrl);
         await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("30 ml", new() { Timeout = 15_000 });
 
         // ...and back to ounces, the other of the two choices there are.
-        await Page.GotoAsync($"{BaseUrl}/settings");
+        await BlazorBoot.GotoAsync(Page, $"{BaseUrl}/settings");
         await Page.RunAndWaitForResponseAsync(
             () => Page.Locator("label[for='unit-choice-Imperial']").ClickAsync(),
             r => r.Url.EndsWith("/api/auth/unit-system") && r.Request.Method == "PUT");
 
-        await Page.GotoAsync(recipeUrl);
+        await BlazorBoot.GotoAsync(Page, recipeUrl);
         await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("1 oz", new() { Timeout = 15_000 });
     }
 
@@ -311,7 +311,7 @@ public class CocktailBrowseJourneyTests : E2ETestBase
 
         // A well-formed id that no household of ours owns: the page says so rather than erroring or
         // hanging on a spinner.
-        await Page.GotoAsync($"{BaseUrl}/cocktails/{Guid.NewGuid()}");
+        await BlazorBoot.GotoAsync(Page, $"{BaseUrl}/cocktails/{Guid.NewGuid()}");
         await Expect(Page.GetByTestId("cocktail-notfound")).ToBeVisibleAsync(new() { Timeout = 30_000 });
     }
 }

@@ -50,7 +50,7 @@ public class ShelfJourneyTests : E2ETestBase
         await Expect(Page.GetByTestId("shelf-payoff-drinks")).Not.ToBeEmptyAsync(new() { Timeout = 15_000 });
 
         // The tick is optimistic in the browser, so a reload is what proves it was persisted.
-        await Page.ReloadAsync();
+        await BlazorBoot.ReloadAsync(Page);
         await Expect(Page.GetByTestId("shelf-count")).ToContainTextAsync("1 ", new() { Timeout = 30_000 });
 
         // The count on the card is the same number the jump bar shows, because both read one value.
@@ -113,7 +113,7 @@ public class ShelfJourneyTests : E2ETestBase
 
         // Ticked on arrival: you add a bottle to your shelf because it is on your shelf.
         await Expect(Page.GetByTestId("shelf-count")).ToContainTextAsync("1 ");
-        await Page.ReloadAsync();
+        await BlazorBoot.ReloadAsync(Page);
         await Expect(Page.GetByTestId("shelf-count")).ToContainTextAsync("1 ", new() { Timeout = 30_000 });
 
         await Page.GetByTestId("shelf-only-available").CheckAsync();
