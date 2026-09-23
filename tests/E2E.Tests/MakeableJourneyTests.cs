@@ -155,14 +155,14 @@ public class MakeableJourneyTests : E2ETestBase
         await SignInAsync(Page, UniqueEmail("home"));
 
         // An empty shelf gets her pointing at the shelf rather than a count of nothing.
-        await Page.GotoAsync($"{BaseUrl}/");
+        await BlazorBoot.GotoAsync(Page, $"{BaseUrl}/");
         await Expect(Page.GetByTestId("home-marga")).ToBeVisibleAsync(new() { Timeout = 30_000 });
         await Expect(Page.GetByTestId("home-count")).Not.ToBeVisibleAsync();
 
         await Page.GetByTestId("nav-shelf").ClickAsync();
         foreach (var ingredient in Negroni) await StockAsync(ingredient);
 
-        await Page.GotoAsync($"{BaseUrl}/");
+        await BlazorBoot.GotoAsync(Page, $"{BaseUrl}/");
         await Expect(Page.GetByTestId("home-count")).ToBeVisibleAsync(new() { Timeout = 30_000 });
 
         // The headline number and the list under it come from ONE response, so the count has to
@@ -173,7 +173,7 @@ public class MakeableJourneyTests : E2ETestBase
         await Expect(Page.GetByTestId("cocktail-count")).ToContainTextAsync(headline);
 
         // ...and the other button lands on the other filter, with its summary card.
-        await Page.GotoAsync($"{BaseUrl}/");
+        await BlazorBoot.GotoAsync(Page, $"{BaseUrl}/");
         await Expect(Page.GetByTestId("home-unlocks")).ToBeVisibleAsync(new() { Timeout = 30_000 });
         await Page.GetByTestId("home-show-almost").ClickAsync();
         await Expect(Page.GetByTestId("cocktail-almost")).ToBeCheckedAsync(new() { Timeout = 30_000 });
@@ -248,7 +248,7 @@ public class MakeableJourneyTests : E2ETestBase
         var recipeUrl = Page.Url;
         await Page.GetByTestId("nav-shelf").ClickAsync();
         await StockAsync("Sweet vermouth");
-        await Page.GotoAsync(recipeUrl);
+        await BlazorBoot.GotoAsync(Page, recipeUrl);
 
         await Expect(Page.GetByTestId("cocktail-makeability"))
             .ToContainTextAsync("You can make this", new() { Timeout = 30_000 });
