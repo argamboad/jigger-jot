@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: ${DB_USER:-dev}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-devpassword}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${DB_PORT:-5435}:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
       # RLS runtime role (ADR-020) — auto-provisioned on a FRESH volume only; for an existing
@@ -24,8 +24,8 @@ services:
     image: axllent/mailpit:v1.30.4 # pinned, not :latest — matches the CI mail trap (v3 DEP-9)
     restart: unless-stopped
     ports:
-      - "${MAIL_SMTP_PORT:-1025}:1025"
-      - "${MAIL_UI_PORT:-8025}:8025"
+      - "${MAIL_SMTP_PORT:-1027}:1025"
+      - "${MAIL_UI_PORT:-8027}:8025"
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8025 || exit 1"]
       interval: 5s
@@ -54,7 +54,7 @@ services:
       Email__Smtp__Password: ""
       PORT: "8080"
     ports:
-      - "${APP_PORT:-8080}:8080"
+      - "${APP_PORT:-8280}:8080"
     depends_on:
       db:
         condition: service_healthy

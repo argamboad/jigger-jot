@@ -26,6 +26,19 @@ dotnet run --project src/Web                           # web UI on https://local
 Sign in with **"Email me a 6-digit code"** and read the code from Mailpit at
 <http://localhost:8027>. No OAuth keys are needed for local development.
 
+## Local ports
+
+The three apps run side by side on one machine, each on its own block, so a stack never answers for another. This
+table is the same in all three repos; `LocalPortsTests` holds this repo's compose defaults, launch profiles,
+`appsettings.Development.json`, `.env.example` and E2E defaults to its row, and fails if two apps share a port.
+API http is the port the Android emulator uses; the app container is `docker compose --profile app up`.
+
+| App | Postgres | Mailpit SMTP | Mailpit UI | API https | API http | Web https | Web http | app container |
+|---|---|---|---|---|---|---|---|---|
+| perezosoft-platform | 5433 | 1025 | 8025 | 7160 | 5238 | 7008 | 5169 | 8080 |
+| y-el-vuelto | 5434 | 1026 | 8026 | 7260 | 5338 | 7108 | 5269 | 8180 |
+| **jigger-jot** (this repo) | 5435 | 1027 | 8027 | 7360 | 5438 | 7208 | 5369 | 8280 |
+
 ## Where things are
 
 | Path | What |

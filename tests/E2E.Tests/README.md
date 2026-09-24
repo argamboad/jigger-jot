@@ -4,7 +4,22 @@ End-to-end tests that drive a real browser against the running Web app + API, re
 codes from **Mailpit** (the same flow a manual tester uses). They cover the QA plan's web
 smoke path that doesn't need an external OAuth provider.
 
-## Prerequisites
+## Run it — one command
+
+```sh
+pwsh tools/e2e.ps1                                   # the whole suite
+pwsh tools/e2e.ps1 -Filter "FullyQualifiedName~Billing"   # a slice
+```
+
+`tools/e2e.ps1` starts this repo's `db` + `mail` containers, builds, installs Chromium, then runs the API and the web
+app **with the E2E overrides as command-line settings** — mail into this repo's Mailpit, the raised sign-in rate
+limit, the fake billing provider, the test staff address — waits until both answer, runs the suite and stops both.
+Your `.env` is never touched, so it can keep real mail (Brevo) and Stripe test keys for everyday development. It
+refuses to start if an API or web app is already listening on this repo's ports (that one would send real mail).
+Ports come from the compose defaults and launch profiles (README → Local ports). The manual steps below are what
+the script does.
+
+## Prerequisites (manual run)
 
 1. **Backing services** — `docker compose up -d` (Postgres + Mailpit).
 2. **API — must send email to Mailpit, not a real provider.** The dev default
@@ -17,7 +32,8 @@ smoke path that doesn't need an external OAuth provider.
      --Email:Smtp:Host=localhost --Email:Smtp:Port=1027 --Email:Smtp:Username= --Email:Smtp:Password= \
      --Auth:RateLimit:PasswordlessPermitLimit=1000 \
      --Admin:StaffEmails:0=e2e-staff@example.com \
-     --Billing:Enabled=true \
+     --Billing:Enabled=true \
+
      --Billing:Stripe:SecretKey=
    ```
    The `Admin:StaffEmails` entry enables the admin-console journey (ADMIN-3); it must match
