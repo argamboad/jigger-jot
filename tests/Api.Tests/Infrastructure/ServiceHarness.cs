@@ -67,11 +67,38 @@ public sealed class ServiceHarness(AppDbContext db, TimeProvider? clock = null, 
     public QuotaService QuotaService() =>
         new(Subscriptions, Tenants, Invitations, UsageCounters, CurrentTenant, Clock);
 
-    public TenantInvitationService InvitationService(IInvitationSettings? invitation = null) =>
-        new(Invitations, Tenants, TokenGen, Hasher, UnitOfWork, new NoopEmailSender(),
+    /// <param name="contributors">The tenant-data contributors the accept consults (would the old tenant be
+    /// abandoned?) and dissolves through. Defaults to none; <see cref="PlatformContributors"/> is the shipped set.</param>
+    public TenantInvitationService InvitationService(IInvitationSettings? invitation = null,
+        IReadOnlyList<ITenantDataContributor>? contributors = null)
+    {
+        var tenantContext = CurrentTenant as ITenantContext ?? new TestCurrentTenant();
+        contributors ??= [];
+        return new(Invitations, Tenants, TokenGen, Hasher, UnitOfWork, new NoopEmailSender(),
             UserService(), new TestAppSettings(), invitation ?? new TestInvitationSettings(),
-            [], QuotaService(), CurrentTenant as ITenantContext ?? new TestCurrentTenant(),
-            Clock, NullLogger<TenantInvitationService>.Instance);
+            contributors, new TenantDissolutionService(contributors, Tenants, tenantContext),
+            QuotaService(), tenantContext, Clock, NullLogger<TenantInvitationService>.Instance);
+    }
+
+    /// <summary>The <see cref="ITenantDataContributor"/>s this app registers in DI, bar one: the platform's five
+    /// (API keys, webhooks, usage metering, billing, the audit log) plus the app's own household catalog and
+    /// inventory shelf. The app's content contributors are in, so an accept under test consults what production
+    /// consults: an empty household must read as empty to them too, and their WipeAsync must run cleanly inside
+    /// the dissolve. The one left out is the DELETE-ME Notes sample — still registered in Program.cs, but
+    /// platform tests may not depend on it (<c>PlatformTests_DoNotDependOnTheDeleteMeNotesSample</c>, R9/TR-1),
+    /// and it holds no rows the accept tests seed. Keep this in step with the
+    /// <c>AddScoped&lt;ITenantDataContributor, …&gt;</c> registrations when a feature adds one.</summary>
+    public IReadOnlyList<ITenantDataContributor> PlatformContributors() =>
+    [
+        new ApiKeyDataContributor(new EfRepository<ApiKey>(Db)),
+        new WebhookDataContributor(new EfRepository<WebhookSubscription>(Db), new EfRepository<WebhookDelivery>(Db)),
+        new UsageCounterDataContributor(UsageCounters),
+        new BillingDataContributor(Subscriptions, new JiggerJot.Infrastructure.Outbox.EfOutbox(Db, Clock)),
+        new JiggerJot.Infrastructure.Audit.AuditDataContributor(new EfRepository<AuditEvent>(Db)),
+        new JiggerJot.Api.Features.Catalog.CatalogDataContributor(new EfRepository<Ingredient>(Db),
+            new EfRepository<Cocktail>(Db), new EfRepository<CocktailIngredient>(Db)),
+        new JiggerJot.Api.Features.Inventory.InventoryDataContributor(new EfRepository<TenantInventory>(Db)),
+    ];
 }
 
 internal sealed class TestRefreshSettings(int expiryDays = 30, int reuseGraceSeconds = 60) : IRefreshTokenSettings
