@@ -148,7 +148,9 @@ stored.
 > call site); `RlsMigrationGateTests` only inspects `ITenantScoped` tables, so nothing fails CI
 > if the policy is dropped by a later migration; and `EveryTenantOwnedEntity_IsWiredIntoTenantDissolution`
 > only sees a **non-nullable** `TenantId`, so it cannot tell whether these tables are wired into tenant
-> teardown at all (JJ-031 amendment ②). `TenantInventory` is ordinary tenant data and does
+> teardown at all (JJ-031 amendment ②). *(2026-09-24, v4 audit H6 port: the canary now counts nullable
+> `Guid?` keys too and lists all three tables, so this third gap is closed; `SharedOrTenantDissolutionTests`
+> stays as the app-level pin.)* `TenantInventory` is ordinary tenant data and does
 > implement `ITenantScoped`; the lookup tables carry no tenant column at all.
 
 ### Ingredient
@@ -567,7 +569,7 @@ erDiagram
     OUTBOX_MESSAGE {
         string type "handler discriminator"
         string payload "JSON - written in the SAME transaction as the change"
-        guid tenant_id "nullable context - not a scoping key"
+        guid tenant_id "nullable owning tenant - not a query filter; its dissolve removes content-bearing types"
         string status "pending | sent | dead"
         int attempt_count "max 5, exponential backoff"
     }

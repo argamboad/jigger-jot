@@ -472,6 +472,9 @@ Constraints recorded:
 2. **`OutboxMessage` is NOT `ITenantScoped`** — it's platform infra and may carry system (non-tenant)
    effects; it stores an optional `TenantId` for handler context but is outside the global filter.
    On dissolve, pending tenant-related outbox rows are drained/cancelled by the relevant contributor.
+   *(Built 2026-09-24, v4 audit H6: until then nothing did it. `OutboxDataContributor` removes the tenant's
+   rows of every type whose handler declares `DissolvesWithItsTenant` — mail and webhook bodies — and keeps
+   `billing.cancel`, which the dissolve itself queues.)*
 3. **At-least-once delivery ⇒ all handlers must be idempotent** — the same contract billing webhooks
    need (ADR-006).
 4. **First consumer is the existing email path** — passwordless and invitation sends currently call
@@ -1674,7 +1677,10 @@ any app with a seeded catalog hits this exact wall.
 > test failing anywhere. `CatalogDataContributor` supplies the teardown and export (household rows only,
 > shared catalog untouched); `SharedOrTenantDissolutionTests.EverySharedOrTenantEntity_IsWiredIntoTenantDissolution`
 > is the app-level canary that replaces the blind one. `InventoryDataContributor` does the same for
-> `TenantInventory`, which the platform canary *can* see and now lists.
+> `TenantInventory`, which the platform canary *can* see and now lists. *(2026-09-24, v4 audit H6 port: the
+> platform canary was widened to nullable `Guid?` keys — to catch `OutboxMessage` — and now lists
+> `Ingredient`, `Cocktail` and `CocktailIngredient` too, so it is no longer blind here; the app-level canary
+> stays.)*
 >
 > **Upstream:** both corrections belong with the `ISharedOrTenantScoped` primitive proposed in
 > `PLATFORM_BACKLOG.md` §15 item 2 — the `FOR ALL` trap in particular is not obvious from reading the

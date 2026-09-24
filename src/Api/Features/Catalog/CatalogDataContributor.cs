@@ -9,12 +9,13 @@ namespace JiggerJot.Api.Features.Catalog;
 /// Tenant dissolve + export (ADR-011) for the three dual-natured catalog tables — the household's own
 /// ingredients, its own and forked cocktails, and their recipe lines (JJ-011, JJ-012, JJ-013).
 /// <para>
-/// <b>This contributor exists because the platform's canary cannot see these tables.</b>
-/// <c>EveryTenantOwnedEntity_IsWiredIntoTenantDissolution</c> only flags entities with a
+/// <b>This contributor exists because the platform's canary could not see these tables.</b>
+/// <c>EveryTenantOwnedEntity_IsWiredIntoTenantDissolution</c> used to flag only entities with a
 /// <b>non-nullable</b> <c>Guid TenantId</c>, and every <see cref="ISharedOrTenantScoped"/> entity has a
 /// nullable one by definition — so a forgotten contributor here would orphan a dissolved household's
 /// rows silently. JJ-031 records the gap; <c>SharedOrTenantDissolutionTests</c> is the app-level canary
-/// that replaces it.
+/// that replaces it. Since the v4 audit H6 port the canary counts nullable <c>Guid?</c> keys too and lists
+/// these three tables, so a new shared-or-tenant entity now fails it as well.
 /// </para>
 /// <para>
 /// <b>Every query is constrained to a non-null tenant id, so the shared catalog is untouchable here.</b>

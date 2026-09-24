@@ -22,7 +22,7 @@ public class OutboxEmailSenderTests(PostgresFixture fixture) : PostgresTestBase(
     {
         await using (var db = Fixture.CreateContext())
         {
-            var sender = new OutboxEmailSender(new EfOutbox(db, TimeProvider.System), db);
+            var sender = new OutboxEmailSender(new EfOutbox(db, TimeProvider.System), db, new TestCurrentTenant());
             await sender.SendAsync("a@b.com", "Subject", "<p>hi</p>");
         }
 
