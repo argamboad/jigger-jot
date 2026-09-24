@@ -126,6 +126,10 @@ public class ArchitectureTests
             nameof(WebhookSubscription), nameof(WebhookDelivery), // WebhookDataContributor
             nameof(TenantInvitation), nameof(TenantMembership),   // core teardown (WipeDataAsync)
             nameof(TenantInventory),                        // InventoryDataContributor
+            nameof(OutboxMessage),                          // OutboxDataContributor — the types that dissolve with their tenant
+            // The shared-or-tenant catalog (nullable TenantId: a null row is the shared catalog, never dissolved).
+            // Visible to this canary since it counts Guid? keys; SharedOrTenantDissolutionTests pins the wipe.
+            nameof(Ingredient), nameof(Cocktail), nameof(CocktailIngredient), // CatalogDataContributor
         };
 
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -133,12 +137,12 @@ public class ArchitectureTests
             .Options;
         using var ctx = new AppDbContext(options, new TestCurrentTenant());
 
-        // Only a NON-NULLABLE Guid TenantId denotes single-tenant ownership. A nullable Guid? TenantId is
-        // optional handler context on drained infrastructure — OutboxMessage carries one (and holds the
-        // billing-cancel message the dissolve itself enqueues), so it must NOT be torn down. Excluding it by
-        // the key's nullability is principled: an owned row always knows its tenant.
+        // A nullable Guid? TenantId counts too (v4 audit H6, R145). It was excluded as "handler context on
+        // drained infrastructure" — and so the outbox, which carries households' mail and webhook
+        // bodies, survived every dissolve. A tenant-less row (a sign-in code, a platform broadcast) simply has no
+        // tenant to be dissolved with; a row that names one is that tenant's, and needs a teardown decision.
         var uncovered = ctx.Model.GetEntityTypes()
-            .Where(e => e.ClrType.GetProperty("TenantId")?.PropertyType == typeof(Guid))
+            .Where(e => e.ClrType.GetProperty("TenantId")?.PropertyType is { } key && (key == typeof(Guid) || key == typeof(Guid?)))
             .Select(e => e.ClrType.Name)
             .Where(name => !handled.Contains(name))
             .ToList();

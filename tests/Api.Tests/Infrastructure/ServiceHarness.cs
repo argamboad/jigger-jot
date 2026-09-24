@@ -80,8 +80,8 @@ public sealed class ServiceHarness(AppDbContext db, TimeProvider? clock = null, 
             QuotaService(), tenantContext, Clock, NullLogger<TenantInvitationService>.Instance);
     }
 
-    /// <summary>The <see cref="ITenantDataContributor"/>s this app registers in DI, bar one: the platform's five
-    /// (API keys, webhooks, usage metering, billing, the audit log) plus the app's own household catalog and
+    /// <summary>The <see cref="ITenantDataContributor"/>s this app registers in DI, bar one: the platform's six
+    /// (API keys, webhooks, usage metering, billing, the audit log, the outbox) plus the app's own household catalog and
     /// inventory shelf. The app's content contributors are in, so an accept under test consults what production
     /// consults: an empty household must read as empty to them too, and their WipeAsync must run cleanly inside
     /// the dissolve. The one left out is the DELETE-ME Notes sample — still registered in Program.cs, but
@@ -95,6 +95,10 @@ public sealed class ServiceHarness(AppDbContext db, TimeProvider? clock = null, 
         new UsageCounterDataContributor(UsageCounters),
         new BillingDataContributor(Subscriptions, new JiggerJot.Infrastructure.Outbox.EfOutbox(Db, Clock)),
         new JiggerJot.Infrastructure.Audit.AuditDataContributor(new EfRepository<AuditEvent>(Db)),
+        // Only the email handler is needed to classify: a type no handler claims is kept, which is what the
+        // billing.cancel this dissolve queues must be.
+        new JiggerJot.Infrastructure.Outbox.OutboxDataContributor(new EfRepository<OutboxMessage>(Db),
+            [new JiggerJot.Infrastructure.Email.EmailOutboxHandler(new NoopEmailSender())]),
         new JiggerJot.Api.Features.Catalog.CatalogDataContributor(new EfRepository<Ingredient>(Db),
             new EfRepository<Cocktail>(Db), new EfRepository<CocktailIngredient>(Db)),
         new JiggerJot.Api.Features.Inventory.InventoryDataContributor(new EfRepository<TenantInventory>(Db)),

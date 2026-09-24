@@ -53,7 +53,7 @@ snapshot, so it must survive its original being deleted — JJ-013).
 |---|---|---|
 | `TenantStampingInterceptor` stamps writes | keys off `ITenantScoped` | call sites set `TenantId` explicitly |
 | `RlsMigrationGateTests` fails CI on a missing policy | inspects `ITenantScoped` tables only | `SharedOrTenantRlsMigrationGateTests` |
-| `EveryTenantOwnedEntity_IsWiredIntoTenantDissolution` | inspects a **non-nullable** `TenantId` only | `SharedOrTenantDissolutionTests` + `CatalogDataContributor` |
+| `EveryTenantOwnedEntity_IsWiredIntoTenantDissolution` | inspected a **non-nullable** `TenantId` only (widened to `Guid?` by the 2026-09-24 v4 H6 port, which now lists these three) | `SharedOrTenantDissolutionTests` + `CatalogDataContributor` |
 
 **Acceptance criteria**
 
