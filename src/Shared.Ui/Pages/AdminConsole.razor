@@ -112,7 +112,10 @@
                         </ul>
                     </section>
 
-                    @* ── Staff plan override (comp). The server refuses provider-managed subs (409). ── *@
+                    @* ── Staff plan override (comp). The server refuses provider-managed subs (409); with billing
+                          off (GATES-1) the actions 404, so the block follows /api/features like the billing link. ── *@
+                    @if (_billingEnabled)
+                    {
                     <section class="settings-group">
                         <span class="eyebrow">@Localizer["Admin_SubscriptionTitle"]</span>
                         @if (!string.IsNullOrEmpty(_subscriptionMsg))
@@ -139,6 +142,7 @@
                             </div>
                         }
                     </section>
+                    }
 
                     <section class="settings-group">
                         <span class="eyebrow">@Localizer["Admin_Members"] · @_detail.Members.Count</span>
@@ -218,6 +222,7 @@
     private enum State { Loading, Forbidden, Ready }
 
     private State _state = State.Loading;
+    private bool _billingEnabled; // GATES-1: the comp/revert block exists only where billing does
     private bool _busy;
     private bool _detailLoading;
     private string? _error;
@@ -229,6 +234,7 @@
     {
         if (!Auth.IsAuthenticated) { Nav.NavigateTo("/login"); return; }
         if (!await Auth.IsStaffAsync()) { _state = State.Forbidden; return; }
+        _billingEnabled = await Auth.IsBillingEnabledAsync();
         await LoadTenants();
         _state = State.Ready;
     }
