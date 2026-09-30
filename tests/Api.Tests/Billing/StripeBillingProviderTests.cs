@@ -5,6 +5,7 @@ using Stripe;
 using Microsoft.Extensions.Logging;
 using JiggerJot.Core.Abstractions;
 using JiggerJot.Infrastructure.Billing;
+using JiggerJot.Api.Tests.Infrastructure;
 
 namespace JiggerJot.Api.Tests.Billing;
 
