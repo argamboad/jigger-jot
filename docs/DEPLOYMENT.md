@@ -174,6 +174,22 @@ Per provider:
    platform):
    - Google: `https://<host>/signin-google`
    - Microsoft: `https://<host>/signin-microsoft`
+
+   **The full list each registration must carry** — one Google client and one Microsoft registration per
+   app, and a missing URI is a silent OAuth failure on that host (the provider refuses the redirect, the
+   app never learns why). Local first, then this app's staging. The `http://localhost:5438` rows are the
+   Android emulator's (`adb reverse`, `MOBILE_TESTING.md` §5); `https://localhost:7360` is the API's own
+   HTTPS profile, which the web and desktop flows use.
+
+   | Host | Google (Credentials → OAuth client → Authorized redirect URIs) | Microsoft (App registrations → Authentication → Web → Redirect URIs) |
+   |---|---|---|
+   | local (web/desktop) | `https://localhost:7360/signin-google` | `https://localhost:7360/signin-microsoft` |
+   | local (Android emulator) | `http://localhost:5438/signin-google` | `http://localhost:5438/signin-microsoft` |
+   | staging | `https://jiggerjot-staging.onrender.com/signin-google` | `https://jiggerjot-staging.onrender.com/signin-microsoft` |
+
+   These are this app's own ports (README → Local ports) and staging host. If staging uses a different
+   client id than local, the staging row goes on that client instead. Confirm the list in the console whenever a host
+   or a port changes; nothing in the repo can check it.
 3. Copy the client id + secret into Render: `Authentication__Google__ClientId` / `__ClientSecret` (and/or
    `Authentication__Microsoft__ClientId` / `__ClientSecret`).
 4. Microsoft only: the tenant authority defaults to **`consumers`** (personal accounts). For work/school
