@@ -17,7 +17,7 @@ public sealed class MinioFixture : IAsyncLifetime
     public const string Bucket = "jiggerjot-test";
 
     /// <summary>
-    /// Pulled from quay.io, and pinned. MinIO withdrew <c>minio/minio</c> from Docker Hub — the
+    /// Pinned, and since 2026-10-01 pulled from our own GHCR copy (see below). MinIO withdrew <c>minio/minio</c> from Docker Hub — the
     /// repository is gone rather than merely unlisted, so the pull fails with "repository does not
     /// exist" and takes the whole build-test job down with it. quay.io is MinIO's other published
     /// registry and serves the same images.
@@ -27,7 +27,13 @@ public sealed class MinioFixture : IAsyncLifetime
     /// break this suite again without someone choosing to move the pin.
     /// </para>
     /// </summary>
-    private const string Image = "quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z";
+    // OUR OWN copy of the pinned release, because upstream has now vanished twice: minio/minio left Docker Hub
+    // in 2026-09, and on 2026-10-01 quay.io/minio started answering 401 to anonymous pulls — the desk runners
+    // kept passing on their local image cache while GitHub's hosted runner failed every build.
+    // ghcr.io/argamboad/minio is that same image (RELEASE.2025-09-07T16-13-09Z, image id 69b2ec208575), pushed
+    // from the cache and public, so a fresh runner can always pull it. A registry we do not control turned out
+    // to be the same risk as a floating tag, one level up.
+    private const string Image = "ghcr.io/argamboad/minio:RELEASE.2025-09-07T16-13-09Z";
 
     private readonly MinioContainer _minio = new MinioBuilder(Image).Build();
 
