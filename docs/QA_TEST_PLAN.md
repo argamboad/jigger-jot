@@ -186,7 +186,7 @@ by QA-ADMIN-01..07. The **public API (PUBAPI)** and **outbound webhooks (HOOKS)*
 UI-less (they're for machines) and **config-gated off** — they have **manual curl/Postman cases in §14b**
 (QA-API-01..06), in addition to automated tests.
 
-**Automated in CI (Web):** a Playwright/NUnit E2E suite (`tests/E2E.Tests`, currently **51 journeys**)
+**Automated in CI (Web):** a Playwright/NUnit E2E suite (`tests/E2E.Tests`, currently **54 journeys**)
 runs against the real booted stack on every push — the `e2e` job in `.github/workflows/ci.yml`. Every
 case it covers is marked **⚙️ Automated in CI** on its title (across auth, MFA, i18n,
 household/roster, invitations, notifications, admin, billing, theme and GDPR on the platform side, and
@@ -2463,7 +2463,7 @@ Then A can only ever see A's household, members, and invitations — never B's
 **Walkthrough:** signed out, directly visit `/household`, `/settings`. **Expected:** each redirects to
 `/login`.
 
-### QA-SEC-03 — Session is gone after sign-out 🟠
+### QA-SEC-03 — Session is gone after sign-out 🟠 ⚙️ Automated in CI
 **Gherkin**
 ```gherkin
 Given I sign out
@@ -2472,6 +2472,12 @@ Then I am not able to access it — I am sent to /login
 ```
 **Walkthrough:** sign out, press **Back** to a protected page / reload it. **Expected:** bounced to
 `/login`; no stale authenticated view.
+
+*Automated by `SessionJourneyTests.SignOut_ThenBack_LandsOnLogin_NotTheCachedHousehold`, which runs with the
+browser's back/forward cache on and fails if the page was not actually restored from it. The trade-off,
+by decision: a page restored from that cache is reloaded (`bfcache-guard.js`), so Back after sign-out
+costs a signed-in user one extra page load on any Back that hits the cache, in exchange for never
+showing the previous user's screen on a shared computer.*
 
 ### QA-SEC-04 — Native open-redirect guard 🟢 (Desktop/Android)
 **Context/Expected:** the native OAuth flow only honors loopback `http` callbacks or the configured
