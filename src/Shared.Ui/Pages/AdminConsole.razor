@@ -170,7 +170,7 @@
                                         <span class="badge bg-secondary-subtle text-secondary-emphasis">@m.Role</span>
                                     </div>
                                     <div class="settings-row-side">
-                                        <button class="btn btn-link" disabled="@_busy" @onclick="() => Impersonate(m)">
+                                        <button class="btn btn-link" disabled="@_busy" data-testid="admin-impersonate" @onclick="() => Impersonate(m)">
                                             @Localizer["Admin_Impersonate"]
                                         </button>
                                         @* Staff recovery for a locked-out user (ADR-021 addendum): wipes their
