@@ -7,7 +7,6 @@
 // app installed and launched (EmbedAssembliesIntoApk=true — a fast-deployment APK won't start
 // from a plain `adb install`), `adb reverse tcp:5438 tcp:5438`, the API on
 // http://localhost:5438, Mailpit on MAILPIT_BASE_URL (default http://localhost:8027).
-const { _android } = require('playwright-core');
 const { execFileSync } = require('child_process');
 
 const PKG = process.env.NATIVE_SMOKE_PKG || 'com.jiggerjot.app';
@@ -28,6 +27,7 @@ async function acquireDevice(timeoutMs) {
   const deadline = Date.now() + timeoutMs;
   for (;;) {
     try {
+      const { _android } = require('playwright-core'); // here, not at the top: the unit tests load this file without it
       const devices = await _android.devices({ omitDriverInstall: true });
       if (devices.length > 0) return devices[0];
       console.error(`${stamp()} no adb device listed yet`);
@@ -107,6 +107,29 @@ function looksLikeWebViewReplaced(message) {
   ].some(s => message.includes(s));
 }
 
+// One authorized page, reached IN-APP. Returns how it got there ('in-app' | 'fallback'). The fallback is a
+// full reload, once — and it is LOUD: a broken Household link or hamburger used to leave the run green with
+// one console.error nobody reads, so it now raises a workflow warning annotation (v4 audit T53).
+async function navigateToHousehold(page, timeout = 60_000) {
+  const household = page.getByTestId('household-rename-input');
+  try {
+    // On the emulator's phone-width window the header links collapse behind the hamburger, so the link is never
+    // visible until the toggler opens the sheet — the click then waits its full 60 s and the goto fallback runs
+    // into the very reload race this step exists to avoid (downstream: y-el-vuelto Forgejo run 6, and its green
+    // GitHub run 35260142884 only passed through the fallback). On a wide window the link is already showing.
+    const householdLink = page.getByTestId('nav-household');
+    if (!(await householdLink.isVisible())) await page.locator('button.navbar-toggler').click({ timeout });
+    await householdLink.click({ timeout });
+    await household.waitFor({ state: 'visible', timeout });
+    return 'in-app';
+  } catch (e) {
+    console.log(`::warning title=native smoke (android)::in-app navigation to Household failed (${e.message}); the run continued through a full page load. The header link or the hamburger is broken, or the emulator was too slow.`);
+    await page.goto('https://0.0.0.1/household');
+    await household.waitFor({ state: 'visible', timeout });
+    return 'fallback';
+  }
+}
+
 async function journey(device, attempt, seen) {
   const { page, emailBox } = await bootToLogin(device, attempt);
   seen.page = page;
@@ -135,20 +158,7 @@ async function journey(device, attempt, seen) {
   // 'IServiceProvider'", then "There is no browser renderer with ID 3") on an APK whose own develop run had
   // passed, while the Windows smoke stayed green. Client-side navigation exercises the same authorized API call
   // without restarting the host. The goto stays as a fallback, once, if the link isn't reachable.
-  const household = page.getByTestId('household-rename-input');
-  try {
-    // On the emulator's phone-width window the header links collapse behind the hamburger, so the link is never
-    // visible until the toggler opens the sheet (vuelto Forgejo run 6: a 60 s wait on an invisible element,
-    // then the goto fallback hit the reload race). On a wide window it is already showing.
-    const householdLink = page.getByTestId('nav-household');
-    if (!(await householdLink.isVisible())) await page.locator('button.navbar-toggler').click({ timeout: 60_000 });
-    await householdLink.click({ timeout: 60_000 });
-    await household.waitFor({ state: 'visible', timeout: 60_000 });
-  } catch (e) {
-    console.error(`in-app navigation to Household failed (${e.message}); falling back to a full load once`);
-    await page.goto('https://0.0.0.1/household');
-    await household.waitFor({ state: 'visible', timeout: 60_000 });
-  }
+  await navigateToHousehold(page);
   const members = await page.getByTestId('member-row').count();
   if (members !== 1) throw new Error(`expected 1 roster row for a fresh owner, saw ${members}`);
   return page;
@@ -178,7 +188,7 @@ function adbDevices() {
   }
 }
 
-(async () => {
+async function main() {
   let device;
   for (let attempt = 1; ; attempt++) {
     device = await acquireDevice(90_000);
@@ -207,4 +217,10 @@ function adbDevices() {
   console.log('native smoke (android): boot + OTP sign-in + household roster OK');
   await device.close();
   process.exit(0);
-})().catch(e => { console.error(`native smoke (android) FAILED: ${e.message}`); process.exit(1); });
+}
+
+// Exported so tests/js-logic/smoke.test.js can hold the retry policy and the navigation without a device.
+module.exports = { ATTEMPTS, looksLikeWebViewReplaced, navigateToHousehold, waitForOtp };
+
+if (require.main === module)
+  main().catch(e => { console.error(`native smoke (android) FAILED: ${e.message}`); process.exit(1); });
