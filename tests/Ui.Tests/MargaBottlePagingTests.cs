@@ -167,7 +167,12 @@ public class MargaBottlePagingTests : ComponentTestBase
         // A tick re-ranks the bottles; staying on "2 of 3" would point at whatever is second now.
         page.Find($"[data-testid='shelf-item-{Absinthe}']").Change(true);
 
-        page.WaitForAssertion(() => Assert.Equal("Marga_BottlePosition[1, 3]", Position(page)), TimeSpan.FromSeconds(10));
+        // The recount waits for the ticking to go quiet, on the injected clock (R148): the wait is stepped, not slept.
+        page.WaitForAssertion(() =>
+        {
+            Time.Advance(TimeSpan.FromMilliseconds(400));
+            Assert.Equal("Marga_BottlePosition[1, 3]", Position(page));
+        }, TimeSpan.FromSeconds(10));
     }
 
     [Fact]

@@ -137,9 +137,14 @@ public class ShelfPageTests : ComponentTestBase
         Http.On(HttpMethod.Get, "/api/cocktails", Makeable(4));
         page.Find($"[data-testid='shelf-item-{Gin}']").Change(true);
 
+        // The recount waits for the ticking to go quiet, on the injected clock (R148): the wait is stepped, not slept.
         page.WaitForAssertion(
-            () => Assert.Contains("Shelf_PayoffDrinks[4]",
-                page.Find("[data-testid='shelf-payoff-drinks']").TextContent),
+            () =>
+            {
+                Time.Advance(TimeSpan.FromMilliseconds(400));
+                Assert.Contains("Shelf_PayoffDrinks[4]",
+                    page.Find("[data-testid='shelf-payoff-drinks']").TextContent);
+            },
             TimeSpan.FromSeconds(10));
 
         // ...and once there is something to show, there is somewhere to go and see it.
@@ -169,8 +174,13 @@ public class ShelfPageTests : ComponentTestBase
             await page.InvokeAsync(() => page.Find($"[data-testid='shelf-item-{id}']").Change(true));
         }
 
+        // The quiet period is on the injected clock (R148), so it is stepped once the three ticks are in.
         page.WaitForAssertion(
-            () => Assert.True(AskedForTheCount(Http) > beforeTicking, "the count was never refreshed"),
+            () =>
+            {
+                Time.Advance(TimeSpan.FromMilliseconds(400));
+                Assert.True(AskedForTheCount(Http) > beforeTicking, "the count was never refreshed");
+            },
             TimeSpan.FromSeconds(10));
 
         // Asserted as an inequality rather than an exact number: what matters is that three ticks do

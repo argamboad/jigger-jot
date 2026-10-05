@@ -3,6 +3,7 @@
 @inject HttpClient Http
 @inject IStringLocalizer<AppStrings> Localizer
 @inject IJSRuntime JS
+@inject TimeProvider Time
 
 <PageTitle>@Localizer["Nav_Shelf"]</PageTitle>
 
@@ -428,7 +429,7 @@ else
 
         try
         {
-            if (quiet) await Task.Delay(PayoffQuietMs, cts.Token);
+            if (quiet) await Task.Delay(TimeSpan.FromMilliseconds(PayoffQuietMs), Time, cts.Token);
 
             var page = await Http.GetFromJsonAsync<MakeableCount>(
                 "/api/cocktails?makeable=true&page=1&pageSize=1", cts.Token);

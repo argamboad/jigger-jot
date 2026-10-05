@@ -149,6 +149,7 @@ public class MargaEverywhereTests : ComponentTestBase
         // "You can pour 6 of them" is only true of THESE drinks, so the count has to be asked of the
         // same search the list was — one row of it, under the makeable filter.
         page.Find("[data-testid='cocktail-search']").Input("gin");
+        Time.Advance(TimeSpan.FromMilliseconds(300)); // the search debounce runs on the injected clock (R148)
         page.WaitForAssertion(() => Assert.Contains(Http.Requests, r =>
             AsksWhatIsPourable(r)
             && r.RequestUri!.Query.Contains("search=gin", StringComparison.Ordinal)

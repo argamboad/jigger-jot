@@ -4,6 +4,7 @@
 @inject NavigationManager Nav
 @inject IStringLocalizer<AppStrings> Localizer
 @inject IJSRuntime JS
+@inject TimeProvider Time
 
 <PageTitle>@Localizer["Nav_Cocktails"]</PageTitle>
 
@@ -441,7 +442,7 @@ else
 
         try
         {
-            await Task.Delay(SearchDebounce, token);
+            await Task.Delay(SearchDebounce, Time, token);
             await LoadAsync(1);   // a new search always starts at the first page
         }
         catch (TaskCanceledException)
@@ -527,7 +528,7 @@ else
 
         try
         {
-            await Task.Delay(SearchDebounce, token);
+            await Task.Delay(SearchDebounce, Time, token);
             await LoadAsync(1);
         }
         catch (TaskCanceledException)
