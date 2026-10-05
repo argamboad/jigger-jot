@@ -192,6 +192,39 @@ public class ArchitectureTests
     }
 
     [Fact]
+    public void EveryNullableTenantIdEntity_ShipsItsLifecycleSpec()
+    {
+        // R145 (v4 audit T27, TB-TEN-20..23): a table whose TenantId is nullable holds rows that belong to a
+        // household beside rows that belong to nobody, and no filter, policy or cascade decides which is which.
+        // So each such entity ships its lifecycle spec as four tests named <Entity>_Lifecycle_<Facet>_*: what a
+        // dissolve removes, what an account erasure removes, that the household export leaves it out, and which
+        // origins may write a row with no tenant. A new nullable-TenantId entity fails here until it has all four.
+        string[] facets = ["Dissolve", "Erasure", "ExportExclusion", "TenantlessOrigins"];
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql("Host=localhost;Database=arch-check") // model-only; never connects
+            .Options;
+        using var ctx = new AppDbContext(options, new TestCurrentTenant());
+        var entities = ctx.Model.GetEntityTypes()
+            .Where(e => e.ClrType.GetProperty("TenantId")?.PropertyType == typeof(Guid?))
+            // Different from the platform (jigger-jot#68, #165): the shared-or-household catalog (JJ-031) is nullable
+            // by design and is NOT infrastructure — its household rows ARE exported, so the four facets below do not
+            // describe it. Its lifecycle is pinned where the shape is: SharedOrTenantDissolutionTests (dissolve
+            // removes the household's rows and leaves the shared ones; the export carries the household's own rows)
+            // and CatalogSeederTests.Seed_RefusesToRun_UnderAHousehold (the seeder is the only tenant-less origin).
+            // What an account erasure does to it has no test of its own yet.
+            .Where(e => !typeof(ISharedOrTenantScoped).IsAssignableFrom(e.ClrType))
+            .Select(e => e.ClrType.Name).ToList();
+        Assert.Contains(nameof(OutboxMessage), entities); // probe alive
+
+        var tests = string.Join('\n', SourceFiles(Path.Combine(RepoRoot(), "tests")).Select(File.ReadAllText));
+        var missing = entities.SelectMany(e => facets.Select(f => $"{e}_Lifecycle_{f}_"))
+            .Where(prefix => !Regex.IsMatch(tests, $@"\b(?:Task|void)\s+{prefix}\w+\("))
+            .ToList();
+        Assert.True(missing.Count == 0,
+            "nullable-TenantId entities missing a lifecycle test (name it <Entity>_Lifecycle_<Facet>_…): " + string.Join(", ", missing));
+    }
+
+    [Fact]
     public void TenantDissolution_EntersTheTargetTenant()
     {
         // RLS-2/R44: DissolveAsync runs set-based deletes that the Postgres RLS backstop (ADR-020) scopes to
