@@ -94,7 +94,7 @@ public static class RulesEnforcement
         new("R109", ["E2eNavigations_GoThroughBlazorBoot", "BootRetryBudget_IsOneNumber_InTheSuiteAndTheSlowestJourneysStep", "BlazorBootTests"]),
         new("R113", ["E2eShardsTests"]),
         new("R144", ["ClientRefreshTimeoutPlusRetry_FitsInsideTheServersReuseGrace", "PrTemplate_CarriesTheRuleCheckboxes"]),
-        new("R147", [], Pending: "jigger-jot#87 (T48: the gate-off E2E lane in both copies)"),
+        new("R147", ["GateLane_RunsEveryDeploymentGate_AgainstTheShippedDefault"]),
         new("R148", ["RclComponents_ScheduleOnTheInjectedClock", "Bell_Poll_RefetchesOnTheClock_KeepsTheLastCountOnAnError_StopsWhenSignedOut_AndResumes"]),
         new("R149", [], Pending: "jigger-jot#98 (T59: the test-id contract — this repo's UI computes some ids; needs a decision and a sweep)"),
         new("R155", ["RouteTableGuardTests"]),
