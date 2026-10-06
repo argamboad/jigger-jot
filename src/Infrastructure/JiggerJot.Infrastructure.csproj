@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\JiggerJot.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The header lockup, embedded for CID inline-embedding in branded emails (BrandedEmail). Rendered
+         from the RCL's lockup_light.svg by docs/brand/build_assets.py, flat on white. -->
+    <EmbeddedResource Include="Email\Assets\lockup.png" />
+    <!-- The display face, a byte-for-byte COPY of the RCL's latin subset (EmailLookTests holds the two
+         equal), embedded in each email as data rather than linked. OFL.txt travels beside it. -->
+    <EmbeddedResource Include="Email\Assets\instrument-serif-latin.woff2" />
+    <!-- Marga's avatar, a COPY of the RCL's brand asset rather than a reference to it: Infrastructure
+         does not depend on Shared.Ui and must not start, and REBRANDING.md already treats the email
+         assets as their own set for exactly this reason. Attached only to the emails that use her. -->
+    <EmbeddedResource Include="Email\Assets\marga.png" />
+    <EmbeddedResource Include="Persistence\Seed\lookups.json" />
+    <EmbeddedResource Include="Persistence\Seed\ingredients.json" />
+    <EmbeddedResource Include="Persistence\Seed\cocktails.json" />
+    <EmbeddedResource Include="Persistence\Seed\substitutions.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" />
+    <PackageReference Include="MailKit" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Stripe.net" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

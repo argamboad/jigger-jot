@@ -1,0 +1,47 @@
+/* MARGA-7: quiet furniture under her line — two round arrows on a hairline and a tabular count.
+   Theme tokens only, so it reads on the copper-subtle panel and on the page ground in both themes. */
+/* Its own row: on Home the panel's "See what else is close" link follows, and inline the two read as
+   one control. */
+.bottle-pager {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-block: .75rem;
+}
+
+.bottle-pager-step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0 0 .1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--bs-body-color);
+    font-size: 1.15rem;
+    line-height: 1;
+}
+
+.bottle-pager-step:hover:not(:disabled) {
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+.bottle-pager-step:focus-visible {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+}
+
+.bottle-pager-step:disabled {
+    opacity: .35;
+}
+
+.bottle-pager-position {
+    min-width: 3.5rem;
+    text-align: center;
+    font-size: 13px;
+    color: var(--bs-secondary-color);
+    font-variant-numeric: tabular-nums;
+}

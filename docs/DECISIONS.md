@@ -1,0 +1,2473 @@
+# Decisions (ADR log)
+
+> Lightweight architecture/product decision records: decision + rationale + date. Stops us (and
+> Claude Code) from re-litigating settled choices. Append new ones; supersede with a new dated
+> entry rather than rewriting.
+>
+> The **constant ADRs** below (C-prefixed) are pre-decided across all projects from this platform
+> — keep them. **App-specific decisions** for JiggerJot live at the end of this file, numbered
+> **JJ-001 …** (the plain ADR-001+ range is taken by the platform's own build decisions).
+>
+> **Diagrams:** the shapes these decisions produced are drawn (from the code) in
+> [`ARCHITECTURE.md`](ARCHITECTURE.md) (component + class diagrams), [`FLOWS.md`](FLOWS.md)
+> (sequence diagrams per call stack), and [`DATA_MODEL.md`](DATA_MODEL.md) (ER + lifecycle
+> diagrams). Key mappings: ADR-002 → FLOWS §3–7; ADR-003/020 → ARCHITECTURE §3 + FLOWS §2;
+> ADR-006 → ARCHITECTURE §6 + FLOWS §8; ADR-007 → ARCHITECTURE §5 + FLOWS §9–10;
+> ADR-011 → FLOWS §11; ADR-012 → FLOWS §6.
+
+## Constant decisions (carry forward — do not re-debate)
+
+**ADR-C1 — Multi-tenant SaaS: Tenant ≠ User, multiple users per tenant.**
+*Rationale:* shared workspace model; data belongs to the tenant, not the individual.
+
+**ADR-C2 — Tenant-scoped data; only preferences are per-user.**
+*Rationale:* users in a tenant collaborate over shared data; enforce scoping on every query;
+never leak across tenants.
+
+**ADR-C3 — Backend is ASP.NET Core Web API behind a clean API boundary.**
+UI never hits the DB directly. *Rationale:* the API is the durable, client-agnostic asset reused
+by every client.
+
+**ADR-C4 — Web frontend is Blazor WebAssembly (not Server).**
+*Rationale:* preserves the "frontend is just another API client" boundary; modern Blazor improved
+WASM bundle size and AOT. Server couples UI to server / per-user live connection — rejected.
+
+**ADR-C5 — Blazor UI components live in a shared Razor Class Library (RCL).**
+*Rationale:* makes future non-web clients (MAUI Blazor Hybrid) a component-reuse exercise, not a
+rewrite. Cheap now, expensive to retrofit.
+
+**ADR-C6 — Database is PostgreSQL.**
+*Rationale:* free, portable, cheap to host, capable. Chosen over SQL Server for
+economy/portability.
+
+**ADR-C7 — ORM is Entity Framework Core (Npgsql provider).**
+*Rationale:* default .NET ORM; first-class Postgres; maps data model to migrations.
+
+**ADR-C8 — Auth is ASP.NET Core Identity; tenant scoping layered on top.**
+*Rationale:* built-in user/auth; tenant association sits above Identity as a query concern.
+> **Superseded by ADR-002 (2026-06-19):** the platform ships a custom JWT + refresh-token auth
+> stack instead of ASP.NET Core Identity.
+
+**ADR-C9 — Non-web clients (mobile + Win/macOS desktop) are MAUI Blazor Hybrid: shells scaffolded with auth wired, feature parity DEFERRED (web-first).**
+The platform ships MAUI desktop + Android shells with auth already wired (see `docs/MOBILE_TESTING.md`);
+build each feature on web first and extend the shells once it works there. *Rationale:* reuses the
+Blazor UI via the RCL, not just the API; feature work deferred until it begins (re-check MAUI maturity then). Linux desktop out of scope; if required, tilt to Uno
+Platform or Avalonia. The API being client-agnostic means worst case only the frontend is affected.
+
+**ADR-C10 — Target latest STABLE release, never previews.**
+Re-verify current stable versions at each project's start. *Rationale:* avoids building on
+shifting preview ground; prefer LTS where it coincides with latest stable.
+
+**ADR-C11 — Doc set + per-epic user stories methodology.**
+Docs: PROJECT_BRIEF, FEATURES, DATA_MODEL, TECH_STACK, DECISIONS, WAYS_OF_WORKING, REBRANDING,
+LOCALIZATION, MOBILE_TESTING, QA_TEST_PLAN, CLAUDE.md, plus per-epic stories under `docs/stories/`.
+User stories generated per-epic at build time, not upfront. *Rationale:* lean, persistent context for solo +
+Claude Code; stories stay grounded in real screens.
+
+---
+
+## App-specific decisions
+<!-- Add ADR-001, ADR-002, … as decisions are made during conceptualization.
+     Format: decision + rationale + date. -->
+
+> _Begin numbering at ADR-001 for this app. Date each entry._
+
+**ADR-C12 — Process conventions: vertical slices, per-epic Gherkin user stories, Conventional
+Commits, standard PR template.**
+Vertical end-to-end slices that keep the app working; stories in `docs/stories/` one file per epic
+with Gherkin acceptance criteria; Conventional Commits for branches/commits/PR titles; PRs use
+`.github/pull_request_template.md`. Full detail in `docs/WAYS_OF_WORKING.md`. *Rationale:* a
+lightweight defined process keeps solo + Claude Code work consistent and mergeable.
+
+**ADR-C13 — Local dev infrastructure via Docker Compose: PostgreSQL 17 + Mailpit. (2026-06-17)**
+`docker-compose.yml` at repo root; configuration via `.env` (gitignored; copy from `.env.example`).
+All **Compose service** ports (DB, Mailpit) are environment-variable-driven so multiple projects can
+run simultaneously without conflicts (the API/Web app ports are fixed in their launch profiles). Both services expose healthchecks; API containers should declare `depends_on: db:
+condition: service_healthy`. No pgAdmin in the platform — devs use their own DB client.
+*Rationale:* PostgreSQL is always needed; Mailpit traps passwordless + invitation email in dev with
+zero config; env-var ports prevent port clashes across projects.
+
+**ADR-C14 — Testing: 100% TDD; unit tests (xUnit) + E2E (Playwright/NUnit). (2026-06-17)**
+All production code is test-driven (red-green-refactor). Unit tests (xUnit) in `Core.Tests` and
+`Api.Tests` cover domain logic, derived rules, and API behavior. E2E tests (Playwright 1.60,
+NUnit) in `E2E.Tests` cover critical user flows through a real browser against the full running
+stack; Page Object Model in `tests/E2E.Tests/Pages/`. Gherkin scenarios from user stories map
+directly to test cases. No slice merges without passing tests. `playwright install` required once
+after first build. *Rationale:* TDD forces clear interfaces and prevents regression; E2E tests
+confirm real user flows end-to-end; together they give confidence to ship and refactor continuously.
+
+**ADR-C15 — Auth strategy: OAuth (Google + Microsoft, extensible) + magic links (web) + OTP framework (mobile, deferred). (2026-06-17)**
+External OAuth via ASP.NET Core's provider model — new providers added as a single `.AddXxx()`
+call, no structural changes. Magic links use a custom `MagicLinkTokenProvider`
+(`DataProtectorTokenProvider` subclass, 15-min default) for passwordless web sign-in; tokens are
+Data Protection-backed, single-use, and server-bound. OTP infrastructure provided by
+`AddDefaultTokenProviders()` — TOTP (authenticator app) and email OTP are ready; SMS OTP deferred
+until mobile work begins. `TenantInvitation` entity added for household membership flow. OAuth
+credentials stored in user-secrets (dev) / environment variables (prod) — never in appsettings.
+Email sent via `IEmailSender` (Core abstraction) → `SmtpEmailSender` (MailKit, `Email:Smtp`
+config); dev points to Mailpit. JWT Bearer auth intentionally omitted from this ADR — configured
+in the auth story slice to keep it app-specific.
+*Rationale:* provider-agnostic OAuth avoids re-architecting for new providers; magic links remove
+password friction on web; OTP framework is in place without committing to an SMS provider;
+abstracting `IEmailSender` keeps Core independent of sending infrastructure.
+> **Superseded by ADR-002 (2026-06-19):** auth is a custom JWT + `LoginToken`/`PasswordlessService`
+> stack, not Identity token providers / `MagicLinkTokenProvider` / `AddDefaultTokenProviders`. The
+> TOTP/authenticator support described here was never implemented (email OTP is). Secrets moved to
+> `.env` per ADR-001.
+
+**ADR-001 — Local-dev secrets/config consolidated in `.env` (DotNetEnv); supersedes user-secrets. (2026-06-19)**
+All local-dev secrets and config (`Jwt__Secret`, `Authentication__{Google,Microsoft}__*`,
+`Email__Smtp__*`) live in the repo-root **`.env`** alongside the existing docker-compose vars —
+one file. The API loads it at startup via **DotNetEnv** (`Env.TraversePath().Load()` before the
+host builder; a no-op when absent, e.g. production). Keys use the .NET env-var form (`__` =
+section nesting, so `Section__Sub` ≡ the `Section:Sub` config key) so they bind to the same config keys. `.env` stays gitignored; `.env.example`
+(committed) documents every key with placeholders. **Production is unchanged** — the same keys
+come from real environment variables, never a committed file. This **supersedes the
+`dotnet user-secrets`** approach noted in ADR-C15.
+*Amendment 2026-09-25 (argamboad/perezosoft-platform#122):* the load goes through `LocalDotEnv.Load()` (Program and the
+EF design-time factory alike), which honours `SKIP_DOTENV=1`. The test assembly sets it before any host starts, so
+a `WebApplicationFactory<Program>` never reads the developer's `.env`: with a real local `.env` the suite had been
+running against the developer's billing and SMTP settings and disagreeing with CI.
+*Rationale:* a single, visible local-config file was the explicit preference; `.env` already
+existed for docker-compose, so the app secrets join it. Trade-off vs user-secrets: secrets now
+sit in the working tree (mitigated by `.gitignore`) rather than the user profile — accepted for
+this workflow.
+
+**ADR-002 — Auth is a custom JWT + rotating-refresh-token stack, not ASP.NET Core Identity. (2026-06-19)**
+Supersedes ADR-C8 and the Identity parts of ADR-C15. The platform implements its own auth on custom
+`User` / `UserLogin` / `RefreshToken` / `LoginToken` entities: JWT access tokens (60 min) + rotating,
+hashed refresh tokens (single-use, replay-protected); OAuth (Google + Microsoft) account-linking with
+an unverified-email takeover guard; passwordless magic-link + email OTP via `PasswordlessService`
+(hashed, single-use, time-limited `LoginToken`s). There is **no** `IdentityUser`, `UserManager`,
+`MagicLinkTokenProvider`, or `AddDefaultTokenProviders`; JWT Bearer is configured in `Program.cs`.
+*Rationale:* the Identity + cookie approach hit a persistent Blazor WASM client failure; the proven
+JWT model (ported and hardened) was chosen over more Identity debugging, and it also gives native
+(MAUI) clients clean body-token transport.
+
+*Addendum (2026-09-18) — a 60-second reuse grace window: a rotated-out refresh token replayed that soon,
+while its successor is still live, is a race, not a theft.* **Evidence:** staging logged 15
+"Refresh-token reuse detected … revoked all sessions" warnings for the owner's own account in 4 days,
+often in pairs ~2 s apart; the owner experienced it as "the web keeps forgetting me". Every one was the
+theft response firing on benign traffic, killing every session of the user (web AND native). **The
+benign races:** two browser tabs refreshing at once (both send the same cookie; the second presents a
+token the first just rotated out), and a refresh whose response is lost — tab closed or reloaded
+mid-request, a slow cold start — so the browser still holds the old cookie and presents it again.
+**Decision (the owner chose 60 s):** `RefreshToken` gains `RotatedAt` + `ReplacedByTokenId`, stamped
+**only by rotation** (never by logout, revoke-all or a staff reset). `InspectRefreshTokenAsync` returns
+`RotatedWithinGrace` when the token is revoked AND was rotated AND `now − RotatedAt ≤
+RefreshToken:ReuseGraceSeconds` (default 60; 0 disables it — strict behaviour) AND the successor exists,
+is not revoked and is not expired. The controller then issues a fresh session for the same user and
+provider and **revokes nothing** — not the successor either: both chains stay valid and rotate
+independently, and the unused one simply expires. Anything else revoked stays `Reuse` → revoke all.
+**The live-successor condition is what keeps logout final:** logout and revoke-all revoke the successor,
+so a stale token from another tab can never undo a sign-out, even inside the window. **Trade-off:** a
+thief who replays a stolen token within 60 s of the victim's rotation gets a session instead of tripping
+the alarm — the same trade the industry makes (Auth0's refresh-token *reuse interval*, Okta's rotation
+*grace period*). Past the window, or once the user signs out, the full theft response still fires.
+Observability: the grace path logs at Information, reuse
+keeps its Warning. Evidence of the fix: `RefreshTokenServiceTests` (grace boundary, successor
+revoked/expired, grace 0, never-rotated) + `RefreshReplayTests` (same cookie twice → both 200, nothing
+revoked; replay after the window → 401 + revoke-all; pre-logout token within the window → 401, no
+session). Migration `AddRefreshTokenRotationLink` (two nullable columns). Flow: FLOWS §7.
+
+*Addendum (2026-09-28) — the grace is one-shot, and the trade it makes is symmetric.* **Evidence (v4 audit
+AUTH-1/AUTH-13, T28):** the window above forgave a rotated-out token any number of times for 60 s, each
+replay minting an independent chain, and the grace path logged at Information with no count — so a thief
+who kept landing inside the window left no trace. And the forgiveness has no notion of who came first: if
+the thief rotates a stolen token and the victim's scheduled renewal lands within 60 s, it is the *victim's*
+presentation that is treated as the benign race, and the pair raises no alarm. **Decision:** `RefreshToken`
+gains `GraceUsedAt`, stamped by a **conditional set-based update** (`TryMarkGraceUsedAsync`, `WHERE
+GraceUsedAt IS NULL`) *before* the session is issued: exactly one presentation inside the window is
+forgiven; any further presentation of that token — a third tab, a replay racing the forgiven one, or a
+thief — is `Reuse` and revokes every session. The grace path now logs at **Warning** with the user's running
+grace count, so a run of them on one account is visible. **The symmetric trade, stated:** attacker-first
+inside the window is *accepted* — the platform cannot tell the two presentations apart, and refusing both
+would bring back the sign-outs the 2026-09-18 addendum removed. What bounds it: the grace is spent on that
+pair, so the thief's next replay (or the victim's) kills both chains; the window is 60 s; and the client's
+refresh timeout plus retry delay is pinned below it (T30), so the benign race the window exists for
+completes well inside it. `RefreshReplayTests` records both halves —
+`Refresh_ThirdPresentationInsideGrace_Is401_AndRevokesAllSessions` and
+`Refresh_AttackerRotatesFirst_VictimsRenewalInsideGrace_GetsASession_ByDesign`. Migration
+`AddRefreshTokenGraceUsedAt` (one nullable column).
+
+*Addendum (2026-09-28) — logout revokes the family of any known token.* **Evidence (v4 LB-AUTH-4, T29):**
+`POST /api/auth/logout` found the user through the live-token lookup, so a token that had just been rotated
+out or had expired resolved to nothing: no revocation, the cookie deleted anyway, 200. With the keep-alive
+above that is routine — a refresh in flight when the user clicks Sign out presents the old token, then the
+refresh response lands and restores the session (web cookie, or the native store); and a device that slept
+past expiry could not sign the user's other devices out. **Decision (R124):** logout resolves the user through
+`InspectRefreshTokenAsync` — valid, expired, rotated-out or revoked, all name their owner — and revokes the
+whole family whenever a token is found; only an unknown hash is a no-op, and the answer is 200 either way.
+The 2026-09-18 sentence "logout revokes the successor" therefore holds for the rotated-out leg too.
+
+*Addendum (2026-09-30) — the rotation is one transaction, serialized per user against revoke-all.* **Evidence
+(v4 audit TB-AUTH-30, landed with the harness fault seam, T54):** `POST /api/auth/refresh` inspected the
+presented token, issued its successor and marked the rotation as three autocommitted writes. A revoke-all
+landing between the inspection and the mark — "sign out everywhere" from another device, an erasure, the theft
+response to a replay — revoked the presented token and everything else that existed at that instant, and the
+successor minted a moment later survived it: a session that outlives a sign-out. **Decision:** from the
+inspection's verdict to the commit is one transaction. The two claims — `TryMarkRotatedAsync` (the token is
+still live) and `TryMarkGraceUsedAsync` (the grace is unspent AND the successor is still live) — are
+conditional, set-based updates taken under the user's **chain lock**, a Postgres advisory lock
+(`pg_advisory_xact_lock` keyed on the user id, released with the transaction) that `RevokeAllForUserAsync`
+takes as well. A revoke-all therefore either goes first, in which case the claim fails, the endpoint answers
+the same generic 401 and the scope's disposal rolls the successor back, or waits for the rotation to commit
+and then sees the successor too. No row is locked; only two writers of the same user's chain ever wait on
+each other. Proven by `RefreshReplayTests.Refresh_RevokeAllBetweenInspectAndIssue_LeavesNoLiveToken` (both
+paths, through the endpoint, with a decorator that runs the revoke-all right after the inspection) and the
+two `RefreshTokenServiceTests.Rotation_*` races driven through the fault seam's interleaving hook — the
+second of which is red with the conditional update alone and green only with the lock.
+Evidence: `RefreshReplayTests.Logout_With*`.
+
+**2026-10-03 addendum to ADR-002 (v4 audit T58, UX-10) — a page restored from the back/forward cache is reloaded.**
+After sign-out the browser's Back button can restore the last signed-in render from its back/forward
+cache: inert (the refresh 401s) but readable. `bfcache-guard.js` reloads on `pageshow` with `persisted`,
+which re-runs auth and sends a signed-out visitor to `/login`. **Kept, knowingly:** the cost is one extra
+page load whenever a signed-in user's Back hits that cache; opting the pages out with `Cache-Control:
+no-store` would cost the same and more. Held by a browser journey that runs with the cache on
+(`SessionJourneyTests.SignOut_ThenBack_LandsOnLogin_NotTheCachedHousehold`) and a unit test of the script
+(`tests/js-logic/bfcache-guard.test.js`).
+
+*Addendum (2026-09-22) — the client keeps an open session alive, and only the server ends it.* **Evidence:**
+downstream (`y-el-vuelto`) the owner still had to sign in every day, on web and on Android, after the reuse
+grace window above. The 30-day refresh token was never the problem: the client only spent it once, at
+startup. An app left open — a tab overnight, the phone app in the background — kept its 60-minute access
+token past expiry and nothing renewed it, so the next call 401'd and the page looked signed out. And every
+failed refresh counted as "signed out": a timeout, a proxy's 502 while a free-tier host cold-starts, or no
+signal made the native app **delete its stored refresh token**, so a sleeping server cost the session for
+good. **Decision:** `AuthService` renews ahead of expiry on three paths — a timer (one minute before expiry,
+capped at a quarter of the token's lifetime, never sooner than 30 s), the bearer handlers before each
+request (the net for a device that slept through the timer), and the layout when the app returns to the
+foreground (`AppResumeNotifier`). *Amended by v4 T32 (LB-UI-14/15, R126, 2026-09-28):* the lifetime the
+client counts is the **server's** — `expires_in` at receipt, on the injected clock — never the JWT's `exp`
+read against the device clock, which on a phone a few minutes slow meant 401s for part of every hour and on
+one an hour fast a signed-out screen plus a refresh rotation every 30 s; the quarter-lifetime cap comes from
+the same `expires_in` (it used to read `nbf`, which the API's tokens never carry). And both hosts' bearer
+handlers share one `BearerRetry`: a 401 on a request sent with a held session renews **once** and resends;
+a second 401 stands. The bUnit chassis mints tokens with a `serverClockOffset` so skew is a test theory.
+*And by v4 T33 (AUTH-5/UX-11, R84/R111, 2026-09-28):* the layout shows the signed-in shell while a session
+is **held** (`AuthService.HasSession`), not while the token is unexpired — through an outage that outlasts
+the token the user is still signed in, waiting on a renewal; `SignedOut` is raised from that same held
+flag, so a rejection that lands after the token expired still fires it exactly once (and the device
+preferences are wiped); and `OnSignedOut` sends a protected page to `/login` instead of leaving the user on
+chrome-less content that 401s. Evidence: `SessionKeepAliveTests` (`UnreachableThroughExpiry_*`,
+`MidSessionRejected_*`). *And v4 T36 (2026-09-28), five small gaps:* the OAuth callback signs out of the
+external carrier cookie in a `finally`, so a refused signup no longer leaves the provider's identity parked
+in the browser (AUTH-12); a remembered theme/locale is forgotten only on sign-out or when the next token
+names a different user, not on every renewal (UX-17); `TryRefreshAsync(force: true)` lets a renewal already
+on the wire land and then asks again, and Join uses it after accepting an invitation so the new household
+shows at once (LB-UI-16); an optional **absolute session lifetime** (`RefreshToken:AbsoluteLifetimeDays`,
+off by default — decision #2) stamps `SessionExpiresAt` at sign-in, inherited at every rotation and a ceiling
+on the token's expiry; and `/api/auth/refresh` is rate-limited per IP (`Auth:RateLimit:RefreshPermitLimit`,
+60/min, raised for E2E — decision #4). Refresh
+outcomes split three ways: **401, or a 400/403 carrying the API's own error body = rejected** (clear the
+session, as before); **5xx, 429, a 400/403 without that body (a proxy's challenge page), network, timeout
+or an unreadable body = unreachable** (keep everything — the server never ruled on the token; mid-session
+the timer retries after 30 s, then 1, 2 and 4 minutes, capped at 5, and a renewal resets the pause); **200 =
+renewed**. The refresh call has its own 20 s deadline on the injected clock (`AuthService.RefreshTimeout`),
+pinned with the retry pause under the server's 60 s reuse grace by a cross-project test
+(`ConfigPostureTests.ClientRefreshTimeoutPlusRetry_FitsInsideTheServersReuseGrace`), so a lost response is
+retried inside the window it exists for — v4 T30 (UX-6/7/12, R107/R108/R144), 2026-09-28. At startup an unreachable refresh is
+retried after 2, 5, 10 and 15 s behind the loading spinner before the layout sends the user to `/login`,
+and even then the stored token stays for the next launch. **Unchanged:** impersonation tokens are never
+renewed *as impersonation* (the timer is cancelled on `BeginImpersonation`), and anonymous pages never spend
+a refresh. *Precision added by v4 T64 (C12, 2026-10-01):* before T31 the sentence hid a renewal — when the
+impersonation token expired, the bearer handler's next refresh minted the STAFF identity and the page carried
+on as that user mid-screen, which is what ADR-014's "expiry returns the staff user to their own identity"
+described without saying it was silent. T31's epoch (R125) made the end explicit: the client ends the
+impersonation, reloads home as the staff user, and never swaps identities inside a page. *Amended by v4 T31 (LB-UI-11/12/13, R125, 2026-09-28):* the client
+session carries an **epoch**, bumped by logout, by entering or leaving an impersonation and by an
+impersonation expiring; a refresh captures it when it starts and an answer that lands after the epoch moved
+is **discarded**, never applied — so a refresh on the wire when the admin clicks "Sign in as" cannot swap
+the impersonation for the staff token, and one on the wire when the user signs out cannot sign them back
+in (on native the discarded answer's rotated refresh token is still saved while a session is held, so
+leaving the impersonation can restore the staff user; never after a logout). Impersonation is a **state**
+entered and left explicitly, not a claim read off the current token, and its **expiry ends it** — the
+in-memory session is let go, `IdentityChanged` fires, and the layout reloads home so the staff identity is
+restored on a neutral page — instead of the request-time renewal that used to put the staff identity on
+the target's page. Evidence: `SessionKeepAliveTests` (`ARefreshInFlight_*`, `ImpersonationExpiry_*`). **Why this is safe:** the server stays the sole authority — keeping a
+refresh token the client can't validate only means asking again; a revoked one still gets 401 and is
+dropped. Concurrent renewals (timer + request) coalesce into one call as before, now under a lock for
+native's thread pool. Evidence: `SessionKeepAliveTests` (Ui.Tests, on a fake clock). QA: QA-SMK-04.
+
+**ADR-003 — Tenancy is membership-based and enforced by a global query filter. (2026-06-19)**
+A user's tenant lives in a **`TenantMembership`** join entity (unique on `UserId` — one tenant at a
+time; `Role` owner/member), **not** a `tenant_id` column on `User`. Tenant-owned entities implement
+`ITenantScoped`; `AppDbContext` applies a global EF query filter scoping them to the JWT's `tenant_id`
+claim (fail-closed when absent). Genuinely cross-tenant / pre-auth lookups (invitation accept by token
+hash) opt out with `IgnoreQueryFilters()`.
+*Rationale:* membership models "a user moves between tenants" and the always-in-exactly-one-tenant
+invariant cleanly; the global filter turns "never leak across tenants" (ADR-C2) from a per-query
+convention into a structural guarantee, so feature slices can't forget to scope.
+
+*Amendment (2026-06-22) — scoping is now structural on BOTH read and write.* The original query
+filter scoped reads only; nothing stamped or validated `TenantId` on insert, so a slice that forgot
+the stamp (or bound it from request input) could persist a row under the wrong tenant — and the read
+filter would then hide that row from its true owner, an invisible data-integrity bug (audit CONF-1).
+A **write-side `TenantStampingInterceptor`** (`src/Infrastructure/Persistence/`, wired via
+`AppDbContext.OnConfiguring` so every context — including tests — enforces it) now closes that gap:
+for each `Added` `ITenantScoped` entity *while a tenant is current*, an unset `TenantId` is stamped
+with the current tenant, and a `TenantId` belonging to a **different** tenant **throws** (fail
+closed). A context with **no** current tenant (`CurrentTenantId == Guid.Empty`) is a system/seed/
+cross-tenant context and is not enforced — the same trust level that may bypass the read filter.
+The audited cross-tenant **escape hatch** is named and greppable: `IRepository<T>.QueryAllTenants()`
+for reads (replacing ad-hoc `Query().IgnoreQueryFilters()` in feature code; used by dissolve
+`ITenantDataContributor`s), and `IgnoreQueryFilters()` on the platform's own teardown
+(`TenantRepository.WipeDataAsync`, which targets its argument tenant regardless of who is current).
+A build-time ban on `IgnoreQueryFilters` inside `src/Api/Features/**` is planned (audit B9-1) to make
+the escape hatch unreachable from slice code.
+
+*Amendment (2026-06-25) — `EnterTenant`: scope system/integration writes instead of bypassing scoping.*
+The cross-tenant escape hatch (`QueryAllTenants()`) is right for rare **teardown** (tenant dissolve),
+but a frequent, access-*granting* write that runs without a JWT — notably the **Stripe billing
+webhook** (BILLING-3) — should not punch a permanent hole in tenant isolation. New primitive
+**`ITenantContext.EnterTenant(tenantId)`** (implemented by `HttpCurrentTenant`, registered so one
+scoped instance backs both `ICurrentTenant` and `ITenantContext`): after the caller has
+**authenticated** the tenant id by other means (a verified webhook signature; an admin authz check),
+it makes that tenant *current* for the scope, so the write-stamping interceptor and the global read
+filter scope to it — the operation gets the **same structural isolation an authenticated request
+gets**, no `IgnoreQueryFilters`. It *scopes*, it does not *authorize*; entering `Guid.Empty` is
+rejected. Preferred over the escape hatch for any signature-/system-authenticated tenant-scoped write;
+the escape hatch stays for genuine cross-tenant teardown/enumeration. Reused later by ADMIN
+impersonation (`docs/PLATFORM_BACKLOG.md`).
+
+**ADR-004 — Clean platform baseline + vertical-slice features (hybrid). (2026-06-19)**
+The reusable **platform** stays clean-layered / horizontal — Core, Infrastructure, and the
+auth/tenancy controllers (the durable chassis: JWT auth, membership tenancy, the global query
+filter, email, persistence). App **features** are organized as **vertical slices**: one
+self-contained folder per feature in `src/Api/Features/<Feature>/` — a minimal-API `MapGroup`, a
+handler, co-located models, and an `ITenantDataContributor` — reusing the platform via
+`IRepository<T>`, `ICurrentTenant`, and `IUnitOfWork`. Feature endpoints are minimal-API groups; the
+platform stays controllers. The entity lives in `Core` and implements `ITenantScoped` so tenant
+scoping is automatic. Full convention in `docs/WAYS_OF_WORKING.md`; reference slice at
+`src/Api/Features/Notes` (marked DELETE-ME).
+*Rationale:* the platform is cross-cutting, stable, and shared by every feature — it benefits from
+clean layering. Features are independent and churn-y — co-locating each one's endpoint/handler/
+models/data makes them easy to add, understand, and delete without touching central code. The
+generic repository + global tenant filter let a slice be added without authoring a repository pair
+or remembering to scope. This is the architectural convention for app work on top of the platform.
+
+*Amendment (v2 audit, 2026-07-01, per v2 decision D7) — config-gated minimal-API PLATFORM surfaces are a
+sanctioned exception; "zero central edits" is really a ~5-touchpoint slice contract.* Two clarifications
+to reconcile this ADR with what shipped:
+1. **Platform is not *exclusively* controllers.** PUBAPI (ADR-015) and HOOKS (ADR-016) are horizontal
+   **platform** capabilities but ship as **minimal-API groups** (`ApiKeyEndpoints`, `WebhookEndpoints`),
+   not controllers, because their routes must be **conditionally mapped** behind a config gate
+   (`PublicApi:Enabled` / `Webhooks:Enabled`) — off ⇒ the routes don't exist (404), which minimal-API
+   conditional mapping expresses cleanly. So the rule is: platform HTTP is controllers **by default**,
+   with **config-gated minimal-API groups as an explicit exception** for surfaces that must appear/vanish
+   by configuration. Downstream *app* vertical features remain `src/Api/Features/<X>/` slices.
+2. **"Without touching central code" is a bounded contract, not literally zero edits.** Adding a slice
+   still touches a small, fixed set of central seams — roughly: register the `DbSet`/config, add a
+   migration, wire DI (`Add*`) + map the group in `Program.cs`, register the `ITenantDataContributor`,
+   and reset the table in the test fixture (the "add-a-slice checklist" in `docs/WAYS_OF_WORKING.md`).
+   The point stands — you never edit a central *wipe/has-data/export* method or author a repository pair
+   — but it's ~5 mechanical touchpoints, not none.
+
+*Amendment (v2 audit B9-6 / DEBT-6, 2026-07-02, per v2 decision D7) — the config-gated platform surfaces
+now live in a distinct namespace/folder, separated from vertical-slice features.* The prior amendment
+established that PUBAPI/HOOKS are **platform** (not app features); this refines *where* they live so the
+distinction is structural, not just narrative:
+1. **Config-gated minimal-API PLATFORM surfaces live under `src/Api/Endpoints/`** (namespace
+   `JiggerJot.Api.Endpoints`), NOT `src/Api/Features/`. `ApiKeyEndpoints` (PUBAPI) and `WebhookEndpoints`
+   (HOOKS) moved there. They may use a raw `MapGroup(...)` because they are platform surfaces, not slices.
+2. **The shared endpoint-extension helpers are platform infra and live with Endpoints.**
+   `MapTenantFeatureGroup` (`FeatureEndpointExtensions`), `RequirePermission` (`PermissionEndpointExtensions`),
+   and `RequireEntitlement` (`EntitlementEndpointExtensions`) moved from `JiggerJot.Api.Features` to
+   `JiggerJot.Api.Endpoints`. This is what lets the R8 gate hold: nothing outside `src/Api/Features/` (except
+   `Program.cs`, which composes the Notes sample) references `JiggerJot.Api.Features.*`.
+3. **Vertical-slice features stay under `src/Api/Features/<X>/`** and register their routes via
+   `MapTenantFeatureGroup` — never a raw `MapGroup`. A new build gate (R6,
+   `FeatureFiles_RegisterRoutesViaMapTenantFeatureGroup_NotRawMapGroup`) scans `src/Api/Features/**` and
+   fails on any raw `.MapGroup(` there, so a future slice can't quietly bypass the shared tenant-API auth.
+   This is a pure move + namespace change — no route, behavior, or signature changed.
+
+*Amendment (v3 audit Phase 4, 2026-07-27, T58) — the touchpoint contract is verified-adversarially and
+gains one member.* Phase 4 built a real entity-bearing slice against this ADR and measured the central
+edits: the "~5 mechanical touchpoints" list is accurate **plus one the list omitted — the RLS policy**.
+`dotnet ef migrations add` scaffolds no RLS DDL, so an `ITenantScoped` entity's policy must be appended
+to the same migration by hand (ADR-020; step 4 of the add-a-slice checklist in `WAYS_OF_WORKING.md`,
+enforced by the `RlsMigrationGateTests` parity gate). Read "without touching central code" as the
+bounded ~6-touchpoint contract above — never as literally zero; the durable half of the claim is what
+Phase 4 confirmed HOLDS: the EF filter, stamping interceptor, RLS backstop, and the group auth policy
+are all inherited with no slice re-implementation.
+
+*Amendment (v4 audit Phase 4, 2026-10-01, T64 / ADV-P4-17, R158) — the contract is the measured list, not a
+count.* The v4 re-drill built another entity-bearing slice by the recipe alone and logged every existing file
+it had to edit: **seven forced** — `AppDbContext` (DbSet), `Program.cs` (bind, register, map), the migration
+(scaffolded) and its hand-appended RLS policy, `docs/DATA_MODEL.md` (the `EveryEntity_IsDocumentedInDataModel`
+gate fired), the tenant-axis canary's `handled` set in `ArchitectureTests` (the
+`EveryTenantOwnedEntity_IsWiredIntoTenantDissolution` gate fired) and the Postman collection
+(`PostmanParityTests` fired) — plus two the gates did not force but the catalog and the parity rule expect:
+`.env.example` and the EN/ES resx. The "~6" of the 2026-07-27 amendment was a count with two gate-forced
+members missing from it and from the checklist, whose fixture-reset step had been dead since v2 TR-3. The
+checklist in `WAYS_OF_WORKING.md` now carries that list with each step's gate, and
+`EnforcementGateTests.AddASliceChecklist_NamesEveryArtifactAGateForces` holds the two together: a gate that
+forces a new artifact must appear there. Read "without touching central code" as *this list and nothing
+else* — the durable half of the claim (filter, stamping, RLS, group auth all inherited) still holds.
+
+**ADR-005 — Apple Sign In fits the agnostic provider model; implementation DEFERRED, web-first. (2026-06-24)**
+A third OAuth provider (Apple) was assessed against the provider-agnostic auth stack (ADR-002). The
+verdict: the **backend absorbs it with small, mechanical additions** — `.AddApple(...)` in
+`ServiceCollectionExtensions`, an `Apple` arm in `AuthProviders` (const + `Supported` +
+`SchemeFor`), an `Apple => true` arm in `ProviderEmailTrust` (Apple asserts `email_verified`,
+private-relay addresses included), a button/glyph in `Login.razor` + `Settings.razor`, and config
+keys; `ClaimsExtractor` needs **no** change (`sub`→`NameIdentifier`, `email`→`ClaimTypes.Email`
+already map). The fail-closed takeover guard and tenant scoping require no structural change.
+However, Apple is **NOT** the single-`.AddXxx()` that Google/Microsoft are (so the CLAUDE.md / ADR-C15
+"new provider = one line" claim has a documented exception). The Apple-specific costs are recorded
+here so they are not rediscovered later:
+1. **No built-in handler** — ASP.NET Core ships Google + MicrosoftAccount but not Apple. Needs the
+   community `AspNet.Security.OAuth.Apple` (aspnet-contrib) package; confirm a **stable** .NET 10
+   build exists before adopting (no previews — ADR-C10).
+2. **The "client secret" is a rotating ES256 JWT**, minted from a downloaded `.p8` key + Team ID +
+   Key ID + Service ID, expiring every ≤6 months. This breaks the single-static-secret-in-`.env`
+   shape of ADR-001 (the package can generate/cache the JWT from the key material).
+3. **Apple forbids `localhost` redirect URIs.** Google/MS redirect to `https://localhost:7360` /
+   `http://localhost:5438`, which the QA plan and `MOBILE_TESTING.md` rely on. Apple needs a real
+   **HTTPS domain or tunnel** even for local QA — a workflow asterisk, not a code change.
+4. **`form_post` callback** (because name/email scope is requested) ⇒ the OAuth correlation cookie
+   must be `SameSite=None; Secure`; relevant given the schemeful-same-site cookie history.
+5. **Display name is returned only on the first authorization** — `ExtractDisplayName` gets `null`
+   thereafter (tolerated; capture on first auth if wanted).
+6. **Native (MAUI desktop/Android) Apple is a separate, larger effort** — no native Apple SDK on
+   Win/Android, so it reuses the web flow and inherits #3/#4. Web-first per ADR-C9.
+Decision: keep the design open to Apple; implement **web-first** as the slice in
+`docs/stories/apple-signin.md` when a business need arises; defer until then. External prerequisite:
+**Apple Developer Program enrollment ($99/yr)** + portal setup (App ID, Service ID, Sign-in key).
+*Rationale:* the architecture doesn't fight a third provider — the cost is Apple's protocol and
+account setup, not our code. Recording the constraints now prevents re-scoping later and stops "it's
+just one line" from being assumed for Apple.
+
+**ADR-006 — Billing & subscriptions: provider-abstracted (`IBillingProvider`), Stripe reference impl, plan-tier entitlements + quotas. Implementation DEFERRED, web-first. (2026-06-25)**
+Monetization enters through a Core abstraction **`IBillingProvider`** (same shape as `IEmailSender`):
+a **Stripe** reference implementation in Infrastructure plus an in-memory **`FakeBillingProvider`**
+for tests. A tenant has at most one **`Subscription`** (`ITenantScoped`) holding plan tier, status,
+and Stripe customer/subscription ids; access is gated by an **`IEntitlementService`** (feature flags
+keyed to plan) and an **`IQuotaService`** (countable limits — seats, metered usage). The **plan
+catalog is code/config, not tenant data.** Stripe is the **system of record for money**; our DB holds
+a **projection** kept current by **webhooks processed idempotently through the inbox** (ADR-007) —
+we never treat our own DB as the truth for billing state.
+Constraints recorded:
+1. **Webhooks are at-least-once and out-of-order** — the handler verifies the Stripe signature,
+   dedupes by event id, and is reentrant. This is the reliable-consumer problem ADR-007's **inbox**
+   solves, so **BILLING depends on JOBS** (the outbox/inbox slice) landing first.
+2. **Entitlement checks are server-side and fail-closed** — no/expired/`past_due` subscription ⇒
+   Free tier; never trust the client.
+3. **No card data, minimal PCI scope** — money mutations happen on **Stripe Checkout + Customer
+   Portal** (redirects); we build no card forms and store no PANs (SAQ-A).
+4. **Access is granted on the webhook, not the Checkout redirect** — returning from Checkout does
+   not flip the tenant to paid; the `subscription.created/updated` event does.
+5. **Quotas ≠ rate limits** — the existing `RateLimiting.cs` is per-IP request throttling (abuse);
+   plan quotas are per-tenant **persisted** counters (seats = membership count; usage = a counter).
+   Different mechanism — don't conflate.
+6. `Subscription` participates in tenant **dissolve** via an `ITenantDataContributor` that cancels
+   the Stripe subscription and wipes the projection.
+7. **Sandbox/fake test stack (the answer to "can we test billing without real money": yes):**
+   `FakeBillingProvider` for unit; **stripe-mock** (Stripe's official offline mock server) for
+   `Api.Tests` request/response; **Stripe test mode + Stripe CLI** (`stripe listen`/`stripe trigger`)
+   for webhook E2E; **Stripe Test Clocks** to simulate trial-end/renewal/dunning deterministically.
+   This is the Mailpit-for-billing analogue (ADR-C13: trap it locally, zero real charges).
+*Rationale:* billing is what makes this a SaaS platform rather than a multi-tenant CRUD app;
+abstracting the provider keeps Core clean and the test suite offline; projecting Stripe state (rather
+than owning money truth) avoids reconciliation bugs; deferring matches the web-first/business-need
+posture (ADR-C9) — there is no app or plan catalog yet (`PROJECT_BRIEF.md` is still TODO).
+Stories + slice plan: `docs/stories/billing.md` (epic `BILLING`). Future siblings parked in
+`docs/PLATFORM_BACKLOG.md`.
+
+*Amendment (2026-06-25) — billing HTTP surface is a PLATFORM controller, not a feature slice.* The
+BILLING-1/2 slice plan said "`Features/Billing` slice (`MapTenantFeatureGroup`)", but **billing is
+horizontal platform/chassis** (reusable by every app), and per ADR-004 the platform's HTTP surface is
+**controllers**, while `src/Api/Features/<X>/` minimal-API slices are reserved for the *downstream
+app's* vertical features. BILLING-2 initially (and wrongly) shipped `/api/billing` as a
+`Features/Billing` slice with a hand-rolled owner check; it is now a **`BillingController :
+TenantApiControllerBase`** (`src/Api/Controllers/`) next to the household controllers, reusing the
+base's `GetMembershipAsync`/`IsOwner`/`Forbid403` gate, with the checkout orchestration in
+`IBillingService` (`src/Api/Services/`). The provider/entitlement/catalog/`Subscription` pieces were
+already platform and are unchanged; `.RequireEntitlement(...)` stays as `Features/`-root scaffolding
+(like `MapTenantFeatureGroup`) that the downstream app's slices call. BILLING-3's webhook lands as a
+controller action too. (The only vertical slice in the platform remains the `Notes` 🗑️ DELETE-ME
+sample.)
+
+*Addendum (BILLING-5, 2026-07-01) — quotas implemented (mechanism-first, policy as data).* Decision
+point on quotas is now built: **`IQuotaService`** (`src/Api/Services/QuotaService.cs`) resolves the plan
+exactly like `EntitlementService` (fail-closed to Free) and enforces two limit kinds. **Seats** =
+tenant members + **pending invites** (a pending invite reserves a seat, so N invites can't over-provision
+past the cap) vs `Plan.SeatLimit`; checked in `TenantInvitationService.CreateAsync` for new invites →
+**402 `seat_limit_reached`**. **Metered usage** = `TryConsumeAsync(key)` against a **monthly**
+`UsageCounter` (`{tenant, key, yyyy-MM}`) — the calendar-month period key makes it **self-resetting with
+no sweep job** (simpler than the point-5 "usage counter + JOBS-3 reset" sketch). Limits live in
+`PlanCatalog` as **data**: a `null`/absent limit means unlimited, so the mechanism ships **inert** until a
+plan sets a number; the platform ships example numbers (Free 3/3, Pro 10/100) to demonstrate. Confirms
+point 5 (quotas ≠ rate limits): these are per-tenant persisted counters, not the per-IP throttle.
+
+*Addendum (BILLING-6, 2026-07-01) — trial/dunning lifecycle (owner-facing reaction, mechanism-first).*
+The projection already reflects Stripe's lifecycle (BILLING-3), and entitlements already fail closed on a
+lapsed period — so BILLING-6 adds the **reaction**, not new state. **`IBillingNotifier`** notifies the
+tenant **owner** through the notification center (NOTIFY: in-app row + outbox email per prefs). The
+**webhook handler** compares the pre-event status and, on a **transition into `past_due` or `canceled`**,
+notifies once (same-status redeliveries don't re-notify; the inbox dedups by event id). A
+**`SubscriptionLapseSweepJob`** (`IScheduledJob`, ADR-007) scans all tenants (`QueryAllTenants`) for
+active/trialing subscriptions whose `CurrentPeriodEnd` has passed, sends a one-time "expired" nudge, and
+records `Subscription.LapseNotifiedAt` so it fires once per lapse — **without fabricating a status**
+(Stripe stays the money-truth; a later webhook corrects the projection). Deliberately **not** built:
+Stripe's own retry schedule / card-failure emails (**Smart Retries** owns that), and the advance
+"trial-ends-in-N-days" nudge (a small follow-up — needs a Stripe `trial_will_end` event kind).
+
+*Addendum (BILLING-7, 2026-07-01) — billing participates in tenant dissolve (point 6 delivered).* The
+design (point 6) always said the `Subscription` should be torn down on dissolve; it's now built.
+**`BillingDataContributor : ITenantDataContributor`** wipes the tenant's `Subscription` projection and —
+if it has a live provider subscription — **cancels it at the provider**, so a dissolved tenant stops being
+billed (the "delete account → Stripe keeps charging" bug). The cancel is **not** an external call inside
+the dissolve transaction: it's a `"billing.cancel"` **outbox** message (staged with the teardown, then run
+out-of-band with retry by `BillingCancelOutboxHandler` → new idempotent `IBillingProvider.CancelSubscriptionAsync`).
+`HasDataAsync` returns **false** — a subscription is billing plumbing, not tenant content, so it never trips
+the "would abandon data" guard; it's cleaned up automatically instead. Export (GDPR-1) gains a `billing`
+section (plan/status/period — never Stripe ids or card data). **This closes the BILLING epic (1–7).**
+
+*Addendum (BILLING-8, 2026-07-03) — the billing page.* The chassis finally gets its owner-facing UI
+(dunning notifications had deep-linked to `/billing` since BILLING-6): **`GET /api/billing`** (owner-only
+`ManageBilling`) returns the plan (resolved **fail-closed** exactly like entitlements), raw status,
+period end, seat usage vs the plan limit, and `has_subscription` (gates the portal button); a
+**`Billing.razor`** page renders it with Upgrade (checkout redirect) and Manage (portal redirect)
+actions, plus an owner-only notice for members. Nothing about the money rules changed: access is still
+granted only by the webhook, the page just *shows* the projection. The E2E journey proves the whole
+loop without Stripe via the `FakeBillingProvider` (stubbed checkout URL + a webhook POSTed exactly as
+Stripe would send it, through the real verify/inbox/EnterTenant/projection path).
+
+*Amendment (v2 audit GAP-1, 2026-07-01) — the fake provider is Development-only; production without a key fails fast.* The
+original wiring registered `FakeBillingProvider` whenever `Billing:Stripe:SecretKey` was absent — including in
+production. Because the fake **trusts a literal webhook signature** (`Stripe-Signature: valid`) and the webhook
+endpoint is anonymous and always mapped, a production deploy that hadn't yet configured Stripe would accept
+**forged, unauthenticated cross-tenant subscription writes** (an attacker could grant/rewrite any tenant's plan).
+`AddInfrastructure` now takes `IHostEnvironment` and registers the fake **only when `environment.IsDevelopment()`**;
+outside Development with no key it **throws at startup** (the app cannot boot with the fake). The webhook controller
+also **logs a warning with the source IP** on a rejected signature (GAP-5), so a forged-webhook probe is observable
+rather than a silent 400. Consequence: a **production/staging deploy MUST configure a real `Billing__Stripe__SecretKey`**
+(it no longer silently falls back to the fake). Dev/E2E are unchanged. Tests: `BillingProviderRegistrationTests`,
+`BillingWebhookControllerTests`.
+
+*Amendment (v2 audit, 2026-07-01) — the stripe-mock request/response test stack (point 7) was deferred.*
+The test stack as built is `FakeBillingProvider` (unit) + Stripe test-mode/CLI for E2E; **stripe-mock**
+(Stripe's official offline mock server, sketched in point 7 for `Api.Tests` request/response coverage) is
+**not** in the test stack — it was deferred in BILLING-2 over Testcontainers friction (see the note in
+`docs/ROADMAP.md` under "Test & hardening debt"). The rest of point 7 holds.
+
+*Addendum (BILLING-9, 2026-07-14) — the seat quota is re-checked when an invitation is accepted.*
+BILLING-5 enforced seats only at invitation **creation** (pending invites reserve seats), which holds
+while the plan is stable — but nothing sweeps pending invites on a **downgrade** (dunning lapse,
+cancellation, or an ADR-021 comp revert), and `AcceptAsync` never re-checked, so invites issued on a
+bigger plan could each still join and actively grow the tenant past its new cap (Pro→invite 7→Free
+left a 3-seat tenant able to reach 8 members). `AcceptAsync` now refuses when the tenant is **already
+over its limit** (`CanAdd(0)` — the accept itself is seat-neutral because the joiner consumes the seat
+their invite reserved, so accepts at exactly the cap stay allowed), returning 402 `seat_limit_reached`
+(same shape as the create-path gate) rendered on `/join` as a "household is full" state. The check runs
+inside `EnterTenant(invitation.TenantId)` (the quota must count the invitation's tenant, not the
+caller's old one — same trusted contract as the accept's conditional flip). Deliberately NOT done:
+sweeping/revoking pending invites on downgrade (destroys owner-created state; the refused token stays
+pending and **self-heals** when the tenant upgrades again) and evicting members (over-cap tenants are
+frozen for growth, never shrunk). Tests: `AcceptSeatQuotaTests` (over-cap / at-cap / self-heal) +
+the E2E webhook-downgrade journey in `SeatQuotaJourneyTests`.
+
+**ADR-007 — Reliable async work: transactional outbox + inbox + background dispatcher + scheduled jobs. Implementation DEFERRED. (2026-06-25)**
+Side effects that must not be lost (email, billing webhooks, future integrations) move off the
+request thread through a **transactional outbox**: an **`OutboxMessage`** is written in the **same EF
+`SaveChanges`** as the business change (via `IUnitOfWork`), so the effect is atomic with the data —
+no "saved the row but lost the email," no "charged but didn't provision." A **`BackgroundService`**
+(`OutboxDispatcher`) polls unsent rows (claiming with Postgres `FOR UPDATE SKIP LOCKED`), dispatches
+via typed handlers, and retries with backoff into a **dead-letter** state. The **inbox** is its
+mirror — same table family with a `direction` discriminator, keyed by an external idempotency id
+(e.g. Stripe event id) — giving exactly-once **inbound** processing. **Scheduled/recurring** work
+(trial-expiry sweeps, dunning nudges, expired-token cleanup, quota resets) runs via a lightweight
+timer hosted service.
+Constraints recorded:
+1. **In-process on Postgres, no broker** — keeps the platform's run cost "Postgres only" (ADR-C13).
+   A distributed scheduler (Hangfire/Quartz) or message broker is a documented **swap-in** when
+   multi-node arrives, not a dependency now; the `SKIP LOCKED` claim design keeps a single-table
+   approach correct even multi-instance.
+2. **`OutboxMessage` is NOT `ITenantScoped`** — it's platform infra and may carry system (non-tenant)
+   effects; it stores an optional `TenantId` for handler context but is outside the global filter.
+   On dissolve, pending tenant-related outbox rows are drained/cancelled by the relevant contributor.
+   *(Built 2026-09-24, v4 audit H6: until then nothing did it. `OutboxDataContributor` removes the tenant's
+   rows of every type whose handler declares `DissolvesWithItsTenant` — mail and webhook bodies — and keeps
+   `billing.cancel`, which the dissolve itself queues.)*
+   *(Amended 2026-09-24, v4 audit H7 / decision #6 — retention: a finished row (sent or dead) is stamped and
+   its payload cleared to `{}`, and `OutboxRetentionJob` deletes it after `Outbox:RetentionDays` (default 30).
+   A handler may declare its payload a record (`KeepsPayloadWhenDone`): only `admin.broadcast`, the sole
+   attribution of a platform-wide announcement, which carries no personal data and is kept whole. Account
+   erasure removes the user's pending mail by recipient. Inline images stay in the payload rather than moving
+   to `IFileStorage` (this app sends no file attachments); revisit if it ever does.)*
+3. **At-least-once delivery ⇒ all handlers must be idempotent** — the same contract billing webhooks
+   need (ADR-006).
+4. **First consumer is the existing email path** — passwordless and invitation sends currently call
+   `IEmailSender` **inline in the request**; the first slice migrates them to enqueue-to-outbox (the
+   SMTP send moves into a handler), proving the path on existing, already-tested behavior.
+*Rationale:* the platform already sends email inline during request handling, so a transient SMTP
+failure becomes a request error or a silently lost message. A generic outbox makes every side effect
+reliable once, and gives billing webhooks a correct idempotent home. In-process keeps infrastructure
+minimal until scale actually forces a broker.
+Stories + slice plan: `docs/stories/async-jobs.md` (epic `JOBS`).
+
+*Amendment (2026-06-25) — JOBS-1 + JOBS-2 implemented; inbox is a separate dedup ledger, not a
+`direction` column.* JOBS-1 shipped the outbox + `OutboxDispatcher` + the email migration as described.
+JOBS-2 shipped the **inbox**, but as a **purpose-built `InboxMessage` ledger** (`Id`, `Source`,
+`IdempotencyKey`, `ReceivedAt`; unique on `(Source, IdempotencyKey)`) rather than the originally-sketched
+"same table + `direction` discriminator." Reasons: (a) inbox rows need none of the outbox's
+queue columns (`Type`/`Payload`/`Status`/`AttemptCount`/`NextAttemptAt`), so a shared table would be
+half-null; (b) dedup is a **unique-key concern**, so `IInbox.TryClaimAsync` uses
+`INSERT … ON CONFLICT DO NOTHING` against the unique index — **race-free by construction** (concurrent
+claims of one key serialise on the index; exactly one wins), which is cleaner here than the outbox's
+`SKIP LOCKED` queue-claim (that pattern is for *picking work off a queue*, not deduping). The claim runs
+on the shared `AppDbContext`, so it enlists in the caller's transaction: claim + guarded work commit
+together (or roll back together, freeing the key for the inevitable redelivery). BILLING-3 consumes
+`IInbox` for webhook idempotency.
+
+*Amendment (2026-06-25) — JOBS-3 implemented; epic COMPLETE.* The scheduled-jobs host
+(`ScheduledJobsHost : BackgroundService`) runs registered `IScheduledJob`s on per-job intervals with
+failure isolation (one job's throw never stops the others or the host) and a fresh DI scope per run;
+the reference `ExpiredTokenCleanupJob` deletes expired login/refresh tokens hourly. In-process,
+single-instance per the baseline; Hangfire/Quartz remains the documented multi-node swap-in. The JOBS
+epic (outbox, inbox, scheduler) is now done — **BILLING is unblocked.**
+
+**ADR-008 — Observability (structured logging + OpenTelemetry + health checks) and a tenant-scoped audit log. Implementation DEFERRED. (2026-06-25)**
+Two complementary concerns shipped as one slice group.
+**(a) Operational observability** — structured (JSON) logging with per-request scopes enriched with
+`tenant_id`/`user_id` (from the JWT claim via `HttpCurrentTenant`); **OpenTelemetry** traces +
+metrics (ASP.NET Core + EF Core + HttpClient instrumentation) with the request span tagged by
+tenant/user; and `/health` (liveness) + `/health/ready` (readiness — DB reachable) endpoints. The
+OTLP exporter is **config-gated** (console in dev, OTLP when an endpoint is configured — same
+config-presence pattern as the OAuth providers), so the platform runs with **no external telemetry
+dependency** by default.
+**(b) Audit log** — an append-only, tenant-scoped **`AuditEvent`** (`actor_user_id`, `action`,
+`entity_type`, `entity_id`, `metadata` jsonb, `created_at`) for security/compliance-relevant actions
+(member invited/removed, role changed, subscription changed, tenant dissolved). Written via an EF
+`SaveChanges` interceptor (sibling of `TenantStampingInterceptor`) for declarative cases plus an
+explicit `IAuditLog.Record(...)` for semantic events; **append-only** (no update/delete from app
+code); `ITenantScoped` so it's auto-filtered per tenant and participates in dissolve.
+Constraints recorded:
+1. **Audit ≠ logs** — audit is durable, queryable, exportable **tenant data** (compliance); logs and
+   traces are operational telemetry (sampled, ephemeral). Neither substitutes for the other.
+2. **No secrets/PII in spans or audit metadata** — identifiers only; never tokens or card data.
+3. **Health endpoints are unauthenticated and status-only** — must not leak internals.
+4. **Dissolve vs retention tension** — wiping a tenant deletes its audit trail; if legal-hold/
+   retention is required, the dissolve contributor must **export-then-wipe** (flagged for the
+   GDPR/Account-Lifecycle backlog item).
+*Rationale:* nothing in the platform currently emits structured telemetry, a health endpoint, or an
+audit trail — every downstream app would re-invent all three. Adding them once at the platform layer
+means every feature inherits them, and audit slots naturally onto the existing interceptor +
+tenant-scoping machinery (ADR-003 amendment).
+Stories + slice plan: `docs/stories/observability.md` (epic `OBS`).
+
+*Amendment (v2 audit, 2026-07-01) — (b) the declarative SaveChanges audit-writer was deferred; audit
+writes are explicit only.* Decision point (b) above sketched an EF `SaveChanges` interceptor that would
+write audit rows declaratively *plus* an explicit `IAuditLog.RecordAsync` for semantic events. As
+shipped, only the **explicit `IAuditLog.RecordAsync`** path exists — audit events are always written
+deliberately at the call site (member invited/removed, role changed, subscription changed, tenant
+dissolved, admin access). The `AuditAppendOnlyInterceptor` is present but **only GUARDS** append-only
+(it throws on any tracked update/delete of an `AuditEvent`); it does **not** author audit rows. A
+declarative auto-audit-on-SaveChanges interceptor remains an optional future add (also noted in
+`docs/ROADMAP.md`).
+
+*Amendment (2026-09-07):* **log records are exported through OpenTelemetry too** (`WithLogging` + the OTLP
+log exporter on the same config-gated endpoint, `/v1/logs`), carrying the rendered message, the request
+scope and the trace/span ids. Found on the first downstream app's staging: a failed Stripe call showed up
+in Grafana as a trace with a 400 span and nothing else — the error's text lived only on Render's log
+stream, so the operator had to read two consoles to understand one failure. The console providers stay
+(the host's own stream); nothing is exported when no endpoint is configured, as before. The metrics also
+gain the .NET runtime (GC, heap, CPU, thread pool — `OpenTelemetry.Instrumentation.Runtime`) and the Npgsql
+connection-pool meter: on a small host these say "too small" or "leaking" long before any request errors.
+
+**ADR-009 — RBAC: a third `admin` role + a permission seam (capability checks, not role checks). (2026-06-30)**
+The platform shipped with exactly two tenant roles — `owner` and `member` — enforced by `IsOwner(...)`
+boolean checks copied across every tenant controller (`HouseholdController`,
+`HouseholdInvitationsController`, `BillingController`). B2B tenants delegate administration almost
+immediately, and a copied `role == "owner"` test is both too coarse (no middle tier) and too brittle
+(scattered, easy to drift). This ADR adds an `admin` tier **and**, more importantly, a **permission
+seam** so call sites ask *"can the caller do X?"* instead of *"is the caller the owner?"*.
+
+**Decision:**
+1. **Roles are ordered: `owner` > `admin` > `member`.** `admin` is a new `TenantRoles` constant; the
+   "exactly one owner" invariant (ADR-003) is unchanged — owner is conferred only via
+   `TransferOwnershipAsync`, never via a role-change endpoint.
+2. **A `Permission` enum + a static role→permission matrix** (`RolePermissions`) in **Core** is the
+   single source of truth for "what can this role do". Permissions are coarse capabilities
+   (`ViewTenant`, `RenameTenant`, `ManageMembers`, `ManageRoles`, `ManageBilling`,
+   `TransferOwnership`, `DissolveTenant`), **not** per-entity ACLs. The matrix:
+
+   | Permission | owner | admin | member |
+   |---|:--:|:--:|:--:|
+   | `ViewTenant` | ✅ | ✅ | ✅ |
+   | `RenameTenant` | ✅ | ✅ | ❌ |
+   | `ManageMembers` | ✅ | ✅ | ❌ |
+   | `ManageRoles` | ✅ | ❌ | ❌ |
+   | `ManageBilling` | ✅ | ❌ | ❌ |
+   | `TransferOwnership` / `DissolveTenant` | ✅ | ❌ | ❌ |
+
+   **Owner-only by deliberate choice:** billing is **financial** and role/ownership changes are the
+   **privilege-escalation surface** — keeping both owner-only stops an admin from minting more admins
+   or touching money. Apps that want a different posture edit one matrix, not N call sites.
+3. **Two enforcement mechanisms mirror the two API styles (ADR-004):** controllers get a
+   `RequirePermission(membership, Permission.X)` helper on `TenantApiControllerBase` (returns the
+   standard 403 envelope); feature minimal-API groups get a `.RequirePermission(Permission.X)`
+   endpoint filter that mirrors `.RequireEntitlement(...)` (ADR-006) but yields **403 Forbidden**
+   (authorization), not 402 (payment). The existing `IsOwner` checks are refactored onto
+   `RequirePermission` so there is one enforcement path.
+4. **Role is read live from membership, never from the JWT.** A role change takes effect on the
+   caller's next request with **no token refresh** — the access token carries `tenant_id`, not the
+   role (status quo, made explicit here). This is why the seam is a runtime DB-backed check, not a
+   claims policy.
+5. **Role changes are audited** (ADR-008) — promote/demote records an `AuditEvent` with the actor,
+   target, and old→new role.
+
+**Constraints recorded:**
+1. **Exactly one owner, always** — the role-change endpoint moves users only between `admin` and
+   `member`; it can never set or clear `owner` (that path stays `TransferOwnershipAsync`), and it can
+   never target the owner.
+2. **No self-escalation / no lockout** — a caller cannot change their own role; an admin cannot act
+   on the owner.
+3. **Permissions are coarse capabilities, not resource ACLs** — fine-grained per-record sharing is a
+   different (deferred) concern; don't grow this into an ACL system without a new ADR.
+4. **The matrix is the only place roles map to capabilities** — no new scattered `role == "admin"`
+   checks; add a `Permission` and a matrix row instead.
+*Rationale:* every downstream B2B app needs an admin tier and will otherwise re-invent role checks ad
+hoc. Centralizing the capability mapping once, behind a seam the existing entitlement-filter pattern
+already established, makes the common case (add a permission, gate an endpoint) a one-liner and keeps
+the owner-only blast-radius items explicit. Pairs with the `ADMIN` (back-office/impersonation) and
+`PUBAPI` backlog items, which build on this seam.
+Stories + slice plan: `docs/stories/rbac.md` (epic `RBAC`).
+
+---
+
+**ADR-010 — File/blob storage: `IFileStorage` abstraction, local-disk dev default, config-gated S3-compatible prod impl; tenant-scoped keys; signed time-limited download URLs. (2026-06-30)**
+The platform has no way to store binary content. Avatars, attachments, and the GDPR data-export
+artifact (backlog) all block on it, and every downstream app would otherwise re-invent file handling
+(and likely leak files across tenants). This adds one storage seam, mirroring the `IEmailSender` →
+`SmtpEmailSender` shape (Core abstraction + Infrastructure impl, registered by config presence).
+
+**Decision:**
+1. **`IFileStorage` (Core) is the only way to store/retrieve blobs** — `PutAsync`/`GetAsync`/
+   `DeleteAsync`/`ExistsAsync` + `GetDownloadUrlAsync`. It **streams, never buffers** whole files
+   (bound memory; large uploads/downloads). Features depend on this abstraction, never on a cloud SDK
+   or `System.IO` directly — the same rule as "never reference MailKit outside `Infrastructure/Email/`".
+2. **Keys are tenant-scoped and enforced server-side.** Every object key is namespaced `{tenantId}/…`
+   from `ICurrentTenant`; the storage layer **rejects** keys that escape the tenant prefix or contain
+   traversal (`..`, absolute/rooted paths, alternate separators). This is the blob equivalent of the
+   `ITenantScoped` global query filter (ADR-003): isolation is structural, not by-convention, and the
+   client path is never trusted. No `ICurrentTenant` (system context) ⇒ fail closed.
+3. **Two implementations, config-gated like the billing provider (ADR-006).** `LocalDiskFileStorage`
+   (root dir from config) is the **dev/test default** so the app boots and the suite runs with **zero
+   cloud setup**; an **S3-compatible** impl (`S3FileStorage`, AWS SDK — works with AWS S3, MinIO,
+   Cloudflare R2, DO Spaces) is selected when `Storage:S3:*` is configured, else local. Same
+   config-presence switch as Stripe-vs-Fake.
+4. **Signed, time-limited download URLs — never proxy bytes through the API for the common case.**
+   Cloud returns a **native presigned GET URL**. Local disk can't presign, so a **platform endpoint**
+   `GET /api/files/{token}` verifies a short-lived token minted with `ITimeLimitedDataProtector` (the
+   Data Protection stack is already wired, keys persisted to the DB) and streams the file
+   tenant-checked. `GetDownloadUrlAsync` returns the right URL per impl — a **uniform contract** so
+   feature code never branches on the backend.
+5. **Uploads flow through `IFileStorage.PutAsync` from feature services.** The platform ships the
+   abstraction + both impls + the download surface; it does **not** prescribe what gets stored or wire
+   an upload endpoint to a specific entity (that's a vertical/app concern — horizontal-only platform).
+
+**Constraints recorded:**
+1. **Tenant isolation is structural** — keys carry the tenant; the layer refuses cross-tenant or
+   traversal keys. A feature passes a logical key; the layer prepends/validates the tenant prefix.
+2. **Stream, don't buffer** — `PutAsync`/`GetAsync` take/return streams; never read a whole file into
+   memory.
+3. **Signed URLs are short-lived and scoped to one key** — never a directory/prefix/wildcard; the
+   token encodes key + expiry, signed, opaque.
+4. **No content sniffing / AV scanning / image processing** here — out of scope; a downstream concern.
+   The declared content-type is stored and served back.
+5. **Deletion is best-effort idempotent** — deleting a missing key is not an error (parity with cloud
+   semantics).
+*Rationale:* one storage seam at the platform layer means avatars, attachments, exports, etc. all get
+tenant-safe, backend-agnostic file handling for free, and swapping local→S3 is a config change, not a
+code change — exactly the property the email and billing seams already give. The signed-URL contract
+keeps large transfers off the API process while staying uniform across dev and prod.
+Stories + slice plan: `docs/stories/files.md` (epic `FILES`).
+
+---
+
+**ADR-011 — Account & data lifecycle (GDPR): tenant data export + account erasure, built on the existing contributor + dissolve machinery. (2026-06-30)**
+Once the platform has EU users it needs **data portability** ("download my data") and **erasure**
+("right to be forgotten") — legal requirements with real penalties, and a credible trust feature. The
+platform already has most of the machinery: the `ITenantDataContributor` seam
+(`HasDataAsync`/`WipeAsync`) that each feature registers, the transactional **dissolve** flow, the
+**audit log** (ADR-008), and now **file storage** (ADR-010) for the export artifact. GDPR is assembled
+from these rather than invented.
+
+**Decision:**
+1. **Export mirrors wipe — one more contributor method.** `ITenantDataContributor` gains
+   `ExportAsync(tenantId)` (+ an `ExportKey` section name) alongside `HasDataAsync`/`WipeAsync`, so each
+   feature contributes its data to a tenant export **the same way** it contributes to teardown — adding
+   a feature never means editing a central exporter. A platform `TenantExportService` assembles the
+   **core** tenant data (tenant, memberships + member emails, pending invitations) plus every
+   contributor's section into one JSON bundle.
+2. **The export artifact is a stored file with a signed URL (ADR-010).** The bundle is written via
+   `IFileStorage` under a tenant-scoped key and handed back as a **signed, time-limited download URL** —
+   never streamed inline, never a permanent link. Owner-only (a new `Permission.ExportData`), audited.
+3. **Erasure has two granularities.** **Tenant erasure** is the existing **dissolve** (leave-with-confirm
+   → contributors wipe + core teardown) — GDPR adds the **export-then-wipe** option so a tenant can take
+   its data before deletion. **User (account) erasure** — "delete my account" — removes the user's
+   **identity/PII** (`User`, `UserLogin`, `LoginToken`, `RefreshToken`) but **not** tenant app data
+   (that belongs to the tenant, not the user).
+4. **Account erasure honors the single-owner invariant (ADR-003).** A sole owner of a tenant with other
+   members must **transfer ownership first**; a solo owner's tenant is **dissolved** as part of erasure
+   (its data wiped via the contributors); a plain member is simply removed (**not** re-homed — the
+   account is going away, unlike leave). Then the identity rows are deleted. The whole operation is one
+   transaction and is **audited**.
+5. **Erasure vs. audit/legal-hold tension is resolved explicitly.** The audit trail keeps **actor ids,
+   never PII**, so erasing a user leaves audit events intact (an id that no longer resolves to a person)
+   rather than deleting the compliance record. Where a regulatory **legal hold** requires retaining more,
+   the contributor path supports **export-then-wipe**; retention windows are a deployment policy, not
+   hard-coded.
+
+**Constraints recorded:**
+1. **Export is tenant-scoped and owner-gated** — it contains a whole tenant's data; only the owner may
+   request it, and it comes back as a signed URL, not inline bytes.
+2. **Export contains identifiers + content, never secrets** — no password/OTP/token hashes, no card
+   data, no session tokens; the same rule as audit metadata.
+3. **Single-owner invariant is never violated by erasure** — transfer-or-dissolve first; erasure can't
+   strand a tenant ownerless.
+4. **User app data stays with the tenant** — erasing a user removes their identity, not the
+   tenant-scoped records they created (those are the tenant's, and are removed only by tenant dissolve).
+5. **Audit survives user erasure** — actor ids remain; audit is not a place PII lives.
+*Rationale:* every SaaS with EU users hits this, and re-implementing export/erasure per app is both
+wasteful and risky (the failure mode is a cross-tenant data leak or an orphaned tenant). Building both
+on the contributor seam + dissolve + file storage keeps the common case a one-liner per feature (add an
+`ExportAsync`) and keeps the dangerous invariants (single-owner, tenant isolation, no-secrets) in one
+audited place. Depends on: audit (ADR-008, ✅), file storage (ADR-010, ✅), the dissolve flow, and the
+permission seam (ADR-009).
+Stories + slice plan: `docs/stories/gdpr.md` (epic `GDPR`).
+
+---
+
+**ADR-012 — MFA: authenticator-app TOTP as a step-up after primary auth; secret encrypted at rest; hashed single-use recovery codes. (2026-07-01)**
+The platform's custom auth stack (ADR-002) has no second factor. ADR-C15 once claimed TOTP via
+`AddDefaultTokenProviders()`, but that was superseded by ADR-002 and never built — so this is a genuine
+gap, not a re-do. Add authenticator-app **TOTP** (RFC 6238) as an optional second factor, enforced as a
+**step-up** after the existing primary auth, reusing the crypto the platform already has.
+
+**Decision:**
+1. **TOTP via Otp.NET** (latest stable, no previews — ADR-C10). Per-user secret; enrollment returns an
+   `otpauth://…` provisioning URI the client renders as a QR. Verification allows a small time-step
+   window (±1) for clock skew; comparisons are constant-time.
+2. **The secret is encrypted at rest** with the existing **Data Protection** stack (an `IDataProtector`;
+   keys already persisted to the DB). It is **never returned after enrollment and never logged**.
+3. **Two user-scoped entities** (identity, not tenant): **`UserMfa`** (`UserId`, `EncryptedSecret`,
+   `Enabled`, `EnrolledAt`) — one per user; **`MfaRecoveryCode`** (`UserId`, `CodeHash`, `UsedAt`) —
+   single-use, **hashed with the existing `ITokenHasher`** (SHA-256), same pattern as
+   `LoginToken`/`RefreshToken`. Both are **wiped by account erasure** (GDPR-2, ADR-011).
+4. **Step-up at the auth convergence point.** Every primary-auth path (OAuth callback, magic-link/OTP
+   verify, native exchange) resolves a `User` then calls `SessionService.IssueAsync`. When the user has
+   MFA enabled, primary auth does **not** issue a full session; it returns an **MFA challenge** — a
+   short-lived **signed** token (Data Protection time-limited, like the file-download token) naming the
+   user + purpose. `POST /api/auth/mfa/verify` accepts the challenge + a TOTP **or recovery** code and,
+   on success, calls `IssueAsync` to complete login. One enforcement path, no per-endpoint duplication.
+5. **Recovery codes** are issued once at enrollment (shown once), stored **hashed + single-use**, and
+   accepted at the challenge as an alternative to a TOTP code; regenerating invalidates the old set.
+
+**Constraints recorded:**
+1. **Secret stays encrypted at rest**, is returned only as the enrollment provisioning URI, and never
+   appears in logs or later reads.
+2. **Recovery codes are hashed + single-use**, shown exactly once; verification is constant-time.
+3. **Step-up is enforced server-side** — the signed MFA challenge is required to complete login; a
+   client cannot skip straight to a full session.
+4. **MFA is user-scoped PII** — wiped by account erasure (GDPR-2); it is not tenant data.
+5. **Enabling requires proving possession** — MFA turns on only after a valid code confirms enrollment
+   (never enabled from an unverified secret); disabling likewise requires a valid code.
+*Rationale:* MFA is a security baseline any serious SaaS needs, and doing it as a step-up at the single
+`IssueAsync` convergence keeps every login path covered without touching each one's transport quirks.
+Reusing Data Protection (secret encryption + challenge signing) and `ITokenHasher` (recovery codes)
+means no new crypto primitives — only Otp.NET for the standard TOTP math.
+
+**Addendum (MFA-3, 2026-07-01) — redirect paths brought in line with decision point 4.** MFA-2 wired the
+step-up only into the **JSON** paths (OTP verify, native exchange); the **web OAuth callback** and
+**magic-link verify** still issued a session directly, so an MFA-enabled user could sign in via those and
+skip the second factor — an implementation gap against point 4, which always intended *every* primary-auth
+path to enforce step-up. MFA-3 routes both redirect handlers through `CompleteOrChallengeAsync`: when a
+challenge is returned they redirect to `/login?mfa=<challenge>` instead of `/auth-callback`. The challenge
+travelling as a query param is acceptable — it's the same signed, single-use, 5-min Data-Protection token
+already returned in JSON elsewhere, carries no secret, and is useless without a live TOTP/recovery code
+(same class as an OAuth authorization code in a URL). The client reuses the existing step-up prompt →
+`POST /api/auth/mfa/verify`.
+
+**Addendum (MFA-4, 2026-07-01) — native step-up completes the coverage.** The server always challenged the
+native OTP/OAuth-exchange paths (point 4), but the MAUI client only understood a tokens response and
+treated a challenge as a failure. MFA-4 teaches the client to recognize `{mfa_required, challenge}`
+(`AuthService` now returns a `SignInResult`; `VerifyMfaAsync` completes the step-up with tokens in the
+body) and reuse the same in-app prompt. Client-only, no API change. **MFA is now enforced on every
+sign-in path — web (OTP/OAuth/magic-link) and native (OTP/OAuth) — with no remaining gaps.**
+
+Stories + slice plan: `docs/stories/mfa.md` (epic `MFA`).
+
+---
+
+**ADR-013 — In-app notifications: a per-user notification center + delivery preferences, fanned out through the outbox. (2026-07-01)**
+Transactional email exists (`IEmailSender`), but there's no in-app notification center and no per-user
+control over how a user is reached. This adds both, reusing the reliable-delivery path the platform
+already has (the outbox, ADR-007) rather than a second delivery mechanism.
+
+**Decision:**
+1. **`Notification` is per-user, not tenant-scoped.** It's a personal artifact ("your bell menu"), so it
+   is keyed by `user_id` and is the sanctioned per-user carve-out (**ADR-C2** — only preferences/personal
+   state are per-user; everything else is tenant-scoped). A user reads only their own notifications,
+   filtered by the authenticated user id — **not** the tenant filter. Fields: `id`, `user_id`, `kind`
+   (stable verb), `title`, `body`, `metadata` (jsonb), `read_at` (nullable), `created_at`.
+2. **One fan-out entry point.** `INotificationService.NotifyAsync(userId, kind, title, body, metadata)`
+   is the single call a feature makes to notify a user. It creates the **in-app** row **transactionally**
+   (a DB write in the same unit of work as the triggering change — no extra reliability machinery needed)
+   and, per the user's preferences, dispatches the **email** copy through `IEmailSender` — which is
+   already the **outbox-backed** sender (ADR-007), so the out-of-process channel is reliable + retried.
+   One domain event → one call → both channels, each delivered by the right mechanism.
+3. **Per-user delivery preferences** (`NotificationPreference`, keyed by `user_id`): channel toggles
+   (in-app / email), defaulting to on. This is the ADR-C2 per-user preference, alongside `User.Locale`.
+   The fan-out consults it; a feature never hard-codes channels.
+4. **A user-scoped notification-center API** — list (paginated), unread count, mark-one/all read, and
+   get/update preferences. All scoped to the caller (`NameIdentifier` claim), like `/api/auth/me` — never
+   tenant-filtered, never another user's notifications.
+5. **No new delivery infrastructure.** In-app = a DB row; email = the existing outbox path. The platform
+   ships the center + the fan-out seam; a feature calls `NotifyAsync`, it does not wire channels itself.
+
+**Constraints recorded:**
+1. **Per-user, never cross-user** — every read/write is scoped to the authenticated user; a notification
+   is only ever visible to its owner.
+2. **In-app is transactional, email is outbox-reliable** — don't push the in-app insert through the
+   outbox (it's a same-DB write); don't send email inline (use the outbox-backed `IEmailSender`).
+3. **Preferences gate delivery** — the fan-out reads prefs; no channel is hard-coded at a call site.
+4. **Notifications are user PII** — wiped by account erasure (GDPR-2, ADR-011), like the other
+   user-scoped identity rows.
+5. **No secrets/PII beyond identifiers in `metadata`** — same rule as audit metadata.
+*Rationale:* the next ask after transactional email is almost always an in-app center + "how do you want
+to be reached." Keying it per-user (ADR-C2) and fanning out through the existing outbox keeps it a thin,
+reliable addition — a feature gets multi-channel, preference-aware notification from a single call, with
+no new delivery machinery to operate.
+Stories + slice plan: `docs/stories/notify.md` (epic `NOTIFY`).
+
+---
+
+**ADR-014 — Admin back-office: a config-gated platform-staff surface for cross-tenant inspection + audited, short-lived impersonation. (2026-07-01)**
+Support and debugging at scale need a **platform-staff** surface — outside the tenant model — to inspect
+any tenant and, when necessary, "sign in as" a user. This is the **highest-blast-radius** feature in the
+platform, so it is built entirely on the guardrails already in place (the audited cross-tenant escape
+hatch, ADR-003; the audit log, ADR-008) rather than loosening any of them.
+
+**Decision:**
+1. **Platform staff is a config allowlist, not a self-serve role or a DB flag.** The set of staff is
+   configured **out-of-band** (`Admin:StaffEmails`, from `.env`/env vars), checked by
+   `IPlatformStaffService` and enforced by an **`AdminOnly`** authorization gate (403 for anyone not on
+   the list). It is deliberately **not** part of `TenantRoles`/the RBAC matrix (that's tenant-scoped) and
+   **not** a toggle reachable from the app — the highest privilege can only be granted by whoever controls
+   deployment config.
+2. **Cross-tenant reads go through the audited `QueryAllTenants()` escape hatch only (ADR-003).** The
+   global tenant filter is **never loosened**; admin read endpoints use the same audited hatch feature
+   slices are forbidden from using, re-constrained to the target tenant. Admin is read-only over tenant
+   data (inspect, don't mutate).
+3. **Impersonation issues a short-lived, non-refreshable, loudly-audited access token for the target
+   user.** "Sign in as" mints an access token carrying the target's claims **plus an `impersonated_by`
+   claim** (the staff user id) and a **short expiry**, with **no refresh token** — so it auto-expires and
+   can't be silently extended. The impersonator acts as the target within that window; the token scopes
+   naturally via the target's `tenant_id` claim (no filter bypass). *Client half, amended v4 T31
+   (2026-09-28):* the client holds impersonation as an explicit state and treats the expiry as the end of
+   the "sign in as" — no renewal, a reload home as the staff user — rather than reading the claim off a
+   token that has gone silent (ADR-002 keep-alive addendum, R125).
+4. **Every admin action is audited (ADR-008), prominently.** Cross-tenant reads and — especially —
+   impersonation start record an `AuditEvent` with the staff actor + target; impersonation is stamped in
+   the **target's** tenant so that tenant's owner can see "a platform admin accessed this account."
+5. **No standing admin session over tenant data.** Staff authenticate as normal users (their own
+   account); the admin surface is gated per-request by the allowlist. There is no separate admin login.
+
+**Constraints recorded:**
+1. **The global filter is inviolable** — admin never turns it off; cross-tenant reads use the audited
+   hatch, scoped to the target.
+2. **Staff membership is out-of-band config** — never settable via the app, never a tenant role.
+3. **Impersonation is short-lived + non-refreshable + audited** — no refresh token, minutes-not-hours
+   expiry, an `impersonated_by` claim, and a loud audit record in the target's tenant.
+4. **Admin is read-only over tenant data** — inspection + impersonation, not direct cross-tenant writes
+   (a staff member who needs to change tenant data does it *through* impersonation, which is audited).
+
+**Addendum (2026-07-02, ADMIN-3):** the admin surface gains **staff announcements** —
+`POST /api/admin/tenants/{id}/announce` notifies every member of a tenant through the normal NOTIFY
+fan-out (ADR-013; per-user prefs decide in-app vs outbox email) and records `admin.announcement.sent`
+in the target tenant. This is the one sanctioned admin write: it creates **per-user notification rows
+only** — tenant data stays read-only, the filter stays engaged (`EnterTenant`), and the action is as
+loudly audited as inspection/impersonation. Also fixed en route: the web client's staff probe
+(`AuthService.IsStaffAsync`) ran on the Bearer-less auth HttpClient, making `/admin` unreachable on
+web; it now attaches the in-memory access token explicitly.
+5. **No secrets/PII in admin responses or audit metadata** beyond identifiers — same rule as elsewhere.
+*Rationale:* support tooling is necessary but dangerous; the safe way to build it is to reuse the audited
+escape hatch and the audit log instead of adding new privileged paths, and to keep the staff grant in
+deployment config where it can't be escalated from inside the app. Impersonation as a short-lived,
+non-refreshable, audited token gives support what they need while bounding the blast radius and leaving a
+trail the affected tenant can see. Depends on: audit (ADR-008 ✅), the escape hatch (ADR-003 ✅), RBAC
+(ADR-009 ✅).
+Stories + slice plan: `docs/stories/admin.md` (epic `ADMIN`).
+
+*Amendment (v2 audit, 2026-07-01) — impersonation + tenant-detail reads use `EnterTenant`, not
+`QueryAllTenants()` "only".* Decision point 2 above describes cross-tenant reads going through the
+audited `QueryAllTenants()` hatch. As shipped, the **tenant list** uses non-scoped tables directly
+(`ITenantRepository.ListAllAsync`, no hatch), while **tenant-detail inspection and impersonation
+audit-writes enter the target tenant via `ITenantContext.EnterTenant`** (ADR-003 amendment 2026-06-25)
+so the scoped reads/writes go through the normal filter engaged — rather than loosening it. The filter
+is still never disabled; `EnterTenant` was chosen over the hatch precisely because it keeps scoping
+*on*. The `docs/stories/admin.md` Gherkin/prose has been reconciled to name `EnterTenant`.
+
+---
+
+**ADR-015 — Public API + API keys: a config-gated, default-off programmatic surface authenticated by tenant-scoped API keys. (2026-07-01)**
+Everything so far serves an interactive human (JWT/cookie session). A **public API** serves *machines* —
+a customer's backend, a script, CI, an integration — which need a non-interactive credential. The user
+initially parked this (no customer-facing API) and **reversed that on 2026-07-01**; it's built now, but
+**off by default** since a public surface is a deliberate, security-relevant opt-in.
+
+**Decision:**
+1. **`ApiKey : ITenantScoped`** — store only the **hash** (like `RefreshToken`/`TenantInvitation`; reuse
+   `ITokenHasher`), plus a non-secret `Prefix` for display, granted `Scopes`, optional `ExpiresAt`, and a
+   `RevokedAt`. The raw key (`pk_…`) is shown **once** at creation, never again.
+2. **A second authentication scheme** (`ApiKeyAuthenticationHandler`, scheme `"ApiKey"`) alongside JWT
+   Bearer. A key in `X-Api-Key` (or `Authorization: Bearer pk_…`) resolves — **across tenants, pre-scope**
+   (the key selects its tenant) — to a principal carrying the **`tenant_id` claim**, so the existing global
+   query filter scopes the request with no extra wiring. Bad/expired/revoked ⇒ 401.
+3. **Scopes gate routes.** Keys carry example scopes (`read`/`write`); a public route declares its
+   requirement with **`.RequireApiScope(...)`** (→ 403 `insufficient_scope`). Scopes are a superset seam —
+   an all-scope key = full access — so it's mechanism-first without committing to a scope taxonomy.
+4. **Owner-only management.** `/api/apikeys` (create/list/revoke) is JWT-authed and gated by a new
+   **`Permission.ManageApiKeys`** (owner-only by construction — owner gets every permission). Keys grant
+   programmatic tenant access, so minting them is as sensitive as billing/role changes.
+5. **Config-gated, STRONG gating.** `PublicApi:Enabled` (default false). When off, the API-key scheme
+   isn't added and neither the management nor public routes are mapped — they return **404, they don't
+   exist** (not merely 403). Minimal-API groups (not controllers) make the conditional mapping clean.
+
+**Constraints recorded:**
+1. **Only the hash is stored**; the raw key is revealed once. Revoked/expired keys never authenticate.
+2. **API-key requests are tenant-scoped exactly like user requests** (same `tenant_id` claim → same global
+   filter); a key can never reach another tenant's data.
+3. **Default off** — a deployment opts into the public surface deliberately; the attack surface (a
+   long-lived credential + published routes) doesn't exist until then.
+4. **Reuses existing rails** — token hashing, the tenant filter, RBAC (`.RequirePermission`), and the
+   minimal-API feature-group convention. No new crypto.
+*Rationale:* a public API is the "others build on this" layer; doing it as a second auth scheme that mints
+the same `tenant_id`-scoped principal means the entire tenant-isolation guarantee applies for free, and
+strong config-gating means the platform ships the capability **dormant** rather than exposing a surface no
+one asked for. HOOKS (outbound webhooks) is the companion outbound half (ADR-016).
+Stories + slice plan: `docs/stories/pubapi.md` (epic `PUBAPI`).
+
+*Amendment (v2 audit, 2026-07-01) — PUBAPI-2 shipped: per-key rate limiting + a leak-free public
+OpenAPI doc.* Hardening beyond PUBAPI-1: a **per-API-key rate-limit policy** (`RateLimiting.PublicApiPolicy`,
+partitioned by key so one tenant's key can't exhaust another's budget) on the public routes, and a
+**curated, leak-free public OpenAPI document** served **anonymously** at `GET /api/public/openapi.json`
+that emits **only** the public routes (never the internal/management surface). Both live behind the same
+`PublicApi:Enabled` gate (off ⇒ absent). Still open: key **rotation** and a real scope taxonomy. Tests:
+`RateLimitingTests` (per-key isolation). See `docs/stories/pubapi.md`.
+
+---
+
+**ADR-016 — Outbound webhooks: tenant subscriptions delivered through the transactional outbox, HMAC-signed, config-gated default-off. (2026-07-01)**
+The **outbound** half of the integration story (ADR-015 is inbound): let a tenant subscribe to events in
+their data so *their* systems are notified (push) instead of polling. Also parked-then-un-parked on
+2026-07-01; **off by default** for the same reason as PUBAPI (a new outbound surface is a deliberate opt-in).
+
+**Decision:**
+1. **`WebhookSubscription : ITenantScoped`** — a tenant registers a `Url` + the `EventTypes` it wants, with
+   a per-subscription **signing secret** stored **encrypted** (Data Protection — the plaintext is needed to
+   HMAC-sign, so it can't be hashed; same approach as the MFA secret), revealed once at creation.
+2. **Delivery IS the outbox pointed outward** (ADR-007) — don't build a second delivery mechanism.
+   `IWebhookPublisher.PublishAsync(eventType, data)` fans out to every active matching subscription,
+   enqueuing **one `"webhook"` outbox message per subscription** (staged on the caller's unit of work, so
+   it's atomic with the triggering change). The `WebhookOutboxHandler` signs + POSTs each; a **non-2xx
+   throws**, so the outbox's existing **retry/backoff + dead-letter** apply for free.
+3. **HMAC-SHA256 signatures.** Each POST carries `X-Webhook-Id` (event id, for receiver dedup — deliveries
+   are at-least-once), `X-Webhook-Event`, and `X-Webhook-Signature: sha256=<hex>` over the raw body. The
+   receiver recomputes with the shared secret to verify authenticity + integrity.
+4. **Owner-only management** (`/api/webhooks`, new **`Permission.ManageWebhooks`**): register/list/remove,
+   plus a **synchronous "send test"** (`/{id}/test`) that POSTs a `ping` and returns the endpoint's status,
+   so the owner gets immediate feedback (real events are async via the outbox).
+5. **Config-gated, STRONG gating.** `Webhooks:Enabled` (default false). Off ⇒ the management routes aren't
+   mapped (404); the delivery handler is registered but dormant (no subscriptions ⇒ nothing to deliver).
+
+**Constraints recorded:**
+1. **Signing secret encrypted at rest**, revealed once; every delivery is signed so receivers can verify.
+2. **At-least-once, out-of-order** delivery (outbox semantics) — receivers dedup on `X-Webhook-Id`.
+3. **Reuses the outbox** — no bespoke retry/backoff/dead-letter; deliveries are durable + tenant-scoped.
+4. **Default off** — the outbound surface doesn't exist until a deployment enables it.
+*Rationale:* webhooks are the "our product notifies your systems" half of being a platform; building them
+as the outbox pointed outward means durability, retries, and atomicity-with-the-change come for free, and
+the only new parts are the subscription model + signed HTTP POST. A tenant-facing **delivery log**
+(per-attempt history) is a natural HOOKS-2 follow-up — until then the outbox's own status/attempt/error
+columns are the record.
+Stories + slice plan: `docs/stories/hooks.md` (epic `HOOKS`).
+
+*Amendment (v2 audit, 2026-07-01) — HOOKS-2 shipped: delivery log + replay.* The "natural follow-up"
+above is now built. A **`WebhookDelivery`** record is written per delivery attempt (retries add rows):
+event type/id, the exact `Body` sent, `success`, `status_code`, `error`, `created_at`. Owner endpoints
+under `/api/webhooks` view the log and **replay** a delivery (re-enqueues the retained body through the
+outbox). Like `OutboxMessage`, `WebhookDelivery` is deliberately **not** `ITenantScoped` (it's written
+from the tenant-less outbox dispatcher); its `TenantId` is a plain filter column the read side scopes
+on. See `docs/DATA_MODEL.md` and `docs/stories/hooks.md`.
+
+> **Amended 2026-09-24 (v4 audit H8, decision #7) — the client reaches exactly what the guard approved.** The
+> webhook `HttpClient` (`WebhookHttp.CreatePrimaryHandler`) follows **no redirects** (a 3xx is a failed delivery
+> whose error says to register the final URL — following one had turned a 302 into a GET to an unchecked host
+> whose 200 was logged as delivered, and a 307 re-sent the signed body), **pins its connection** (a
+> `ConnectCallback` dials only addresses `IOutboundUrlGuard.ResolveAllowedAsync` accepts at connect time, closing
+> the guard-then-socket rebinding window the original design accepted), and uses **no proxy**. A URL the guard
+> refuses throws `OutboxPermanentFailureException`, so the outbox dead-letters it on the first attempt with one
+> delivery row (`url_refused: ...`) instead of five.
+
+**ADR-017 — Hosting: free-tier single-origin deployment — Render (API serving the WASM bundle) + Neon Postgres + Brevo. (2026-07-02)**
+Resolves the hosting decision deferred in `docs/TECH_STACK.md` ("pick near deploy"). The driver set:
+**$0/mo, no credit card, the refresh-token cookie must stay first-party, and the in-process background
+jobs (outbox dispatcher / scheduler / lapse sweep) must not be silently broken.** Decided:
+
+1. **Single origin.** The API container **also serves the published Blazor WASM bundle** (framework
+   files + SPA fallback to `index.html`, with `/api/**` excluded from the fallback). One origin means
+   the refresh cookie is always first-party — the entire third-party-cookie failure class (Safari ITP,
+   Chrome's phase-out) vanishes, and per-environment CORS configuration disappears. **This does not
+   weaken the clean-API-boundary rule (golden rule 2 / ADR-004):** the UI still consumes the API over
+   HTTP only; the API merely serves its static files. Local dev keeps the separate `src/Web` dev
+   server (hot reload), and the `BlazorClient` CORS policy remains for it + native clients.
+2. **Render free** hosts the container (512 MB, TLS + subdomain included, deploy hooks, no card
+   required). **Accepted trade-off, recorded:** free instances sleep after ~15 min idle — first
+   request cold-starts (~30–60 s) and the outbox/scheduler pause while asleep (queued sends resume on
+   wake). Acceptable for staging QA; **prod requires an always-on plan (~$7/mo) or equivalent — never
+   ship paid users on a sleeping instance.** The image is plain Docker, so the exit cost is nil.
+3. **Neon free** is the Postgres (17), used as plain Postgres (Neon Auth stays off — this platform owns
+   auth, ADR-002). Chosen over Supabase for this role: it is *just* Postgres (no redundant auth/storage
+   platform beside our own), and it **auto-wakes in ~1 s** from autosuspend vs Supabase's 7-day idle
+   pause needing a manual unpause. **Connection:** use the **direct** endpoint over TLS — a single
+   instance keeps its own Npgsql pool, and this app polls (no `LISTEN/NOTIFY`) and uses no server-side
+   prepared statements, so it doesn't need PgBouncer. (Neon's pooled `-pooler` endpoint is
+   transaction-mode; the app is compatible with it but only benefits it at many-instance scale.) Bonus
+   noted for later: Neon DB branching enables free per-preview-environment databases.
+4. **Brevo** (free, 300 mails/day) is staging + prod SMTP through the existing `IEmailSender` — it was
+   already the platform's assumed real provider in the `.env` docs. **Consequence:** staging has no
+   Mailpit, so email-based QA cases use real (plus-addressed) inboxes there, and the automated
+   post-deploy smoke checks health/app-shell only, never email journeys.
+5. **Environments follow the git model:** `develop` deploys **staging** (on GitHub it auto-deploys
+   behind CI + a post-deploy smoke gate; on Forgejo, the primary forge since ADR-028, a `deploy=staging`
+   dispatch is the trigger); `main` deploys **prod** behind a required-approval GitHub environment —
+   preserving "`main` is deploy-only". The platform proves the machinery on staging; actual prod
+   provisioning is each downstream app's first deployment step (runbook: `docs/DEPLOYMENT.md`).
+6. **Proxy correctness, gated:** `UseForwardedHeaders` (for/proto) is added **config-gated, default
+   off** — required behind Render's TLS-terminating proxy (else the per-IP passwordless rate limiter
+   collapses into one shared bucket and OAuth redirect URIs generate as `http`), but an IP-spoofing
+   vector if honored when *not* behind a proxy.
+
+**Alternatives rejected:** **Vercel / Cloudflare Pages for the WASM** — split origins make the refresh
+cookie cross-site (broken in Safari today, Chrome tomorrow) unless a custom domain unifies the two
+hosts; with single-origin hosting a second platform is pure liability. **Railway** — excellent DX but
+no longer free ($5/mo Hobby after the one-time trial credit). **Google Cloud Run** — a real free tier,
+but CPU is throttled to ~zero between requests, which breaks the in-process outbox *subtly* (worse
+than Render's honest sleep), and it requires a card. **Supabase as the DB** — workable, but free
+projects pause after 7 idle days (manual unpause) and we would use ~10 % of the platform. **Oracle
+Cloud Always Free VM** — the only truly-free *always-on* option; rejected for account-reclamation
+risk, noted in the runbook as the self-host escape hatch. A **custom domain** (~$10/yr) is the
+deliberate first paid upgrade (pretty URLs + DKIM deliverability); nothing in the architecture
+depends on it.
+Stories + slice plan: `docs/stories/deploy.md` (epic `DEPLOY`).
+
+*Amendment (2026-07-14; recorded 2026-08-25 — the branch carrying it predated ADR-023's numbering
+and was recovered during branch housekeeping) — the platform itself never activates production;
+staging is its terminal environment.* Point 5 already assigned prod provisioning to "each
+downstream app's first deployment step"; this makes it explicit after `STATUS.md` kept listing prod
+activation as a platform to-do (same scope logic as ADR-024): a live prod service for the platform
+would be a paid Stripe key, a prod Neon DB, and an always-on Render instance serving an app with
+zero users — recurring cost and operational surface proving nothing that the live, CI-deployed
+(a Forgejo dispatch, ADR-028), RLS-enforced staging doesn't already prove. The `main`→prod pipeline (DEPLOY-3), the `STATUS.md`
+§5 walkthrough, and `DEPLOYMENT.md` §6–7 stay maintained as the **downstream Phase-8 runbook**
+(`NEW_APP_GUIDE.md`). One consequence carried as a Phase-8 note, mirroring ADR-024's signing traps:
+the pieces that only run at prod activation — the **RLS two-role topology + posture guard**
+(ADR-020, `DEPLOYMENT.md` §7) and the **Production live-Stripe-key startup guard** — get their
+first real execution during a downstream app's activation, not here.
+
+**ADR-018 — Native (MAUI) client: commit to full feature parity across Android/Windows/iOS/macOS, incl. automated native tests + signed distribution. (2026-07-02) — amended by ADR-031 (the device legs run on request)**
+Resolves the deferred "non-web framework commitment" from `docs/TECH_STACK.md`. The platform already ships
+**MAUI Blazor Hybrid** shells that reuse the shared RCL (`Shared.Ui`) and have native auth wired (OTP,
+OAuth via system browser, MFA step-up MFA-4, secure-storage tokens) — so the native clients already render
+every web screen. We commit to closing the remaining gap to **full parity**: verify every feature on
+native, fix WebView-vs-browser deltas, test the native build + UI in CI, and produce **signed, shippable
+artifacts** for all four platforms. Decided:
+
+1. **MAUI is the native stack** (not Uno/Avalonia/PWA). Rationale: it reuses the exact C# Blazor
+   components already built, so parity is verification + glue, not a second UI. Alternatives stay noted in
+   `TECH_STACK.md` as fallbacks if MAUI's maturity disappoints.
+2. **Parity means "what web does", not more.** OS push notifications, biometrics, and other native-only
+   capabilities are **beyond parity** and out of scope for this epic (future epics if wanted). The
+   in-app notification center (NOTIFY, polling) is the parity bar, not native push.
+3. **Web-first still holds** (golden rule 5): features land + prove on web first; this epic keeps native
+   *caught up*, it does not invert the order.
+4. **Full-platform scope accepts real, recorded costs** (the user opted into "everything"): a **macOS CI
+   runner** (to build/test/sign iOS + macCatalyst), an **Apple Developer account** ($99/yr), and
+   **signing material managed as repo secrets** (Android keystore, Windows cert, Apple cert+profile,
+   base64-encoded, never committed — same discipline as `.env`, ADR-001). Without the macOS runner +
+   Apple account, the Apple-platform slices can't run — so they're sequenced last, after the
+   Android/Windows path proves the machinery.
+5. **Sequenced in waves** (guardrails → gap-fixes → verification → distribution): a build gate + a
+   `docs/NATIVE_PARITY.md` audit first (scopes everything), then WebView-gap fixes, then a manual +
+   automated native QA pass, then per-platform signing/packaging. Don't automate or distribute before the
+   app is verified working.
+
+**Accepted trade-off:** native UI tests (Appium / .NET MAUI UITest on emulators/simulators) are slower and
+flakier than Playwright-web — kept to a small smoke suite with retries; the manual native QA pass is the
+broader safety net. **The honest counterweight:** automated native E2E + store distribution are large and
+partly per-app; committing the platform to them (vs deferring) is a deliberate choice to make native a
+first-class, shippable channel rather than an experiment.
+Stories + slice plan: `docs/stories/native.md` (epic `NATIVE`).
+
+*Amendment (NATIVE-1, 2026-07-03) — Apple CI cadence + Maui lockfile.* The build gate shipped with two
+free-tier-conscious refinements: (1) the **iOS/macCatalyst CI legs run on develop pushes only**, not per
+PR — macOS runners bill at 10× on a private repo, so per-PR Apple builds would drain the 2 000-min/month
+quota for little added signal (breakage still surfaces within one merge); Android + Windows legs run on
+every trigger. (2) The Maui project sets `RestorePackagesWithLockFile=false` (a documented exception to
+the B11-6 lockfile rule): its TFM list is host-OS-conditional, so the resolved graph differs per OS and a
+single committed lockfile can never satisfy locked-mode on all three runners — CPM alone pins its
+versions.
+
+*Amendment (2026-07-06) — distribution scope is re-confirmed per platform at the NATIVE-8 gate.*
+Before starting the signing/distribution slices (NATIVE-8…11), re-confirm **per platform** that
+concrete downstream demand justifies the distribution tail (signing material, the Apple
+account/hardware, per-release QA columns, store review friction). The parity commitment is about
+**capability** — every feature works on every platform, proven by the CI build gate and the QA plan —
+not about shipped store artifacts; a platform may therefore hold at "builds green in CI, distribution
+deferred per-app" without violating this ADR. This keeps point 4's recorded costs a decision that is
+re-made at the gate rather than an autopilot consequence of the original commitment.
+
+**ADR-019 — Platform identity: "JiggerJot"; `JiggerJot.*` code identity; downstream apps rebrand by find/replace. (2026-07-05)**
+The repo (formerly "template") is named **perezosoft-platform** and its engineering identity is
+**`JiggerJot.*`** end to end: solution `JiggerJot.slnx`, all project/assembly names, the root
+namespace, the JWT issuer, and the MAUI `ApplicationId` (`com.jiggerjot.app`). "Template" no
+longer appears as an identifier anywhere — it survives only as the English word for the repo's role.
+*Rationale:* "Template" collided with ordinary English (docs, comments, third-party API names),
+making every downstream rename risky; "JiggerJot" is a made-up word, so standing up a new app is one
+unambiguous find/replace of `JiggerJot` → `<Brand>` per `docs/REBRANDING.md`.
+*Downstream convention:* apps clone-and-rebrand (fork-and-forget). Keeping `JiggerJot.*` namespaces
+in a downstream app (for clean upstream `git merge`) and extracting the platform as NuGet packages
+were both considered and deliberately left open — nothing in this rename forecloses either (see
+`docs/PLATFORM_BACKLOG.md`).
+*Deliberately unchanged:* the DataProtection application name (`"template"`) and the four
+`CreateProtector("Template.*.v1")` purpose strings — they feed encryption key derivation, so renaming
+them would orphan MFA/webhook secrets already encrypted at rest; they are guarded by comments and may
+only change alongside a re-encryption migration. The Render service keeps the name `jiggerjot-staging`
+(Render treats the name as service identity; renaming would mint a new service + URL and churn the
+OAuth consoles for zero functional gain — fold into a future console-touching change if desired).
+
+**ADR-020 — Tenancy defense-in-depth: Postgres row-level security as a second, DB-level wall under the EF query filter. (2026-07-06; IMPLEMENTED — see the addenda. Header fixed 2026-07-27, v3 T57: it still read "DEFERRED" long after the backstop merged)**
+Tenant isolation is currently enforced entirely in the application layer: the ADR-003 global query
+filter, the write-side interceptor (V2-B2), and the arch-test bans. One missed seam in a future
+feature — most plausibly a downstream app's vertical slice, written outside this repo's review
+discipline — is a cross-tenant leak, the worst bug class a multi-tenant SaaS has. **Decision:** add
+Postgres **row-level security** as an independent second wall, so a query that escapes the EF filter
+still returns zero foreign rows at the database. Decided:
+
+1. **`FORCE ROW LEVEL SECURITY` + one policy per `ITenantScoped` table** (currently six real ones;
+   the Notes sample inherits the pattern). Policy shape:
+   `tenant_id = current_setting('app.tenant_id', true)::uuid` with an explicit **null ⇒ deny** — a
+   missing setting fails closed (R-rules ethos), never "no setting = see everything".
+2. **The setting rides the existing tenant seam.** An EF Core interceptor issues
+   `SET LOCAL app.tenant_id = …` at transaction start, fed by the same `ITenantContext` that feeds
+   the query filter. `SET LOCAL` (transaction-scoped) is mandatory — Npgsql connection pooling makes
+   connection-scoped settings leak across requests.
+3. **Two database roles.** A **migrator/owner** role runs EF migrations (table owners bypass RLS
+   even with FORCE via ownership semantics — keep it out of the runtime path) and a **runtime** role
+   subject to policies. System paths that legitimately cross tenants — the outbox dispatcher,
+   scheduled sweeps, admin inspection, GDPR export, the billing webhook's `EnterTenant` — get an
+   **explicit** bypass (dedicated role or system GUC settable only by the system context); all such
+   call sites are already enumerated behind `QueryAllTenants()`/`EnterTenant`, so the bypass audit
+   is a grep, not an investigation.
+4. **The keystone test is the feature:** open a raw connection as the runtime role, set tenant A,
+   read tenant B's rows with the EF query filter out of the picture ⇒ **0 rows**. Locked in with a
+   B11-style arch/CI gate so the fail-closed property cannot silently regress.
+5. **Scope guard:** no per-user RLS, no tenant-timezone quota resets, no policy-based admin scoping —
+   separate decisions, separate ADRs.
+
+*Rationale:* the marginal cost is unusually low here (single choke-point tenant context, sanctioned
+escape hatches already enumerated) and the payoff multiplies — every downstream clone inherits the
+backstop. Pre-production is the cheap window: with no live tenants the two-role topology is
+provisioning config; after activation it becomes a data migration with a rollback plan. Perf is
+negligible (the policy predicate is the same indexed `tenant_id` comparison the filter already
+generates, plus one `SET LOCAL` round-trip per transaction).
+*Cost accepted:* environment plumbing is the bulk of the slice — roles across local compose, the CI
+E2E stack, Neon staging/prod, `.env.example`, and a `DEPLOYMENT.md` section.
+*Sequencing:* deferred behind the in-flight NATIVE work; **gates §5 of `STATUS.md` (production
+activation)**. Design detail: `docs/PLATFORM_BACKLOG.md` §11.
+
+*Addendum (implemented, 2026-07-06) — three findings from the build sharpened the design:*
+1. **The GUCs are set by a separate parameterized command, not `SET LOCAL` prepended to the main
+   command** — a prepended statement occupies a result position and corrupts EF's positional
+   consumption of SaveChanges batches. `RlsSessionInterceptor` (command + connection + transaction
+   facets) asserts session-level `set_config` per connection with change-tracking, invalidated on
+   connection open and transaction/savepoint rollback (`set_config` is transactional).
+2. **EF does not render query tags into the `ExecuteUpdate`/`ExecuteDelete` pipeline** (pinned by
+   test), so tags only sanction cross-tenant *reads* (`QueryAllTenants()`, the enumerated
+   Infrastructure sites). Set-based cross-tenant *writes* use `ITenantContext.EnterTenant` — the
+   invitation accept now enters the invitation's tenant for the conditional flip (same trusted
+   contract as the billing webhook); dissolve wipes already run with the target tenant current.
+3. **The HTTP integration harness runs as the non-privileged runtime role** (superuser only
+   pre-migrates + provisions), so the full Api.Tests suite exercises the app RLS-ENFORCED — the
+   same posture as Neon, where `FORCE` makes even the (non-superuser) owner subject, meaning
+   **staging gets live enforcement with no config change**. Also shipped: the optional
+   `ConnectionStrings:Migrations` split (startup DDL vs runtime), the config-gated fail-closed
+   `Rls:EnforceRuntimeRole` posture guard (mirrors the Stripe-key guard; prod activation enables
+   it), `docker/db/provision-rls-runtime-role.sql`, `DEPLOYMENT.md` §7, and the
+   `RlsMigrationGateTests` parity gate (a new `ITenantScoped` entity without its policy migration
+   fails CI).
+
+*Addendum (v3 audit remediation, 2026-07) — the backstop re-hardened where the audit bit it:* the
+parity gate above was proven TAUTOLOGICAL as first shipped (v3 RLS-1: the harness back-filled
+model-derived policies into the database the gate inspected) and was fixed to migrations-only
+provisioning with a bites-test; dissolve/erasure under a foreign entered tenant (RLS-2) was made
+all-or-nothing; and the slice recipe is now documented + enforced end-to-end (the hand-written
+policy step in `WAYS_OF_WORKING.md` + the PR-template checkbox + the honest gate — v3 T52/T57).
+
+**ADR-021 — Admin back-office writes: narrow, enumerated, audited mutations (amends ADR-014's "read-only" posture). (2026-07-09)**
+ADR-014 point 2 declared admin **read-only over tenant data** ("inspect, don't mutate"), with the
+ADMIN-3 announcement as the one sanctioned write (per-user notification rows via the normal fan-out).
+The 2026-07 manual QA pass surfaced legitimate operator needs that are writes: sending targeted (not
+whole-roster) announcements, messaging **every** user (maintenance/incident notices), and putting a
+tenant on a paid plan without a checkout (comps, QA, support goodwill). Doing these by impersonation
+would be worse — broader power, weaker attribution; doing them off-platform (SQL) breaks the API
+boundary. So the read-only posture is **amended, not abandoned**: admin writes exist, but only as an
+**enumerated list**, each riding existing seams with existing guardrails.
+
+**Decision:**
+1. **Read-only remains the default posture.** Any new admin write must be added to this enumeration by
+   a future ADR/amendment — "staff can mutate tenant data" is never a general capability.
+2. **Enumerated writes (as of this ADR):**
+   a. **Announcements** — per-tenant (all members or an explicit `user_ids` subset, **intersected with
+      the actual roster** so a stray id cannot reach outside the tenant) and **platform-wide broadcast**
+      (`POST /api/admin/announce-all`). All delivery rides the ADR-013 notification fan-out
+      (preference-respecting, per-user rows only — never tenant data).
+   b. **Subscription comp/revert** (`PUT|DELETE /api/admin/tenants/{id}/subscription`) — writes the same
+      `Subscription` projection a completed checkout produces (active, no period end, **no provider
+      ids**); revert deletes the projection (absence ⇒ Free, the ADR-006 fail-closed default). Refused
+      **409** whenever a live provider subscription exists (`StripeSubscriptionId` present): Stripe
+      remains the sole source of truth for real money (ADR-006) — a staff override must never mask or
+      fight provider state.
+3. **Every write is scoped and attributed.** In-tenant writes go through `ITenantContext.EnterTenant`
+   (ADR-003; the filter stays engaged, RLS satisfied) and are audited in the affected tenant
+   (`admin.announcement.sent`, `admin.subscription.comped`, `admin.subscription.reverted`).
+4. **The platform-wide broadcast is asynchronous and outbox-recorded.** The unbounded fan-out never runs
+   in the HTTP request: the endpoint enqueues one outbox message (202) and `AdminBroadcastOutboxHandler`
+   delivers out-of-band, idempotent by construction (handler + status flip commit in one transaction,
+   ADR-007). It has **no in-tenant audit row** — `AuditEvent` is tenant-scoped and the action spans all
+   tenants; the durable outbox message is the record. A platform-level (cross-tenant) audit trail is a
+   known gap, deliberately deferred until a second cross-tenant action needs it.
+
+**Addendum (2026-07-10) — enumerated write (c): staff MFA reset.** MFA had **no recovery path**: the
+self-serve disable (`MfaService.DisableAsync`, ADR-012) requires a valid TOTP or recovery code — the
+possession proof a user who lost **both** the authenticator and the codes cannot provide — and every
+sign-in path steps up (MFA-2/3/4), so such a user was locked out permanently. The escape hatch is
+operator-mediated: **`DELETE /api/admin/users/{userId}/mfa`** (staff-gated) wipes the target's
+`UserMfa` + `MfaRecoveryCode` rows via a new **`IMfaService.ResetAsync`** that skips code verification —
+callable only from the admin path, never exposed on a user-facing endpoint. Preconditions and
+guardrails: **identity is verified out-of-band** (support process, not the app) before the reset; the
+action is **audited in the target's tenant** (`admin.mfa.reset`, like `admin.impersonation.started`);
+and the affected user is **notified through the normal fan-out** (in-app + email,
+`security.mfa_reset`), so a malicious or mistaken reset cannot be silent. The reset only removes the
+second factor — primary auth is untouched, and the user re-enrolls from Settings. No MFA state is an
+idempotent no-op 204 (no audit/notification noise). Console UI: a confirm-gated **Reset MFA** button
+on the tenant-detail member row. QA-ADMIN-07.
+
+**ADR-022 — Per-user preference sync: adopt-on-sign-in, reconcile on every sign-in path, "system" stored explicitly (PREFS-1; amends THEME-1's null-mapping and B7-3's no-reload reconcile). (2026-07-14)**
+The 2026-07 QA pass failed QA-I18N-02: locale/theme didn't follow the user across browsers. Root
+causes: (a) the only `LanguageSwitcher` lived on the login page where the user is always anonymous,
+so `PUT /api/auth/locale` was unreachable from the UI and `User.Locale` was never written; (b) the
+server→device reconcile ran only in `MainLayout.OnInitializedAsync`, so soft-navigation sign-ins
+(OTP/MFA/native) applied nothing until a manual reload; (c) the B7-3 in-process culture switch never
+loads WASM satellite resource assemblies (fetched per boot culture), so even a reconcile that ran
+left the strings in English; (d) theme "system" was stored as null, indistinguishable from "never
+chose", so returning to System on one device never propagated. A centralized preferences table/
+endpoint was **considered and declined** (2026-07-14): storage stays per-column on `Users`
+(ADR-C2 carve-out), because locale/theme must be readable at token-issue time (JWT claims) and
+pre-paint, and the columns already serve that; only the sync behavior changes.
+
+**Decision:**
+1. **Preferences get a signed-in home**: a Preferences card on `/settings` hosts the existing
+   `LanguageSwitcher`/`ThemeSwitcher` (which already PUT when authenticated). The login-page
+   switchers remain as pre-auth, device-local conveniences.
+2. **Reconcile runs on every sign-in, not just cold starts**: `AuthService` raises `SignedIn` on
+   the unauthenticated→authenticated transition (all body-flow and cookie-refresh paths; NOT on
+   mid-session rotation or impersonation), and `MainLayout` re-runs its idempotent
+   `ReconcilePreferencesAsync` on it.
+3. **Two-way sync**: a set server value wins (apply + cache on device); a never-set server value
+   adopts an explicit device choice via the normal PUTs — so a pre-auth login-page pick becomes
+   the account preference on sign-in. Never adopts while impersonating (an admin's device must not
+   rewrite the impersonated user's preferences).
+4. **Locale mismatch = one full reload** (persist first; in-process culture set for the MAUI
+   WebView, whose reload doesn't re-run `MauiProgram`). This deliberately reverts B7-3's in-process
+   no-reload approach — it couldn't work on WASM (satellite assemblies) — while keeping its actual
+   goal: the reload happens only on a real mismatch, never as a guaranteed double load. Theme
+   applies live (`data-bs-theme`), no reload.
+*Amendment (v4 T64 / UX-18, 2026-10-01) — two accepted client-side races, recorded here instead of only in code
+comments (R72).* (a) A theme or language saved from Settings is **remembered beside the token, not refreshed
+into it**: the reconcile on reload trusts the access token's claims, and the Android app keeps that token across
+a WebView reload, so a save followed by a reload re-applied the old value (found downstream, 2026-09-16). The
+first fix refreshed the session after each save, and on the web that rotated the refresh cookie under the
+ThemeJourney's reload and came back signed out. So `AuthService.RememberTheme`/`RememberLocale` overlay the saved
+value until the next genuine refresh (`PreferenceSyncClaimTests`); between the save and that refresh, a second
+device that changes the same preference wins only at the next sign-in — accepted. (b) A theme change made while
+the PUT is in flight (or that fails) keeps the device's choice and marks the sync failed; the next sign-in's
+reconcile resolves it the usual way (server wins). Neither race loses data; both are visible, and neither is
+worth a round-trip on every keystroke.
+
+5. **"system" is stored verbatim** (amends THEME-1): `User.Theme` null now means "never chose",
+   which is what makes adoption (3) well-defined and lets System propagate across devices like the
+   other two values. No schema change — same nullable column, same endpoints.
+
+**ADR-023 — API documentation governance: the repo Postman collection is the canonical, machine-enforced API contract; the workspace is a one-way mirror. (2026-07-27)**
+The platform documents its API as a Postman collection rather than a spec-first OpenAPI document.
+This was practice (CLAUDE.md rule + `docs/postman/README.md`) without a recorded decision; the v3
+audit (TR-6/TR-10, T55/T57) found the gap and this ADR closes it. Decided:
+
+1. **`docs/postman/JiggerJot.postman_collection.json` is canonical.** Any change to an API
+   endpoint (route, verb, params, request/response shape, auth, error codes) updates the
+   collection **in the same slice** — the PR-template checkbox and review enforce the habit; the
+   `PostmanParityTests` CI gate (T55) enforces the floor: every endpoint the app actually maps
+   under `/api` must have a matching request, or an inline exclusion rationale. Browser-flow
+   endpoints are documented as annotated **`(doc-only)`** requests.
+2. **The Postman workspace is a disposable one-way mirror.** The `postman-sync` workflow pushes
+   `docs/postman/**` to the workspace on every `develop` change (sync-by-name); edits made in the
+   Postman UI are overwritten on the next sync and are never pulled back. The repo copy is the only
+   reviewed, versioned artifact.
+3. **Why not spec-first OpenAPI:** the collection *is* executable documentation — chained
+   auth flows (OTP via Mailpit, token rotation, shown-once secrets), per-environment files, and
+   test scripts double as a manual API harness, which a generated spec can't replace. The one
+   OpenAPI surface that exists stays: the leak-free public-API document at
+   `/api/public/openapi.json` (ADR-015) serves *external* consumers of the config-gated PUBAPI
+   only. Revisit if a downstream app needs full-API OpenAPI for client generation — that would be
+   a new ADR, generating *from* the code, with this collection remaining the human-facing harness.
+4. **Rebrand note:** the collection, environments, and the sync workflow's file path all rename
+   with the app (`docs/REBRANDING.md` already lists them).
+
+**ADR-024 — Native distribution (signing, packaging, store submission) is downstream-app work, not platform scope (resolves ADR-018's NATIVE-8 gate; NATIVE-8..11 leave the platform roadmap). (2026-07-14; recorded 2026-08-25)**
+*Recording note:* this decision was made and drafted 2026-07-14 — before ADR-023 (2026-07-27) took
+that number — but the branch carrying it never merged; it was recovered during branch housekeeping
+and renumbered here. It predates the v3 audit in substance.
+
+ADR-018's 2026-07-06 amendment made distribution a decision **re-made at the NATIVE-8 gate** rather
+than an autopilot consequence of the parity commitment. That gate is now decided: signed artifacts
+and store listings are **per-app deliverables**. This repo is horizontal chassis only (ADR-019
+posture); a release artifact is the ultimate vertical.
+
+*Rationale:*
+1. **Signing identity is inherently per-app.** The Android keystore *is* the app's identity; Apple
+   certs/profiles bind to a bundle id + team; the MSIX publisher must match a specific manifest.
+   The platform has no shippable app — anything it signed would be `com.jiggerjot.app`, an
+   artifact nobody ships, so the resulting workflow would be **untested plumbing** the moment a
+   downstream app swapped in its own identity.
+2. **The costs are recurring and buy the platform nothing.** The Apple Developer account is
+   $99/**yr** and lapses certs when it stops; per-release QA columns and store-review friction are
+   exactly the distribution tail the 2026-07-06 amendment flagged.
+3. **Capability is already proven without artifacts.** The parity commitment is held by the CI
+   build gate (NATIVE-1, all four TFMs), the four boot smokes (NATIVE-7), and the QA plan
+   (§12–13b + the per-release §13c checklist).
+
+*Decision:*
+1. **NATIVE-8, -9, -10, -11 are removed from the platform roadmap** and reclassified as the
+   downstream **first-native-release checklist**. Canonical actionable home:
+   `docs/NEW_APP_GUIDE.md` Phase 9. The detailed scoping knowledge (keystore discipline,
+   tag-triggered release-workflow shape, signing reality per platform, store-account costs) stays
+   in `docs/stories/native.md` Wave 4, re-badged as downstream reference — it is **hardening for
+   the apps**, not slices this repo will build.
+2. **Epic NATIVE closes at verification**: NATIVE-6 (the manual device QA pass) remains the last
+   platform slice; all-pass on §13c completes the epic. ADR-018's parity commitment is otherwise
+   unchanged (capability on all four platforms, web-first, parity ≠ more).
+3. **Two platform-code risks that only manifest under a real signing identity transfer as hard
+   checklist items** (they cannot be verified here, precisely because verification needs the
+   identity only a downstream app has):
+   (a) **packaged MSIX runs containerized** — Preferences/SecureStorage/file paths must be
+   re-verified in the packaged flavor before shipping Windows (same failure class as the Catalyst
+   keychain gap, PR #125);
+   (b) **properly-provisioned Apple builds can claim `keychain-access-groups`** — re-verify
+   SecureStorage under the real identity and re-evaluate retiring `DebugFileSessionStore` (the
+   `MACCATALYST && DEBUG` fallback from PR #125).
+4. **Pre-scoped sub-decisions carry with the checklist** (decided 2026-07-07, still good): enroll
+   in Play App Signing (the keystore becomes the upload key); let the MS Store sign the MSIX (no
+   purchased cert / HSM); signing material lives only in repo secrets, base64, ADR-001 discipline.
+
+**Accepted trade-off:** every downstream app pays its own signing bring-up — there is no
+ready-made release workflow to inherit. Accepted because an unverifiable workflow is a liability,
+not an asset; the checklist and scoping notes transfer the knowledge instead. This supersedes
+ADR-018's "honest counterweight" (store distribution as a platform commitment) in the downstream
+direction the 2026-07-06 amendment anticipated.
+
+---
+
+## JiggerJot decisions (app-specific)
+
+> Numbered **JJ-001 …** rather than ADR-001 … because the platform's own build decisions already
+> occupy ADR-001 onward (they were logged here while the platform was built as its own app). The
+> JJ numbers preserve the app's original conceptualization sequence (2026-06-17) unchanged, so the
+> product docs and the foundations tracker keep their references. Platform decisions are cited as
+> `ADR-…` / `ADR-C…`; app decisions as `JJ-…`. When they disagree, the platform wins (JJ-026, JJ-028).
+
+> All entries below: **2026-06-17** (initial conceptualization session).
+
+---
+
+**JJ-001 — Unit of account is the household (tenant), not the user.**
+Inventory and custom content are shared across a household/bar. Multiple users can belong to one
+tenant. *Rationale:* matches real use (a shared shelf); avoids duplicating inventory per person.
+
+**JJ-002 — Shared catalog is referenced, with copy-on-fork (not copy-per-tenant).**
+Households reference the global catalog; "Create my own version" forks an independent copy.
+*Rationale:* keeps the shared catalog clean while allowing personalization without mutating
+shared records.
+
+**JJ-003 — "Makeable" is always derived, never stored.**
+Computed from inventory + recipe lines + substitutions at query time. *Rationale:* a stored flag
+would go stale the instant inventory changes.
+
+**JJ-004 — Substitutions are ingredient-level, not recipe-level (MVP).**
+A substitution applies globally between two ingredients. *Rationale:* far simpler; covers the
+common case (Kahlúa ↔ Tia Maria). Recipe-level subs pinned for future.
+
+**JJ-005 — Substitutions are global-only for MVP.**
+No tenant-specific subs yet. *Rationale:* keeps the substitution graph simple and shared.
+Tenant-level subs pinned.
+
+**JJ-006 — Substitution symmetry stored as two directed rows.**
+Rather than a `symmetric` flag. *Rationale:* simpler, more predictable queries.
+
+**JJ-007 — Structured quantities (amount + unit), stored as authored.**
+Not freeform text; not converted on storage. *Rationale:* enables conversion/scaling while
+preserving idiomatic units (a dash, a barspoon) losslessly.
+
+**JJ-008 — Unit-system preference is per-user; conversion at display time.**
+Metric/imperial toggle on User; convertible units converted on display, neutral units pass
+through. *Rationale:* household members can disagree on units; storage stays canonical.
+
+**JJ-009 — Required/optional lives on the recipe line, not the ingredient.**
+`is_required` on CocktailIngredient. *Rationale:* "optional" is contextual to a drink (lime is
+required in a Margarita, optional elsewhere). A garnish is just an optional line.
+
+**JJ-010 — Recipe lines carry a `role` (base/modifier/juice/garnish/…).**
+*Rationale:* cheap to add, enables display grouping; wanted from day one.
+
+**JJ-011 — Single `Ingredient` table with nullable `tenant_id` (null = global).**
+Rather than separate global/custom tables. *Rationale:* simpler queries; substitutions and
+recipes can span global + custom without unions.
+> **Amended by JJ-031 (2026-09-09):** the single table stands, but it does **not** implement
+> `ITenantScoped` — that interface's `TenantId` is non-nullable, and its filter and RLS policy would
+> hide the null-tenant catalog rows. Isolation comes from an app-level query filter plus a mirrored
+> hand-written RLS policy instead.
+
+**JJ-012 — Single `Cocktail` table with nullable `tenant_id` + nullable `forked_from`.**
+Same single-table rationale as JJ-011.
+> **Amended by JJ-031 (2026-09-09):** as JJ-011 — not `ITenantScoped`; app-level filter + mirrored
+> RLS policy. `CocktailIngredient` follows its parent cocktail and is treated the same way.
+
+**JJ-013 — Fork = snapshot copy, not live reference.**
+Forking copies the cocktail and all recipe lines; `forked_from` is provenance metadata only.
+*Rationale:* households own a stable, independently editable recipe; upstream edits shouldn't
+silently change their drink.
+
+**JJ-014 — No manual `base_category` / "main spirit" field.**
+Spirit/ingredient filtering is derived from recipe lines + ingredient categories. *Rationale:*
+the manual field is fragile (no-spirit, two-spirit drinks); derived filtering is more powerful
+("everything with elderflower"). Manual primary classification pinned for future curation.
+
+**JJ-015 — Two-level ingredient categorization (category + subcategory).**
+Self-referencing IngredientCategory (parent/child). *Rationale:* lets users filter "all rum" or
+drill into "dark rum" without over-engineering a deep hierarchy.
+
+**JJ-016 — Ingredient filtering matches by category AND by name.**
+*Rationale:* "vodka" should find both the Vodka category and name matches; maximizes recall.
+
+**JJ-017 — Generic ingredients only for MVP (no brand/product granularity).**
+Recipes and inventory both operate on generic ingredients ("vodka," not "Tito's"). *Rationale:*
+brand hierarchy is a whole subsystem; generic covers the core loop. Pinned.
+
+**JJ-018 — Custom ingredients satisfy recipe lines by exact match only.**
+They don't participate in the (global) substitution graph in MVP. *Rationale:* keeps the sub
+graph shared/clean; revisit alongside tenant-level subs.
+
+**JJ-019 — "Almost makeable" is in MVP, fixed at exactly one missing required ingredient.**
+*Rationale:* high-value discovery/shopping feature, trivial given the model; N=1 keeps UX focused.
+
+**JJ-020 — Ice and water are assumed always available, not modeled as blocking inventory.**
+*Rationale:* otherwise every tenant must check ice or nothing is makeable.
+
+**JJ-021 — Onboarding wizard seeds initial inventory.**
+*Rationale:* avoids the empty-inventory cold-start where "what can I make" returns nothing.
+
+**JJ-022 — Curated lookup tables for GlassType / Method / Unit; no tenant additions in MVP.**
+*Rationale:* consistent filtering; user-added values (e.g. "tiki mug") pinned for future.
+
+**JJ-023 — Inventory is boolean (available / not), no "running low."**
+*Rationale:* simplest model that serves the core loop. Multi-state pinned.
+
+**JJ-024 — Household cocktails are private only in MVP.**
+No publishing to a community pool yet. *Rationale:* the community database is the long-term
+vision but adds visibility/moderation complexity; defer. Pinned.
+*Note (2026-09-16):* still in force. A plan to amend it exists — `docs/stories/community.md`,
+epic `COMMUNITY`, with **JJ-042 drafted inside the story** — and is pasted here only on the day
+the epic starts. Nothing is decided by the plan's existence.
+
+**JJ-025 — Documentation set for solo+Claude Code: BRIEF, FEATURES, DATA_MODEL, DECISIONS,
+CLAUDE.**
+A full corporate PRD is overkill solo; PROJECT_BRIEF + FEATURES cover the useful PRD content.
+*Rationale:* persistent, lean context for Claude Code over alignment ceremony.
+
+---
+
+> Entries below: **2026-09-08** (platform-alignment session).
+
+**JJ-026 — JiggerJot is a downstream app of perezosoft-platform; this repo documents only the
+product, not the stack or the process. (2026-09-08)**
+The tech stack (ASP.NET Core API, Blazor WASM, shared RCL, PostgreSQL/EF Core, custom JWT auth,
+MAUI Blazor Hybrid shells), the architecture (a clean-layered horizontal platform chassis with app
+features built as vertical slices under `src/Api/Features/<Feature>/`), the process (slices,
+per-epic Gherkin stories, TDD, Conventional Commits, PR template), `CLAUDE.md`, and the constant
+ADRs (`ADR-C1` … `ADR-C15`) are all owned by **perezosoft-platform** and arrive when the app repo
+is created from that template. They are **not re-decided or re-documented here**.
+
+Consequences for this repo:
+- The doc set is **product-only**: `PROJECT_BRIEF.md`, `FEATURES.md`, `DATA_MODEL.md`,
+  `DECISIONS.md` (this file, app ADRs only), and per-epic `stories/`. This supersedes the doc list
+  in JJ-025.
+- `TECH_STACK.md` and `WAYS_OF_WORKING.md` were **removed** — the platform's versions are
+  authoritative and this repo's copies had already drifted (see next point).
+- The former stack/process block (numbered 026 … 037 on 2026-06-17) was **removed** rather than
+  superseded one by one: it duplicated the platform's constant ADRs and in one case contradicted
+  them outright (it claimed auth is ASP.NET Core Identity; the platform's ADR-002 is custom JWT +
+  rotating refresh tokens, explicitly *not* Identity). Keeping a wrong stack record here would
+  only mislead. Anything of lasting value in that block lives in the platform's `DECISIONS.md`.
+- Every JiggerJot feature is built as a **vertical slice** on top of the platform's horizontal
+  chassis, per platform ADR-004 and `docs/WAYS_OF_WORKING.md` there.
+- The one carry-over that *is* app-specific — the **`JiggerJot` code name / namespace root**,
+  decoupled from the customer-facing brand — is retained as JJ-027 below.
+
+*Rationale:* the platform primer is explicit that per-app documentation covers concept, features,
+data model, scope, and domain decisions, with the stack frozen upstream. Splitting the docs along
+that seam keeps this repo honest about what it actually decides, and stops two copies of the same
+decision from drifting apart (as they already had on auth).
+
+**JJ-027 — App code name is JiggerJot; product/brand name kept separate. (2026-06-17, retained
+2026-09-08)**
+The solution and namespace root is **JiggerJot** (project names, root namespaces, the EF context).
+The customer-facing brand name is deliberately decoupled and may differ or change later, living
+only in UI strings/marketing — never in namespaces. *Rationale:* the namespace root is expensive to
+change in .NET, so it's locked before scaffolding; the brand is cheap to change and shouldn't be
+coupled to code. "JiggerJot" verified to have no existing collision (jigger = a 1–2 oz bar
+measure; jot = to note/save), giving a clean repo/namespace/domain. Casing is PascalCase compound:
+`JiggerJot`. The platform's rebrand step (`docs/REBRANDING.md` there) is where this name gets
+applied to the cloned tree.
+
+**JJ-028 — Tenant and User are platform-owned; JiggerJot does not re-model them. (2026-09-08)**
+`DATA_MODEL.md` previously defined `Tenant` and `User` as app entities, with a required
+`tenant_id` column on `User`. Both are provided by perezosoft-platform, which links a user to a
+tenant through a **`TenantMembership`** row (one tenant per user at a time; owner / admin / member
+roles; invitations) and enforces tenant scoping on every query — there is **no `tenant_id` on
+`User`**. The app doc now references the platform's Tenant and User instead of defining them, and
+adds only `preferred_unit_system` at the user level. The product model is unchanged: JiggerJot is
+still multi-tenant (households) and multi-user; the household is still the unit of account
+(JJ-001) and only the unit preference is per-user (JJ-008). *Rationale:* the platform's tenancy
+is already built, tested, and structurally enforced; describing a different mechanism here would
+either be ignored at build time or, worse, followed. **When app docs and the platform disagree,
+the platform wins.**
+
+**JJ-029 — Brand: the customer-facing name is JiggerJot, the tagline is "Mix what you have.",
+the mark is a jigger, and the palette is copper on a cool near-white. (2026-09-08)**
+These are the three hand-over items the platform primer requires before the rebrand (name, tenant
+label, logo), settled together with the tagline and palette the rebrand derives from the logo.
+- **Name.** The brand is **JiggerJot**, the same as the code name (JJ-027 keeps them decoupled in
+  code; they simply coincide for now). Verified 2026-09-08: no existing product uses the name;
+  `jiggerjot.com`, `.app` and `.io` were all unregistered. The cocktail-app space already has
+  *Jigger* and *MyJigger*, so the compound is the asset — never shorten the brand to "Jigger".
+- **Tagline.** "**Mix what you have.**" — states the differentiator (availability-driven, not just
+  recipes) in four words, works in the lockup and the email footer, and localizes cleanly for the
+  platform's ES resources as "*Mezcla lo que tienes.*" Replaces "Lazy reputation. Efficient
+  engineering." everywhere (`lockup_light.svg`, `BrandedEmail.cs`).
+- **Mark.** A jigger drawn the way one stands on a bar: the larger cup down, the smaller up,
+  elliptical rims so the cups have volume, a banded collar joining them. One even-odd vector path
+  in a 100-unit box (the mouth and the base rim line are holes, so it sits on any ground). Source
+  and every derived asset live in **`brand/`** in this repo, in the platform's folder layout
+  (`Shared.Ui/`, `Web/`, `Maui/`, `Email/`) with the exact filenames and pixel sizes
+  `docs/REBRANDING.md` §3 lists; `brand/build.py` re-renders the PNGs and `favicon.ico` from the
+  SVGs (headless Edge + Pillow). The icon treatment is bone `#F3F1EC` on night `#111418` on every
+  platform (launcher, store, PWA, splash); in the product the mark is copper. In the MAUI project
+  file, both `MauiIcon Color` and `MauiSplashScreen Color` become `#111418`.
+- **Palette** (→ `app.css` `:root` tokens and the `BrandedEmail.cs` constants, renamed):
+  primary / `--bs-primary` copper `#B4562A` (white text on it: 4.9:1, AA); `--brand-dark` `#8C3F1D`;
+  `--brand-accent` brass `#D9A441`; `--brand-accent-light` `#F6E7DE`; `--app-bg` `#F4F5F7`;
+  `--app-border` `#E4D8CF`; ink `#1B1F24`; muted `#5B6470`. Dark theme lifts copper to `#D9865A`
+  and the dark step to `#F0A87E`. Email constants: `Green`→`Copper`, `GreenDark`→`CopperDark`,
+  `Sage`→`Brass`, `SageLight`→`BrassLight`; `Surface`/`Border`/`Ink`/`Muted` keep their names.
+- **Wordmark.** Barlow Semi Condensed 600, "Jigger" in ink and "Jot" in copper; tagline in IBM
+  Plex Sans 500. Both on Google Fonts. The lockup SVGs keep live text as the editable source; the
+  PNG renders carry the real glyphs, which is what the UI references.
+*Rationale:* one name to verify and defend instead of two; a tagline that says what the product
+does rather than how it feels; a mark that is literally the product's namesake and reads at 16 px;
+copper as a colour no cocktail app in the results owns and one that stands clearly apart from the
+platform's green. Deciding the palette with the mark (rather than at rebrand time) means Phase 3 is
+mechanical. Registering the domain is the owner's action and is not part of this ADR.
+
+*Amendment (2026-09-08, Phase 3 — the rebrand as applied).*
+1. **Assets now live in place, not in `brand/`.** The editable SVG sources are
+   `src/Shared.Ui/wwwroot/brand/*.svg`, `src/Web/wwwroot/favicon.svg` and
+   `src/Maui/Resources/{AppIcon,Splash}/*.svg`; every PNG, `favicon.ico` and the `docs/brand/`
+   store/marketing set are regenerated by **`docs/brand/build_assets.py`**. The `brand/` staging
+   folder was removed once applied.
+2. **Two palette values differ from the table above, on purpose.** The pale tint `#F6E7DE` is a UI
+   chip colour, not a text colour: in `app.css` the `--brand-accent-light` token (which the dark
+   theme uses for link text) is the lifted copper `#D9865A`, and in `BrandedEmail.cs` the muted
+   small-text roles are `Brass = #9C6A3F` and `BrassLight = #7A6E66` (both ≥ 4.5:1 on white). The
+   primary/dark/surface/border/ink/muted values are as tabled.
+3. **The rename went beyond `REBRANDING.md`'s list** to satisfy its verify step: the solution,
+   every project file, root namespaces, the RCL static-asset path, CI smoke identifiers, the
+   Postman files and the Docker tag became `JiggerJot.*`/`jiggerjot`; `ApplicationId` is
+   **`com.jiggerjot.app`**, the Render service is **`jiggerjot-staging`**; the platform's
+   conceptualization primer and its tutorial course (`docs/tutorial/`) were removed as
+   template-only material; `README.md` was rewritten for the app.
+4. **One accepted exception to the checklist's "no old-brand mention anywhere" verify:** the
+   upstream repo slug `perezosoft-platform` is kept where it names the platform as provenance (this
+   file, the brief, `STATUS.md`, two platform stories, the gitleaks config title, two audit logs).
+   The verify for this app therefore greps for the old brand name case-insensitively, excludes
+   `docs/REBRANDING.md`, and filters out that slug; expected empty (verified 2026-09-08).
+
+**JJ-031 — How the shared catalog coexists with tenant isolation: one table, app-level filter,
+mirrored RLS policy. (decided 2026-09-09)**
+*Amends JJ-011 and JJ-012. Read with platform ADR-003 (tenancy) and ADR-020 (RLS backstop).*
+
+**The problem.** JJ-011/JJ-012 specify one table each for `Ingredient` and `Cocktail` with a
+**nullable `tenant_id`** — null = shared seed catalog, set = household-owned. Read against the
+platform as actually built, that shape **cannot be implemented**:
+
+1. `ITenantScoped` declares `Guid TenantId` — **non-nullable**. An entity implementing it cannot
+   hold a null tenant, so the "null = shared" row is not expressible.
+2. The global filter is `e.TenantId == CurrentTenantId` (`AppDbContext.ApplyTenantFilter`). Even if
+   the column were nullable, `NULL == <guid>` is never true, so shared rows would be invisible.
+3. The RLS policy (`RlsDdl.StatementsFor`) uses the same predicate with `FORCE`, so shared rows are
+   hidden **at the database** too — and since 2026-09-09 that backstop is genuinely enforcing on
+   staging (a non-`BYPASSRLS` runtime role), so this is no longer theoretical.
+4. `TenantStampingInterceptor` stamps the current tenant onto unset `ITenantScoped` inserts and
+   **throws** on a foreign tenant, so seeding null-tenant rows through the app is refused.
+5. `IgnoreQueryFilters()` is **banned in `src/Api/Features/**`** by a build gate, so a slice cannot
+   opt out to see the catalog.
+
+So a decision is required before any entity or migration is written. Three shapes were considered.
+
+**Option A — split tables.** A global `Ingredient`/`Cocktail` (not `ITenantScoped`, no tenant
+column) plus a separate household-owned `TenantIngredient`/`TenantCocktail`. *For:* uses only
+existing platform concepts; the shared side is ordinary reference data like `GlassType`. *Against:*
+`CocktailIngredient` must point at either table — a polymorphic foreign key (two nullable columns +
+a check constraint), which infects every query, and "list all my ingredients" becomes a union
+everywhere.
+
+**Option B — one table, app-level filter + mirrored policy (recommended).** Keep the single-table
+design of JJ-011/JJ-012. `Ingredient`/`Cocktail`/`CocktailIngredient` carry a **nullable
+`TenantId`** and deliberately do **not** implement `ITenantScoped`. Isolation is restored, not
+abandoned, by two mirrored rules:
+- an app-defined EF query filter `x.TenantId == null || x.TenantId == CurrentTenantId`, applied in
+  `AppDbContext.OnModelCreating` next to the platform's own loop; and
+- a hand-written RLS policy in the same migration with the matching predicate
+  (`"TenantId" IS NULL OR "TenantId" = NULLIF(current_setting('app.tenant_id', true), '')::uuid OR
+  current_setting('app.rls_bypass', true) = 'on'`).
+
+*For:* keeps simple foreign keys and the model the product docs already describe; keeps a
+structural read guarantee and a database backstop; shared rows are readable by every household and
+owned by none. *Against:* it is a **local divergence from the platform convention** — a reader who
+knows the codebase will assume "no `ITenantScoped`" means "not filtered", so the entities and the
+`AppDbContext` block must say plainly why. Two guarantees are also **not** inherited and must be
+supplied by hand: the write-stamping interceptor will not stamp these rows (custom rows must set
+`TenantId` explicitly at the call site), and `RlsMigrationGateTests` only checks `ITenantScoped`
+tables, so nothing fails CI if the hand-written policy is forgotten — an app-level test must assert
+it, or the backstop silently disappears on a later migration.
+
+**Option C — a catalog tenant.** Shared rows belong to one well-known system tenant and the filter
+widens to `TenantId == CurrentTenantId || TenantId == CatalogTenantId`. *For:* every row keeps a
+real tenant, so `ITenantScoped` and the stamping interceptor still apply. *Against:* the widened
+predicate has to replace the platform's generated filter **and** its RLS policy for those tables, so
+it diverges from the platform in the one place hardest to keep in step; and a fictional tenant row
+leaks into membership, export and dissolve paths that reasonably assume tenants are households.
+
+**Decision: Option B**, with the two hand-supplied guarantees written as tests in the same slice —
+one asserting the query filter admits shared rows and excludes another household's, one asserting
+the policy exists on each table after migration. It preserves the product model, and the divergence
+is one well-commented block rather than a shape that spreads through every query.
+
+**Binding consequences for Phase 5.** `Ingredient`, `Cocktail` and `CocktailIngredient` carry a
+nullable `TenantId` and do **not** implement `ITenantScoped`; `TenantInventory` still does (it is
+purely household data). `IngredientCategory`, `GlassType`, `Method`, `Unit` and
+`IngredientSubstitution` are global lookups with no tenant column at all (JJ-005, JJ-022). Every one
+of the three dual-natured tables ships its hand-written policy in the same migration that creates
+it, and inserting a household-owned row must set `TenantId` explicitly — nothing stamps it.
+
+**Upstream:** if B works, it is a candidate to become a platform primitive
+(`ISharedOrTenantScoped` + `RlsDdl` support), already filed as `PLATFORM_BACKLOG.md` §15 item 2 —
+any app with a seeded catalog hits this exact wall.
+
+*Decided 2026-09-09. Options A and C are recorded above so the choice is not re-litigated.*
+
+> **Amended 2026-09-09 (implementing CKTL-1).** Building Option B turned up two things the decision as
+> written got wrong, both in the direction of being too trusting. Neither changes the choice; both change
+> what "mirrored RLS policy" means in practice.
+>
+> **① One `FOR ALL` policy would have left the shared catalog deletable.** The predicate this ADR
+> specified — `TenantId IS NULL OR TenantId = current OR bypass` — is right for reading and wrong for
+> everything else. Postgres checks `DELETE` against `USING` and never against `WITH CHECK`, so a single
+> `FOR ALL` policy carrying that predicate lets any household delete or update any shared catalog row —
+> exactly what JJ-002 says must be impossible, and the one guarantee the whole seeded-catalog design rests
+> on. The shipped shape is therefore **four command-scoped policies per dual-natured table**
+> (`RlsDdl.SharedOrTenantStatementsFor`): `SELECT` admits shared rows, while `INSERT`, `UPDATE` and
+> `DELETE` admit the household's own rows only. Writing a shared row now requires the bypass GUC, which
+> makes seeding the catalog a deliberate, greppable act rather than the default for an unset `TenantId`.
+> `SharedCatalogRlsTests` pins each half, including the mirror case (a household CAN delete its own row),
+> so the policies cannot pass by forbidding everything.
+>
+> **② A fourth platform guarantee does not apply, not three.** The ADR named the stamping interceptor and
+> the RLS migration gate. The third is **tenant dissolution**: the platform canary
+> `EveryTenantOwnedEntity_IsWiredIntoTenantDissolution` only inspects entities with a **non-nullable**
+> `Guid TenantId`, and every `ISharedOrTenantScoped` entity has a nullable one by construction — so a
+> missing `ITenantDataContributor` on these tables would orphan a dissolved household's recipes with no
+> test failing anywhere. `CatalogDataContributor` supplies the teardown and export (household rows only,
+> shared catalog untouched); `SharedOrTenantDissolutionTests.EverySharedOrTenantEntity_IsWiredIntoTenantDissolution`
+> is the app-level canary that replaces the blind one. `InventoryDataContributor` does the same for
+> `TenantInventory`, which the platform canary *can* see and now lists. *(2026-09-24, v4 audit H6 port: the
+> platform canary was widened to nullable `Guid?` keys — to catch `OutboxMessage` — and now lists
+> `Ingredient`, `Cocktail` and `CocktailIngredient` too, so it is no longer blind here; the app-level canary
+> stays.)*
+>
+> **Upstream:** both corrections belong with the `ISharedOrTenantScoped` primitive proposed in
+> `PLATFORM_BACKLOG.md` §15 item 2 — the `FOR ALL` trap in particular is not obvious from reading the
+> platform's own policy, since a non-nullable `TenantId` makes the asymmetry unnecessary there.
+
+*Amendment (2026-09-08, Phase 2):* the four product docs were merged into this repo's `docs/`
+when the platform tree was adopted (JJ-026's product-only doc set now lives alongside the
+platform docs); `WAYS_OF_WORKING.md`, `TECH_STACK.md` and `CLAUDE.md` are the platform's.
+
+**JJ-030 — Local ports are distinct from the platform's so both stacks run side by side. (2026-09-08)**
+perezosoft-platform, vuelto and JiggerJot are developed on the same machine, and the platform's
+launch profiles pin the app ports (ADR-C13 makes only the compose ports env-driven). The neighbours
+occupy: platform API 7160/5238, Web 7008/5169, compose 5433/1025/8025; vuelto API 5000, client 5001,
+a local Postgres on 5432 and a compose stack on 5434/1026/8026. JiggerJot therefore re-pins to a
+free set: **API `https://localhost:7360` + `http://localhost:5438`** (the cleartext leg the
+Android emulator reaches via `adb reverse`), **Web `https://localhost:7208` + `http://localhost:5369`**,
+and in `.env.example` **`DB_PORT=5435`, `MAIL_SMTP_PORT=1027`, `MAIL_UI_PORT=8027`, `APP_PORT=8280`**
+(the last for the optional prod-like `app` compose service, which the platform leaves on 8080). The
+compose project name comes from the folder (`jigger-jot`), so containers, network and the `db_data`
+volume are already namespaced apart from `perezosoft-platform-*` and `vuelto-*`. The committed dev
+defaults follow (`appsettings.Development.json` SMTP port and CORS/`AppBaseUrl`, the Web client's
+`ApiBaseUrl`, the MAUI fallbacks and `adb reverse`, the E2E and Android-smoke Mailpit defaults, the
+Postman local environment, the docs). CI keeps its container-side ports (`5432`, `1025`, `8025`) and
+maps Mailpit host-side to `1027`/`8027` so the committed defaults stay coherent there; `docker-compose.yml`
+is untouched (its `${VAR:-default}` fallbacks are overridden by `.env`). Excluded from the rewrite:
+vendored Bootstrap (where `5169` is a timing constant), the seed JSON (where `1025` is a record id),
+lockfiles, audit logs. *Rationale:* the alternative — remembering to stop one stack before starting
+the other — is exactly the kind of friction that gets skipped; a one-time mechanical re-pin, verified by
+the same build and tests, removes it. OAuth redirect URIs are registered per app anyway, so nothing
+breaks upstream.
+
+
+**JJ-032 — Seed sources: the Savoy for depth, the IBA list for the canon; the two 1930s bar books
+are dropped. (decided 2026-09-09)**
+*Closes the rights question raised in `docs/stories/seed.md`. Read with JJ-017 (ingredients are
+generic, never brands) and the PROJECT_BRIEF scope line.*
+
+**The problem.** Four sources were on the table: the scraped 1930 Savoy Cocktail Book, two local
+PDFs (Jerry Thomas's 1862 *Bar-Tender's Guide* and 1931's *Old Waldorf Bar Days*), and whatever
+online database might serve. Two questions had to be answered together, and separating them was the
+mistake that made this look hard.
+
+**The rights question.** The three books sit on different footing. Jerry Thomas is long in the US
+public domain. The Savoy entered it on 1 January 2026. *Old Waldorf Bar Days*, published in 1931,
+does not until **1 January 2027** on the 95-year term. Crediting a source is not the same as being
+licensed by one, so a plan to attribute does not move that date.
+
+**The coverage question, which turned out to be the same question.** Measured against the actual
+Savoy extraction: 868 recipes containing **zero tequila, zero bourbon, zero Aperol, one line of
+Campari and four of vodka**. The product exists to answer "what can I make right now with what I
+actually have"; against a shelf stocked the way shelves are stocked today, a Savoy-only catalog
+answers "nothing". Jerry Thomas is older still and Waldorf is contemporaneous, so **neither book
+closes that gap** — and they cannot, because anything old enough to be free predates the drinks
+people now ask for by name. Adding books buys more of what we already have.
+
+**Options considered.**
+- *A — the three books.* More period depth, the same modern hole, plus the Waldorf timing question.
+- *B — Savoy plus a modern core authored in-house.* Fixes the gap, but invents a house standard for
+  drinks that already have an authoritative one, and puts the burden of being right on us.
+- *C — a public cocktail database.* Surveyed. TheCocktailDB is free and cheap to license but
+  user-contributed, which is the quality problem restated. Kindred Cocktails is genuinely well
+  curated and its terms forbid scraping "without prior authorization and licensing", so it is a
+  conversation rather than a download.
+- *D — Savoy plus the IBA official list (chosen).*
+
+**Decision: D.** The Savoy supplies 868 recipes of vintage depth. The **IBA official list** supplies
+the modern canon: 102 drinks in three groups of 34 — The Unforgettables, Contemporary Classics, New
+Era Drinks — published by the International Bartenders Association, authoritative rather than
+crowd-sourced, and small enough to normalise by hand. It is where the Margarita, the Negroni and the
+Espresso Martini live, and they live in no public-domain book at all.
+
+**Consequences.**
+1. **Waldorf and Jerry Thomas are dropped.** This removes the January 2027 wait and two
+   optical-character-recognition cleanups, one of them rough. *(Amended 2026-09-09: the two PDFs
+   were deleted rather than kept locally. Neither was ever extracted, so nothing was lost but 155 MB,
+   and a half-finished source sitting in the workspace is an invitation to pick it back up without
+   re-reading why it was dropped. `seed/sources/` stays gitignored for future raw material.)*
+2. **Specifications only, from every source.** Name, category, ingredient lines, amounts, method,
+   garnish. Prose, headnotes, video and photography are left where they are. A list of ingredients
+   with functional directions is thin ground for copyright in the US; the writing around it is not.
+3. **Attribution ships with the data**, not in a footer — `seed/iba_cocktails.json` carries a
+   `source_note`, and per-cocktail provenance goes into the model before SEED-3 seeds a single
+   recipe, so a credit is a property of the row rather than a promise about the page.
+4. **One thread stays open, narrowed.** The Savoy extraction came from `savoycocktaildatabase.com`,
+   a modern transcription, and a transcriber's selection and arrangement can carry rights the 1930
+   text does not. Re-deriving from a public-domain scan would close it. Not urgent, and no longer
+   entangled with anything else.
+
+**How the IBA extraction was taken.** `seed/scrape_iba.py`, enumerating from the site's own sitemap
+rather than walking paginated HTML, one request per drink with a pause between and an identifying
+User-Agent; `robots.txt` disallows only `/wp-admin/` (checked 2026-09-09). The list being three
+equal groups of 34 is used as a correctness check on the parse, and earned its keep immediately: it
+caught two breadcrumb misreads that would otherwise have shipped every drink under the wrong
+category.
+
+*Decided 2026-09-09. Options A, B and C are recorded so the choice is not re-litigated.*
+
+
+**JJ-033 — Ingredients are generic, except where the product IS the ingredient. (decided 2026-09-09)**
+*Amends JJ-017. Surfaced by building the SEED-2 curation against the real vocabulary.*
+
+**The problem.** JJ-017 says ingredients are generic, never brands — "vodka", not a particular
+distillery. Applied literally to the 395 raw names coming out of the two extractions, that rule
+deletes the catalog. Chartreuse, Bénédictine, Campari, Fernet Branca, Maraschino, Cointreau, Amer
+Picon, Angostura, Peychaud's, Drambuie, Aperol, Cynar, Falernum, Swedish punsch and Lillet are all
+proprietary products, and all of them are load-bearing: a Last Word made with "herbal liqueur" is not
+a Last Word, and a household that ticks "herbal liqueur" on its shelf has told the makeable engine
+nothing it can use.
+
+**The distinction JJ-017 was actually drawing.** Its own example gives it away — "vodka, not Tito's".
+The rule is about **substitutable** products, where the brand on the bottle is a shopping preference
+and the ingredient is the category. It was never about products that have no generic equivalent.
+
+**Decision.** An ingredient is stored generically **when a generic exists**, and by its proper name
+**when the product has no generic substitute**.
+
+| The books say | We store | Why |
+|---|---|---|
+| Bacardi Rum | White rum | Any white rum makes the drink |
+| Smirnoff Vodka | Vodka | As above |
+| Canadian Club Whisky | Canadian whisky | As above |
+| Lagavulin 16y | Scotch whisky | A recipe naming an age statement is a recommendation |
+| Green Chartreuse | Green Chartreuse | Nothing else is Chartreuse |
+| Bitter Campari | Campari | "Aperitivo bitter" would not make a Negroni |
+| Angostura Bitters | Angostura bitters | Not interchangeable with orange bitters |
+
+**How the line is drawn in practice:** could a bartender hand you a different bottle and have made the
+same drink? If yes, store the category. If no, store the product.
+
+**Consequences.**
+1. The catalog holds proper names where it must. `seed/ingredient_map.json` is where the judgement is
+   recorded, one line per ingredient, so the calls are reviewable rather than implicit.
+2. **The substitution graph (SEED-4) carries the weight this rule does not.** Cointreau and triple sec
+   are stored as one ingredient here because they genuinely interchange; where two proper-name products
+   are near-substitutes and we keep both, the graph is the place to say so — not a merge that loses the
+   distinction, and not silence that pretends there is none.
+3. JJ-017 stands unchanged for the case it was written for. This adds the exception it did not
+   anticipate, rather than reversing it.
+
+*Decided 2026-09-09.*
+
+
+**JJ-034 — A recipe's glass and method are optional. (decided 2026-09-09)**
+*Amends the `Cocktail` shape in `docs/DATA_MODEL.md`. Forced by SEED-3, measured before deciding.*
+
+**The problem.** `Cocktail.glass_type_id` and `method_id` were non-nullable, on the reasonable
+assumption that every recipe states both. Against the real catalog, they do not:
+
+| | of 969 seeded recipes |
+|---|---|
+| state no glass at all | 96 |
+| state a "glass" that is not a glass type | 163 |
+| state no method | 94 |
+
+The second row is the interesting one. The Savoy's most common glass instructions are **"medium size
+glass"** (76 recipes) and bare **"glass"** (32). Those are not glass types; they are a 1930 bar book
+assuming you can see the bar.
+
+**Options.**
+- *Fill them in.* Pick a plausible glass for each. Rejected: it puts a fact in the database that
+  nobody wrote down, and once written it is indistinguishable from a fact that somebody did. A
+  reader disagreeing with the choice cannot even tell a choice was made.
+- *Drop the recipes.* 259 of 969, including most of the punches and coolers. Absurd.
+- *A "Not specified" lookup row.* A sentinel that every query has to remember to special-case, and
+  that shows up in a browse filter as though it were a kind of glass.
+- *Make both nullable (chosen).*
+
+**Decision: nullable.** Null reads as "the recipe does not say" and filters as such. Nothing depends
+on either field: makeability is derived from inventory, recipe lines and substitutions (JJ-003), and
+glass and method are browse facets (FEATURES §11), where "not specified" is an ordinary answer.
+
+**Consequences.**
+1. The UI shows the glass and the method when there is one, and says nothing when there is not.
+   Neither is ever invented at display time either — the same rule, one layer up.
+2. **A household authoring its own cocktail is not forced to pick a glass**, which is a better first
+   experience than a required dropdown on a screen whose point is to capture a drink quickly.
+3. The seed pipeline reports "unstated" and "too vague to map" as separate numbers, because they are
+   different data-quality stories and only the second is ours to improve.
+
+*Decided 2026-09-09.*
+
+**JJ-035 — A ranked "which bottle unlocks the most" IS in MVP, reversing two earlier exclusions.**
+`ALMOST-1` shipped saying a ranked shopping list was out of scope, and `FORK-1` repeated it. Both were
+right at the time and both are now overturned deliberately rather than quietly.
+
+*What changed.* The starter catalog puts 81 drinks one bottle away on a modest shelf. Per-drink the
+answer is correct and useless: eighty-one rows each naming a bottle is a list nobody reads. Grouped by
+the missing ingredient it becomes one sentence — *buy this and four open up* — which is the same data
+answering the question a person actually has. The UI proposal (`MARGA`) depends on it for three
+screens, and nothing else in that proposal needs new data at all.
+
+*Rationale.* It costs one query and no schema. It reuses `ALMOST-1`'s predicate verbatim, so the two
+readings of the set cannot drift, and a test walks both to prove it. The earlier exclusions were about
+building a *shopping list feature* — multi-bottle combinations, saved lists, quantities — and those
+stay out.
+
+*Consequences.* Ties order by count then by ingredient name, so the answer does not change between
+requests with nothing behind it. The count and the drinks it names are one value read twice, never
+two values computed twice, so the endpoint never truncates the names it returns. Suggesting a first
+bottle to a household that is one away from *nothing* is a different question with no set to rank —
+that stays open, logged against `MARGA-3`.
+
+*Decided 2026-09-10.*
+
+**ADR-025 — (number reserved; never adopted) CI runner selection is variable-driven with a hosted fallback (LOCALCI-1). (drafted 2026-09-08)**
+*Stub.* The draft lives in [`stories/localci.md`](stories/localci.md) ("ADR-025 draft") and was to be pasted
+here with LOCALCI-1's first commit. It never was: LOCALCI-4 (ADR-028) replaced the variable-driven design
+before it was built, and ADR-030 then retired self-hosted CI altogether. The number stays reserved so the
+references to it in `localci.md` resolve; do not reuse it.
+
+**ADR-026 — (draft, not yet adopted) The platform becomes the reference implementation of a stack-neutral spec (FLAVORS). (drafted 2026-09-08)**
+*Stub.* The draft lives in [`stories/flavors.md`](stories/flavors.md), with the spec ADRs S-001..S-003 beside
+it, and is pasted here when the FLAVORS program starts (SPEC-1). Nothing is decided until then.
+
+**ADR-027 — Pre-launch gates: billing and account creation are deployment configuration, not runtime switches (GATES-1/2). (2026-09-11)**
+A deployment must be able to run **private and free** before it is published: nothing offers to sell
+a tester anything, and a stranger who finds the URL cannot create an account. Hiding the deployment
+itself was explicitly **not** wanted — knowing the app exists is fine.
+
+Both properties are decided before the process starts and change exactly once, on launch day. That
+makes them configuration, and it puts them in the same family as the PUBAPI/HOOKS gates
+(ADR-015/016): default off, opted into per deployment.
+
+**Decision:**
+1. **`Billing:Enabled`, default off.** With the gate off the billing controllers and the provider
+   webhook are removed from the application model at startup, so the routes do not exist (404) rather
+   than existing and refusing. The client hides the billing link and refuses the route, but the API
+   remains the authority. No new economics code is needed: `PlanCatalog.Get` already falls back to
+   Free for an absent plan key, so with billing off **every tenant without a granting subscription is
+   Free** — and nobody can be *given* one (the routes, the webhook and the staff comp are gone).
+   *(Corrected 2026-09-28, v4 T46: the original text said "every tenant is Free"; plan resolution is
+   gate-blind by design — a granting row, a comp or a Stripe row from before the gate closed, keeps its
+   plan so that flipping the gate never silently downgrades anyone. `BillingPostureCheck` warns at startup
+   when Stripe-managed rows linger while off, since the webhook that would cancel them is gone.)*
+2. **`Signup:AllowedEmails` / `Signup:AllowedDomains`, empty means open.** Non-empty restricts
+   account creation. The green list decides **who may found a household**; inside a household owned
+   by a green-listed person, membership is that owner's business, bounded by the seat cap.
+3. **The invitation bypass keys on the household's OWNER, not the inviter.** A valid pending
+   invitation addressed to the caller admits them when that invitation's tenant owner is
+   green-listed. Checking the owner (rather than `InvitedByUserId`) is what lets a non-listed admin
+   member invite into their owner's household, while keeping a household whose owner is not listed
+   from admitting anyone new.
+4. **The gate fires at account creation only, never at sign-in.** It lives at the single choke point
+   `UserService.CreateUserWithTenantAsync`, which every user-minting path funnels through (magic
+   link, OTP, web OAuth, native OAuth). Gating sign-in would lock out people who already have data
+   the moment the list is edited.
+5. **It deliberately does not fire when a magic link or OTP is issued.** Refusing at issue time would
+   require knowing whether the address already has an account, turning the login form into a "does
+   this person use the app" oracle. Accepted cost: a non-listed visitor learns they are not invited
+   only after entering their code.
+
+**Addendum (2026-09-28, v4 audit T45 — BILL-2/BILL-3/ADV-P4-6, R86):** the proof behind decision 1 is the
+**route table**, not a list of controllers. `BillingGateConvention` still removes the two billing controllers,
+but what CI holds is `BillingGateTests.GateOff_NothingUnderTheGatedPrefixes_IsMapped`: the host booted at the
+shipped defaults maps nothing under `api/billing`, `api/public`, `api/apikeys` or `api/webhooks`, by any
+mechanism (a minimal-API group, an action-level absolute route, a differently named controller — the
+adversarial pass had a billing-prefixed group answering 200 next to a 404 on `/api/billing`). The relaxed
+Stripe startup check (the fake provider is tolerated outside Development while the gate is off) depends on
+exactly that proof. The staff **comp/revert** actions under `api/admin` are part of the surface: they answer
+**404 while billing is off**, before the staff check, and the console's block follows `GET /api/features`.
+
+**Addendum (2026-09-28, v4 audit T46 — LB-BILL-21/22/27, R128):** the Stripe mapping **fails safe and
+loud**. A missing `current_period_end` (Stripe.net's field is a non-nullable `DateTime`) is stored as null
+with a Warning, not as the converter's sentinel date (the Unix epoch — which read as a lapsed period: a paying
+tenant on Free, "renews on 1970-01-01", nudged every six hours). A price absent from `Billing:Stripe:Prices` is acknowledged, **not
+applied**, and logged as an Error — never an "active Free" row staff cannot comp around. An event whose
+`livemode` disagrees with the deployment's expectation (`Billing:Stripe:ExpectLiveKey`, else inferred from
+the key prefix) is ignored with a Warning, so a test-mode signing secret in production cannot let Dashboard
+test events move real tenants' plans. Signed fixtures drive all three (`StripeBillingProviderTests`).
+6. **The Free seat limit moves 3 → 5** (`PlanCatalog`, code/config per ADR-006). Three is exactly one
+   family with no headroom, and a pending invitation already consumes a seat.
+
+**Rejected — a runtime toggle on the `/admin` console.** It would need a platform-scoped settings
+table, cross-instance cache invalidation, an audit trail and an admin write endpoint (which ADR-021
+requires be enumerated), and it would downgrade the gate from "the route does not exist" to a
+per-endpoint runtime check that every future billing endpoint must remember to run. It is also a
+footgun once real subscriptions exist: switching billing off does not stop the provider charging.
+The console may display the state **read-only**.
+
+**Rejected — promotional codes attached to an email address.** A code delivered to an inbox proves
+nothing that the passwordless sign-in to that same inbox does not already prove, so it would buy a
+code lifecycle (issuance, redemption, single-use, expiry, revocation) for no additional security.
+
+**Known and accepted:** `TenantService.ReHomeAsync` gives any departing member a fresh tenant-of-one
+they own, so someone who arrived by invitation can end up owning a household. That household's owner
+is not green-listed, so it admits nobody new — the leak is cosmetic, not a hole. *Same family, added by v4
+T64 (AUTH-8, decision #3, 2026-10-01):* an invited-but-unlisted person **founds** their household of one at
+sign-in, before accepting anything — `CreateUserWithTenantAsync` is the single choke point and it always
+provisions tenant + owner membership. If they never accept, the invitation is revoked, or accepting would
+abandon data they have since created (`WouldAbandonData`), that household stays, owned by someone the list
+never named. Deferring the household until the invitation is accepted was considered and rejected: it would
+give every path that mints a user a second shape (a user with no tenant), which the tenant filter, the
+JWT's `tenant_id` claim and the RLS backstop all assume away. The household admits nobody new, same as
+above; it is a cosmetic orphan, not an access path.
+
+**Ports downstream** (`vuelto`, `jigger-jot`) once the platform suite is green, like LOCALCI-3.
+
+> *Numbering note: 025 and 026 are reserved upstream for platform-only work (local CI, the flavors program) that this app does not carry, so the sequence jumps.*
+
+**JJ-036 — The UI adopts design direction 1A, "Back bar": a restyle bound by the handoff's own
+"do not change" list, with four recorded adjustments. (2026-09-13)**
+A second design document arrived (`docs/design/2026-09-backbar-handoff.pdf`, 19 pages): every screen
+restyled — dark as the primary theme with a light counterpart, one display serif, hairline surfaces,
+Marga at the size she was drawn for — with the structure, routes, copy and test ids "unchanged from
+develop". The first proposal (2026-09-10) changed what the screens do and has shipped in full; this
+one changes what they look like. It is adopted as epic `BACKBAR` (`docs/stories/backbar.md`), in the
+document's own order.
+
+*What is binding.* Page 18's list: routes, page parameters, API calls, the makeability and unlock
+logic, Marga's selection rules, optimistic ticks, the pre-paint theme apply, unit conversion,
+localisation keys and every existing `data-testid`. A change that would show up in a behaviour test
+is out of scope — with the one test-mechanics exception below, stated rather than discovered.
+
+*The adjustments, from the review.*
+1. **The catalog chips are three radios**, not two `btn-check` checkboxes with exclusivity
+   re-implemented: `cocktail-makeable`, `cocktail-almost` and a new `cocktail-all`. "They already
+   behave exclusively in code" argues for radio semantics. The hidden input cannot be `check()`ed by
+   Playwright (the INV-3 lesson), so the one journey that drives them clicks labels through a shared
+   `E2ETestBase` helper. One id added, none edited; one new string pair, "Everything", EN and ES.
+2. **Only the selected chip carries a count** — the response's own `total`. Three simultaneous counts
+   would cost two extra requests on every catalog load for numbers the pager already shows, and the
+   document's own rule is "same fetch-once behaviour".
+3. **No popover on the Write row.** The app loads no Bootstrap JS, a popover is a new interaction, and
+   it would put `new-line-role` and `new-line-required` behind an open step. Both stay visible.
+4. **Two strings the document assumes do not exist** ("Make now / One away" as mobile chip labels,
+   and "Marga will tell you if you can pour it"). The chips use the full labels at every width; the
+   footnote is dropped.
+
+*Why the PDF is committed.* The slices cite its pages, and the Claude Design project it came from is
+not versioned. `.gitattributes` already treats PDFs as binary; the `changes` job counts it as docs.
+
+*Consequences.* Seven slices, each one branch off `develop` and one PR (the batching rule lets the
+foundation ride as three commits in one). The ids in the code are the contract — two of the
+document's "keep" lists name ids that do not exist (`write-*`, most of `household-*`), and every list
+is re-derived from the razor when its slice starts. The definition of done on page 18 is the epic's.
+
+*Decided 2026-09-13.*
+
+**JJ-037 — The chrome leaves copper, in both themes; SHELL-1's hierarchy stands in a new colour.
+(2026-09-13)**
+The header and the bottom tab bar move onto the surface colour with a 1px hairline, and the current
+tab gets a 2px copper indicator. Copper is reserved for actions (buttons, the makeable count, Marga's
+advice) — "the copper header is what makes today's app read as a Bootstrap admin" (handoff page 04),
+and the sibling apps' green bars read the same way.
+
+*What this amends and what it keeps.* SHELL-1 settled that the app's three destinations are raised
+above the platform's account cluster at every width, that the current tab is weight plus a drawn
+indicator and never colour alone, and that `aria-current` carries the fact to a screen reader. All of
+that stands; only the ground and the ink change (ink against muted, where it was white against
+white-alpha). The account cluster stays untouched in content, as SHELL-1 decided.
+
+*The test it changes.* `ShellJourneyTests` asserts three literal colours — written against a dark-theme
+bug where `[data-bs-theme="dark"] a` repainted every anchor-shaped button copper. Those three lines
+are rewritten to the invariant they guard: a destination is never fainter than the account buttons,
+and no anchor-shaped button in the bar takes the link colour. The structural assertions (one element
+per id, `aria-current`, no sideways scroll, the payoff footer clearing the tab bar) do not change.
+
+*Consequences.* `navbar-dark` goes and the bar follows `data-bs-theme`. The mark needs a dark-ground
+variant: `icon_dark.svg` is generated from the same source by `docs/brand/build_assets.py`, swapped by
+the `content: url()` pattern the lockups already use, and listed in `REBRANDING.md` §3 — a rebrand
+that skips it ships a bone mark on a white bar.
+
+*Decided 2026-09-13.*
+
+**JJ-038 — One self-hosted display serif, one weight, display only. (2026-09-13; amends JJ-029)**
+Instrument Serif (SIL Open Font License), regular weight only, ships in the RCL's `wwwroot/fonts/`
+with its licence file beside it, declared once in `app.css` and applied through one class,
+`.font-display`. It is for the count, drink names, card headlines and Marga's line — never a label,
+never a control, never below 20px, never bold. Body, controls and meta stay on the system sans, as
+today.
+
+*Why self-hosted.* Both hosts load `app.css` from the RCL, so the face reaches the MAUI shells
+offline and R68 parity is automatic. No request leaves the app for a third party on first paint, which
+a Google Fonts link would add on the one route (login) that is seen before consent to anything.
+`font-display: swap` with Georgia/serif as the fallback, so text is never invisible while it loads.
+
+*The one-weight rule is a gate, not a note.* The face has a single weight and a browser asked for
+bold synthesises one; `fw-bold` sits on 31 elements today. A repo gate in `Api.Tests` refuses
+`font-display` and `fw-bold` on the same element. Only the elements the serif reaches lose `fw-bold`;
+everything in the sans keeps its weight.
+
+*What JJ-029 keeps.* The wordmark (Barlow Semi Condensed, in the rendered PNG lockups) and the
+palette are unchanged; the token values on handoff page 01 are the palette restated per theme, with
+`--surface` added for panels and inputs.
+
+*Decided 2026-09-13.*
+
+**JJ-039 — The UI is the app's own, every screen of it; the backend may be extended but its
+foundation is not changed. (2026-09-13)**
+Handoff pages 16–17 restructure Settings (five cards to two columns, segmented theme and unit
+controls) and Household (six cards to four groups, a `···` row menu), and page 17 restyles the
+notification bell's dropdown. These screens were inherited from `perezosoft-platform`, and the first
+draft of this decision treated them as the platform's — primitives only here, markup upstream first.
+The maintainer corrected that the same day, and the correction is the decision:
+
+*Decision.*
+1. **Every app from the platform owns its UI — all pages, no exceptions.** The RCL is downstream
+   property, the inherited screens included. Settings and Household are restyled **in full** here, to
+   pages 16–17; Billing, Admin, Join, AuthError, the not-found view, the auth callback, the
+   impersonation banner and the error bar — none of which the handoff drew — are restyled to the
+   same language by analogy, with nothing sent upstream and nothing waited for. The sibling apps remain a useful comparison
+   (the last header fix was found by holding the bar next to `vuelto`'s), never a constraint.
+2. **The backend may be extended, never re-founded.** New endpoints, queries, features and
+   contributors are the app's to add (the whole of `CKTL`, `INV`, `MAKE`, `ALMOST` is exactly that);
+   the platform's foundation — auth, tenancy and its walls, the outbox, billing, the RLS backstop,
+   R1–R76 — is a red light. JJ-026 / JJ-028 ("platform wins") is about that foundation and the
+   platform's *mechanics*, not about what a screen looks like.
+3. **This epic touches no backend at all.** A restyle with an API change in it is two slices.
+
+*What the restyle keeps on those pages.* The components' parameters, every existing id, and every
+behaviour: each Settings row still saves on change through the same `PUT`, the segmented theme
+control writes the same preference the header switcher does, the danger zone still opens the existing
+confirm dialog, row actions behind `···` still call what the buttons called. The journeys that drive
+them (roster, membership lifecycle, MFA, notifications, billing, GDPR export) stay green as they are.
+
+*Consequences.* The ladder gains two slices: **BACKBAR-7 Settings + Household** (pages 16–17) and
+**BACKBAR-8 Billing + Admin and every small screen** (not drawn; derived from pages 02 and 16–17),
+with the sweep becoming **BACKBAR-9**. CLAUDE.md's golden rule 8 gains the sentence that keeps this from being
+re-argued: the UI is the app's; the foundation is the platform's.
+
+*Decided 2026-09-13; corrected the same day before publication.*
+
+**JJ-040 — Marga speaks on every app screen that has something true to say; the platform's screens
+stay without her. (2026-09-14; amends MARGA-5's placement rule)**
+MARGA-5 settled where she speaks with a rule — "where a number needs interpreting, and quiet where
+the screen already says it plainly, one page-level Marga per screen" — and used it to keep her off a
+recipe more than one bottle away, the plain catalog, and the write form. The maintainer asked for
+more of her on the app's own screens and chose the four places, keeping the platform screens
+(Settings, Household, Billing, Admin) as they are.
+
+*Decision.*
+1. **She speaks on:** a recipe two or more bottles short (she names the missing required lines — all
+   of them up to three, the count and the first two past that); the catalog under Everything and under
+   any filter or search (the total read against how many of those the shelf can pour); a shelf search
+   that matches no bottle on the list (a 32px inline line offering to add it); and the write form (the
+   bottles on the shelf to write with).
+2. **The contract does not move.** Every sentence is one whole resource string with real data in its
+   placeholders — lines the API marked missing, a count the API returned, the typed term, the ticked
+   bottles. No model, no generated text, nothing she decides. Lists of two or three names use their
+   own whole patterns ("{0} and {1}") rather than a joined fragment.
+3. **One page-level Marga per screen still holds.** Under One ingredient away the count stays plain,
+   because her panel already speaks there; the shelf's no-match line is inline, beside the page-level
+   line at the top.
+4. **The browse count costs one request, asked the same question.** The pourable figure is the
+   makeable filter's own total for the same search and filters (`pageSize=1`), behind the same request
+   ticket as the list; if it fails the plain count stands.
+
+*Consequences.* MARGA-6 in `docs/stories/marga.md`; QA-CHROME-11 and -12 amended and QA-CHROME-26
+added. MARGA-5's "where she deliberately does not go" now reads as history: the plain browse, the
+far-away recipe and the authoring form are hers; every platform screen still is not.
+
+*Decided 2026-09-14.*
+
+**JJ-041 — Every volume is stored in ounces; a reader sees ounces or millilitres, never parts.
+(2026-09-15; amends JJ-007, JJ-008 and PREFS-2)**
+JJ-007 stored amounts as authored, so a 1930 recipe reached the screen as "2/3 part" and "1 wineglass"
+and the IBA's specifications as millilitres. The maintainer found parts hard to read, and 567 of the
+Savoy's 868 recipes are proportional, so the problem grows with the catalog. Converting at display
+alone could not settle it: the exact 29.5735 ml ounce turned 2 oz into 59 ml, and a proportional
+recipe has no volume until someone decides what one drink is.
+
+*Decision (the maintainer's, taken question by question).*
+1. **Stored in ounces, on the quarter marks of a jigger.** Millilitres, centilitres and the other
+   volumes are converted and rounded — so the IBA's 20 ml and 25 ml both become 3/4 oz, because no
+   modern bar book writes 5/6 oz. Never rounded to nothing: the smallest amount is 1/4 oz.
+2. **An ounce is 30 ml.** The bar's ounce, not the exact one: 1 1/2 oz reads as 45 ml, 3/4 oz as
+   22.5 ml, which is what a metric bar book says.
+3. **Parts share a three-ounce drink** (2/3 absinthe, 1/6 gin, 1/6 anisette → 2, 1/2, 1/2 oz), and a
+   recipe whose fractions do not add up to one keeps its ratio.
+4. **The period glasses are volumes too:** a glass and a wineglass are 2 oz, a liqueur glass 1 oz —
+   the readings the old bar books give. A batch recipe keeps its proportions; its total may differ
+   from what the book meant.
+5. **Teaspoons and tablespoons stay** — they are universal — and so do dashes, barspoons and the other
+   neutral units.
+6. **Two choices, imperial the default.** "As written" is gone: with everything stored in ounces it
+   would only ever mean imperial. A null preference reads as imperial and the profile says so; clearing
+   the preference is a 400.
+7. **The authoring form offers the writer's own volume unit** (oz or ml, never a part or a glass) and
+   stores ounces.
+8. **One implementation.** `BarMeasure` in Core holds the table and the rounding; the seeder and the
+   authoring handler write through it and `AmountDisplay` reads through it. The one-off migration that
+   converts existing rows is a frozen SQL copy, held to `BarMeasure` by a test.
+
+*Consequences.* The seed file (`cocktails.json`) keeps the books' amounts; the table keeps ounces, so
+the extraction is still the record of what each book wrote. The migration has no way down. The
+`Unit` rows keep their exact millilitre factors, which no recipe reads any more. PREFS-3 in
+`docs/stories/prefs.md`; QA-CAT-07 rewritten and QA-CAT-10 added; CLAUDE.md's golden rule 4 restated.
+
+*Decided 2026-09-15.*
+
+**ADR-028 — The self-hosted Forgejo is the primary forge and runs the full CI/CD; GitHub stays a mirror whose own CI runs only when pushed to on purpose (LOCALCI-4). (2026-09-16) — SUPERSEDED by ADR-030 (2026-10-02)**
+The maintainer moved day-to-day git to a private Forgejo on the Windows desk (WSL2 + Docker, reachable over
+Tailscale) so that routine pushes cost nothing and leave nothing on a third-party server. GitHub keeps the
+repository — Render builds from it, and pushing there on purpose still runs the GitHub pipeline unchanged.
+The Forgejo pipeline must do everything the GitHub one does, deploys included. This supersedes
+LOCALCI-1's approach (route GitHub Actions to self-hosted runners) for this repo: the runners belong to
+Forgejo, and GitHub keeps its hosted ones.
+
+**Decision:**
+1. **Two workflow files, held together by a test.** `.forgejo/workflows/ci.yml` is a copy of
+   `.github/workflows/ci.yml` (each forge reads only its own directory once `.forgejo/workflows` exists).
+   `ForgejoCiParityTests` (**R80**) fails when the job list, a `runs-on` line, a pinned version or the change
+   classifier differs; the LOCALCI-3 gate tests run against both files. Every deliberate difference is
+   marked `LOCALCI-4:` in the copy.
+2. **The runners carry the hosted labels.** `ubuntu-latest` is a container image
+   (`forgejo-ci/ubuntu:24.04`: catthehacker's act image + Docker CLI, PowerShell, `gh`, JDK 17, the Android
+   SDK with the smoke's system image, the pinned .NET SDK and Android workload) on the WSL runner, which runs
+   jobs inside Docker-in-Docker with host networking and `/dev/kvm` passed through. Every WSL job shares that
+   one network namespace, so the two jobs that bind fixed ports (`e2e`, `native-smoke-android`) use
+   `ubuntu-host-ports` — the same image on a second WSL runner that takes one job at a time, which also
+   serializes them across runs and repos. That is the only `runs-on` difference the parity test allows, and
+   it fails for any Linux job with service containers left on the shared runner. `windows-latest` is the
+   Windows desk in host mode (a logon task, so WebView2 has a session). `macos-26` will be the MacBook.
+   Identical labels are what make `runs-on` comparable line for line.
+3. **Apple jobs require `vars.CI_MACOS_RUNNER`.** A job whose label no runner carries queues forever on
+   Forgejo (GitHub would expire it in 24 h), so until the Mac is registered the Apple legs are skipped.
+4. **Deploys publish to `deploy/*` branches on GitHub.** Render only builds from GitHub, and GitHub's
+   `ci.yml` only triggers on `main`, `develop` and pull requests. The deploy job force-pushes the tested
+   commit to `deploy/staging` (or `deploy/prod`) with a token scoped to that repository, fires the Render
+   hook, and runs the same `deploy-smoke.sh`. Each Render service tracks its `deploy/*` branch with
+   auto-deploy off. No GitHub Actions run for a deploy.
+5. **Prod is a manual dispatch.** Forgejo has no Environments and no required reviewers. `deploy-prod` runs
+   only on `workflow_dispatch` from `main`; a push to `main` runs every gate and deploys nothing. The
+   dispatched run re-runs the gates first (`changes` fails open without a diff base).
+6. **GitHub's deploy hooks are removed from GitHub.** With both pipelines holding the hook, a deliberate push
+   to GitHub's `develop` would fire a second deploy of whatever `deploy/staging` holds. Without the secret,
+   GitHub's deploy jobs already skip with a notice (DEPLOY-3's opt-in design) — a settings change, not a
+   code change.
+
+**Consequences.** The desk is now a deploy path: deploys need the laptop on (the accepted trade-off of
+SETUP.md; GitHub stays the emergency route — restore the hook secret there and push). Runners are not
+clean machines: the smoke's Postgres is recreated per run, port-binding Linux jobs queue behind each other,
+and the image's SDK/workload pins join the CLAUDE.md
+bump-together playbook. The Render deploy-hook and the GitHub mirror token live in Forgejo's secrets only.
+
+**Rejected — one shared, forge-aware `ci.yml`.** It would remove the duplication but thread
+`github.server_url` conditions through the file GitHub runs today, for every future reader of both.
+**Rejected — pushing `develop` to GitHub to deploy.** It runs the whole GitHub pipeline, and its deploy job,
+on every deploy. **Rejected — image-backed Render services.** Faster builds, but it means new services, a
+registry account, and losing the "redeploy from GitHub" escape hatch; revisit if Render's build time bites.
+
+**Addendum (2026-09-16, same day, after the first green runs) — deploys and smokes are on demand; the
+deploy pushes the real branch to GitHub; points 4–6 above are superseded.** Two things became clear once
+the pipeline ran on one machine: (a) a develop push that runs the emulator and the WebView2 smoke every
+time costs 20 minutes of a laptop the maintainer is also working on, for legs that rarely change; and
+(b) keeping GitHub deploying too was wanted after all ("I don't mind if GitHub deploys again when I push"),
+which makes the `deploy/*` branches pointless — Render can follow only one branch, and it stays on
+`develop`. So:
+- **Pushes and PRs run the gates, `e2e` and the native *builds* only** (≈10 min). The native **smokes**
+  run from `workflow_dispatch` (`smokes` = windows | android | apple | all) and on the Monday schedule.
+  The builds stay per push on purpose: they are free in wall clock and catch compile rot within one merge.
+- **Deploys run only from `workflow_dispatch`** (`deploy` = staging on `develop` | prod on `main`), never on
+  a push, and only after every gate and every smoke *selected in that run* is green (a smoke not selected
+  is skipped, and a skip is not a failure). Staging no longer tracks `develop` automatically: the
+  maintainer decides when.
+- **The deploy pushes the commit to the same branch on GitHub** — a plain fast-forward, never forced; if
+  GitHub is ahead the deploy stops and says so — then fires the hook and runs the shared smoke. GitHub's
+  pipeline runs on that push and re-deploys the same commit; accepted as harmless. GitHub keeps its hook,
+  Render keeps `develop`, nothing to reconfigure. "The deploy from Forgejo" and "the push to GitHub" are
+  the same button.
+- The earlier rejection of "pushing `develop` to GitHub to deploy" is withdrawn: its cost (GitHub's run
+  and second deploy) was re-weighed against the operational simplicity and accepted.
+
+**Addendum (2026-09-22) — a commit that is already green can be deployed without re-running its gates.**
+Three repos now share one desk. A deploy dispatch re-ran every gate on a commit whose merge run had gone
+green minutes earlier: ~10 minutes of a laptop the maintainer is also working on, for an answer already
+known. `.forgejo/workflows/deploy.yml` (dispatch only, Forgejo only) deploys such a commit directly — but it
+does not take anyone's word for it: it asks this instance's own Actions API which jobs ran for THAT commit
+and requires `changes`, `build-test`, `secret-scan`, `qa-artifacts`, `license-scan`, `docker-build`, `e2e`
+and both `native-build` legs to have a success. A missing job, a failure, a docs-only run that skipped the
+gates, or an API it cannot reach all stop the deploy and point back to `ci.yml`'s `deploy` input, which
+runs the gates itself. The job token can read that API and write nothing (probed 2026-09-22).
+Publishing is unchanged and shared: `push-to-github.sh` (fast-forward, never forced), the Render hook, then
+`deploy-smoke.sh`. Native smokes are not required, exactly as in `ci.yml`'s deploy jobs — the Monday
+schedule and the `smokes` input remain how those are proven. `ForgejoCiParityTests` pins the guard, the
+dispatch-only trigger and the shared script.
+**Rejected — a `skip_gates` input on `ci.yml`.** Same saving, but it would thread "was this skipped?"
+through every gate's `if:` and every deploy `needs:`, and one careless edit would turn the deploy's
+"everything green" rule into "nothing ran". A separate file cannot weaken the existing one.
+
+**Ported to jigger-jot (2026-09-22).** Forgejo repo `argamboad/jigger-jot`, GitHub mirror of the same name;
+Render `jiggerjot-staging` stays on GitHub's `develop` with auto-deploy turned OFF for the move (it used to
+deploy every GitHub commit, red ones included), so the Forgejo deploy and a deliberate `git push github develop`
+are its only triggers. Runbook: `DEPLOYMENT.md` §10. The Forgejo `ci.yml` is the platform's GitHub→Forgejo
+changes three-way-merged onto this repo's own `ci.yml`; the three conflicts were this repo's `smoke` dispatch
+input, which the Forgejo copy replaces with its `smokes`/`deploy` inputs. Carried over from vuelto's port: the
+Android smoke waits for the install's broadcasts before launching the app (a late PACKAGE_ADDED relaunches
+the running activity on the slower Forgejo emulator) and opens the hamburger before the header's Household
+link; the device-log upload is `upload-artifact@v3` on Forgejo.
+
+**ADR-030 — GitHub is the forge again; Forgejo is retired (supersedes ADR-028). (2026-10-02)**
+Forgejo ran on the maintainer's work laptop, and a reboot or a Docker Desktop restart could stop CI
+(the 2026-10-02 morning: the Linux runner's Docker-in-Docker had restarted 187 times). An always-on
+machine at home is not in sight, so the forge goes back to GitHub:
+
+1. **`origin` is GitHub** (private) for code, PRs, merges and issues. The Forgejo issues were migrated
+   with their comments, labels and milestones; each GitHub issue's footer names its Forgejo number,
+   which old commit messages cite.
+2. **Forgejo is archived read-only, its runners are stopped.** It stays up as the rollback until it is
+   switched off; its encrypted backup is the frozen copy.
+3. **The repo is private, so every Actions minute is billed** (Free plan, 2,000 minutes a month, a $0
+   budget that stops runs at the limit). On 2026-10-01 one deploy round cost ~600 minutes, so the `CI`
+   workflow is **disabled until a CI rebuild**, whose agreed direction is: PRs and merges run backend +
+   web UI only (build-test, the scans, docker-build, e2e); every **device leg** (Windows, Linux-native,
+   macOS, iOS, Android builds and smokes) and every Render deploy runs only from a manual *Run workflow*.
+   The rebuild gets its own ADR (it amends NATIVE-1 and LOCALCI-3) and deletes `.forgejo/`,
+   `ForgejoCiParityTests` and R80; until then they stay, unused.
+4. **No branch protection:** a private repo on GitHub Free has neither branch protection nor rulesets.
+   Decided in ADR-031: none, the repos stay private.
+
+**Consequences.** DEPLOYMENT §10 and the LOCALCI-4 story are history. The Postman workspace sync runs
+from GitHub on every `develop` change. The platform and its downstream apps share this ADR.
+
+**ADR-031 — CI on billed minutes: pull requests run the web gates only; the device legs and every deploy run on request. (2026-10-02)**
+The repos are private (ADR-030), so every Actions minute is billed against 2,000 a month, and one develop push
+used to cost 57–147 of them (macOS bills 10×, Windows 2×). The maintainer manages the minutes by hand, and the CI
+says so:
+
+1. **Triggers:** `pull_request` into `develop`/`main`, and `workflow_dispatch`. No push trigger — a merge runs
+   nothing, its pull request already did — and no schedule.
+2. **A pull request runs the web gates only:** `changes`, `secret-scan` and `qa-artifacts` always (a docs-only
+   change can leak a credential or desync the QA PDFs), and `build-test`, `license-scan`, `docker-build`, `e2e`
+   when code changed. e2e runs as ONE shard: on hosted runners every shard boots the stack again, and that
+   setup cost more than the wall-clock it saved.
+3. **The device legs run only from *Run workflow* → `devices`** (android / windows / apple / all): the MAUI
+   builds, the Release APK and the three native smokes. This amends NATIVE-1 (ADR-018: "a change that breaks
+   the native build fails the PR") and LOCALCI-3's per-push Apple build: a change that can affect the MAUI app
+   is no longer proven by its PR. The maintainer runs them periodically and before a release. There is no
+   Linux desktop flavor (MAUI has no Linux target; the web app and the Flavors fronts cover it).
+4. **Deploys run only from *Run workflow* → `deploy`:** staging from `develop`, prod from `main` (a wrong
+   branch fails loudly). That run re-runs every web gate and deploys only if all pass — deploys are rare, and
+   re-testing beats trusting a merge commit. Choosing `prod` is the approval: GitHub Free has no Environment
+   reviewers on a private repo. The device legs are not in the deploy's needs (a native result must not block
+   a web deploy, ADR-018).
+5. **Cost hygiene:** `timeout-minutes` on every job, a NuGet cache keyed on the lockfiles, 3-day artifact
+   retention, and a new push to a pull request cancels its previous run.
+6. **No branch protection** (ADR-030's open point, decided): the repos stay private on GitHub Free.
+7. **`.forgejo/` is gone**, with `ForgejoCiParityTests`, the Forgejo branch-protection script and the
+   Forgejo-only CI-logic targets; rules **R80 and R138 retire**, **R98, R137 and R139** now speak of the one
+   workflow, and `CiWorkflowTests` holds this shape.
+
+**Consequences.** A pull request costs roughly 25–35 minutes, a docs-only one a few. The `changes` job's
+classifier still reports `native`/`maui` for the record. The platform and its downstream apps share this ADR.

@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Common_Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Plan_free" xml:space="preserve"><value>Free</value></data>
+  <data name="Plan_pro" xml:space="preserve"><value>Pro</value></data>
+  <data name="BillingStatus_none" xml:space="preserve"><value>No subscription</value></data>
+  <data name="BillingStatus_free" xml:space="preserve"><value>Free</value></data>
+  <data name="BillingStatus_active" xml:space="preserve"><value>Active</value></data>
+  <data name="BillingStatus_trialing" xml:space="preserve"><value>Trial</value></data>
+  <data name="BillingStatus_past_due" xml:space="preserve"><value>Past due</value></data>
+  <data name="BillingStatus_canceled" xml:space="preserve"><value>Canceled</value></data>
+  <data name="BillingStatus_incomplete" xml:space="preserve"><value>Incomplete</value></data>
+  <data name="BillingStatus_unpaid" xml:space="preserve"><value>Unpaid</value></data>
+  <data name="Pref_SyncFailed" xml:space="preserve"><value>Preference didn’t sync to your account — try again.</value></data>
+  <data name="Theme_Label" xml:space="preserve"><value>Theme</value></data>
+  <data name="Theme_System" xml:space="preserve"><value>Auto</value></data>
+  <data name="Theme_Light" xml:space="preserve"><value>Light</value></data>
+  <data name="Theme_Dark" xml:space="preserve"><value>Dark</value></data>
+  <data name="Login_Title" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Login_Subtitle" xml:space="preserve"><value>Choose how you'd like to continue</value></data>
+  <data name="Login_ContinueWith" xml:space="preserve"><value>Continue with {0}</value></data>
+  <data name="Login_OrWithEmail" xml:space="preserve"><value>or sign in with email</value></data>
+  <data name="Login_EmailLabel" xml:space="preserve"><value>Email address</value></data>
+  <data name="Login_EmailInvalid" xml:space="preserve"><value>Enter a valid email address.</value></data>
+  <data name="Login_SendMagicLink" xml:space="preserve"><value>Email me a magic link</value></data>
+  <data name="Login_SendOtp" xml:space="preserve"><value>Email me a 6-digit code</value></data>
+  <data name="Login_InboxTitle" xml:space="preserve"><value>Check your inbox.</value></data>
+  <data name="Login_MagicLinkSent" xml:space="preserve"><value>A sign-in link was sent to {0}. It expires in 15 minutes.</value></data>
+  <data name="Login_UseDifferentEmail" xml:space="preserve"><value>Use a different email</value></data>
+  <data name="Login_OtpPrompt" xml:space="preserve"><value>Enter the 6-digit code sent to {0}.</value></data>
+  <data name="Login_VerifyCode" xml:space="preserve"><value>Verify code</value></data>
+  <data name="Login_ErrSomethingWrong" xml:space="preserve"><value>Something went wrong. Please try again.</value></data>
+  <data name="Login_ErrSignupNotAllowed" xml:space="preserve"><value>This app is in private testing and isn't accepting new accounts yet. If someone invited you, ask them to send the invitation again.</value></data>
+  <data name="Login_ErrExternalFailed" xml:space="preserve"><value>Sign-in with the external provider failed. Please try again.</value></data>
+  <data name="Login_ErrEmailUnverified" xml:space="preserve"><value>Your provider hasn't verified this email address, so it can't be attached to an existing account.</value></data>
+  <data name="Login_ErrInvalidLink" xml:space="preserve"><value>This sign-in link has expired or was already used. Request a new one.</value></data>
+  <data name="Login_ErrCouldntSendLink" xml:space="preserve"><value>Couldn't send the link. Please try again.</value></data>
+  <data name="Login_ErrCouldntSendCode" xml:space="preserve"><value>Couldn't send the code. Please try again.</value></data>
+  <data name="Login_ErrCodeIncorrect" xml:space="preserve"><value>That code is incorrect or has expired.</value></data>
+  <data name="Login_ErrTooManyAttempts" xml:space="preserve"><value>Too many attempts. Please wait a few minutes, then request a new code.</value></data>
+  <data name="Login_ErrVerificationFailed" xml:space="preserve"><value>Verification failed. Please try again.</value></data>
+  <data name="Login_ErrTooManyRequests" xml:space="preserve"><value>Too many requests. Please wait a minute, then try again.</value></data>
+  <data name="Login_ErrEnterCode" xml:space="preserve"><value>Enter the code from your email.</value></data>
+  <data name="Login_ErrOAuthCancelled" xml:space="preserve"><value>Sign-in was cancelled or didn't complete. Please try again.</value></data>
+  <data name="Login_ErrOAuthResumeExpired" xml:space="preserve"><value>Your sign-in took too long to complete. Please try again.</value></data>
+  <data name="Common_Loading" xml:space="preserve"><value>Loading…</value></data>
+  <data name="Common_Working" xml:space="preserve"><value>Working…</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Login_MfaPrompt" xml:space="preserve"><value>Enter the 6-digit code from your authenticator app (or a recovery code).</value></data>
+  <data name="Mfa_Title" xml:space="preserve"><value>Two-factor authentication</value></data>
+  <data name="Mfa_Subtitle" xml:space="preserve"><value>Add a second step at sign-in using an authenticator app (TOTP).</value></data>
+  <data name="Mfa_On" xml:space="preserve"><value>On</value></data>
+  <data name="Mfa_Off" xml:space="preserve"><value>Off</value></data>
+  <data name="Mfa_Enable" xml:space="preserve"><value>Enable two-factor</value></data>
+  <data name="Mfa_Step1" xml:space="preserve"><value>Scan the QR code with your authenticator app, or enter the key manually.</value></data>
+  <data name="Mfa_Step2" xml:space="preserve"><value>Enter the 6-digit code it shows to confirm.</value></data>
+  <data name="Mfa_ManualKey" xml:space="preserve"><value>Or enter this key manually:</value></data>
+  <data name="Mfa_EnterCode" xml:space="preserve"><value>Verification code</value></data>
+  <data name="Mfa_Verify" xml:space="preserve"><value>Verify &amp; enable</value></data>
+  <data name="Mfa_EnabledNow" xml:space="preserve"><value>Two-factor authentication is now on.</value></data>
+  <data name="Mfa_RecoveryIntro" xml:space="preserve"><value>Save these recovery codes somewhere safe — each works once if you lose your authenticator. They won't be shown again.</value></data>
+  <data name="Mfa_SavedCodes" xml:space="preserve"><value>I've saved my codes</value></data>
+  <data name="Mfa_Disable" xml:space="preserve"><value>Disable two-factor</value></data>
+  <data name="Mfa_DisablePrompt" xml:space="preserve"><value>Enter a code from your app (or a recovery code) to turn it off.</value></data>
+  <data name="Mfa_ConfirmDisable" xml:space="preserve"><value>Disable</value></data>
+  <data name="Mfa_ErrLoad" xml:space="preserve"><value>Couldn't load your two-factor status.</value></data>
+  <data name="Mfa_ErrEnroll" xml:space="preserve"><value>Couldn't start enrollment. Please try again.</value></data>
+  <data name="Mfa_ErrEnterCode" xml:space="preserve"><value>Enter the code first.</value></data>
+  <data name="Mfa_ErrCodeIncorrect" xml:space="preserve"><value>That code is incorrect or has expired.</value></data>
+  <data name="Mfa_ErrDisable" xml:space="preserve"><value>Couldn't disable two-factor. Please try again.</value></data>
+  <data name="Notif_Title" xml:space="preserve"><value>Notifications</value></data>
+  <data name="Notif_MarkAllRead" xml:space="preserve"><value>Mark all read</value></data>
+  <data name="Notif_ClearRead" xml:space="preserve"><value>Clear read</value></data>
+  <data name="Notif_ClearAll" xml:space="preserve"><value>Clear all</value></data>
+  <data name="Notif_Delete" xml:space="preserve"><value>Delete notification</value></data>
+  <data name="Notif_Empty" xml:space="preserve"><value>You're all caught up.</value></data>
+  <data name="Notif_JustNow" xml:space="preserve"><value>just now</value></data>
+  <data name="NotifPrefs_Title" xml:space="preserve"><value>Notifications</value></data>
+  <data name="NotifPrefs_Subtitle" xml:space="preserve"><value>Choose how you'd like to be notified.</value></data>
+  <data name="NotifPrefs_InApp" xml:space="preserve"><value>In-app notifications</value></data>
+  <data name="NotifPrefs_Email" xml:space="preserve"><value>Email notifications</value></data>
+  <data name="NotifPrefs_ErrLoad" xml:space="preserve"><value>Couldn't load your notification preferences.</value></data>
+  <data name="NotifPrefs_ErrSave" xml:space="preserve"><value>Couldn't save your preferences. Please try again.</value></data>
+  <data name="Nav_Admin" xml:space="preserve"><value>Admin</value></data>
+  <data name="Impersonation_Banner" xml:space="preserve"><value>You are viewing the app as {0}.</value></data>
+  <data name="Impersonation_Stop" xml:space="preserve"><value>Stop impersonating</value></data>
+  <data name="Admin_Title" xml:space="preserve"><value>Admin console</value></data>
+  <data name="Admin_Subtitle" xml:space="preserve"><value>Platform-staff back office — inspect tenants and sign in as a user.</value></data>
+  <data name="Admin_Forbidden" xml:space="preserve"><value>You don't have access to the admin console.</value></data>
+  <data name="Admin_BackHome" xml:space="preserve"><value>Back to home</value></data>
+  <data name="Admin_TenantsTitle" xml:space="preserve"><value>Tenants</value></data>
+  <data name="Admin_NoTenants" xml:space="preserve"><value>No tenants.</value></data>
+  <data name="Admin_SelectTenant" xml:space="preserve"><value>Select a tenant to see its details.</value></data>
+  <data name="Admin_Created" xml:space="preserve"><value>Created</value></data>
+  <data name="Admin_AuditEvents" xml:space="preserve"><value>Audit events</value></data>
+  <data name="Admin_Members" xml:space="preserve"><value>Members</value></data>
+  <data name="Admin_ColMember" xml:space="preserve"><value>Member</value></data>
+  <data name="Admin_ColRole" xml:space="preserve"><value>Role</value></data>
+  <data name="Admin_Impersonate" xml:space="preserve"><value>Sign in as</value></data>
+  <data name="Admin_ConfirmImpersonate" xml:space="preserve"><value>Sign in as {0}? Actions you take will be recorded against them.</value></data>
+  <data name="Admin_ErrLoad" xml:space="preserve"><value>Couldn't load tenants.</value></data>
+  <data name="Admin_ErrDetail" xml:space="preserve"><value>Couldn't load tenant details.</value></data>
+  <data name="Admin_ErrImpersonate" xml:space="preserve"><value>Couldn't start impersonation.</value></data>
+  <data name="Admin_AnnounceTitle" xml:space="preserve"><value>Send announcement</value></data>
+  <data name="Admin_AnnounceTitlePlaceholder" xml:space="preserve"><value>Title</value></data>
+  <data name="Admin_AnnounceBodyPlaceholder" xml:space="preserve"><value>Message</value></data>
+  <data name="Admin_AnnounceSend" xml:space="preserve"><value>Send to all members</value></data>
+  <data name="Admin_ConfirmAnnounce" xml:space="preserve"><value>Send this announcement to all members of "{0}"?</value></data>
+  <data name="Admin_AnnounceSent" xml:space="preserve"><value>Announcement sent to {0} member(s).</value></data>
+  <data name="Admin_ErrAnnounce" xml:space="preserve"><value>Couldn't send the announcement.</value></data>
+  <data name="Admin_SubscriptionTitle" xml:space="preserve"><value>Subscription</value></data>
+  <data name="Admin_CompPro" xml:space="preserve"><value>Upgrade to Pro (comp)</value></data>
+  <data name="Admin_RevertFree" xml:space="preserve"><value>Revert to Free</value></data>
+  <data name="Admin_ProviderManaged" xml:space="preserve"><value>Managed by the billing provider — change the plan there.</value></data>
+  <data name="Admin_ConfirmComp" xml:space="preserve"><value>Put "{0}" on the Pro plan at no charge?</value></data>
+  <data name="Admin_ConfirmRevert" xml:space="preserve"><value>Revert "{0}" to the Free plan?</value></data>
+  <data name="Admin_SubscriptionUpdated" xml:space="preserve"><value>Subscription updated.</value></data>
+  <data name="Admin_ErrSubscription" xml:space="preserve"><value>Couldn't update the subscription.</value></data>
+  <data name="Admin_AnnounceSendSelected" xml:space="preserve"><value>Send to {0} selected</value></data>
+  <data name="Admin_ConfirmAnnounceSelected" xml:space="preserve"><value>Send this announcement to {0} selected member(s) of "{1}"?</value></data>
+  <data name="Admin_BroadcastTitle" xml:space="preserve"><value>Announce to everyone</value></data>
+  <data name="Admin_BroadcastHint" xml:space="preserve"><value>Sends a notification to every user of every tenant on the platform. Delivery is queued and processed in the background.</value></data>
+  <data name="Admin_BroadcastSend" xml:space="preserve"><value>Send to everyone</value></data>
+  <data name="Admin_ConfirmBroadcast" xml:space="preserve"><value>Send this announcement to EVERY user of EVERY tenant on the platform?</value></data>
+  <data name="Admin_BroadcastQueued" xml:space="preserve"><value>Broadcast queued for delivery.</value></data>
+  <data name="Admin_ErrBroadcast" xml:space="preserve"><value>Couldn't queue the broadcast.</value></data>
+  <data name="Admin_ResetMfa" xml:space="preserve"><value>Reset MFA</value></data>
+  <data name="Admin_ConfirmResetMfa" xml:space="preserve"><value>Reset two-factor authentication for {0}? Their authenticator and recovery codes stop working immediately and they will be notified. Only do this after verifying their identity out-of-band.</value></data>
+  <data name="Admin_MfaWasReset" xml:space="preserve"><value>Two-factor authentication was reset for {0}.</value></data>
+  <data name="Admin_ErrResetMfa" xml:space="preserve"><value>Couldn't reset two-factor authentication.</value></data>
+  <data name="Nav_Home" xml:space="preserve"><value>Home</value></data>
+  <data name="Nav_Household" xml:space="preserve"><value>Household</value></data>
+  <data name="Nav_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Nav_Billing" xml:space="preserve"><value>Billing</value></data>
+  <data name="Billing_Title" xml:space="preserve"><value>Billing</value></data>
+  <data name="Billing_Subtitle" xml:space="preserve"><value>Your plan, usage, and subscription.</value></data>
+  <data name="Billing_CurrentPlan" xml:space="preserve"><value>Current plan</value></data>
+  <data name="Billing_RenewsOn" xml:space="preserve"><value>Renews or ends on {0}.</value></data>
+  <data name="Billing_EndedOn" xml:space="preserve"><value>Your paid subscription ended on {0}. Upgrade any time to start a new one.</value></data>
+  <data name="Billing_Seats" xml:space="preserve"><value>Seats</value></data>
+  <data name="Billing_SeatsUsage" xml:space="preserve"><value>{0} of {1} used</value></data>
+  <data name="Billing_Upgrade" xml:space="preserve"><value>Upgrade to Pro</value></data>
+  <data name="Billing_Manage" xml:space="preserve"><value>Manage subscription</value></data>
+  <data name="Billing_OwnerOnly" xml:space="preserve"><value>Only the household owner can manage billing. Ask them if you need a plan change.</value></data>
+  <data name="Billing_ErrLoad" xml:space="preserve"><value>Couldn't load billing.</value></data>
+  <data name="Billing_ErrCheckout" xml:space="preserve"><value>Couldn't start checkout.</value></data>
+  <data name="Billing_ErrPortal" xml:space="preserve"><value>Couldn't open the billing portal.</value></data>
+  <data name="Billing_CheckoutSuccess" xml:space="preserve"><value>Payment received. Your plan updates as soon as the provider confirms it — usually within a few seconds.</value></data>
+  <data name="Billing_CheckoutCancelled" xml:space="preserve"><value>Checkout cancelled — nothing changed.</value></data>
+  <data name="Nav_SignOut" xml:space="preserve"><value>Sign out</value></data>
+  <data name="Nav_AccountMenu" xml:space="preserve"><value>Account menu</value></data>
+  <data name="Home_HeroSubtitle" xml:space="preserve"><value>Sign in to get started with your household.</value></data>
+  <data name="Home_SignInCta" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Home_MakeableLabel" xml:space="preserve"><value>drinks you can pour right now</value></data>
+  <data name="Home_ShowMakeable" xml:space="preserve"><value>Show me them</value></data>
+  <data name="Home_UpdateShelf" xml:space="preserve"><value>Update the shelf</value></data>
+  <data name="Home_ShowAlmost" xml:space="preserve"><value>See what else is close</value></data>
+  <data name="Marga_HomeAside" xml:space="preserve"><value>Marga · checked your shelf a moment ago</value></data>
+  <data name="Marga_HomeBottle" xml:space="preserve"><value>Pick up {0} and I can make you {1} more.</value></data>
+  <data name="Marga_HomeNoBottle" xml:space="preserve"><value>That is everything your shelf reaches, for now.</value></data>
+  <data name="Marga_HomeEmpty" xml:space="preserve"><value>Nothing yet. Tell me what is on your shelf and I will take it from there.</value></data>
+  <data name="Marga_StarterBottle" xml:space="preserve"><value>Starting from nothing? Get {0}. More of these recipes ask for it than for any other bottle — {1} of them.</value></data>
+  <data name="Marga_ShelfEmpty" xml:space="preserve"><value>Tick whatever you already have — even three bottles gets us somewhere. If you are buying, {0} is where I would start.</value></data>
+  <data name="Marga_ShelfNext" xml:space="preserve"><value>One bottle from {1} more drinks: {0}. Tick it the day you get it.</value></data>
+  <data name="Marga_ShelfReached" xml:space="preserve"><value>That is everything your shelf reaches. Add anything new and I will tell you what it opens.</value></data>
+  <data name="Marga_MakeableCount" xml:space="preserve"><value>{0} tonight, with what you already have.</value></data>
+  <data name="Marga_UnlocksHeadline" xml:space="preserve"><value>Buy {0} and {1} of these open up.</value></data>
+  <data name="Marga_RecipeMakeable" xml:space="preserve"><value>You can pour this one right now.</value></data>
+  <data name="Marga_RecipeOneAway" xml:space="preserve"><value>All you are missing is {0}.</value></data>
+  <data name="Marga_OnboardStaples" xml:space="preserve"><value>Let us do the quick version. I have ticked what most bars keep — untick anything you do not have.</value></data>
+  <data name="Marga_OnboardRest" xml:space="preserve"><value>Now anything else. Skip this if you would rather get to the drinks; you can add to it whenever.</value></data>
+  <data name="Onboard_Title" xml:space="preserve"><value>Set up your shelf</value></data>
+  <data name="Onboard_MargaAside" xml:space="preserve"><value>Marga · behind the bar</value></data>
+  <data name="Onboard_Step" xml:space="preserve"><value>Step {0} of {1}</value></data>
+  <data name="Onboard_StaplesHeading" xml:space="preserve"><value>The usual suspects</value></data>
+  <data name="Onboard_StaplesBody" xml:space="preserve"><value>These are the bottles the most recipes ask for. Untick whatever you do not have.</value></data>
+  <data name="Onboard_RestHeading" xml:space="preserve"><value>Anything else on your shelf</value></data>
+  <data name="Onboard_RestBody" xml:space="preserve"><value>Optional. Search for a bottle or tick your way down.</value></data>
+  <data name="Onboard_NothingToSuggest" xml:space="preserve"><value>Your shelf already covers everything these recipes ask for.</value></data>
+  <data name="Onboard_Back" xml:space="preserve"><value>Back</value></data>
+  <data name="Onboard_Next" xml:space="preserve"><value>Next</value></data>
+  <data name="Onboard_Finish" xml:space="preserve"><value>Save my shelf</value></data>
+  <data name="Onboard_Skip" xml:space="preserve"><value>Skip for now</value></data>
+  <data name="Onboard_SetUpShelf" xml:space="preserve"><value>Set up my shelf</value></data>
+  <data name="AuthCallback_Processing" xml:space="preserve"><value>Processing sign-in…</value></data>
+  <data name="AuthError_Title" xml:space="preserve"><value>Sign-in failed</value></data>
+  <data name="AuthError_Heading" xml:space="preserve"><value>Authentication failed</value></data>
+  <data name="AuthError_Body" xml:space="preserve"><value>We couldn't sign you in. Please try again.</value></data>
+  <data name="AuthError_BackToSignIn" xml:space="preserve"><value>Back to sign in</value></data>
+  <data name="Join_Title" xml:space="preserve"><value>Join household</value></data>
+  <data name="Join_Working" xml:space="preserve"><value>Joining the household…</value></data>
+  <data name="Join_InvitedTitle" xml:space="preserve"><value>You've been invited</value></data>
+  <data name="Join_NeedsSignIn" xml:space="preserve"><value>Sign in to accept — we'll bring you right back here.</value></data>
+  <data name="Join_SignInToAccept" xml:space="preserve"><value>Sign in to accept</value></data>
+  <data name="Join_SuccessTitle" xml:space="preserve"><value>You're in!</value></data>
+  <data name="Join_SuccessBody" xml:space="preserve"><value>You've joined the household.</value></data>
+  <data name="Join_GoToHousehold" xml:space="preserve"><value>Go to household</value></data>
+  <data name="Join_EnterCodeTitle" xml:space="preserve"><value>Join with an invite code</value></data>
+  <data name="Join_EnterCodeBody" xml:space="preserve"><value>Paste the code from your invitation email.</value></data>
+  <data name="Join_CodePlaceholder" xml:space="preserve"><value>Invite code</value></data>
+  <data name="Join_SubmitCode" xml:space="preserve"><value>Join</value></data>
+  <data name="Join_ErrorTitle" xml:space="preserve"><value>Couldn't join</value></data>
+  <data name="Join_FullTitle" xml:space="preserve"><value>This household is full</value></data>
+  <data name="Join_FullBody" xml:space="preserve"><value>It has reached its plan's member limit. Ask the owner to upgrade their plan, then use your invitation again.</value></data>
+  <data name="Join_FullBodyNoBilling" xml:space="preserve"><value>It has reached its member limit. Ask the owner to free a seat, then use your invitation again.</value></data>
+  <data name="Join_BackToHousehold" xml:space="preserve"><value>Back to household</value></data>
+  <data name="Join_DefaultError" xml:space="preserve"><value>The invitation is invalid or has expired.</value></data>
+  <data name="Settings_Preferences" xml:space="preserve"><value>Preferences</value></data>
+  <data name="Settings_PreferencesHint" xml:space="preserve"><value>Your language and theme are saved to your account and follow you on every device.</value></data>
+  <data name="Settings_Title" xml:space="preserve"><value>Account settings</value></data>
+  <data name="Settings_Subtitle" xml:space="preserve"><value>Link sign-in providers to this account. They all sign you into the same household.</value></data>
+  <data name="Settings_Connected" xml:space="preserve"><value>Connected</value></data>
+  <data name="Settings_Link" xml:space="preserve"><value>Link</value></data>
+  <data name="Settings_Unlink" xml:space="preserve"><value>Unlink</value></data>
+  <data name="Settings_ConfirmUnlink" xml:space="preserve"><value>Unlink this sign-in method?</value></data>
+  <data name="Settings_DangerZone" xml:space="preserve"><value>Danger zone</value></data>
+  <data name="Settings_DeleteAccount" xml:space="preserve"><value>Delete my account</value></data>
+  <data name="Settings_DeleteAccountWarning" xml:space="preserve"><value>Permanently delete your account and personal data. This can't be undone.</value></data>
+  <data name="Settings_ConfirmDelete" xml:space="preserve"><value>Delete your account permanently? This cannot be undone.</value></data>
+  <data name="Settings_ConfirmDissolve" xml:space="preserve"><value>You're the only member, so this also dissolves your household and permanently deletes all its data. Continue?</value></data>
+  <data name="Settings_ErrDeleteTransferFirst" xml:space="preserve"><value>Transfer household ownership before deleting your account.</value></data>
+  <data name="Settings_ErrDelete" xml:space="preserve"><value>Couldn't delete your account. Please try again.</value></data>
+  <data name="Settings_LinkedSuccess" xml:space="preserve"><value>{0} linked successfully.</value></data>
+  <data name="Settings_LinkErrInUse" xml:space="preserve"><value>That provider account is already linked to a different user.</value></data>
+  <data name="Settings_LinkErrExpired" xml:space="preserve"><value>The link request expired — please try again.</value></data>
+  <data name="Settings_LinkCancelled" xml:space="preserve"><value>Linking was cancelled.</value></data>
+  <data name="Settings_LinkFailed" xml:space="preserve"><value>Couldn't link that provider. Please try again.</value></data>
+  <data name="Settings_ErrLoad" xml:space="preserve"><value>Couldn't load linked accounts.</value></data>
+  <data name="Settings_ErrStartLinking" xml:space="preserve"><value>Couldn't start linking. Please try again.</value></data>
+  <data name="Settings_ErrUnlink" xml:space="preserve"><value>Couldn't unlink. Please try again.</value></data>
+  <data name="Household_HaveInvite" xml:space="preserve"><value>Have an invite?</value></data>
+  <data name="Household_Subtitle" xml:space="preserve"><value>Manage who shares this household.</value></data>
+  <data name="Household_NameLabel" xml:space="preserve"><value>Household name</value></data>
+  <data name="Household_Rename" xml:space="preserve"><value>Rename</value></data>
+  <data name="Household_Members" xml:space="preserve"><value>Members</value></data>
+  <data name="Household_RoleOwner" xml:space="preserve"><value>Owner</value></data>
+  <data name="Household_RoleAdmin" xml:space="preserve"><value>Admin</value></data>
+  <data name="Household_RoleMember" xml:space="preserve"><value>Member</value></data>
+  <data name="Household_MakeAdmin" xml:space="preserve"><value>Make admin</value></data>
+  <data name="Household_MakeMember" xml:space="preserve"><value>Make member</value></data>
+  <data name="Household_StatusRoleChanged" xml:space="preserve"><value>Role updated.</value></data>
+  <data name="Household_ErrRoleChange" xml:space="preserve"><value>Couldn't update the role. Please try again.</value></data>
+  <data name="Household_Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Household_Invitations" xml:space="preserve"><value>Invitations</value></data>
+  <data name="Household_Invite" xml:space="preserve"><value>Invite</value></data>
+  <data name="Household_InviteTokenFor" xml:space="preserve"><value>Invitation token for {0} (shown once):</value></data>
+  <data name="Household_Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Household_EmailedJoinLink" xml:space="preserve"><value>We also emailed a join link to the invitee.</value></data>
+  <data name="Household_NoPending" xml:space="preserve"><value>No pending invitations.</value></data>
+  <data name="Household_Expires" xml:space="preserve"><value>Expires {0}</value></data>
+  <data name="Household_Regenerate" xml:space="preserve"><value>Regenerate</value></data>
+  <data name="Household_Revoke" xml:space="preserve"><value>Revoke</value></data>
+  <data name="Household_TransferOwnership" xml:space="preserve"><value>Transfer ownership</value></data>
+  <data name="Household_ChooseMember" xml:space="preserve"><value>Choose a member…</value></data>
+  <data name="Household_Transfer" xml:space="preserve"><value>Transfer</value></data>
+  <data name="Household_MustTransfer" xml:space="preserve"><value>You must transfer ownership before you can leave this household.</value></data>
+  <data name="Household_LeaveDissolve" xml:space="preserve"><value>Leave &amp; dissolve</value></data>
+  <data name="Household_DissolveWarning" xml:space="preserve"><value>You're the only member. Leaving permanently deletes this household and its data.</value></data>
+  <data name="Household_LeaveAndDelete" xml:space="preserve"><value>Leave and delete</value></data>
+  <data name="Household_DataTitle" xml:space="preserve"><value>Data</value></data>
+  <data name="Household_DataSubtitle" xml:space="preserve"><value>Download an export of this household's data.</value></data>
+  <data name="Household_ExportData" xml:space="preserve"><value>Download household data</value></data>
+  <data name="Household_ExportReady" xml:space="preserve"><value>Your export is ready:</value></data>
+  <data name="Household_ExportDownload" xml:space="preserve"><value>Download</value></data>
+  <data name="Household_ErrExport" xml:space="preserve"><value>Couldn't create the export. Please try again.</value></data>
+  <data name="Household_LeaveTitle" xml:space="preserve"><value>Leave household</value></data>
+  <data name="Household_LeaveAsMemberNote" xml:space="preserve"><value>The shared household stays intact; you'll get a fresh household of your own.</value></data>
+  <data name="Household_Leave" xml:space="preserve"><value>Leave</value></data>
+  <data name="Household_StatusRenamed" xml:space="preserve"><value>Household renamed.</value></data>
+  <data name="Household_ErrRename" xml:space="preserve"><value>Couldn't rename the household.</value></data>
+  <data name="Household_ErrEmailAlreadyMember" xml:space="preserve"><value>That email is already a member.</value></data>
+  <data name="Household_ErrSeatLimit" xml:space="preserve"><value>Your plan's seat limit is reached. Upgrade your plan to invite more members.</value></data>
+  <data name="Household_ErrSeatLimitNoBilling" xml:space="preserve"><value>Your household is full. Remove a member or revoke a pending invitation to free a seat.</value></data>
+  <data name="Household_ErrSendInvite" xml:space="preserve"><value>Couldn't send the invitation.</value></data>
+  <data name="Household_ErrRegenerate" xml:space="preserve"><value>Couldn't regenerate the token.</value></data>
+  <data name="Household_StatusRevoked" xml:space="preserve"><value>Invitation revoked.</value></data>
+  <data name="Household_ErrRevoke" xml:space="preserve"><value>Couldn't revoke the invitation.</value></data>
+  <data name="Household_StatusMemberRemoved" xml:space="preserve"><value>Member removed.</value></data>
+  <data name="Household_ErrRemoveMember" xml:space="preserve"><value>Couldn't remove the member.</value></data>
+  <data name="Household_StatusOwnershipTransferred" xml:space="preserve"><value>Ownership transferred.</value></data>
+  <data name="Household_ErrTransfer" xml:space="preserve"><value>Couldn't transfer ownership.</value></data>
+  <data name="Household_ErrLeave" xml:space="preserve"><value>Couldn't leave the household.</value></data>
+  <data name="Household_ErrDissolve" xml:space="preserve"><value>Couldn't dissolve the household.</value></data>
+  <data name="Household_ErrLoad" xml:space="preserve"><value>Couldn't load the household.</value></data>
+  <data name="Household_ConfirmRemove" xml:space="preserve"><value>Remove {0} from this household?</value></data>
+  <data name="Household_ConfirmLeave" xml:space="preserve"><value>Leave this household?</value></data>
+  <data name="Household_ConfirmDissolve" xml:space="preserve"><value>This permanently deletes the household and its data. Continue?</value></data>
+  <data name="Nav_Cocktails" xml:space="preserve"><value>Cocktails</value></data>
+  <data name="Cocktails_Subtitle" xml:space="preserve"><value>Browse the shared catalog and anything your household has added.</value></data>
+  <data name="Cocktails_SearchPlaceholder" xml:space="preserve"><value>Search by name</value></data>
+  <data name="Cocktails_NoMatches" xml:space="preserve"><value>No cocktails match that.</value></data>
+  <data name="Cocktails_Count" xml:space="preserve"><value>{0} cocktails</value></data>
+  <data name="Cocktails_Yours" xml:space="preserve"><value>Yours</value></data>
+  <data name="Cocktails_IngredientCount" xml:space="preserve"><value>{0} ingredients</value></data>
+  <data name="Cocktails_PageOf" xml:space="preserve"><value>Page {0} of {1}</value></data>
+  <data name="Cocktails_LoadFailed" xml:space="preserve"><value>Could not load the catalog. Try again.</value></data>
+  <data name="Common_Previous" xml:space="preserve"><value>Previous</value></data>
+  <data name="Common_Next" xml:space="preserve"><value>Next</value></data>
+  <data name="Cocktail_Ingredients" xml:space="preserve"><value>Ingredients</value></data>
+  <data name="Cocktail_Method" xml:space="preserve"><value>Method</value></data>
+  <data name="Cocktail_Optional" xml:space="preserve"><value>optional</value></data>
+  <data name="Cocktail_NotFound" xml:space="preserve"><value>That cocktail is not in your catalog.</value></data>
+  <data name="Units_Label" xml:space="preserve"><value>Measurements</value></data>
+  <data name="Units_Metric" xml:space="preserve"><value>Metric (ml)</value></data>
+  <data name="Units_Imperial" xml:space="preserve"><value>Imperial (oz)</value></data>
+  <data name="Units_Hint" xml:space="preserve"><value>Dashes, barspoons and teaspoons read the same in either system.</value></data>
+  <data name="Nav_Shelf" xml:space="preserve"><value>Shelf</value></data>
+  <data name="Shelf_Subtitle" xml:space="preserve"><value>Tick what your household has. Everything else counts as missing.</value></data>
+  <data name="Shelf_SearchPlaceholder" xml:space="preserve"><value>Search ingredients</value></data>
+  <data name="Shelf_OnlyMine" xml:space="preserve"><value>Only what I have</value></data>
+  <data name="Shelf_Count" xml:space="preserve"><value>{0} on the shelf</value></data>
+  <data name="Shelf_NoMatches" xml:space="preserve"><value>No ingredients match that.</value></data>
+  <data name="Shelf_LoadFailed" xml:space="preserve"><value>Could not load your shelf. Try again.</value></data>
+  <data name="Shelf_SaveFailed" xml:space="preserve"><value>That change did not save. Try again.</value></data>
+  <data name="Shelf_AddYourOwn" xml:space="preserve"><value>Add your own</value></data>
+  <data name="Shelf_AddName" xml:space="preserve"><value>Ingredient name</value></data>
+  <data name="Shelf_AddCategory" xml:space="preserve"><value>Category</value></data>
+  <data name="Shelf_AddSubcategory" xml:space="preserve"><value>Subcategory (optional)</value></data>
+  <data name="Shelf_AddSubmit" xml:space="preserve"><value>Add to my shelf</value></data>
+  <data name="Shelf_AddNameRequired" xml:space="preserve"><value>Give it a name.</value></data>
+  <data name="Shelf_AddCategoryRequired" xml:space="preserve"><value>Choose a category so it files somewhere.</value></data>
+  <data name="Shelf_AddExists" xml:space="preserve"><value>{0} is already in the list — it is showing above.</value></data>
+  <data name="Shelf_AddFailed" xml:space="preserve"><value>Could not add that. Try again.</value></data>
+  <data name="Shelf_CategoryCount" xml:space="preserve"><value>{0} of {1}</value></data>
+  <data name="Shelf_JumpLabel" xml:space="preserve"><value>Jump to a category</value></data>
+  <data name="Shelf_PayoffDrinks" xml:space="preserve"><value>— that's {0} drinks so far</value></data>
+  <data name="Shelf_PayoffOneDrink" xml:space="preserve"><value>— that's one drink so far</value></data>
+  <data name="Shelf_PayoffNoDrinks" xml:space="preserve"><value>— no drinks yet</value></data>
+  <data name="Shelf_PayoffCounting" xml:space="preserve"><value>— counting…</value></data>
+  <data name="Shelf_PayoffShow" xml:space="preserve"><value>Show them</value></data>
+  <data name="Nav_Make" xml:space="preserve"><value>Make now</value></data>
+  <data name="Make_Subtitle" xml:space="preserve"><value>Everything your shelf can make right now, substitutions included.</value></data>
+  <data name="Make_NothingYet" xml:space="preserve"><value>Nothing yet — your shelf does not cover a whole recipe.</value></data>
+  <data name="Make_FillYourShelf" xml:space="preserve"><value>Tick what you have</value></data>
+  <data name="Cocktails_MakeableNow" xml:space="preserve"><value>I can make now</value></data>
+  <data name="Cocktails_Using" xml:space="preserve"><value>Using {0} in place of {1}</value></data>
+  <data name="Marga_Swap" xml:space="preserve"><value>No {0}? {1}&apos;s fine — that&apos;s what I&apos;d pour.</value></data>
+  <data name="Marga_LoginLine" xml:space="preserve"><value>Tell me what&apos;s on your shelf and I&apos;ll tell you what you can pour tonight.</value></data>
+  <data name="Marga_BrowseCount" xml:space="preserve"><value>{0} cocktails here, and you can pour {1} of them tonight.</value></data>
+  <data name="Marga_BrowseCountNone" xml:space="preserve"><value>{0} cocktails here, and none you can pour yet.</value></data>
+  <data name="Marga_RecipeShort" xml:space="preserve"><value>You are {0} bottles short: {1}.</value></data>
+  <data name="Marga_RecipeFarShort" xml:space="preserve"><value>You are {0} bottles short. {1} and {2} would get you started.</value></data>
+  <data name="Marga_ListTwo" xml:space="preserve"><value>{0} and {1}</value></data>
+  <data name="Marga_ListThree" xml:space="preserve"><value>{0}, {1} and {2}</value></data>
+  <data name="Marga_ShelfNoMatch" xml:space="preserve"><value>Nothing called “{0}” on my list. If you have it, add it below.</value></data>
+  <data name="Marga_WriteShelf" xml:space="preserve"><value>Your shelf has {0} bottles to write with. Save it and I will tell you whether you can pour it.</value></data>
+  <data name="Marga_WriteEmpty" xml:space="preserve"><value>Nothing on your shelf yet. Write it anyway — once it is saved I will tell you what is missing.</value></data>
+  <data name="Marga_HomeBottleOr" xml:space="preserve"><value>Or pick up {0}, and I can make you {1} more.</value></data>
+  <data name="Marga_ShelfNextOr" xml:space="preserve"><value>Or {0}: one bottle from {1} more drinks.</value></data>
+  <data name="Marga_ShelfEmptyOr" xml:space="preserve"><value>Or start with {0} — {1} of these recipes ask for it.</value></data>
+  <data name="Marga_UnlocksHeadlineOr" xml:space="preserve"><value>Or buy {0} and {1} of these open up.</value></data>
+  <data name="Marga_StarterBottleOr" xml:space="preserve"><value>Or start with {0}. {1} of these recipes ask for it.</value></data>
+  <data name="Marga_BottlePosition" xml:space="preserve"><value>{0} of {1}</value></data>
+  <data name="Marga_BottlePrevious" xml:space="preserve"><value>Previous bottle</value></data>
+  <data name="Marga_BottleNext" xml:space="preserve"><value>Next bottle</value></data>
+  <data name="Cocktail_NoIngredientMatch" xml:space="preserve"><value>No bottle by that name. Add it on your shelf first.</value></data>
+  <data name="Cocktail_OnShelf" xml:space="preserve"><value>on your shelf</value></data>
+  <data name="Cocktail_Edit" xml:space="preserve"><value>Edit cocktail</value></data>
+  <data name="Cocktail_EditSubtitle" xml:space="preserve"><value>Change what your household pours. What you can make follows the new lines.</value></data>
+  <data name="Cocktail_EditButton" xml:space="preserve"><value>Edit</value></data>
+  <data name="Cocktail_BackToRecipe" xml:space="preserve"><value>Back to the recipe</value></data>
+  <data name="Cocktail_ErrReadOnly" xml:space="preserve"><value>Recipes from the shared catalog can't be edited. Create your own version to change it.</value></data>
+  <data name="Cocktail_EditMissing" xml:space="preserve"><value>That cocktail isn't here to edit.</value></data>
+  <data name="Cocktail_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Cocktail_DeleteConfirm" xml:space="preserve"><value>Delete {0}? This can't be undone.</value></data>
+  <data name="Cocktail_DeleteFailed" xml:space="preserve"><value>Could not delete that. Try again.</value></data>
+  <data name="Shelf_DeleteLabel" xml:space="preserve"><value>Delete {0}</value></data>
+  <data name="Shelf_DeleteConfirm" xml:space="preserve"><value>Delete {0} from your shelf? This can't be undone.</value></data>
+  <data name="Shelf_DeleteInUseOne" xml:space="preserve"><value>Can't delete {0}: it's used in {1}. Take it out of that recipe first.</value></data>
+  <data name="Shelf_DeleteInUseMany" xml:space="preserve"><value>Can't delete {0}: it's used in {1} and {2} more. Take it out of those recipes first.</value></data>
+  <data name="Shelf_DeleteFailed" xml:space="preserve"><value>Could not delete that. Try again.</value></data>
+  <data name="Cocktails_OneAway" xml:space="preserve"><value>One ingredient away</value></data>
+  <data name="Cocktails_All" xml:space="preserve"><value>Everything</value></data>
+  <data name="Cocktails_Missing" xml:space="preserve"><value>Add {0} and you can make this</value></data>
+  <data name="Cocktails_UnlocksHeadline" xml:space="preserve"><value>{0} unlocks {1}</value></data>
+  <data name="Cocktails_UnlocksMore" xml:space="preserve"><value>and {0} more</value></data>
+  <data name="Almost_NothingYet" xml:space="preserve"><value>Nothing is one ingredient away — your shelf is more than one bottle short of every recipe.</value></data>
+  <data name="Cocktail_Makeable" xml:space="preserve"><value>You can make this</value></data>
+  <data name="Cocktail_AlmostMakeable" xml:space="preserve"><value>One ingredient away</value></data>
+  <data name="Cocktail_NotMakeable" xml:space="preserve"><value>More than one bottle away</value></data>
+  <data name="Cocktail_YoudPour" xml:space="preserve"><value>you'd pour {0}</value></data>
+  <data name="Cocktail_LineMissing" xml:space="preserve"><value>not on your shelf</value></data>
+  <data name="Cocktails_Filters" xml:space="preserve"><value>Filters</value></data>
+  <data name="Cocktails_FilterIngredient" xml:space="preserve"><value>Made with</value></data>
+  <data name="Cocktails_FilterIngredientHint" xml:space="preserve"><value>gin, dark rum, elderflower…</value></data>
+  <data name="Cocktails_FilterMethod" xml:space="preserve"><value>Method</value></data>
+  <data name="Cocktails_FilterGlass" xml:space="preserve"><value>Glass</value></data>
+  <data name="Cocktails_FilterServing" xml:space="preserve"><value>Served as</value></data>
+  <data name="Cocktails_FilterAny" xml:space="preserve"><value>Any</value></data>
+  <data name="Cocktails_FilterClear" xml:space="preserve"><value>Clear filters</value></data>
+  <data name="Cocktails_ServingShot" xml:space="preserve"><value>Shot</value></data>
+  <data name="Cocktails_ServingFullDrink" xml:space="preserve"><value>Full drink</value></data>
+  <data name="Cocktail_Fork" xml:space="preserve"><value>Create my own version</value></data>
+  <data name="Cocktail_BasedOn" xml:space="preserve"><value>Based on</value></data>
+  <data name="Cocktail_ForkFailed" xml:space="preserve"><value>Could not copy that. Try again.</value></data>
+  <data name="Cocktail_New" xml:space="preserve"><value>Write a cocktail</value></data>
+  <data name="Cocktail_NewSubtitle" xml:space="preserve"><value>Your own recipe, in your own words. It joins the catalog and the makeable list straight away.</value></data>
+  <data name="Cocktail_FieldName" xml:space="preserve"><value>Name</value></data>
+  <data name="Cocktail_FieldGlass" xml:space="preserve"><value>Glass</value></data>
+  <data name="Cocktail_FieldMethod" xml:space="preserve"><value>Method</value></data>
+  <data name="Cocktail_FieldServing" xml:space="preserve"><value>Served as</value></data>
+  <data name="Cocktail_FieldInstructions" xml:space="preserve"><value>Instructions</value></data>
+  <data name="Cocktail_NotStated" xml:space="preserve"><value>Not stated</value></data>
+  <data name="Cocktail_LineIngredient" xml:space="preserve"><value>Ingredient</value></data>
+  <data name="Cocktail_LineAmount" xml:space="preserve"><value>Amount</value></data>
+  <data name="Cocktail_LineUnit" xml:space="preserve"><value>Unit</value></data>
+  <data name="Cocktail_LineRole" xml:space="preserve"><value>Role</value></data>
+  <data name="Cocktail_LineRequired" xml:space="preserve"><value>Required</value></data>
+  <data name="Cocktail_AddLine" xml:space="preserve"><value>Add an ingredient</value></data>
+  <data name="Cocktail_Save" xml:space="preserve"><value>Save this recipe</value></data>
+  <data name="Cocktail_ErrName" xml:space="preserve"><value>Give the drink a name.</value></data>
+  <data name="Cocktail_ErrNoLines" xml:space="preserve"><value>A cocktail needs at least one ingredient.</value></data>
+  <data name="Cocktail_ErrIngredient" xml:space="preserve"><value>One of those ingredients is not in your catalog.</value></data>
+  <data name="Cocktail_ErrLine" xml:space="preserve"><value>Check the amounts and units. A unit needs an amount to go with it.</value></data>
+  <data name="Cocktail_ErrLookup" xml:space="preserve"><value>That glass or method does not exist.</value></data>
+  <data name="Cocktail_RoleBase" xml:space="preserve"><value>Base</value></data>
+  <data name="Cocktail_RoleModifier" xml:space="preserve"><value>Modifier</value></data>
+  <data name="Cocktail_RoleJuice" xml:space="preserve"><value>Juice</value></data>
+  <data name="Cocktail_RoleSyrup" xml:space="preserve"><value>Syrup</value></data>
+  <data name="Cocktail_RoleBitters" xml:space="preserve"><value>Bitters</value></data>
+  <data name="Cocktail_RoleGarnish" xml:space="preserve"><value>Garnish</value></data>
+  <data name="Cocktail_RoleMixer" xml:space="preserve"><value>Mixer</value></data>
+  <data name="Cocktail_RoleOther" xml:space="preserve"><value>Other</value></data>
+</root>

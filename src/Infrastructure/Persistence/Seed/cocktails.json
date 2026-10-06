@@ -1,0 +1,1299 @@
+{
+  "$comment": [
+    "The shared recipe catalog (JJ-012), built by seed/build_cocktails.py from the two",
+    "extractions in seed/. Do not hand-edit: the next build overwrites it.",
+    "",
+    "Glass and method are null where the source did not say, or said something that is not a",
+    "glass (JJ-034). Amounts are as the books wrote them, so a proportional 1930 recipe carries",
+    "fractions against the 'part' unit. The seeder stores every volume in ounces (JJ-041).",
+    "",
+    "This is the STARTER SET, not the whole extraction: a small catalog chosen to cover every",
+    "shape the model handles, so that slice work is about behaviour rather than about nine",
+    "hundred rows. `python seed/build_cocktails.py --full` emits all of them."
+  ],
+  "sources": [
+    {
+      "name": "The Savoy Cocktail Book",
+      "year": 1930,
+      "url": "https://savoycocktaildatabase.com/",
+      "attribution": "Recipes from The Savoy Cocktail Book (Harry Craddock, 1930), which entered the US public domain on 1 January 2026. Transcribed via savoycocktaildatabase.com."
+    },
+    {
+      "name": "IBA Official Cocktails",
+      "year": null,
+      "url": "https://iba-world.com/",
+      "attribution": "Specifications from the International Bartenders Association official cocktail list. Ingredients, measures and method only; the IBA's own writing is not reproduced."
+    }
+  ],
+  "cocktails": [
+    {
+      "slug": "absinthe-special-cocktail",
+      "name": "Absinthe (Special) Cocktail",
+      "source": "The Savoy Cocktail Book",
+      "glassType": "Cocktail glass",
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Shake thoroughly, and strain into cocktail glass.",
+      "lines": [
+        {
+          "ingredient": "Absinthe",
+          "amount": 0.6667,
+          "unit": "part",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "London dry gin",
+          "amount": 0.1667,
+          "unit": "part",
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Anisette",
+          "amount": 0.1667,
+          "unit": "part",
+          "displayOrder": 2,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Orange bitters",
+          "amount": 1.0,
+          "unit": "dash",
+          "displayOrder": 3,
+          "role": "Bitters",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Angostura bitters",
+          "amount": 1.0,
+          "unit": "dash",
+          "displayOrder": 4,
+          "role": "Bitters",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "alfonso-cocktail",
+      "name": "Alfonso Cocktail",
+      "source": "The Savoy Cocktail Book",
+      "glassType": null,
+      "method": "Stir",
+      "servingType": "FullDrink",
+      "instructions": "Put 1 lump of sugar in a medium-sized wine-glass, 2 dashes of Secrestat Bitter poured on to the sugar, 1 lump of ice, 1/4 of a glass of Dubonnet, fill remainder with Champagne, squeeze lemon peel on top and stir slightly.",
+      "lines": [
+        {
+          "ingredient": "Champagne",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 0,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Dubonnet",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lemon peel",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 2,
+          "role": "Garnish",
+          "isRequired": false
+        },
+        {
+          "ingredient": "Secrestat bitters",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 3,
+          "role": "Bitters",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Sugar",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 4,
+          "role": "Other",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "americano",
+      "name": "Americano",
+      "source": "IBA Official Cocktails",
+      "glassType": "Rocks glass",
+      "method": "Stir",
+      "servingType": "FullDrink",
+      "instructions": "Mix the ingredients directly in an old fashioned glass filled with ice cubes. Add a splash of Soda Water. Stir gently. Garnish with half orange slice and a lemon zest.",
+      "lines": [
+        {
+          "ingredient": "Campari",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Sweet vermouth",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Soda water",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 2,
+          "role": "Mixer",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "aviation",
+      "name": "Aviation",
+      "source": "IBA Official Cocktails",
+      "glassType": "Cocktail glass",
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Add all ingredients into a cocktail shaker. Shake with cracked ice and strain into a chilled cocktail glass. Optional Maraschino Cherry.",
+      "lines": [
+        {
+          "ingredient": "London dry gin",
+          "amount": 45.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Maraschino",
+          "amount": 15.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Maraschino",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 2,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lemon juice",
+          "amount": 15.0,
+          "unit": "ml",
+          "displayOrder": 3,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Crème de violette",
+          "amount": 1.0,
+          "unit": "barspoon",
+          "displayOrder": 4,
+          "role": "Modifier",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "bloody-mary",
+      "name": "Bloody Mary",
+      "source": "IBA Official Cocktails",
+      "glassType": "Rocks glass",
+      "method": "Stir",
+      "servingType": "FullDrink",
+      "instructions": "Stir gently all the ingredients in a mixing glass with ice, pour into rocks glass. NOTE: If requested served with ice, pour into highball glass. Celery, lemon wedge (Optional).",
+      "lines": [
+        {
+          "ingredient": "Vodka",
+          "amount": 45.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Tomato juice",
+          "amount": 90.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lemon juice",
+          "amount": 15.0,
+          "unit": "ml",
+          "displayOrder": 2,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Worcestershire sauce",
+          "amount": 2.0,
+          "unit": "dash",
+          "displayOrder": 3,
+          "role": "Other",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Tabasco",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 4,
+          "role": "Other",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "boulevardier",
+      "name": "Boulevardier",
+      "source": "IBA Official Cocktails",
+      "glassType": "Cocktail glass",
+      "method": "Stir",
+      "servingType": "FullDrink",
+      "instructions": "Pour all ingredients into mixing glass with ice cubes. Stir well. Strain into chilled cocktail glass. Garnish with a orange zest, optionally a lemon zest.",
+      "lines": [
+        {
+          "ingredient": "Bourbon",
+          "amount": 45.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Campari",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Sweet vermouth",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 2,
+          "role": "Modifier",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "caipirinha",
+      "name": "Caipirinha",
+      "source": "IBA Official Cocktails",
+      "glassType": "Rocks glass",
+      "method": "Stir",
+      "servingType": "FullDrink",
+      "instructions": "Place lime and sugar into a double old fashioned glass and muddle gently. Fill the glass with cracked ice and add Cachaça. Stir gently to involve ingredients. Note: Caipiroska – Instead of Cachaça use Vodka; Caipirissima – Instead of Cachaça use Rum. Caipirão – Instead of Cachaça use Licor Beirão. N/A",
+      "lines": [
+        {
+          "ingredient": "Cachaça",
+          "amount": 60.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lime",
+          "amount": 1.0,
+          "unit": null,
+          "displayOrder": 1,
+          "role": "Garnish",
+          "isRequired": false
+        },
+        {
+          "ingredient": "Sugar",
+          "amount": 4.0,
+          "unit": "tsp",
+          "displayOrder": 2,
+          "role": "Other",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "cosmopolitan",
+      "name": "Cosmopolitan",
+      "source": "IBA Official Cocktails",
+      "glassType": "Cocktail glass",
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Add all ingredients into cocktail shaker filled with ice. Shake well and strain into large cocktail glass. Garnish with lemon twist.",
+      "lines": [
+        {
+          "ingredient": "Citrus vodka",
+          "amount": 40.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Cointreau",
+          "amount": 15.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lime juice",
+          "amount": 15.0,
+          "unit": "ml",
+          "displayOrder": 2,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Cranberry juice",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 3,
+          "role": "Juice",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "daiquiri",
+      "name": "Daiquiri",
+      "source": "IBA Official Cocktails",
+      "glassType": "Cocktail glass",
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "In a cocktail shaker add all ingredients. Stir well to dissolve the sugar. Add ice and shake. Strain into chilled cocktail glass. N/A",
+      "lines": [
+        {
+          "ingredient": "White rum",
+          "amount": 60.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lime juice",
+          "amount": 20.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Sugar",
+          "amount": 2.0,
+          "unit": "barspoon",
+          "displayOrder": 2,
+          "role": "Other",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "dry-martini",
+      "name": "Dry Martini",
+      "source": "IBA Official Cocktails",
+      "glassType": "Cocktail glass",
+      "method": "Stir",
+      "servingType": "FullDrink",
+      "instructions": "Pour all ingredients into mixing glass with ice cubes. Stir well. Strain into chilled martini cocktail glass. Squeeze oil from lemon peel onto the drink, or garnish with a green olives if requested.",
+      "lines": [
+        {
+          "ingredient": "London dry gin",
+          "amount": 60.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Dry vermouth",
+          "amount": 10.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "espresso-martini",
+      "name": "Espresso Martini",
+      "source": "IBA Official Cocktails",
+      "glassType": "Cocktail glass",
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Pour all ingredients into cocktail shaker, shake well with ice, strain into chilled cocktail glass. 3 coffee beans",
+      "lines": [
+        {
+          "ingredient": "Vodka",
+          "amount": 50.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Coffee liqueur",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Simple syrup",
+          "amount": 10.0,
+          "unit": "ml",
+          "displayOrder": 2,
+          "role": "Syrup",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Espresso",
+          "amount": 1.0,
+          "unit": null,
+          "displayOrder": 3,
+          "role": "Other",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "french-75",
+      "name": "French 75",
+      "source": "IBA Official Cocktails",
+      "glassType": null,
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Pour all the ingredients, except Champagne, into a shaker. Shake well and strain into a Champagne flute. Top up with Champagne. Stir gently. N/A",
+      "lines": [
+        {
+          "ingredient": "London dry gin",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lemon juice",
+          "amount": 15.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Simple syrup",
+          "amount": 15.0,
+          "unit": "ml",
+          "displayOrder": 2,
+          "role": "Syrup",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Champagne",
+          "amount": 60.0,
+          "unit": "ml",
+          "displayOrder": 3,
+          "role": "Modifier",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "gin-fizz",
+      "name": "Gin Fizz",
+      "source": "IBA Official Cocktails",
+      "glassType": "Highball glass",
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Shake all ingredients with ice except soda water. Pour into thin tall Tumbler glass , top with a splash soda water. NOTE: Serve without ice. Garnish with lemon slice, optional lemon zest.",
+      "lines": [
+        {
+          "ingredient": "London dry gin",
+          "amount": 45.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lemon juice",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Simple syrup",
+          "amount": 10.0,
+          "unit": "ml",
+          "displayOrder": 2,
+          "role": "Syrup",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Soda water",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 3,
+          "role": "Mixer",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "gin-fizz",
+      "name": "Gin Fizz",
+      "source": "The Savoy Cocktail Book",
+      "glassType": null,
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Shake well, strain into medium size glass and fill with syphon soda water.",
+      "lines": [
+        {
+          "ingredient": "Lemon juice",
+          "amount": 0.5,
+          "unit": null,
+          "displayOrder": 0,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Sugar",
+          "amount": 0.5,
+          "unit": "tbsp",
+          "displayOrder": 1,
+          "role": "Other",
+          "isRequired": true
+        },
+        {
+          "ingredient": "London dry gin",
+          "amount": 1.0,
+          "unit": "glass",
+          "displayOrder": 2,
+          "role": "Base",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "hawaiian-cocktail",
+      "name": "Hawaiian Cocktail",
+      "source": "The Savoy Cocktail Book",
+      "glassType": "Cocktail glass",
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Shake well and strain into cocktail glass.",
+      "lines": [
+        {
+          "ingredient": "London dry gin",
+          "amount": 4.0,
+          "unit": "part",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Orange juice",
+          "amount": 2.0,
+          "unit": "part",
+          "displayOrder": 1,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Curaçao",
+          "amount": 1.0,
+          "unit": "part",
+          "displayOrder": 2,
+          "role": "Modifier",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "last-word",
+      "name": "Last Word",
+      "source": "IBA Official Cocktails",
+      "glassType": "Cocktail glass",
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Add all ingredients into a cocktail shaker. Shake with ice and strain into a chilled cocktail glass. N/A",
+      "lines": [
+        {
+          "ingredient": "London dry gin",
+          "amount": 22.5,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Green Chartreuse",
+          "amount": 22.5,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Maraschino",
+          "amount": 22.5,
+          "unit": "ml",
+          "displayOrder": 2,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Maraschino",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 3,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lime juice",
+          "amount": 22.5,
+          "unit": "ml",
+          "displayOrder": 4,
+          "role": "Juice",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "mai-tai",
+      "name": "Mai-Tai",
+      "source": "IBA Official Cocktails",
+      "glassType": "Rocks glass",
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Add all ingredients into a shaker with ice. Shake and pour into a double rocks glass or an highball glass. * The Martinique molasses rum used by Trader Vic was not an Agricole Rhum but a type of “rummy” from molasses. Garnish with pineapple spear, mint leaves and lime peel.",
+      "lines": [
+        {
+          "ingredient": "Gold rum",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Rhum agricole",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Curaçao",
+          "amount": 15.0,
+          "unit": "ml",
+          "displayOrder": 2,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Orgeat",
+          "amount": 15.0,
+          "unit": "ml",
+          "displayOrder": 3,
+          "role": "Syrup",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lime juice",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 4,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Simple syrup",
+          "amount": 7.5,
+          "unit": "ml",
+          "displayOrder": 5,
+          "role": "Syrup",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "manhattan",
+      "name": "Manhattan",
+      "source": "IBA Official Cocktails",
+      "glassType": "Cocktail glass",
+      "method": "Stir",
+      "servingType": "FullDrink",
+      "instructions": "Pour all ingredients into mixing glass with ice cubes. Stir well. Strain into chilled cocktail glass. Garnish with cocktail cherry.",
+      "lines": [
+        {
+          "ingredient": "Rye whiskey",
+          "amount": 50.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Sweet vermouth",
+          "amount": 20.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Angostura bitters",
+          "amount": 1.0,
+          "unit": "dash",
+          "displayOrder": 2,
+          "role": "Bitters",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "margarita",
+      "name": "Margarita",
+      "source": "IBA Official Cocktails",
+      "glassType": "Cocktail glass",
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Add all ingredients into a shaker with ice. Shake and strain into a chilled cocktail glass. Half salt rim (Optional).",
+      "lines": [
+        {
+          "ingredient": "Blanco tequila",
+          "amount": 50.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Cointreau",
+          "amount": 20.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lime juice",
+          "amount": 15.0,
+          "unit": "ml",
+          "displayOrder": 2,
+          "role": "Juice",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "martini-special-cocktail",
+      "name": "Martini (Special) Cocktail",
+      "source": "The Savoy Cocktail Book",
+      "glassType": null,
+      "method": null,
+      "servingType": "FullDrink",
+      "instructions": "Before shaking, add a dash of Absinthe and one or two dashes of Angostura Bitters.",
+      "lines": [
+        {
+          "ingredient": "London dry gin",
+          "amount": 4.0,
+          "unit": "glass",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Sweet vermouth",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Orange flower water",
+          "amount": 0.3333,
+          "unit": "glass",
+          "displayOrder": 2,
+          "role": "Garnish",
+          "isRequired": false
+        }
+      ]
+    },
+    {
+      "slug": "mojito",
+      "name": "Mojito",
+      "source": "IBA Official Cocktails",
+      "glassType": null,
+      "method": "Stir",
+      "servingType": "FullDrink",
+      "instructions": "Mix mint springs with sugar and lime juice. Add splash of soda water and fill the glass with ice. Pour the rum and top with soda water. Light stir to involve all ingredients. Garnish with sprigs of mint and slice of lime.",
+      "lines": [
+        {
+          "ingredient": "White rum",
+          "amount": 45.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lime juice",
+          "amount": 20.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Mint",
+          "amount": 6.0,
+          "unit": null,
+          "displayOrder": 2,
+          "role": "Garnish",
+          "isRequired": false
+        },
+        {
+          "ingredient": "Sugar",
+          "amount": 2.0,
+          "unit": "tsp",
+          "displayOrder": 3,
+          "role": "Other",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Soda water",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 4,
+          "role": "Mixer",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "mr-manhattan-cocktail",
+      "name": "Mr. Manhattan Cocktail",
+      "source": "The Savoy Cocktail Book",
+      "glassType": "Cocktail glass",
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Crush one lump of sugar in a little water. Then crush four leaves of fresh green mint and add— Shake well and strain into cocktail glass.",
+      "lines": [
+        {
+          "ingredient": "Lemon juice",
+          "amount": 1.0,
+          "unit": "dash",
+          "displayOrder": 0,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Orange juice",
+          "amount": 4.0,
+          "unit": "dash",
+          "displayOrder": 1,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "London dry gin",
+          "amount": 1.0,
+          "unit": "glass",
+          "displayOrder": 2,
+          "role": "Base",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "mr-manhattan-cocktail-2",
+      "name": "Mr. Manhattan Cocktail",
+      "source": "The Savoy Cocktail Book",
+      "glassType": "Cocktail glass",
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Shake well and strain into cocktail glass.",
+      "lines": [
+        {
+          "ingredient": "Sugar",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 0,
+          "role": "Other",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Crème de menthe",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lemon juice",
+          "amount": 1.0,
+          "unit": "dash",
+          "displayOrder": 2,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Orange juice",
+          "amount": 4.0,
+          "unit": "dash",
+          "displayOrder": 3,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "London dry gin",
+          "amount": 1.0,
+          "unit": "glass",
+          "displayOrder": 4,
+          "role": "Base",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "negroni",
+      "name": "Negroni",
+      "source": "IBA Official Cocktails",
+      "glassType": "Rocks glass",
+      "method": "Stir",
+      "servingType": "FullDrink",
+      "instructions": "Pour all ingredients directly into chilled old fashioned glass filled with ice. Stir gently. Garnish with half orange slice.",
+      "lines": [
+        {
+          "ingredient": "London dry gin",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Campari",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Sweet vermouth",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 2,
+          "role": "Modifier",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "old-fashioned",
+      "name": "Old Fashioned",
+      "source": "IBA Official Cocktails",
+      "glassType": "Rocks glass",
+      "method": "Stir",
+      "servingType": "FullDrink",
+      "instructions": "Place sugar cube in old fashioned glass and saturate with bitter, add few dashes of plain water. Muddle until dissolved. Fill the glass with ice cubes and add whiskey. Stir gently. Garnish with orange slice or zest, and a cocktail cherry.",
+      "lines": [
+        {
+          "ingredient": "Bourbon",
+          "amount": 45.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Sugar",
+          "amount": 1.0,
+          "unit": null,
+          "displayOrder": 1,
+          "role": "Other",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Angostura bitters",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 2,
+          "role": "Bitters",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "paloma",
+      "name": "Paloma",
+      "source": "IBA Official Cocktails",
+      "glassType": "Highball glass",
+      "method": "Stir",
+      "servingType": "FullDrink",
+      "instructions": "Poor the tequila into a highball glass, squeeze the lime juice. Add ice and salt, fill up pink grapefruit soda. Stir gently. Garnish with a slice of lime.",
+      "lines": [
+        {
+          "ingredient": "Blanco tequila",
+          "amount": 50.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lime",
+          "amount": 5.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Garnish",
+          "isRequired": false
+        },
+        {
+          "ingredient": "Salt",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 2,
+          "role": "Garnish",
+          "isRequired": false
+        },
+        {
+          "ingredient": "Grapefruit soda",
+          "amount": 100.0,
+          "unit": "ml",
+          "displayOrder": 3,
+          "role": "Mixer",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "sazerac",
+      "name": "Sazerac",
+      "source": "IBA Official Cocktails",
+      "glassType": "Rocks glass",
+      "method": "Stir",
+      "servingType": "FullDrink",
+      "instructions": "Rinse a chilled old-fashioned glass with the absinthe, add crushed ice and set it aside. Stir the remaining ingredients over ice in a mixing glass. Discard the ice and any excess absinthe from the prepared glass, strain the mixed drink into the glass. NOTE: The original recipe changed after the American Civil War, Rye Whiskey substituted Cognac as it became hard to obtain. Garnish with lemon zest.",
+      "lines": [
+        {
+          "ingredient": "Cognac",
+          "amount": 50.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Absinthe",
+          "amount": 10.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Sugar",
+          "amount": 1.0,
+          "unit": null,
+          "displayOrder": 2,
+          "role": "Other",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Peychaud's bitters",
+          "amount": 2.0,
+          "unit": "dash",
+          "displayOrder": 3,
+          "role": "Bitters",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "sidecar",
+      "name": "Sidecar",
+      "source": "IBA Official Cocktails",
+      "glassType": "Cocktail glass",
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Pour all ingredients into cocktail shaker, shake well with ice, strain into chilled cocktail glass. N/A",
+      "lines": [
+        {
+          "ingredient": "Cognac",
+          "amount": 50.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Cointreau",
+          "amount": 20.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lemon juice",
+          "amount": 20.0,
+          "unit": "ml",
+          "displayOrder": 2,
+          "role": "Juice",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "tommys-margarita",
+      "name": "Tommy’s Margarita",
+      "source": "IBA Official Cocktails",
+      "glassType": "Rocks glass",
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Pour all ingredients into a cocktail shaker, shake well with ice, strain into chilled rocks glass filled with ice. Garnish with a lime slice.",
+      "lines": [
+        {
+          "ingredient": "Blanco tequila",
+          "amount": 60.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lime juice",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Agave nectar",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 2,
+          "role": "Other",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "whiskey-sour",
+      "name": "Whiskey Sour",
+      "source": "IBA Official Cocktails",
+      "glassType": "Rocks glass",
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Pour all ingredients into cocktail shaker filled with ice. Shake well. Strain into cobbler glass. If served “On the rocks”, strain ingredients into old fashioned glass filled with ice. NOTE: If egg white is used shake little harder to release and incorporate the foam from the egg white. Garnish with half orange slice and maraschino cherry, optionally use orange zest.",
+      "lines": [
+        {
+          "ingredient": "Bourbon",
+          "amount": 45.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lemon juice",
+          "amount": 25.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Juice",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Simple syrup",
+          "amount": 20.0,
+          "unit": "ml",
+          "displayOrder": 2,
+          "role": "Syrup",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Egg white",
+          "amount": null,
+          "unit": null,
+          "displayOrder": 3,
+          "role": "Other",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "slug": "white-lady",
+      "name": "White Lady",
+      "source": "IBA Official Cocktails",
+      "glassType": "Cocktail glass",
+      "method": "Shake",
+      "servingType": "FullDrink",
+      "instructions": "Pour all ingredients into cocktail shaker, shake well with ice, strain into chilled cocktail glass. N/A",
+      "lines": [
+        {
+          "ingredient": "London dry gin",
+          "amount": 40.0,
+          "unit": "ml",
+          "displayOrder": 0,
+          "role": "Base",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Cointreau",
+          "amount": 30.0,
+          "unit": "ml",
+          "displayOrder": 1,
+          "role": "Modifier",
+          "isRequired": true
+        },
+        {
+          "ingredient": "Lemon juice",
+          "amount": 20.0,
+          "unit": "ml",
+          "displayOrder": 2,
+          "role": "Juice",
+          "isRequired": true
+        }
+      ]
+    }
+  ]
+}

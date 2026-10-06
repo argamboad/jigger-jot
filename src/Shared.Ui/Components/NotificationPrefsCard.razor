@@ -1,0 +1,89 @@
+@using System.Net.Http.Json
+@using System.Text.Json.Serialization
+@inject HttpClient Http
+@inject IStringLocalizer<AppStrings> Localizer
+
+@* Per-user notification delivery preferences (NOTIFY-2, ADR-013). BACKBAR-7 (page 16): a labelled
+   group of hairline rows rather than a card; same parameters, same calls, same ids. *@
+<section class="settings-group" data-testid="notif-prefs">
+    <span class="eyebrow">@Localizer["NotifPrefs_Title"]</span>
+    <p class="settings-group-hint">@Localizer["NotifPrefs_Subtitle"]</p>
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-danger py-2">@_error</div>
+    }
+
+    @if (_loading)
+    {
+        <div class="text-muted"><span class="spinner-border spinner-border-sm me-2"></span>@Localizer["Common_Loading"]</div>
+    }
+    else
+    {
+        <ul class="settings-rows">
+            <li class="settings-row">
+                <label class="settings-row-main" for="notif-inapp">@Localizer["NotifPrefs_InApp"]</label>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="notif-inapp"
+                           data-testid="notif-prefs-inapp" checked="@_inApp" disabled="@_busy"
+                           @onchange="e => Save(inApp: (bool)e.Value!, email: _email)" />
+                </div>
+            </li>
+            <li class="settings-row">
+                <label class="settings-row-main" for="notif-email">@Localizer["NotifPrefs_Email"]</label>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="notif-email"
+                           data-testid="notif-prefs-email" checked="@_email" disabled="@_busy"
+                           @onchange="e => Save(inApp: _inApp, email: (bool)e.Value!)" />
+                </div>
+            </li>
+        </ul>
+    }
+</section>
+
+@code {
+    private bool _loading = true;
+    private bool _busy;
+    private bool _inApp = true;
+    private bool _email = true;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var prefs = await Http.GetFromJsonAsync<PrefsDto>("/api/notifications/preferences");
+            if (prefs is not null) { _inApp = prefs.InApp; _email = prefs.Email; }
+        }
+        catch { _error = Localizer["NotifPrefs_ErrLoad"]; }
+        finally { _loading = false; }
+    }
+
+    private async Task Save(bool inApp, bool email)
+    {
+        _error = null; _busy = true;
+        var prevInApp = _inApp; var prevEmail = _email;
+        _inApp = inApp; _email = email; // optimistic
+        try
+        {
+            var res = await Http.PutAsJsonAsync("/api/notifications/preferences", new { in_app = inApp, email });
+            if (!res.IsSuccessStatusCode)
+            {
+                _inApp = prevInApp; _email = prevEmail; // revert
+                _error = Localizer["NotifPrefs_ErrSave"];
+            }
+        }
+        catch
+        {
+            _inApp = prevInApp; _email = prevEmail;
+            _error = Localizer["NotifPrefs_ErrSave"];
+        }
+        finally { _busy = false; }
+    }
+
+    private sealed record PrefsDto
+    {
+        [JsonPropertyName("in_app")] public bool InApp { get; init; }
+        [JsonPropertyName("email")] public bool Email { get; init; }
+    }
+}

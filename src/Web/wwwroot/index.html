@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JiggerJot</title>
+    <base href="/" />
+    <link rel="preload" id="webassembly" />
+    <!-- Theme bootstrap BEFORE the stylesheets: applies the saved data-bs-theme pre-paint (no flash). -->
+    <script src="_content/JiggerJot.Shared.Ui/js/theme.js"></script>
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="_content/JiggerJot.Shared.Ui/css/app.css" />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="apple_touch_180.png" />
+    <!-- Social/Open Graph preview -->
+    <meta property="og:title" content="JiggerJot" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="og_image_1200x630.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link href="JiggerJot.Web.styles.css" rel="stylesheet" />
+    <script type="importmap"></script>
+</head>
+
+<body>
+    <!-- SHELL-2, proposal screen 9. Keep in sync with src/Maui/wwwroot/index.html — both hosts carry
+         their own copy of this file and NATIVE_PARITY.md makes keeping them together a maintainer
+         rule. The only intended difference is the boot-indeterminate class the MAUI host adds, and
+         the reason is written beside it there.
+
+         The drawing is the one shipped by MARGA-1 at 115 KB, down from the 2 MB delivered. This is
+         the single place in the app where it is fetched BEFORE the app is usable, so an unoptimized
+         asset here would make the very wait it decorates longer. -->
+    <div id="app">
+        <div class="boot">
+            <img class="boot-scene" src="_content/JiggerJot.Shared.Ui/brand/marga_scene_512.png"
+                 alt="" aria-hidden="true" width="512" height="512" />
+            <div class="boot-meter">
+                <svg class="loading-progress" viewBox="0 0 100 100">
+                    <circle r="46" cx="50" cy="50" />
+                    <circle r="46" cx="50" cy="50" />
+                </svg>
+                <div class="loading-progress-text"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss">🗙</span>
+    </div>
+    <!-- MFA enrollment QR (vendored qrcode-generator, MIT) — client-side only -->
+    <script src="_content/JiggerJot.Shared.Ui/js/qrcode-generator.min.js"></script>
+    <script src="_content/JiggerJot.Shared.Ui/js/mfa-qr.js"></script>
+    <!-- Reload bfcache restores so Back after sign-out can't show a stale authenticated view (QA-SEC-03). -->
+    <script src="_content/JiggerJot.Shared.Ui/js/bfcache-guard.js"></script>
+    <!-- Small DOM helpers the RCL's components call (appUi.*). -->
+    <script src="_content/JiggerJot.Shared.Ui/js/ui.js"></script>
+    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+</body>
+
+</html>

@@ -1,0 +1,242 @@
+@page "/"
+@using System.Net.Http.Json
+@using JiggerJot.Shared.Ui.Auth
+@inject HttpClient Http
+@inject AuthService Auth
+@inject IStringLocalizer<AppStrings> Localizer
+
+<PageTitle>@Localizer["Nav_Home"]</PageTitle>
+
+@if (Auth.IsAuthenticated)
+{
+    @* MARGA-2, proposal screen 1; restyled by BACKBAR-3 to handoff pages 03–04. This replaced an
+       inherited platform welcome card whose only app-specific content was `<!-- TODO -->`. The count
+       is the headline because it IS the product's question answered; Marga states the one purchase
+       that extends it.
+
+       Rules, not cards: the only boxed thing on the screen is the unlock panel, so it reads as the one
+       thing to act on. Desktop is two columns — her line, the panel about the bottle she names, and
+       the count on the left; the drinks on the right; a phone stacks them in that order. *@
+    <div class="home-wrapper">
+
+        @if (_loading)
+        {
+            @* A 2px brass bar under the header, indeterminate, and the numeral holding its space at
+               40% — no spinner in the middle of the page. *@
+            <div class="home-loading" role="status">
+                <span class="home-loading-bar" aria-hidden="true"></span>
+                <p class="home-count home-count-placeholder font-display" aria-hidden="true">&mdash;</p>
+                <span class="visually-hidden">@Localizer["Common_Loading"]</span>
+            </div>
+        }
+        else if (_makeable is { Total: > 0 })
+        {
+            <div class="home-grid">
+                <div class="home-lead">
+                    @* MARGA-5 raised her from 56; BACKBAR-3 makes her the page's voice at 96, with her
+                       label above the line and the line in the display face. *@
+                    @* MARGA-7: announced when the arrows in the panel change her bottle. *@
+                    <div class="home-marga" data-testid="home-marga" aria-live="polite">
+                        <MargaSays Tone="MargaTone.Card" Aside="@Localizer["Marga_HomeAside"]">
+                            @MargaLine
+                        </MargaSays>
+                    </div>
+
+                    @* MARGA-7 amendment (the maintainer's call): the box about the bottle she names sits
+                       directly under her line, not across the page — its arrows change that line, and
+                       they read as hers only when they are beside it. No headline: her sentence above
+                       already names the bottle and the number. *@
+                    @if (_bottle is not null)
+                    {
+                        <div class="card home-unlocks" data-testid="home-unlocks">
+                            <div class="card-body">
+                                <p class="home-unlock-drinks">@Named(_bottle.Cocktails)</p>
+                                <BottlePager Count="_bottles.Count" @bind-Index="_bottleIndex" />
+                                <a class="home-unlock-link" href="/cocktails?almost=true" data-testid="home-show-almost">
+                                    @Localizer["Home_ShowAlmost"] &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    }
+
+                    <p class="home-count font-display" data-testid="home-count">@_makeable.Total</p>
+                    <p class="home-count-label">@Localizer["Home_MakeableLabel"]</p>
+
+                    <div class="home-actions">
+                        @* Deep-linked, so the button lands on the list that produced the number
+                           above it rather than on the whole catalog. *@
+                        <a class="btn btn-primary" href="/cocktails?makeable=true" data-testid="home-show-makeable">
+                            @Localizer["Home_ShowMakeable"]
+                        </a>
+                        <a class="btn btn-outline-secondary" href="/shelf" data-testid="home-update-shelf">
+                            @Localizer["Home_UpdateShelf"]
+                        </a>
+                    </div>
+                </div>
+
+                <div class="home-side">
+                    @* The drinks as hairline rules: name in the serif, its facets right-aligned. Eight,
+                       so this column ends near the taller left one (MARGA-7 amendment). *@
+                    <ul class="home-drinks" data-testid="home-makeable-list">
+                        @foreach (var c in _makeable.Items)
+                        {
+                            <li class="home-drink">
+                                <a class="home-drink-name font-display" href="/cocktails/@c.Id">@c.Name</a>
+                                <span class="home-drink-meta">@string.Join(" · ", Facets(c))</span>
+                            </li>
+                        }
+                    </ul>
+
+                </div>
+            </div>
+        }
+        else
+        {
+            @* Not the catalog's empty state — that one is MARGA-3. This is the front page telling
+               a household with nothing ticked where to start, and ONBOARD-1 made that the guided
+               route rather than the raw checklist: 191 pills with no idea which matter is exactly
+               the dead first impression JJ-021 exists to avoid. The shelf stays one tap further
+               on for anyone who would rather just get on with it. No zero: her scene at 260px
+               beside her line, and the primary pill is the wizard. *@
+            <div class="home-empty" data-testid="home-marga">
+                <img class="home-scene" src="_content/JiggerJot.Shared.Ui/brand/marga_scene_512.png"
+                     alt="" aria-hidden="true" width="512" height="512" />
+                <div class="home-empty-body">
+                    <p class="home-empty-line font-display">@MargaLine</p>
+                    <div class="home-actions">
+                        <a class="btn btn-primary btn-lg" href="/welcome" data-testid="home-setup-shelf">
+                            @Localizer["Onboard_SetUpShelf"]
+                        </a>
+                        <a class="btn btn-link" href="/shelf" data-testid="home-update-shelf">
+                            @Localizer["Make_FillYourShelf"]
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            @if (_bottle is not null)
+            {
+                @* Nothing pourable yet, but something one bottle away — the panel still earns its
+                   place, since it names the bottle that turns the zero into a number. *@
+                <div class="card home-unlocks mt-3" data-testid="home-unlocks" aria-live="polite">
+                    <div class="card-body">
+                        <p class="home-unlock-headline font-display">@Localizer["Cocktails_UnlocksHeadline", _bottle.Ingredient, _bottle.Unlocks]</p>
+                        <p class="home-unlock-drinks">@Named(_bottle.Cocktails)</p>
+                        <BottlePager Count="_bottles.Count" @bind-Index="_bottleIndex" />
+                        <a class="home-unlock-link" href="/cocktails?almost=true" data-testid="home-show-almost">
+                            @Localizer["Home_ShowAlmost"] &rarr;
+                        </a>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+}
+else
+{
+    <div class="welcome-wrapper">
+        <div class="hero-section text-center">
+            <img src="_content/JiggerJot.Shared.Ui/brand/lockup_light_1520.png" alt="JiggerJot"
+                 class="welcome-lockup mb-4" />
+            <p class="lead text-muted mb-4 mx-auto" style="max-width:480px">
+                @Localizer["Home_HeroSubtitle"]
+            </p>
+            <a href="/login" class="btn btn-primary btn-lg px-5">@Localizer["Home_SignInCta"] &rarr;</a>
+        </div>
+    </div>
+}
+
+@code {
+    // Eight since the MARGA-7 amendment put the bottle box in the left column: three drinks left the
+    // right one ending halfway down a much taller page.
+    private const int Preview = 8;
+
+    private PagedResponse<CocktailSummary>? _makeable;
+    // MARGA-7: the ranking, best bottle first, and which one she is naming. The panel's arrows move the
+    // index; her line and the panel both read the bottle it points at.
+    private List<UnlockView> _bottles = [];
+    private int _bottleIndex;
+    private UnlockView? _bottle => _bottles.Count == 0 ? null : _bottles[Math.Min(_bottleIndex, _bottles.Count - 1)];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Auth.IsAuthenticated)
+        {
+            _loading = false;
+            return;
+        }
+
+        try
+        {
+            // TWO calls, each internally consistent, and that is the rule this screen turns on.
+            // The headline count and the drinks beside it come from ONE response, so they can
+            // never disagree; the bottle and the drinks it opens come from another, where the count
+            // is the length of the names by construction (ALMOST-2). Her sentence quotes one number
+            // from each, and each half agrees with the list beneath it.
+            _makeable = await Http.GetFromJsonAsync<PagedResponse<CocktailSummary>>(
+                $"/api/cocktails?makeable=true&page=1&pageSize={Preview}");
+
+            _bottles = await Http.GetFromJsonAsync<List<UnlockView>>(
+                $"/api/cocktails/unlocks?limit={BottlePager.MaxBottles}") ?? [];
+            _bottleIndex = 0;
+        }
+        catch (Exception)
+        {
+            // She is optional furniture: if the data behind her line is not there, the screen renders
+            // without her rather than with an empty speech bubble.
+            _makeable = null;
+            _bottles = [];
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    /// <summary>
+    /// Which of her three fixed lines this household gets. She never assembles a sentence from
+    /// fragments — this picks one whole resource string and fills its placeholders.
+    /// </summary>
+    private string MargaLine => (_makeable?.Total ?? 0, _bottle) switch
+    {
+        (0, _) => Localizer["Marga_HomeEmpty"],
+        // MARGA-7: the best bottle keeps her sentence; any later one is an alternative, so she says "or".
+        (_, { } bottle) => _bottleIndex == 0
+            ? Localizer["Marga_HomeBottle", bottle.Ingredient, bottle.Unlocks]
+            : Localizer["Marga_HomeBottleOr", bottle.Ingredient, bottle.Unlocks],
+        _ => Localizer["Marga_HomeNoBottle"],
+    };
+
+    /// <summary>
+    /// The drinks a bottle opens, trimmed for reading. On a real shelf the top bottle named thirteen,
+    /// which is a wall rather than a list — so the DISPLAY stops at four and counts the rest. The data
+    /// stays whole: `unlocks` is the length of the names, and truncating those would break the number
+    /// shown beside them.
+    /// </summary>
+    private string Named(IReadOnlyList<string> cocktails)
+    {
+        const int shown = 4;
+        if (cocktails.Count <= shown) return string.Join(" · ", cocktails);
+        return string.Join(" · ", cocktails.Take(shown))
+               + " · " + Localizer["Cocktails_UnlocksMore", cocktails.Count - shown];
+    }
+
+    private IEnumerable<string> Facets(CocktailSummary c)
+    {
+        if (!string.IsNullOrWhiteSpace(c.Glass)) yield return c.Glass!;
+        if (!string.IsNullOrWhiteSpace(c.Method)) yield return c.Method!;
+        yield return Localizer["Cocktails_IngredientCount", c.IngredientCount];
+    }
+
+    private record PagedResponse<T>(IReadOnlyList<T> Items, int Page, int PageSize, int Total);
+
+    private record CocktailSummary(
+        Guid Id, string Name, string? Glass, string? Method,
+        string ServingType, string? Source, bool IsOwn, int IngredientCount,
+        IReadOnlyList<SubstitutionInPlay> Substitutions, string? MissingIngredient);
+
+    private record SubstitutionInPlay(string AsksFor, string YouHave);
+
+    private record UnlockView(Guid IngredientId, string Ingredient, int Unlocks, List<string> Cocktails);
+}

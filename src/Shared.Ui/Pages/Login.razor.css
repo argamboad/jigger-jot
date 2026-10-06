@@ -1,0 +1,93 @@
+/* BACKBAR-5 (pages 05–06), amended 2026-09-14: the framed split, centred on the page ground both
+   ways — the card floats in the viewport with the ground around it, the form side centres its
+   content vertically beside her. On a phone the card starts at the top and the page scrolls. */
+
+.login-wrapper {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: grid;
+    align-content: center;
+    padding: 2rem 1rem;
+}
+
+/* ::deep, and it is load-bearing: the split's root carries the SPLIT's scope attribute, not this
+   page's, so a scoped `.login-wrapper > *` compiles to a selector that matches nothing — and the
+   card shrank to its content (924px on a laptop, 276px on a phone) before this was written. */
+.login-wrapper ::deep .split {
+    width: 100%;
+}
+
+.login-wrapper ::deep .split-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+@media (max-width: 991.98px) {
+    .login-wrapper {
+        align-items: flex-start;
+        padding: 1rem;
+    }
+}
+
+/* The 6-digit field: 24px, letter-spacing .4rem, centred. The MFA field is wider and a little tighter. */
+.login-code {
+    font-size: 24px;
+    letter-spacing: .4rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.login-code-wide {
+    font-size: 20px;
+    letter-spacing: .3rem;
+}
+
+/* OAuth buttons: pills on the surface with a hairline, the provider mark beside the label. */
+.btn-oauth {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .65rem;
+    font-weight: 500;
+    background: var(--surface);
+    border: 1px solid var(--app-border);
+    color: var(--ink);
+    padding: .6rem 1rem;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: border-color .15s;
+}
+
+.btn-oauth:hover {
+    border-color: var(--bs-primary);
+    color: var(--ink);
+}
+
+.oauth-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+/* "or" divider */
+.divider-text {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    color: var(--muted);
+    font-size: .8rem;
+}
+
+.divider-text::before,
+.divider-text::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--app-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-oauth {
+        transition: none;
+    }
+}

@@ -1,0 +1,86 @@
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject IStringLocalizer<AppStrings> Localizer
+
+@if (Segmented)
+{
+    @* BACKBAR-7 (page 16): the two systems as segmented pills. Imperial first: every volume is stored
+       in ounces (JJ-041), so it is also where a reader who never chose already is. Same OnChange as
+       the select, same PUT. *@
+    <div class="segmented" role="radiogroup" aria-label="@Localizer["Units_Label"]" data-testid="unit-segmented">
+        @foreach (var (value, label) in Choices)
+        {
+            <input class="btn-check" type="radio" name="unit-choice" id="unit-choice-@value" autocomplete="off"
+                   value="@value" checked="@(_current == value)" @onchange="OnChange" />
+            <label class="btn btn-outline-secondary btn-sm" for="unit-choice-@value">@Localizer[label]</label>
+        }
+    </div>
+}
+else
+{
+    <select class="form-select form-select-sm" value="@_current" data-testid="unit-switcher"
+            @onchange="OnChange" aria-label="@Localizer["Units_Label"]">
+        @foreach (var (value, label) in Choices)
+        {
+            <option value="@value">@Localizer[label]</option>
+        }
+    </select>
+}
+@if (_syncFailed)
+{
+    <span class="text-warning small ms-1" data-testid="unit-sync-failed"
+          title="@Localizer["Pref_SyncFailed"]" role="status">&#9888;</span>
+}
+
+@code {
+    /// <summary>Segmented pills (Settings) rather than a select. Same preference, same PUT.</summary>
+    [Parameter] public bool Segmented { get; set; }
+
+    private const string Imperial = "Imperial";
+
+    private static readonly (string Value, string Label)[] Choices =
+    [
+        (Imperial, "Units_Imperial"),
+        ("Metric", "Units_Metric"),
+    ];
+
+    private string _current = Imperial;
+    private bool _syncFailed;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Unlike theme and language, this has no device-local copy to read back: nothing renders
+        // differently until a recipe is opened, and the server does the conversion. So the server is
+        // the only source, and the control simply reflects it — the profile already says "Imperial"
+        // for a reader who never chose.
+        try
+        {
+            var profile = await Http.GetFromJsonAsync<Profile>("/api/auth/me");
+            _current = profile?.PreferredUnitSystem ?? Imperial;
+        }
+        catch
+        {
+            // Leave it on Imperial — which is also what the server shows a reader with no preference,
+            // so a failed read shows the truth rather than a guess.
+        }
+    }
+
+    private async Task OnChange(ChangeEventArgs e)
+    {
+        var chosen = e.Value?.ToString() ?? Imperial;
+        _current = chosen;
+        _syncFailed = false;
+
+        try
+        {
+            var response = await Http.PutAsJsonAsync("/api/auth/unit-system", new { unitSystem = chosen });
+            _syncFailed = !response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            _syncFailed = true;
+        }
+    }
+
+    private record Profile(string? PreferredUnitSystem);
+}

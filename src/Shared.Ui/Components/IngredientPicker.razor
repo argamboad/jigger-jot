@@ -1,0 +1,146 @@
+@* The write form's ingredient picker (AUTHORING-4). A select of two hundred bottles was a scroll, not a
+   picker: this is a combobox — type a name or a category to narrow it, pick with the mouse or with
+   the arrow keys and Enter, Escape to leave it as it was. It follows the ARIA combobox pattern (a
+   text input owning a listbox through aria-activedescendant), so a screen reader announces each
+   option as the arrows move rather than hearing nothing.
+
+   It chooses from the options it is given and nothing else: no free text reaches a recipe, because
+   a line must name a bottle the household can see (JJ-031). A bottle that is not on the list is added
+   on the shelf first. *@
+
+@inject IStringLocalizer<AppStrings> Localizer
+
+<div class="ing-picker">
+    <input type="text" class="form-control ing-picker-input" role="combobox" autocomplete="off"
+           data-testid="@TestId" aria-label="@AriaLabel" placeholder="@Placeholder"
+           aria-autocomplete="list" aria-expanded="@(_open ? "true" : "false")" aria-controls="@_listId"
+           aria-activedescendant="@(_open && _active >= 0 && _active < _matches.Count ? OptionId(_active) : null)"
+           value="@(_open ? _query : SelectedName)"
+           @oninput="OnInputAsync" @onkeydown="OnKeyDownAsync" @onfocus="Open" @onblur="Close" />
+
+    @if (_open)
+    {
+        <ul class="ing-picker-list" role="listbox" id="@_listId" aria-label="@AriaLabel">
+            @if (_matches.Count == 0)
+            {
+                <li class="ing-picker-empty" data-testid="@($"{TestId}-empty")">@Localizer["Cocktail_NoIngredientMatch"]</li>
+            }
+            else
+            {
+                @for (var i = 0; i < _matches.Count; i++)
+                {
+                    var index = i;
+                    var option = _matches[i];
+                    <li id="@OptionId(index)" role="option" data-testid="@($"{TestId}-option")"
+                        aria-selected="@(index == _active ? "true" : "false")"
+                        class="ing-picker-option @(index == _active ? "is-active" : null)"
+                        @onmousedown="() => PickAsync(option)" @onmousedown:preventDefault>
+                        <span class="ing-picker-name">@option.Name</span>
+                        <span class="ing-picker-meta">
+                            @option.Category
+                            @if (option.OnShelf)
+                            {
+                                <span class="ing-picker-shelf"> · @Localizer["Cocktail_OnShelf"]</span>
+                            }
+                        </span>
+                    </li>
+                }
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    /// <summary>How many matches the list shows at once. Typing narrows it; nobody scrolls past fifty.</summary>
+    private const int MaxShown = 50;
+
+    /// <summary>Every bottle the household may pick, in the order an empty search should list them.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<IngredientOption> Options { get; set; } = [];
+
+    [Parameter] public Guid? Value { get; set; }
+    [Parameter] public EventCallback<Guid?> ValueChanged { get; set; }
+
+    /// <summary>The input's test id; the options take "{TestId}-option" and the no-match line "{TestId}-empty".</summary>
+    [Parameter] public string TestId { get; set; } = "ingredient-picker";
+
+    [Parameter] public string? AriaLabel { get; set; }
+    [Parameter] public string? Placeholder { get; set; }
+
+    private readonly string _listId = $"ing-list-{Guid.NewGuid():N}";
+    private bool _open;
+    private string _query = string.Empty;
+    private int _active = -1;
+    private List<IngredientOption> _matches = [];
+
+    private string SelectedName => Options.FirstOrDefault(o => o.Id == Value)?.Name ?? string.Empty;
+
+    private string OptionId(int index) => $"{_listId}-{index}";
+
+    private void Open()
+    {
+        if (_open) return;
+        _open = true;
+        _query = string.Empty;
+        Filter();
+    }
+
+    private void Close()
+    {
+        _open = false;
+        _query = string.Empty;
+        _active = -1;
+    }
+
+    private Task OnInputAsync(ChangeEventArgs e)
+    {
+        _open = true;
+        _query = e.Value?.ToString() ?? string.Empty;
+        Filter();
+        return Task.CompletedTask;
+    }
+
+    private async Task OnKeyDownAsync(KeyboardEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case "ArrowDown":
+                if (!_open) Open();
+                _active = Math.Min(_active + 1, _matches.Count - 1);
+                break;
+            case "ArrowUp":
+                if (_open) _active = Math.Max(_active - 1, 0);
+                break;
+            case "Enter":
+                if (_open && _active >= 0 && _active < _matches.Count) await PickAsync(_matches[_active]);
+                break;
+            case "Escape":
+                Close();
+                break;
+        }
+    }
+
+    private async Task PickAsync(IngredientOption option)
+    {
+        Close();
+        await ValueChanged.InvokeAsync(option.Id);
+    }
+
+    /// <summary>
+    /// Names that START with what was typed first, then anything whose name or category contains it —
+    /// so "gin" finds London dry gin and "juice" finds every juice. Alphabetical within each.
+    /// </summary>
+    private void Filter()
+    {
+        var q = _query.Trim();
+        IEnumerable<IngredientOption> found = q.Length == 0
+            ? Options
+            : Options
+                .Where(o => o.Name.Contains(q, StringComparison.OrdinalIgnoreCase)
+                            || o.Category.Contains(q, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(o => o.Name.StartsWith(q, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                .ThenBy(o => o.Name, StringComparer.OrdinalIgnoreCase);
+
+        _matches = [.. found.Take(MaxShown)];
+        _active = -1;
+    }
+}

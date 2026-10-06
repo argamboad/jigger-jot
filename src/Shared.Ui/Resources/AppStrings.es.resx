@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Common_Language" xml:space="preserve"><value>Idioma</value></data>
+  <data name="Plan_free" xml:space="preserve"><value>Gratis</value></data>
+  <data name="Plan_pro" xml:space="preserve"><value>Pro</value></data>
+  <data name="BillingStatus_none" xml:space="preserve"><value>Sin suscripción</value></data>
+  <data name="BillingStatus_free" xml:space="preserve"><value>Gratis</value></data>
+  <data name="BillingStatus_active" xml:space="preserve"><value>Activa</value></data>
+  <data name="BillingStatus_trialing" xml:space="preserve"><value>Prueba</value></data>
+  <data name="BillingStatus_past_due" xml:space="preserve"><value>Pago vencido</value></data>
+  <data name="BillingStatus_canceled" xml:space="preserve"><value>Cancelada</value></data>
+  <data name="BillingStatus_incomplete" xml:space="preserve"><value>Incompleta</value></data>
+  <data name="BillingStatus_unpaid" xml:space="preserve"><value>Sin pagar</value></data>
+  <data name="Pref_SyncFailed" xml:space="preserve"><value>La preferencia no se sincronizó con tu cuenta — inténtalo de nuevo.</value></data>
+  <data name="Theme_Label" xml:space="preserve"><value>Tema</value></data>
+  <data name="Theme_System" xml:space="preserve"><value>Auto</value></data>
+  <data name="Theme_Light" xml:space="preserve"><value>Claro</value></data>
+  <data name="Theme_Dark" xml:space="preserve"><value>Oscuro</value></data>
+  <data name="Login_Title" xml:space="preserve"><value>Iniciar sesión</value></data>
+  <data name="Login_Subtitle" xml:space="preserve"><value>Elige cómo quieres continuar</value></data>
+  <data name="Login_ContinueWith" xml:space="preserve"><value>Continuar con {0}</value></data>
+  <data name="Login_OrWithEmail" xml:space="preserve"><value>o inicia sesión con tu correo</value></data>
+  <data name="Login_EmailLabel" xml:space="preserve"><value>Correo electrónico</value></data>
+  <data name="Login_EmailInvalid" xml:space="preserve"><value>Introduce una dirección de correo válida.</value></data>
+  <data name="Login_SendMagicLink" xml:space="preserve"><value>Enviarme un enlace mágico</value></data>
+  <data name="Login_SendOtp" xml:space="preserve"><value>Enviarme un código de 6 dígitos</value></data>
+  <data name="Login_InboxTitle" xml:space="preserve"><value>Revisa tu bandeja de entrada.</value></data>
+  <data name="Login_MagicLinkSent" xml:space="preserve"><value>Se envió un enlace de acceso a {0}. Caduca en 15 minutos.</value></data>
+  <data name="Login_UseDifferentEmail" xml:space="preserve"><value>Usar otro correo</value></data>
+  <data name="Login_OtpPrompt" xml:space="preserve"><value>Introduce el código de 6 dígitos enviado a {0}.</value></data>
+  <data name="Login_VerifyCode" xml:space="preserve"><value>Verificar código</value></data>
+  <data name="Login_ErrSomethingWrong" xml:space="preserve"><value>Algo salió mal. Inténtalo de nuevo.</value></data>
+  <data name="Login_ErrSignupNotAllowed" xml:space="preserve"><value>Esta aplicación está en pruebas privadas y aún no acepta cuentas nuevas. Si alguien te invitó, pídele que te envíe la invitación de nuevo.</value></data>
+  <data name="Login_ErrExternalFailed" xml:space="preserve"><value>Error al iniciar sesión con el proveedor externo. Inténtalo de nuevo.</value></data>
+  <data name="Login_ErrEmailUnverified" xml:space="preserve"><value>Tu proveedor no ha verificado esta dirección de correo, por lo que no se puede vincular a una cuenta existente.</value></data>
+  <data name="Login_ErrInvalidLink" xml:space="preserve"><value>Este enlace de acceso ha caducado o ya se ha utilizado. Solicita uno nuevo.</value></data>
+  <data name="Login_ErrCouldntSendLink" xml:space="preserve"><value>No se pudo enviar el enlace. Inténtalo de nuevo.</value></data>
+  <data name="Login_ErrCouldntSendCode" xml:space="preserve"><value>No se pudo enviar el código. Inténtalo de nuevo.</value></data>
+  <data name="Login_ErrCodeIncorrect" xml:space="preserve"><value>Ese código es incorrecto o ha caducado.</value></data>
+  <data name="Login_ErrTooManyAttempts" xml:space="preserve"><value>Demasiados intentos. Espera unos minutos y luego solicita un código nuevo.</value></data>
+  <data name="Login_ErrVerificationFailed" xml:space="preserve"><value>La verificación falló. Inténtalo de nuevo.</value></data>
+  <data name="Login_ErrTooManyRequests" xml:space="preserve"><value>Demasiadas solicitudes. Espera un minuto y vuelve a intentarlo.</value></data>
+  <data name="Login_ErrEnterCode" xml:space="preserve"><value>Introduce el código de tu correo.</value></data>
+  <data name="Login_ErrOAuthCancelled" xml:space="preserve"><value>El inicio de sesión se canceló o no se completó. Inténtalo de nuevo.</value></data>
+  <data name="Login_ErrOAuthResumeExpired" xml:space="preserve"><value>El inicio de sesión tardó demasiado en completarse. Inténtalo de nuevo.</value></data>
+  <data name="Common_Loading" xml:space="preserve"><value>Cargando…</value></data>
+  <data name="Common_Working" xml:space="preserve"><value>Procesando…</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="Login_MfaPrompt" xml:space="preserve"><value>Introduce el código de 6 dígitos de tu app de autenticación (o un código de recuperación).</value></data>
+  <data name="Mfa_Title" xml:space="preserve"><value>Verificación en dos pasos</value></data>
+  <data name="Mfa_Subtitle" xml:space="preserve"><value>Añade un segundo paso al iniciar sesión con una app de autenticación (TOTP).</value></data>
+  <data name="Mfa_On" xml:space="preserve"><value>Activada</value></data>
+  <data name="Mfa_Off" xml:space="preserve"><value>Desactivada</value></data>
+  <data name="Mfa_Enable" xml:space="preserve"><value>Activar dos pasos</value></data>
+  <data name="Mfa_Step1" xml:space="preserve"><value>Escanea el código QR con tu app de autenticación, o introduce la clave manualmente.</value></data>
+  <data name="Mfa_Step2" xml:space="preserve"><value>Introduce el código de 6 dígitos que muestra para confirmar.</value></data>
+  <data name="Mfa_ManualKey" xml:space="preserve"><value>O introduce esta clave manualmente:</value></data>
+  <data name="Mfa_EnterCode" xml:space="preserve"><value>Código de verificación</value></data>
+  <data name="Mfa_Verify" xml:space="preserve"><value>Verificar y activar</value></data>
+  <data name="Mfa_EnabledNow" xml:space="preserve"><value>La verificación en dos pasos ya está activada.</value></data>
+  <data name="Mfa_RecoveryIntro" xml:space="preserve"><value>Guarda estos códigos de recuperación en un lugar seguro: cada uno funciona una vez si pierdes tu autenticador. No se volverán a mostrar.</value></data>
+  <data name="Mfa_SavedCodes" xml:space="preserve"><value>He guardado mis códigos</value></data>
+  <data name="Mfa_Disable" xml:space="preserve"><value>Desactivar dos pasos</value></data>
+  <data name="Mfa_DisablePrompt" xml:space="preserve"><value>Introduce un código de tu app (o de recuperación) para desactivarla.</value></data>
+  <data name="Mfa_ConfirmDisable" xml:space="preserve"><value>Desactivar</value></data>
+  <data name="Mfa_ErrLoad" xml:space="preserve"><value>No se pudo cargar el estado de la verificación en dos pasos.</value></data>
+  <data name="Mfa_ErrEnroll" xml:space="preserve"><value>No se pudo iniciar el registro. Inténtalo de nuevo.</value></data>
+  <data name="Mfa_ErrEnterCode" xml:space="preserve"><value>Introduce primero el código.</value></data>
+  <data name="Mfa_ErrCodeIncorrect" xml:space="preserve"><value>Ese código es incorrecto o ha caducado.</value></data>
+  <data name="Mfa_ErrDisable" xml:space="preserve"><value>No se pudo desactivar la verificación en dos pasos. Inténtalo de nuevo.</value></data>
+  <data name="Notif_Title" xml:space="preserve"><value>Notificaciones</value></data>
+  <data name="Notif_MarkAllRead" xml:space="preserve"><value>Marcar todas como leídas</value></data>
+  <data name="Notif_ClearRead" xml:space="preserve"><value>Borrar leídas</value></data>
+  <data name="Notif_ClearAll" xml:space="preserve"><value>Borrar todas</value></data>
+  <data name="Notif_Delete" xml:space="preserve"><value>Eliminar notificación</value></data>
+  <data name="Notif_Empty" xml:space="preserve"><value>Estás al día.</value></data>
+  <data name="Notif_JustNow" xml:space="preserve"><value>ahora mismo</value></data>
+  <data name="NotifPrefs_Title" xml:space="preserve"><value>Notificaciones</value></data>
+  <data name="NotifPrefs_Subtitle" xml:space="preserve"><value>Elige cómo quieres recibir notificaciones.</value></data>
+  <data name="NotifPrefs_InApp" xml:space="preserve"><value>Notificaciones en la app</value></data>
+  <data name="NotifPrefs_Email" xml:space="preserve"><value>Notificaciones por correo</value></data>
+  <data name="NotifPrefs_ErrLoad" xml:space="preserve"><value>No se pudieron cargar tus preferencias de notificación.</value></data>
+  <data name="NotifPrefs_ErrSave" xml:space="preserve"><value>No se pudieron guardar tus preferencias. Inténtalo de nuevo.</value></data>
+  <data name="Nav_Admin" xml:space="preserve"><value>Administración</value></data>
+  <data name="Impersonation_Banner" xml:space="preserve"><value>Estás viendo la app como {0}.</value></data>
+  <data name="Impersonation_Stop" xml:space="preserve"><value>Dejar de suplantar</value></data>
+  <data name="Admin_Title" xml:space="preserve"><value>Consola de administración</value></data>
+  <data name="Admin_Subtitle" xml:space="preserve"><value>Back office del personal de plataforma: inspecciona inquilinos e inicia sesión como un usuario.</value></data>
+  <data name="Admin_Forbidden" xml:space="preserve"><value>No tienes acceso a la consola de administración.</value></data>
+  <data name="Admin_BackHome" xml:space="preserve"><value>Volver al inicio</value></data>
+  <data name="Admin_TenantsTitle" xml:space="preserve"><value>Inquilinos</value></data>
+  <data name="Admin_NoTenants" xml:space="preserve"><value>No hay inquilinos.</value></data>
+  <data name="Admin_SelectTenant" xml:space="preserve"><value>Selecciona un inquilino para ver sus detalles.</value></data>
+  <data name="Admin_Created" xml:space="preserve"><value>Creado</value></data>
+  <data name="Admin_AuditEvents" xml:space="preserve"><value>Eventos de auditoría</value></data>
+  <data name="Admin_Members" xml:space="preserve"><value>Miembros</value></data>
+  <data name="Admin_ColMember" xml:space="preserve"><value>Miembro</value></data>
+  <data name="Admin_ColRole" xml:space="preserve"><value>Rol</value></data>
+  <data name="Admin_Impersonate" xml:space="preserve"><value>Iniciar sesión como</value></data>
+  <data name="Admin_ConfirmImpersonate" xml:space="preserve"><value>¿Iniciar sesión como {0}? Las acciones que realices se registrarán a su nombre.</value></data>
+  <data name="Admin_ErrLoad" xml:space="preserve"><value>No se pudieron cargar los inquilinos.</value></data>
+  <data name="Admin_ErrDetail" xml:space="preserve"><value>No se pudieron cargar los detalles del inquilino.</value></data>
+  <data name="Admin_ErrImpersonate" xml:space="preserve"><value>No se pudo iniciar la suplantación.</value></data>
+  <data name="Admin_AnnounceTitle" xml:space="preserve"><value>Enviar anuncio</value></data>
+  <data name="Admin_AnnounceTitlePlaceholder" xml:space="preserve"><value>Título</value></data>
+  <data name="Admin_AnnounceBodyPlaceholder" xml:space="preserve"><value>Mensaje</value></data>
+  <data name="Admin_AnnounceSend" xml:space="preserve"><value>Enviar a todos los miembros</value></data>
+  <data name="Admin_ConfirmAnnounce" xml:space="preserve"><value>¿Enviar este anuncio a todos los miembros de «{0}»?</value></data>
+  <data name="Admin_AnnounceSent" xml:space="preserve"><value>Anuncio enviado a {0} miembro(s).</value></data>
+  <data name="Admin_ErrAnnounce" xml:space="preserve"><value>No se pudo enviar el anuncio.</value></data>
+  <data name="Admin_SubscriptionTitle" xml:space="preserve"><value>Suscripción</value></data>
+  <data name="Admin_CompPro" xml:space="preserve"><value>Subir a Pro (cortesía)</value></data>
+  <data name="Admin_RevertFree" xml:space="preserve"><value>Revertir a Free</value></data>
+  <data name="Admin_ProviderManaged" xml:space="preserve"><value>Gestionada por el proveedor de facturación: cambia el plan allí.</value></data>
+  <data name="Admin_ConfirmComp" xml:space="preserve"><value>¿Poner «{0}» en el plan Pro sin cargo?</value></data>
+  <data name="Admin_ConfirmRevert" xml:space="preserve"><value>¿Revertir «{0}» al plan Free?</value></data>
+  <data name="Admin_SubscriptionUpdated" xml:space="preserve"><value>Suscripción actualizada.</value></data>
+  <data name="Admin_ErrSubscription" xml:space="preserve"><value>No se pudo actualizar la suscripción.</value></data>
+  <data name="Admin_AnnounceSendSelected" xml:space="preserve"><value>Enviar a {0} seleccionado(s)</value></data>
+  <data name="Admin_ConfirmAnnounceSelected" xml:space="preserve"><value>¿Enviar este anuncio a {0} miembro(s) seleccionado(s) de «{1}»?</value></data>
+  <data name="Admin_BroadcastTitle" xml:space="preserve"><value>Anunciar a todos</value></data>
+  <data name="Admin_BroadcastHint" xml:space="preserve"><value>Envía una notificación a todos los usuarios de todos los inquilinos de la plataforma. La entrega se pone en cola y se procesa en segundo plano.</value></data>
+  <data name="Admin_BroadcastSend" xml:space="preserve"><value>Enviar a todos</value></data>
+  <data name="Admin_ConfirmBroadcast" xml:space="preserve"><value>¿Enviar este anuncio a TODOS los usuarios de TODOS los inquilinos de la plataforma?</value></data>
+  <data name="Admin_BroadcastQueued" xml:space="preserve"><value>Difusión en cola para su entrega.</value></data>
+  <data name="Admin_ErrBroadcast" xml:space="preserve"><value>No se pudo poner en cola la difusión.</value></data>
+  <data name="Admin_ResetMfa" xml:space="preserve"><value>Restablecer MFA</value></data>
+  <data name="Admin_ConfirmResetMfa" xml:space="preserve"><value>¿Restablecer la autenticación en dos pasos de {0}? Su aplicación de autenticación y sus códigos de recuperación dejarán de funcionar de inmediato y recibirá una notificación. Hazlo solo tras verificar su identidad por otro medio.</value></data>
+  <data name="Admin_MfaWasReset" xml:space="preserve"><value>Se restableció la autenticación en dos pasos de {0}.</value></data>
+  <data name="Admin_ErrResetMfa" xml:space="preserve"><value>No se pudo restablecer la autenticación en dos pasos.</value></data>
+  <data name="Nav_Home" xml:space="preserve"><value>Inicio</value></data>
+  <data name="Nav_Household" xml:space="preserve"><value>Hogar</value></data>
+  <data name="Nav_Settings" xml:space="preserve"><value>Ajustes</value></data>
+  <data name="Nav_Billing" xml:space="preserve"><value>Facturación</value></data>
+  <data name="Billing_Title" xml:space="preserve"><value>Facturación</value></data>
+  <data name="Billing_Subtitle" xml:space="preserve"><value>Tu plan, uso y suscripción.</value></data>
+  <data name="Billing_CurrentPlan" xml:space="preserve"><value>Plan actual</value></data>
+  <data name="Billing_RenewsOn" xml:space="preserve"><value>Se renueva o finaliza el {0}.</value></data>
+  <data name="Billing_EndedOn" xml:space="preserve"><value>Tu suscripción de pago finalizó el {0}. Puedes mejorar el plan cuando quieras para iniciar una nueva.</value></data>
+  <data name="Billing_Seats" xml:space="preserve"><value>Asientos</value></data>
+  <data name="Billing_SeatsUsage" xml:space="preserve"><value>{0} de {1} usados</value></data>
+  <data name="Billing_Upgrade" xml:space="preserve"><value>Mejorar a Pro</value></data>
+  <data name="Billing_Manage" xml:space="preserve"><value>Gestionar suscripción</value></data>
+  <data name="Billing_OwnerOnly" xml:space="preserve"><value>Solo el propietario del hogar puede gestionar la facturación. Pídeselo si necesitas un cambio de plan.</value></data>
+  <data name="Billing_ErrLoad" xml:space="preserve"><value>No se pudo cargar la facturación.</value></data>
+  <data name="Billing_ErrCheckout" xml:space="preserve"><value>No se pudo iniciar el pago.</value></data>
+  <data name="Billing_ErrPortal" xml:space="preserve"><value>No se pudo abrir el portal de facturación.</value></data>
+  <data name="Billing_CheckoutSuccess" xml:space="preserve"><value>Pago recibido. Tu plan se actualiza en cuanto el proveedor lo confirma; normalmente en unos segundos.</value></data>
+  <data name="Billing_CheckoutCancelled" xml:space="preserve"><value>Pago cancelado: no cambió nada.</value></data>
+  <data name="Nav_SignOut" xml:space="preserve"><value>Cerrar sesión</value></data>
+  <data name="Nav_AccountMenu" xml:space="preserve"><value>Menú de la cuenta</value></data>
+  <data name="Home_HeroSubtitle" xml:space="preserve"><value>Inicia sesión para empezar con tu hogar.</value></data>
+  <data name="Home_SignInCta" xml:space="preserve"><value>Iniciar sesión</value></data>
+  <data name="Home_MakeableLabel" xml:space="preserve"><value>tragos que puedes preparar ahora mismo</value></data>
+  <data name="Home_ShowMakeable" xml:space="preserve"><value>Muéstramelos</value></data>
+  <data name="Home_UpdateShelf" xml:space="preserve"><value>Actualizar la estantería</value></data>
+  <data name="Home_ShowAlmost" xml:space="preserve"><value>Ver qué más está cerca</value></data>
+  <data name="Marga_HomeAside" xml:space="preserve"><value>Marga · revisó tu estantería hace un momento</value></data>
+  <data name="Marga_HomeBottle" xml:space="preserve"><value>Consigue {0} y te preparo {1} más.</value></data>
+  <data name="Marga_HomeNoBottle" xml:space="preserve"><value>Eso es todo lo que alcanza tu estantería, por ahora.</value></data>
+  <data name="Marga_HomeEmpty" xml:space="preserve"><value>Nada todavía. Dime qué tienes en la estantería y yo me encargo.</value></data>
+  <data name="Marga_StarterBottle" xml:space="preserve"><value>¿Empiezas de cero? Hazte con {0}. Más recetas la piden que a cualquier otra botella: {1} de ellas.</value></data>
+  <data name="Marga_ShelfEmpty" xml:space="preserve"><value>Marca lo que ya tengas: con tres botellas ya hacemos algo. Y si vas a comprar, yo empezaría por {0}.</value></data>
+  <data name="Marga_ShelfNext" xml:space="preserve"><value>A una botella de {1} tragos más: {0}. Márcala el día que la tengas.</value></data>
+  <data name="Marga_ShelfReached" xml:space="preserve"><value>Hasta ahí llega tu estantería. Añade algo nuevo y te digo qué abre.</value></data>
+  <data name="Marga_MakeableCount" xml:space="preserve"><value>{0} esta noche, con lo que ya tienes.</value></data>
+  <data name="Marga_UnlocksHeadline" xml:space="preserve"><value>Compra {0} y se abren {1} de estos.</value></data>
+  <data name="Marga_RecipeMakeable" xml:space="preserve"><value>Este lo puedes servir ahora mismo.</value></data>
+  <data name="Marga_RecipeOneAway" xml:space="preserve"><value>Solo te falta {0}.</value></data>
+  <data name="Marga_OnboardStaples" xml:space="preserve"><value>Vamos por la vía rápida. Ya marqué lo que suele haber en toda barra: desmarca lo que no tengas.</value></data>
+  <data name="Marga_OnboardRest" xml:space="preserve"><value>Ahora lo demás. Sáltatelo si prefieres ir directo a los tragos; siempre puedes añadir después.</value></data>
+  <data name="Onboard_Title" xml:space="preserve"><value>Prepara tu estantería</value></data>
+  <data name="Onboard_MargaAside" xml:space="preserve"><value>Marga · detrás de la barra</value></data>
+  <data name="Onboard_Step" xml:space="preserve"><value>Paso {0} de {1}</value></data>
+  <data name="Onboard_StaplesHeading" xml:space="preserve"><value>Los de siempre</value></data>
+  <data name="Onboard_StaplesBody" xml:space="preserve"><value>Son las botellas que más recetas piden. Desmarca las que no tengas.</value></data>
+  <data name="Onboard_RestHeading" xml:space="preserve"><value>Lo demás de tu estantería</value></data>
+  <data name="Onboard_RestBody" xml:space="preserve"><value>Opcional. Busca una botella o ve marcando.</value></data>
+  <data name="Onboard_NothingToSuggest" xml:space="preserve"><value>Tu estantería ya cubre todo lo que piden estas recetas.</value></data>
+  <data name="Onboard_Back" xml:space="preserve"><value>Atrás</value></data>
+  <data name="Onboard_Next" xml:space="preserve"><value>Siguiente</value></data>
+  <data name="Onboard_Finish" xml:space="preserve"><value>Guardar mi estantería</value></data>
+  <data name="Onboard_Skip" xml:space="preserve"><value>Saltar por ahora</value></data>
+  <data name="Onboard_SetUpShelf" xml:space="preserve"><value>Preparar mi estantería</value></data>
+  <data name="AuthCallback_Processing" xml:space="preserve"><value>Procesando el inicio de sesión…</value></data>
+  <data name="AuthError_Title" xml:space="preserve"><value>Error de inicio de sesión</value></data>
+  <data name="AuthError_Heading" xml:space="preserve"><value>Error de autenticación</value></data>
+  <data name="AuthError_Body" xml:space="preserve"><value>No pudimos iniciar tu sesión. Inténtalo de nuevo.</value></data>
+  <data name="AuthError_BackToSignIn" xml:space="preserve"><value>Volver al inicio de sesión</value></data>
+  <data name="Join_Title" xml:space="preserve"><value>Unirse al hogar</value></data>
+  <data name="Join_Working" xml:space="preserve"><value>Uniéndote al hogar…</value></data>
+  <data name="Join_InvitedTitle" xml:space="preserve"><value>Te han invitado</value></data>
+  <data name="Join_NeedsSignIn" xml:space="preserve"><value>Inicia sesión para aceptar; te traeremos de vuelta aquí.</value></data>
+  <data name="Join_SignInToAccept" xml:space="preserve"><value>Iniciar sesión para aceptar</value></data>
+  <data name="Join_SuccessTitle" xml:space="preserve"><value>¡Ya estás dentro!</value></data>
+  <data name="Join_SuccessBody" xml:space="preserve"><value>Te has unido al hogar.</value></data>
+  <data name="Join_GoToHousehold" xml:space="preserve"><value>Ir al hogar</value></data>
+  <data name="Join_EnterCodeTitle" xml:space="preserve"><value>Únete con un código de invitación</value></data>
+  <data name="Join_EnterCodeBody" xml:space="preserve"><value>Pega el código de tu correo de invitación.</value></data>
+  <data name="Join_CodePlaceholder" xml:space="preserve"><value>Código de invitación</value></data>
+  <data name="Join_SubmitCode" xml:space="preserve"><value>Unirse</value></data>
+  <data name="Join_ErrorTitle" xml:space="preserve"><value>No se pudo unir</value></data>
+  <data name="Join_FullTitle" xml:space="preserve"><value>Este hogar está completo</value></data>
+  <data name="Join_FullBody" xml:space="preserve"><value>Ha alcanzado el límite de miembros de su plan. Pide al propietario que mejore su plan y vuelve a usar tu invitación.</value></data>
+  <data name="Join_FullBodyNoBilling" xml:space="preserve"><value>Ha alcanzado su límite de miembros. Pide al propietario que libere un asiento y vuelve a usar tu invitación.</value></data>
+  <data name="Join_BackToHousehold" xml:space="preserve"><value>Volver al hogar</value></data>
+  <data name="Join_DefaultError" xml:space="preserve"><value>La invitación no es válida o ha caducado.</value></data>
+  <data name="Settings_Preferences" xml:space="preserve"><value>Preferencias</value></data>
+  <data name="Settings_PreferencesHint" xml:space="preserve"><value>Tu idioma y tema se guardan en tu cuenta y te siguen en todos tus dispositivos.</value></data>
+  <data name="Settings_Title" xml:space="preserve"><value>Configuración de la cuenta</value></data>
+  <data name="Settings_Subtitle" xml:space="preserve"><value>Vincula proveedores de inicio de sesión a esta cuenta. Todos te conectan al mismo hogar.</value></data>
+  <data name="Settings_Connected" xml:space="preserve"><value>Conectado</value></data>
+  <data name="Settings_Link" xml:space="preserve"><value>Vincular</value></data>
+  <data name="Settings_Unlink" xml:space="preserve"><value>Desvincular</value></data>
+  <data name="Settings_ConfirmUnlink" xml:space="preserve"><value>¿Desvincular este método de inicio de sesión?</value></data>
+  <data name="Settings_DangerZone" xml:space="preserve"><value>Zona de peligro</value></data>
+  <data name="Settings_DeleteAccount" xml:space="preserve"><value>Eliminar mi cuenta</value></data>
+  <data name="Settings_DeleteAccountWarning" xml:space="preserve"><value>Elimina permanentemente tu cuenta y tus datos personales. Esto no se puede deshacer.</value></data>
+  <data name="Settings_ConfirmDelete" xml:space="preserve"><value>¿Eliminar tu cuenta permanentemente? Esto no se puede deshacer.</value></data>
+  <data name="Settings_ConfirmDissolve" xml:space="preserve"><value>Eres el único miembro, así que esto también disolverá tu hogar y eliminará permanentemente todos sus datos. ¿Continuar?</value></data>
+  <data name="Settings_ErrDeleteTransferFirst" xml:space="preserve"><value>Transfiere la propiedad del hogar antes de eliminar tu cuenta.</value></data>
+  <data name="Settings_ErrDelete" xml:space="preserve"><value>No se pudo eliminar tu cuenta. Inténtalo de nuevo.</value></data>
+  <data name="Settings_LinkedSuccess" xml:space="preserve"><value>{0} se vinculó correctamente.</value></data>
+  <data name="Settings_LinkErrInUse" xml:space="preserve"><value>Esa cuenta de proveedor ya está vinculada a otro usuario.</value></data>
+  <data name="Settings_LinkErrExpired" xml:space="preserve"><value>La solicitud de vinculación caducó; inténtalo de nuevo.</value></data>
+  <data name="Settings_LinkCancelled" xml:space="preserve"><value>La vinculación se canceló.</value></data>
+  <data name="Settings_LinkFailed" xml:space="preserve"><value>No se pudo vincular ese proveedor. Inténtalo de nuevo.</value></data>
+  <data name="Settings_ErrLoad" xml:space="preserve"><value>No se pudieron cargar las cuentas vinculadas.</value></data>
+  <data name="Settings_ErrStartLinking" xml:space="preserve"><value>No se pudo iniciar la vinculación. Inténtalo de nuevo.</value></data>
+  <data name="Settings_ErrUnlink" xml:space="preserve"><value>No se pudo desvincular. Inténtalo de nuevo.</value></data>
+  <data name="Household_HaveInvite" xml:space="preserve"><value>¿Tienes una invitación?</value></data>
+  <data name="Household_Subtitle" xml:space="preserve"><value>Gestiona quién comparte este hogar.</value></data>
+  <data name="Household_NameLabel" xml:space="preserve"><value>Nombre del hogar</value></data>
+  <data name="Household_Rename" xml:space="preserve"><value>Renombrar</value></data>
+  <data name="Household_Members" xml:space="preserve"><value>Miembros</value></data>
+  <data name="Household_RoleOwner" xml:space="preserve"><value>Propietario</value></data>
+  <data name="Household_RoleAdmin" xml:space="preserve"><value>Administrador</value></data>
+  <data name="Household_RoleMember" xml:space="preserve"><value>Miembro</value></data>
+  <data name="Household_MakeAdmin" xml:space="preserve"><value>Hacer administrador</value></data>
+  <data name="Household_MakeMember" xml:space="preserve"><value>Hacer miembro</value></data>
+  <data name="Household_StatusRoleChanged" xml:space="preserve"><value>Rol actualizado.</value></data>
+  <data name="Household_ErrRoleChange" xml:space="preserve"><value>No se pudo actualizar el rol. Inténtalo de nuevo.</value></data>
+  <data name="Household_Remove" xml:space="preserve"><value>Eliminar</value></data>
+  <data name="Household_Invitations" xml:space="preserve"><value>Invitaciones</value></data>
+  <data name="Household_Invite" xml:space="preserve"><value>Invitar</value></data>
+  <data name="Household_InviteTokenFor" xml:space="preserve"><value>Token de invitación para {0} (se muestra una sola vez):</value></data>
+  <data name="Household_Copy" xml:space="preserve"><value>Copiar</value></data>
+  <data name="Household_EmailedJoinLink" xml:space="preserve"><value>También enviamos un enlace de acceso al invitado.</value></data>
+  <data name="Household_NoPending" xml:space="preserve"><value>No hay invitaciones pendientes.</value></data>
+  <data name="Household_Expires" xml:space="preserve"><value>Caduca el {0}</value></data>
+  <data name="Household_Regenerate" xml:space="preserve"><value>Regenerar</value></data>
+  <data name="Household_Revoke" xml:space="preserve"><value>Revocar</value></data>
+  <data name="Household_TransferOwnership" xml:space="preserve"><value>Transferir la propiedad</value></data>
+  <data name="Household_ChooseMember" xml:space="preserve"><value>Elige un miembro…</value></data>
+  <data name="Household_Transfer" xml:space="preserve"><value>Transferir</value></data>
+  <data name="Household_MustTransfer" xml:space="preserve"><value>Debes transferir la propiedad antes de poder salir de este hogar.</value></data>
+  <data name="Household_LeaveDissolve" xml:space="preserve"><value>Salir y disolver</value></data>
+  <data name="Household_DissolveWarning" xml:space="preserve"><value>Eres el único miembro. Si sales, este hogar y sus datos se eliminarán permanentemente.</value></data>
+  <data name="Household_LeaveAndDelete" xml:space="preserve"><value>Salir y eliminar</value></data>
+  <data name="Household_DataTitle" xml:space="preserve"><value>Datos</value></data>
+  <data name="Household_DataSubtitle" xml:space="preserve"><value>Descarga una exportación de los datos de este hogar.</value></data>
+  <data name="Household_ExportData" xml:space="preserve"><value>Descargar datos del hogar</value></data>
+  <data name="Household_ExportReady" xml:space="preserve"><value>Tu exportación está lista:</value></data>
+  <data name="Household_ExportDownload" xml:space="preserve"><value>Descargar</value></data>
+  <data name="Household_ErrExport" xml:space="preserve"><value>No se pudo crear la exportación. Inténtalo de nuevo.</value></data>
+  <data name="Household_LeaveTitle" xml:space="preserve"><value>Salir del hogar</value></data>
+  <data name="Household_LeaveAsMemberNote" xml:space="preserve"><value>El hogar compartido permanece intacto; tendrás un hogar propio nuevo.</value></data>
+  <data name="Household_Leave" xml:space="preserve"><value>Salir</value></data>
+  <data name="Household_StatusRenamed" xml:space="preserve"><value>Hogar renombrado.</value></data>
+  <data name="Household_ErrRename" xml:space="preserve"><value>No se pudo renombrar el hogar.</value></data>
+  <data name="Household_ErrEmailAlreadyMember" xml:space="preserve"><value>Ese correo ya es miembro.</value></data>
+  <data name="Household_ErrSeatLimit" xml:space="preserve"><value>Has alcanzado el límite de asientos de tu plan. Mejora tu plan para invitar a más miembros.</value></data>
+  <data name="Household_ErrSeatLimitNoBilling" xml:space="preserve"><value>Tu hogar está lleno. Quita a un miembro o revoca una invitación pendiente para liberar un asiento.</value></data>
+  <data name="Household_ErrSendInvite" xml:space="preserve"><value>No se pudo enviar la invitación.</value></data>
+  <data name="Household_ErrRegenerate" xml:space="preserve"><value>No se pudo regenerar el token.</value></data>
+  <data name="Household_StatusRevoked" xml:space="preserve"><value>Invitación revocada.</value></data>
+  <data name="Household_ErrRevoke" xml:space="preserve"><value>No se pudo revocar la invitación.</value></data>
+  <data name="Household_StatusMemberRemoved" xml:space="preserve"><value>Miembro eliminado.</value></data>
+  <data name="Household_ErrRemoveMember" xml:space="preserve"><value>No se pudo eliminar al miembro.</value></data>
+  <data name="Household_StatusOwnershipTransferred" xml:space="preserve"><value>Propiedad transferida.</value></data>
+  <data name="Household_ErrTransfer" xml:space="preserve"><value>No se pudo transferir la propiedad.</value></data>
+  <data name="Household_ErrLeave" xml:space="preserve"><value>No se pudo salir del hogar.</value></data>
+  <data name="Household_ErrDissolve" xml:space="preserve"><value>No se pudo disolver el hogar.</value></data>
+  <data name="Household_ErrLoad" xml:space="preserve"><value>No se pudo cargar el hogar.</value></data>
+  <data name="Household_ConfirmRemove" xml:space="preserve"><value>¿Eliminar a {0} de este hogar?</value></data>
+  <data name="Household_ConfirmLeave" xml:space="preserve"><value>¿Salir de este hogar?</value></data>
+  <data name="Household_ConfirmDissolve" xml:space="preserve"><value>Esto eliminará permanentemente el hogar y sus datos. ¿Continuar?</value></data>
+  <data name="Nav_Cocktails" xml:space="preserve"><value>Cócteles</value></data>
+  <data name="Cocktails_Subtitle" xml:space="preserve"><value>Explora el catálogo compartido y lo que tu hogar haya añadido.</value></data>
+  <data name="Cocktails_SearchPlaceholder" xml:space="preserve"><value>Buscar por nombre</value></data>
+  <data name="Cocktails_NoMatches" xml:space="preserve"><value>Ningún cóctel coincide.</value></data>
+  <data name="Cocktails_Count" xml:space="preserve"><value>{0} cócteles</value></data>
+  <data name="Cocktails_Yours" xml:space="preserve"><value>Tuyo</value></data>
+  <data name="Cocktails_IngredientCount" xml:space="preserve"><value>{0} ingredientes</value></data>
+  <data name="Cocktails_PageOf" xml:space="preserve"><value>Página {0} de {1}</value></data>
+  <data name="Cocktails_LoadFailed" xml:space="preserve"><value>No se pudo cargar el catálogo. Inténtalo de nuevo.</value></data>
+  <data name="Common_Previous" xml:space="preserve"><value>Anterior</value></data>
+  <data name="Common_Next" xml:space="preserve"><value>Siguiente</value></data>
+  <data name="Cocktail_Ingredients" xml:space="preserve"><value>Ingredientes</value></data>
+  <data name="Cocktail_Method" xml:space="preserve"><value>Preparación</value></data>
+  <data name="Cocktail_Optional" xml:space="preserve"><value>opcional</value></data>
+  <data name="Cocktail_NotFound" xml:space="preserve"><value>Ese cóctel no está en tu catálogo.</value></data>
+  <data name="Units_Label" xml:space="preserve"><value>Medidas</value></data>
+  <data name="Units_Metric" xml:space="preserve"><value>Métrico (ml)</value></data>
+  <data name="Units_Imperial" xml:space="preserve"><value>Imperial (oz)</value></data>
+  <data name="Units_Hint" xml:space="preserve"><value>Los golpes, las cucharillas y las cucharaditas se leen igual en ambos sistemas.</value></data>
+  <data name="Nav_Shelf" xml:space="preserve"><value>Estantería</value></data>
+  <data name="Shelf_Subtitle" xml:space="preserve"><value>Marca lo que tiene tu hogar. Lo demás cuenta como que falta.</value></data>
+  <data name="Shelf_SearchPlaceholder" xml:space="preserve"><value>Buscar ingredientes</value></data>
+  <data name="Shelf_OnlyMine" xml:space="preserve"><value>Solo lo que tengo</value></data>
+  <data name="Shelf_Count" xml:space="preserve"><value>{0} en la estantería</value></data>
+  <data name="Shelf_NoMatches" xml:space="preserve"><value>Ningún ingrediente coincide.</value></data>
+  <data name="Shelf_LoadFailed" xml:space="preserve"><value>No se pudo cargar tu estantería. Inténtalo de nuevo.</value></data>
+  <data name="Shelf_SaveFailed" xml:space="preserve"><value>Ese cambio no se guardó. Inténtalo de nuevo.</value></data>
+  <data name="Shelf_AddYourOwn" xml:space="preserve"><value>Añade el tuyo</value></data>
+  <data name="Shelf_AddName" xml:space="preserve"><value>Nombre del ingrediente</value></data>
+  <data name="Shelf_AddCategory" xml:space="preserve"><value>Categoría</value></data>
+  <data name="Shelf_AddSubcategory" xml:space="preserve"><value>Subcategoría (opcional)</value></data>
+  <data name="Shelf_AddSubmit" xml:space="preserve"><value>Añadir a mi estantería</value></data>
+  <data name="Shelf_AddNameRequired" xml:space="preserve"><value>Ponle un nombre.</value></data>
+  <data name="Shelf_AddCategoryRequired" xml:space="preserve"><value>Elige una categoría para que quede archivado.</value></data>
+  <data name="Shelf_AddExists" xml:space="preserve"><value>{0} ya está en la lista: aparece arriba.</value></data>
+  <data name="Shelf_AddFailed" xml:space="preserve"><value>No se pudo añadir. Inténtalo de nuevo.</value></data>
+  <data name="Shelf_CategoryCount" xml:space="preserve"><value>{0} de {1}</value></data>
+  <data name="Shelf_JumpLabel" xml:space="preserve"><value>Ir a una categoría</value></data>
+  <data name="Shelf_PayoffDrinks" xml:space="preserve"><value>— ya van {0} tragos</value></data>
+  <data name="Shelf_PayoffOneDrink" xml:space="preserve"><value>— ya va un trago</value></data>
+  <data name="Shelf_PayoffNoDrinks" xml:space="preserve"><value>— aún ningún trago</value></data>
+  <data name="Shelf_PayoffCounting" xml:space="preserve"><value>— contando…</value></data>
+  <data name="Shelf_PayoffShow" xml:space="preserve"><value>Verlos</value></data>
+  <data name="Nav_Make" xml:space="preserve"><value>Hacer ahora</value></data>
+  <data name="Make_Subtitle" xml:space="preserve"><value>Todo lo que tu estantería puede preparar ahora, sustituciones incluidas.</value></data>
+  <data name="Make_NothingYet" xml:space="preserve"><value>Nada todavía: tu estantería no cubre ninguna receta completa.</value></data>
+  <data name="Make_FillYourShelf" xml:space="preserve"><value>Marca lo que tienes</value></data>
+  <data name="Cocktails_MakeableNow" xml:space="preserve"><value>Puedo prepararlo ahora</value></data>
+  <data name="Cocktails_Using" xml:space="preserve"><value>Usando {0} en lugar de {1}</value></data>
+  <data name="Marga_Swap" xml:space="preserve"><value>¿No hay {0}? Con {1} va perfecto: es lo que yo serviría.</value></data>
+  <data name="Marga_LoginLine" xml:space="preserve"><value>Dime qué tienes en la estantería y yo te digo qué puedes preparar esta noche.</value></data>
+  <data name="Marga_BrowseCount" xml:space="preserve"><value>Aquí hay {0} cócteles, y esta noche puedes servir {1}.</value></data>
+  <data name="Marga_BrowseCountNone" xml:space="preserve"><value>Aquí hay {0} cócteles, y todavía ninguno que puedas servir.</value></data>
+  <data name="Marga_RecipeShort" xml:space="preserve"><value>Te faltan {0} botellas: {1}.</value></data>
+  <data name="Marga_RecipeFarShort" xml:space="preserve"><value>Te faltan {0} botellas. Con {1} y {2} ya empiezas.</value></data>
+  <data name="Marga_ListTwo" xml:space="preserve"><value>{0} y {1}</value></data>
+  <data name="Marga_ListThree" xml:space="preserve"><value>{0}, {1} y {2}</value></data>
+  <data name="Marga_ShelfNoMatch" xml:space="preserve"><value>No tengo nada que se llame «{0}». Si lo tienes, añádelo abajo.</value></data>
+  <data name="Marga_WriteShelf" xml:space="preserve"><value>Tienes {0} botellas para escribir. Guarda la receta y te digo si puedes servirla.</value></data>
+  <data name="Marga_WriteEmpty" xml:space="preserve"><value>Tu estantería todavía está vacía. Escribe la receta igual: cuando la guardes, te digo qué falta.</value></data>
+  <data name="Marga_HomeBottleOr" xml:space="preserve"><value>O consigue {0} y te preparo {1} más.</value></data>
+  <data name="Marga_ShelfNextOr" xml:space="preserve"><value>O {0}: a una botella de {1} tragos más.</value></data>
+  <data name="Marga_ShelfEmptyOr" xml:space="preserve"><value>O empieza por {0}: {1} de estas recetas la piden.</value></data>
+  <data name="Marga_UnlocksHeadlineOr" xml:space="preserve"><value>O compra {0} y se abren {1} de estos.</value></data>
+  <data name="Marga_StarterBottleOr" xml:space="preserve"><value>O empieza por {0}. {1} de estas recetas la piden.</value></data>
+  <data name="Marga_BottlePosition" xml:space="preserve"><value>{0} de {1}</value></data>
+  <data name="Marga_BottlePrevious" xml:space="preserve"><value>Botella anterior</value></data>
+  <data name="Marga_BottleNext" xml:space="preserve"><value>Botella siguiente</value></data>
+  <data name="Cocktail_NoIngredientMatch" xml:space="preserve"><value>No hay ninguna botella con ese nombre. Agrégala primero en tu estantería.</value></data>
+  <data name="Cocktail_OnShelf" xml:space="preserve"><value>en tu estantería</value></data>
+  <data name="Cocktail_Edit" xml:space="preserve"><value>Editar cóctel</value></data>
+  <data name="Cocktail_EditSubtitle" xml:space="preserve"><value>Cambia lo que sirve tu casa. Lo que puedes preparar se actualiza con las líneas nuevas.</value></data>
+  <data name="Cocktail_EditButton" xml:space="preserve"><value>Editar</value></data>
+  <data name="Cocktail_BackToRecipe" xml:space="preserve"><value>Volver a la receta</value></data>
+  <data name="Cocktail_ErrReadOnly" xml:space="preserve"><value>Las recetas del catálogo compartido no se pueden editar. Crea tu propia versión para cambiarla.</value></data>
+  <data name="Cocktail_EditMissing" xml:space="preserve"><value>Ese cóctel no está aquí para editarlo.</value></data>
+  <data name="Cocktail_Delete" xml:space="preserve"><value>Eliminar</value></data>
+  <data name="Cocktail_DeleteConfirm" xml:space="preserve"><value>¿Eliminar {0}? No se puede deshacer.</value></data>
+  <data name="Cocktail_DeleteFailed" xml:space="preserve"><value>No se pudo eliminar. Inténtalo de nuevo.</value></data>
+  <data name="Shelf_DeleteLabel" xml:space="preserve"><value>Eliminar {0}</value></data>
+  <data name="Shelf_DeleteConfirm" xml:space="preserve"><value>¿Eliminar {0} de tu estantería? No se puede deshacer.</value></data>
+  <data name="Shelf_DeleteInUseOne" xml:space="preserve"><value>No se puede eliminar {0}: se usa en {1}. Quítalo primero de esa receta.</value></data>
+  <data name="Shelf_DeleteInUseMany" xml:space="preserve"><value>No se puede eliminar {0}: se usa en {1} y {2} más. Quítalo primero de esas recetas.</value></data>
+  <data name="Shelf_DeleteFailed" xml:space="preserve"><value>No se pudo eliminar. Inténtalo de nuevo.</value></data>
+  <data name="Cocktails_OneAway" xml:space="preserve"><value>A un ingrediente</value></data>
+  <data name="Cocktails_All" xml:space="preserve"><value>Todo</value></data>
+  <data name="Cocktails_Missing" xml:space="preserve"><value>Añade {0} y ya puedes prepararlo</value></data>
+  <data name="Cocktails_UnlocksHeadline" xml:space="preserve"><value>{0} te desbloquea {1}</value></data>
+  <data name="Cocktails_UnlocksMore" xml:space="preserve"><value>y {0} más</value></data>
+  <data name="Almost_NothingYet" xml:space="preserve"><value>Nada está a un solo ingrediente: a tu estantería le falta más de una botella para cada receta.</value></data>
+  <data name="Cocktail_Makeable" xml:space="preserve"><value>Puedes prepararlo</value></data>
+  <data name="Cocktail_AlmostMakeable" xml:space="preserve"><value>A un ingrediente</value></data>
+  <data name="Cocktail_NotMakeable" xml:space="preserve"><value>A más de una botella</value></data>
+  <data name="Cocktail_YoudPour" xml:space="preserve"><value>usarías {0}</value></data>
+  <data name="Cocktail_LineMissing" xml:space="preserve"><value>no está en tu estantería</value></data>
+  <data name="Cocktails_Filters" xml:space="preserve"><value>Filtros</value></data>
+  <data name="Cocktails_FilterIngredient" xml:space="preserve"><value>Hecho con</value></data>
+  <data name="Cocktails_FilterIngredientHint" xml:space="preserve"><value>ginebra, ron oscuro, saúco…</value></data>
+  <data name="Cocktails_FilterMethod" xml:space="preserve"><value>Método</value></data>
+  <data name="Cocktails_FilterGlass" xml:space="preserve"><value>Copa</value></data>
+  <data name="Cocktails_FilterServing" xml:space="preserve"><value>Se sirve como</value></data>
+  <data name="Cocktails_FilterAny" xml:space="preserve"><value>Cualquiera</value></data>
+  <data name="Cocktails_FilterClear" xml:space="preserve"><value>Quitar filtros</value></data>
+  <data name="Cocktails_ServingShot" xml:space="preserve"><value>Chupito</value></data>
+  <data name="Cocktails_ServingFullDrink" xml:space="preserve"><value>Copa completa</value></data>
+  <data name="Cocktail_Fork" xml:space="preserve"><value>Crear mi propia versión</value></data>
+  <data name="Cocktail_BasedOn" xml:space="preserve"><value>Basado en</value></data>
+  <data name="Cocktail_ForkFailed" xml:space="preserve"><value>No se pudo copiar. Inténtalo de nuevo.</value></data>
+  <data name="Cocktail_New" xml:space="preserve"><value>Escribe un cóctel</value></data>
+  <data name="Cocktail_NewSubtitle" xml:space="preserve"><value>Tu propia receta, con tus palabras. Entra en el catálogo y en lo que puedes preparar de inmediato.</value></data>
+  <data name="Cocktail_FieldName" xml:space="preserve"><value>Nombre</value></data>
+  <data name="Cocktail_FieldGlass" xml:space="preserve"><value>Copa</value></data>
+  <data name="Cocktail_FieldMethod" xml:space="preserve"><value>Método</value></data>
+  <data name="Cocktail_FieldServing" xml:space="preserve"><value>Se sirve como</value></data>
+  <data name="Cocktail_FieldInstructions" xml:space="preserve"><value>Instrucciones</value></data>
+  <data name="Cocktail_NotStated" xml:space="preserve"><value>Sin indicar</value></data>
+  <data name="Cocktail_LineIngredient" xml:space="preserve"><value>Ingrediente</value></data>
+  <data name="Cocktail_LineAmount" xml:space="preserve"><value>Cantidad</value></data>
+  <data name="Cocktail_LineUnit" xml:space="preserve"><value>Unidad</value></data>
+  <data name="Cocktail_LineRole" xml:space="preserve"><value>Papel</value></data>
+  <data name="Cocktail_LineRequired" xml:space="preserve"><value>Obligatorio</value></data>
+  <data name="Cocktail_AddLine" xml:space="preserve"><value>Añadir un ingrediente</value></data>
+  <data name="Cocktail_Save" xml:space="preserve"><value>Guardar la receta</value></data>
+  <data name="Cocktail_ErrName" xml:space="preserve"><value>Ponle nombre al trago.</value></data>
+  <data name="Cocktail_ErrNoLines" xml:space="preserve"><value>Un cóctel necesita al menos un ingrediente.</value></data>
+  <data name="Cocktail_ErrIngredient" xml:space="preserve"><value>Alguno de esos ingredientes no está en tu catálogo.</value></data>
+  <data name="Cocktail_ErrLine" xml:space="preserve"><value>Revisa las cantidades y las unidades. Una unidad necesita una cantidad.</value></data>
+  <data name="Cocktail_ErrLookup" xml:space="preserve"><value>Esa copa o ese método no existen.</value></data>
+  <data name="Cocktail_RoleBase" xml:space="preserve"><value>Base</value></data>
+  <data name="Cocktail_RoleModifier" xml:space="preserve"><value>Modificador</value></data>
+  <data name="Cocktail_RoleJuice" xml:space="preserve"><value>Zumo</value></data>
+  <data name="Cocktail_RoleSyrup" xml:space="preserve"><value>Sirope</value></data>
+  <data name="Cocktail_RoleBitters" xml:space="preserve"><value>Amargos</value></data>
+  <data name="Cocktail_RoleGarnish" xml:space="preserve"><value>Decoración</value></data>
+  <data name="Cocktail_RoleMixer" xml:space="preserve"><value>Refresco</value></data>
+  <data name="Cocktail_RoleOther" xml:space="preserve"><value>Otro</value></data>
+</root>

@@ -1,0 +1,24 @@
+/* BACKBAR-8. Two groups on the settings grid; the plan name in the serif. */
+.billing-wrapper {
+    max-width: 1100px;
+}
+
+.billing-wrapper ::deep .settings-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 52px;
+    align-items: start;
+}
+
+.billing-plan {
+    font-size: 29px;
+    line-height: 1.2;
+    margin: .5rem 0;
+    color: var(--ink);
+}
+
+@media (max-width: 991.98px) {
+    .billing-wrapper ::deep .settings-grid {
+        grid-template-columns: 1fr;
+    }
+}

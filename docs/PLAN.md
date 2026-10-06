@@ -1,0 +1,387 @@
+# The plan
+
+> Written 2026-09-10 after a review of the first two build days. This is the sequenced list of what
+> is next, the rules for how each item is done, and the mistakes that produced this document. Read it
+> at the start of every session. It is short on purpose.
+
+## The three gates — non-negotiable
+
+1. **Branch only from `develop`.** Never from another feature branch. Never a stacked pull request.
+   A PR that does not target `develop` gets no CI at all, because the workflow only fires for PRs
+   into `develop` and `main`.
+2. **Do not start the next slice until the user says "merged".** If a slice turns out to depend on
+   something unmerged, **stop and say so**. Do not work around it. Working around it is how a branch
+   ended up based on a feature branch.
+3. **Do not push or open a PR until the user says "C+P+PR".** "go" means *build it*. It does not mean
+   publish it. Every report ends with "waiting on your C+P+PR".
+   **Committing is not publishing** (amended 2026-09-11). A finished unit of work gets its own commit
+   on the branch as soon as it is done and verified — that is what makes it revertable on its own.
+   What waits for the word is the **push and the PR**.
+
+**The batching rule — 2026-09-11.** A branch is no longer one slice. It is a **batch**, and the unit
+of work is the **commit**.
+
+- Each finished thing is its own commit, with its own message, revertable on its own.
+- Several commits ride one branch and one PR, so CI runs **once** for the batch instead of once per
+  fix.
+- This exists for a measured reason: the full run is ~15 minutes, and paying it for a one-line CSS
+  fix meant small repairs cost more waiting than doing. `LOCALCI-3` attacks the other half of the same
+  problem by making the run itself proportional to the change.
+- **It does not license mixing.** The old warning still stands for FEATURES: two slices in one PR is
+  still wrong, because a reviewer cannot take one and leave the other. A batch of independent fixes,
+  or a fix plus a small addition, is a different thing — the commits keep them separable, and the PR
+  body must list them as separate items rather than blurring them into one story.
+
+**The redesign rule — 2026-09-13, the maintainer's call.** `BACKBAR` is worked on **one branch from
+`develop`** for the whole epic. Every slice and every bug fix is **its own commit**, with its own
+message, revertable alone; the story, the QA cases and the tests ride in the slice's commit. Nothing
+is pushed and no PR is opened until the maintainer says **"P+PR"** — and that word covers the push and
+the PR only, never the next slice, which still waits for "go". The features warning above does not
+apply here because a restyle is not two features: the slices are one change to one thing, delivered
+in an order, and a reviewer reads them as one diff. The branch is cut from `develop` **after PR #36
+(the plan) is merged**, so it carries the plan it executes.
+
+## The slice ritual — every time, in this order
+
+1. **Read `docs/FEATURES.md` for the flow being built**, and quote the flow number in the report.
+   Three merged slices shipped with requirements missing because this step was skipped. The
+   golden rules and the decision log are constraints; `FEATURES.md` is the requirement.
+2. Check the OUT list in `docs/PROJECT_BRIEF.md` and the story file for the epic.
+3. Write the tests first. Run them; they should fail to compile.
+4. Build API → Core → Infrastructure → Shared.Ui → Web. UI lives in the RCL, never the web app.
+5. Update the Postman collection **by splicing a rendered object into the file**, never by
+   round-tripping the whole JSON (that reflowed 2 000 lines once). The parity gate will catch a
+   missing request; let it.
+6. Add EN **and** ES strings.
+7. Write or update the story file with Gherkin that maps 1:1 to the tests.
+7b. **Add or update the matching cases in `docs/QA_TEST_PLAN.md`** — a case per user-visible change,
+   a row in the traceability matrix (§15) and a row on the sign-off sheet (§16). The story's Gherkin
+   is the source; copying it across is a translation, not an invention. This step exists because the
+   plan's own maintainer note asked for it and nineteen app slices shipped without it, leaving a
+   document whose scope section claimed the app had no features at all.
+8. Run: Release build of API and Web (zero warnings), then `Core.Tests`, `Api.Tests`, `Ui.Tests`.
+9. **Commit it**, on its own, with a message that stands alone — then report: what flow it
+   implements, what was decided and why, what is deliberately out, the test counts. Then **wait**.
+   The next thing may be another commit on the same branch; the push and the PR wait for the word.
+10. **On "merged", update the Slice Board** before anything else — it is the only view of this
+    project the maintainer has that is not a diff, and a board that lags is worse than no board.
+    `https://claude.ai/code/artifact/a9fed2f8-60e9-478e-9030-864170fab1d7`; read it first, then
+    republish to the same URL. Move the slice out of "next up", add what it shipped, and re-run the
+    three counts in the footer: merged PRs (`gh pr list --state merged`), unit tests (Core + Api +
+    Ui), and browser journeys (`[Test]` in `E2E.Tests`). If a slice answered one of the three open
+    questions, mark it answered there too.
+
+## Editing rules that came out of this review
+
+- **Edit files with the Edit tool, not with scripted find-and-replace.** Scripted replacements
+  collided three times: one produced an infinitely recursive test helper, one silently dropped a
+  whole test, one applied to a file that had already been changed by the previous step.
+- **Never write JSON or C# through a bash heredoc.** Backslashes get mangled and the file is left
+  invalid. Write the content with the Write tool, or a Python script file, then run it.
+- **Never hard-code the seeded catalog's size in a test.** Derive it from
+  `CatalogSeeder.LoadCocktails().Cocktails.Count`. Six tests broke when the catalog shrank, and
+  every one of them had been a claim about the data rather than about behaviour.
+- **In a Playwright journey, wait on the write, not on the paint.** An optimistic UI re-renders
+  before the request returns. Use `RunAndWaitForResponseAsync` on the PUT/POST, the way the theme
+  journey does. And wait for the list to load before applying a filter to it.
+- **A failing E2E job is read from the CI log first.** Reproducing locally requires pointing
+  `src/Web/wwwroot/appsettings.json` at the http API, stale processes on 5369/5438 must be killed,
+  and every process started by `dotnet run` outlives the shell. It cost an hour twice. Do it only
+  when the log does not answer the question.
+
+## Where things stand — 2026-09-10
+
+**Merged into `develop`** (PRs #1–#19): the domain model and both tenancy walls, the seed catalog,
+browse, detail, the measurement preference, the shelf, the makeable engine, one-ingredient-away, the
+recipe's own makeability, custom ingredients, the catalog filters, forking, authoring, and the
+brand-token stylesheet fixes. **Every flow in `FEATURES.md` §8–§15 is covered.** §7, the onboarding
+wizard, was the last one unbuilt — it is the uncommitted slice below.
+
+The same stylesheet fixes went upstream the same day: `perezosoft-platform` #222 and `vuelto` #57.
+All three apps inherited the defect from the platform's `app.css`.
+
+**Merged since** (PRs #20–#24): the UI wave's plan, ALMOST-2's ranking query, Marga's component, and
+**MARGA-2**, the signed-in home screen — which closed the `<!-- TODO -->` the platform's welcome card
+had carried since day one.
+
+**Merged since** (PRs #25–#28): **INV-3**, the shelf rework; **MARGA-3**, the two empty states, which
+settled what a first bottle is and closed the `MARGA` epic; **SHELL-1**, the responsive shell, which
+settled the wide-screen question; and **SHELL-2**, the boot state. **The UI wave is complete.**
+
+**Merged since** (PR #29): **ONBOARD-1**, the first minute. **Every flow in `FEATURES.md` §7–§15 is
+now covered.**
+
+**Merged since** (PR #30): **the QA plan's app half** — six suites, §10d–§10i, 54 cases (150 → 204).
+The document had covered the platform only while every app flow was built on top of it.
+
+**Committed, not pushed** — the first batch under the rule above, on
+`batch/header-fix-and-marga-emails` (branched from `develop`). Five commits, each revertable alone:
+
+| | |
+|---|---|
+| `fix(ui)` | the header, four bugs — below |
+| `docs(plan)` | the batching rule itself |
+| `feat(email)` | MARGA-4, Marga on the emails a person asked for |
+| `feat(ui)` | MARGA-5, where she actually is |
+| `ci` | LOCALCI-3, the trigger diet |
+
+**The header was wrong in four ways at once**, reported from a screenshot rather than found by a
+test. All four are written up under SHELL-1 in `docs/stories/shell.md`.
+- **SHELL-1's tab styles never applied at all.** Scoped CSS cannot reach an element rendered by a
+  child component — `<NavLink>`'s anchor never gets the scope attribute — so every rule matched
+  nothing. The `<ul>` rules DID work, so the tab bar moved correctly and the slice looked finished.
+- **Underneath that, dark theme repainted the whole bar copper.** `[data-bs-theme="dark"] a` at 0,1,1
+  outranks Bootstrap's 0,1,0 button and nav-link colours, so every anchor-shaped button went copper
+  while the identical `<button>` stayed white. Two earlier overrides had treated symptoms; the rule
+  now excludes `.btn`, `.nav-link` and `.navbar-brand`, and both overrides are gone.
+- **And it overflowed at 1024px**, clipping "Sign out" and scrolling the page sideways. The email
+  address shows at `xl` and up only, and the row may wrap rather than clip.
+- **Fourth: the account cluster stopped being pushed right**, because that had been a side effect of
+  the destinations' `me-auto` while they lived inside the collapse. It carries `ms-lg-auto` now.
+  Found by holding the bar next to `vuelto`'s, which runs the platform's original layout — **the
+  sibling apps are a reference implementation, and comparing against one is a cheap check nobody was
+  making.**
+- **Guarded in the browser**, which is the only place any of it was visible: the journey now asserts
+  the current tab's weight, the chrome's colour in dark theme, and that the page does not scroll
+  sideways.
+
+**Merged since** (PRs #31–#36): the batch above as one PR (#31); the port block (#32, JJ-030); the
+pre-launch gates ported from the platform (#33, ADR-027); the gate-variable doc lines (#34); and
+"a markdown file is never code" (#35, LOCALCI-3 follow-up); the restyle's plan (#36, JJ-036 → JJ-039).
+**Committed, not pushed: `feat/backbar`**, the whole restyle ladder BACKBAR-1 → 9 as one commit per
+slice or fix, waiting on the word (the redesign rule above). The next thing after it is a decision,
+not a queue — see "After the ladder" below.
+
+## The UI wave — 2026-09-10
+
+A design proposal arrived as three Claude Design documents: the current UI recreated, a bug list
+(implemented, PR #19), and **nine screens at three widths in both themes**, which introduce a
+character called **Marga**.
+
+**Read this before planning around her.** Marga is a drawn bartender who says **fixed lines with real
+data in them**. There is no model behind her, she generates nothing, and every sentence is a localized
+resource string with placeholders. Reading her as an assistant makes the wave look four times larger
+than it is.
+
+Sorted by what the data has to supply, only one thing in the whole proposal is new engine work:
+
+| Her line | Where the data comes from |
+|---|---|
+| "Twelve tonight" | exists — `makeable=true` already returns the total |
+| "Kahlúa's fine, that's what I'd pour" | exists since MAKE-1, reworded |
+| "Pick up triple sec and I can make you four more" | **new** — `ALMOST-2` |
+
+Everything else is presentation over data already on the page. **Eight of the nine screens already
+exist and ship today**; the proposal changes them. `Home.razor` is the exception at 34 lines, and it
+still carries `<!-- TODO: app-specific content goes here -->`.
+
+## The restyle — 2026-09-13
+
+A second design document arrived: **`docs/design/2026-09-backbar-handoff.pdf`**, direction 1A, "Back
+bar" — every screen restyled, dark as the primary theme with a light counterpart, one display serif,
+hairline surfaces, Marga at 96px where she speaks and full-bleed where she is the screen. Nineteen
+pages: tokens, components, nine screens in both themes at two widths, and an implementation order.
+
+**Read this before planning around it.** It is a **restyle**, and it says so on page 1: structure,
+routes, copy and test ids unchanged from develop. The 2026-09-10 proposal changed what the screens
+*do* and every one of its nine screens has shipped; this one changes what they *look like*. Nothing
+in it needs a new endpoint, a query, a schema change or a package. Its "do not change" list (page 18)
+is binding, and its implementation order is the right one.
+
+**The review found seven places where it meets the codebase and something gives** — all decided,
+none re-argued per slice. The full table is in `docs/stories/backbar.md`; the ones that change a
+decision are logged as **JJ-036 → JJ-039**:
+
+- **Two tests pin what it changes.** The shell journey asserts the chrome's literal colours on copper;
+  the makeable journey checks and unchecks the two catalog switches nine times, and the chips it wants
+  hide the input. So "every existing test green with no id edits" is not achievable as written: three
+  colour lines are rewritten to the invariant they guard, and the switches become three **radios**
+  (one new id, `cocktail-all`) driven by a base helper the way the shelf pills already are.
+- **Two of its id lists are invented** (`write-*`, most of `household-*`). The code's ids are the
+  contract; each slice re-derives its list from the razor.
+- **"No new strings" has two exceptions**, both resolved without new copy except the one word
+  "Everything" the third chip needs.
+- **The chrome leaves copper in both themes** — amending SHELL-1 in colour only; the hierarchy it
+  settled stands (JJ-037). **The serif is self-hosted, one weight, display only, gated** (JJ-038).
+  **The UI is the app's own, all pages, no exceptions** — Settings and Household are restyled in
+  full here, Billing and Admin too though the handoff never drew them, nothing goes upstream, and
+  this epic touches no backend at all; the backend may be
+  extended, its foundation is a red light (JJ-039, corrected the same day from "upstream first").
+  **No popover** on the Write rows. **Auto stays the default theme** — it already is.
+
+**One asset action for the maintainer, blocking nothing:** a 2× landscape crop of Marga's scene from
+the 2 MB source — committed since 2026-09-14 at `docs/brand/source/marga_scene_1254.png` — for the
+Login and Welcome panels that upscale the 512 square today.
+
+## What is next, in order
+
+Each is one branch off `develop`, one PR, after the previous one is merged. The story file has the
+Gherkin, the ids and the pages for each.
+
+| # | Slice | Handoff pages | What it is |
+|---|---|---|---|
+| 1 | **BACKBAR-1** Foundation | 01–02 | Both token sets, the serif as `@font-face`, the primitives as CSS on Bootstrap's classes, `MargaSays` `Tone`. Three commits, one PR; visible everywhere, nothing rearranged. |
+| 2 | **BACKBAR-2** Chrome | 04 | Header and tab bar off copper; `icon_dark.svg`; the shell journey's three colour lines rewritten. |
+| 3 | **BACKBAR-3** Home + Shelf | 03–04, 11–12 | The identity screens. Welcome step 2 inherits the sections for free. |
+| 4 | **BACKBAR-4** Cocktails + Detail | 07–10 | Chips as radios, the filter panel, hairline rows, the amounts column, two marks, print. The one slice that touches a journey's mechanics. |
+| 5 | **BACKBAR-5** Login + Welcome | 05–06, 13–14 | Her two full-scene screens; `/join` and `/auth-error` reuse the split; Android smoke. |
+| 6 | **BACKBAR-6** Write | 15 | Two columns, the amount in the serif, a fixed Save bar on mobile. |
+| 7 | **BACKBAR-7** Settings + Household | 16–17 | Five cards to two columns, six to four groups, segmented theme and unit controls, text-link row actions, the `···` menu on mobile, the bell's dropdown. Same calls, parameters and ids. |
+| 8 | **BACKBAR-8** Billing + Admin, every small screen | not drawn | The two pages the handoff never saw, restyled in full to the same language by analogy, plus not-found, the auth callback, the impersonation banner and the error bar. Same calls, gates and ids. |
+| 9 | **BACKBAR-9** Sweep | 18 | Focus rings, reduced motion, both themes at three widths on every screen, the QA cases + regenerated PDFs, the definition of done line by line. |
+
+**Built 2026-09-13, all nine, on `feat/backbar`** — one commit per slice or fix, the story's per-slice
+sections say what each decided, and the sweep's ninety-six frames found three things (the bell's
+card, blue disabled buttons, Join's bold sans), each now held by a test. Waiting on the word.
+
+**Every slice runs both themes at 390, 768 and 1440 in a browser before its commit.** A restyle is the
+one kind of change the suite is weakest at — 54 frames and no test looks at any of them — which is
+also why BACKBAR-7 writes the QA cases so a person runs them again after the wave.
+
+**Still true, and still waiting: run the QA plan's app half.** The cases were written (PR #30) so they
+could be executed, and what a browser journey cannot check is whether a count is *honest*, whether a
+suggestion is *useful*, whether her Spanish reads as Spanish. The restyle changes every frame those
+cases look at, so the run is cheapest **after BACKBAR-9** — once, rather than once now and once again.
+
+**After the ladder, what follows is a decision rather than a queue.** Candidates, none of which blocks
+another: the 969-recipe catalog behind a flag (a flag, not a slice — and note it makes `QA-MAKE-10`
+unreachable); the Savoy transcription-source question (JJ-032, open, blocks nothing); the two
+scrape-merged recipe lines; **`AUTHORING-2`** — editing a cocktail, including a fork, the one
+outstanding story inside an epic marked complete.
+
+**Three questions to settle before the slices that need them. All three are now settled, each by the
+slice that needed it — the answers are kept here because the reasoning outlives the slice.**
+
+1. ~~**What is the best first bottle for an empty shelf?**~~ **Answered by `MARGA-3`.** It is the
+   ingredient the most recipes **ask for**, among those the household does not already have — required
+   lines only, substitutions ignored, served by `GET /api/cocktails/starters`. The two readings that
+   lost: "the bottle that makes the most drinkable on its own" is useless, because one bottle alone
+   makes very nearly nothing; and a starter *set* is better advice but is `ONBOARD-1`, not an empty
+   state. The choice carries an honesty constraint into the copy — the number is how many recipes ask
+   for the bottle, never how many it would unlock.
+2. ~~**How does the shelf footer stay current?**~~ **Answered by `INV-3`.** The write cannot carry the
+   total: a feature slice may not reference another slice (R7/TR-9), and copying the makeability query
+   into the inventory endpoint to get around that would leave the app with two definitions of makeable.
+   So the screen re-asks `?makeable=true&pageSize=1` — but only once the ticking stops. Each tick
+   cancels the pending ask, and an answer overtaken by a later tick is discarded rather than written
+   over a fresher one, so a burst costs one request rather than one per checkbox.
+3. ~~**Do wide screens change too?**~~ **Answered by `SHELL-1`: yes.** Lifting the destinations only
+   inside the tab bar would have moved the inconsistency rather than settled it, so the app's own
+   links are raised at every width — 85% white, full white and bold for the current one. The account
+   cluster is deliberately untouched: the complaint was that the destinations read as less important
+   than the furniture, and the fix is to raise the destinations, not to dim shared platform chrome
+   this slice has no business redesigning.
+
+**One thing that is already decided.** Selected shelf pills are **filled**, not outlined: the catalog
+screen already uses outlined pills for filters, and the same shape one screen apart must not mean two
+different things.
+
+**One number worth watching.** The illustration is 2 MB as delivered, at 1254×1254. It must be
+optimized in `MARGA-1`, before `SHELL-2` puts it in the boot path where it is fetched before the app
+is usable.
+
+Not on this list, deliberately: the Savoy transcription-source question (JJ-032, open, blocks
+nothing), the two scrape-merged recipe lines, and restoring the 969-recipe catalog — that is a
+flag, not a slice, and it happens when the slices are done.
+
+**Written down, not started — 2026-09-16: `COMMUNITY`, cocktails from other households.** The
+maintainer wants to consider sharing a household's recipe with every household, on a page of its
+own that never mixes with the seeded catalog, and asked for it planned so it can start any time and
+explicitly not built yet — "it can be messy in many ways in terms of data". `docs/stories/community.md`
+holds the shape, three slices, the seventeen data questions with their default answers, and the
+draft JJ-042 that would amend JJ-024. **Pick-up rule:** the decision is pasted into `DECISIONS.md`
+and the OUT list moves the day it starts, not before. The one finding worth carrying even if it
+never starts: a request has **no sanctioned path to write a null-tenant row** — the RLS bypass is set
+for a tenant-less context or a tagged query only, and tags never render on `SaveChanges` — so
+"publish" is a stamp on the household's own row and a one-clause widening of the READ wall, never a
+copy into the catalog.
+
+## What went wrong, in one paragraph each — so it is not repeated
+
+**Publishing without being asked.** After the user had typed "C+P+PR" explicitly a few times, "go"
+started being treated as covering the whole cycle. It did not. One approval is not a standing one.
+
+**Stacking.** Four seed PRs were opened against each other's branches. None of them had CI until
+they were retargeted to `develop`, and retargeting alone does not fire CI — the PR has to be closed
+and reopened. Then MAKE-1 was branched off INV-1's unmerged branch to dodge a compile error. The
+compile error was the signal to stop.
+
+**Building from the rules instead of the requirements.** MAKE-1 invented a `/make` screen and
+surfaced no substitutions; INV-1 skipped inline custom ingredients; CKTL-3 skipped makeable status.
+All three are stated in `FEATURES.md`, which was not opened before any of them.
+
+**Two slices in one PR.** PREFS-2 was added to the CKTL-3 PR because "CKTL-3 alone would ship a
+preference nobody could set". That reasoning was fine; the shape was not. It should have been
+reported and left to the user.
+
+**Tests that asserted the data.** "Total > 900", "page two of fifty has fifty", "unticking Campari
+leaves nothing makeable" — a household with gin and sweet vermouth can still make seven drinks.
+Assertions about the catalog's contents break the moment the catalog changes for unrelated reasons.
+
+**Changing a control and updating only the fixture named after the screen.** INV-3 turned the shelf
+checkboxes into pills, which are hidden inputs driven through their labels — so `CheckAsync` on the
+input stops working. `ShelfJourneyTests` was updated to click the label; `MakeableJourneyTests` and
+`CocktailBrowseJourneyTests` both stock a shelf before they can test anything of their own, and both
+had their own private copy of "tick an ingredient". Three journeys went red in CI for one change that
+had been made and verified correctly. **Before changing a shared control, grep the E2E project for
+everything that drives it** — and if more than one fixture drives it, the helper belongs in
+`E2ETestBase`, which is where `SetShelfAsync` now lives.
+
+**Writing component CSS that a child component renders.** SHELL-1 styled the header's destinations in
+`AppHeader.razor.css`. Blazor's CSS isolation stamps its `b-xxxxx` attribute on the elements of the
+component's OWN markup only, and those anchors come from `<NavLink>` — a child component — so every
+rule compiled to a selector that matched nothing and silently did nothing. The `.app-tabs` rules on
+the `<ul>` DID apply, because that element is AppHeader's own, so the tab bar moved to the bottom
+correctly and the slice looked finished. **Scoped CSS cannot reach inside a child component**: if a
+selector's last element is rendered by one, it belongs in `app.css`. It shipped, and the manual case
+that described the right behaviour (`QA-CHROME-04`) had not been run yet — which is the argument for
+running the plan rather than only writing it.
+
+**A restyle that rewrote a file and lost its code.** BACKBAR-8 replaced the auth callback's spinner
+with the brass loading bar by writing the whole file, and the `@code` block — the exchange that turns
+the refresh cookie into a session, the only thing the page is for — went with it. Every web sign-in
+then stopped on "Processing sign-in…"; 45 of 51 browser journeys failed at the same line. The page
+had no test of its own, so 137 UI tests stayed green, and the sweep's "the whole E2E suite,
+unchanged" was written, not run. Two rules from it: **a restyle edits markup and styles and touches
+nothing below the `@code` line** — replace the block above it, never the file; and **a slice is not
+done until the journeys have actually run against it**, locally or in CI, and the number is in the
+commit message. `AuthCallbackTests` now holds the page.
+
+**A visual sweep against mocks only sees the shapes the mocks have.** BACKBAR-9 rendered ninety-six
+frames against mocked API responses and read every one, and the maintainer still opened the app
+and found it "defective somehow". Two things: in dark theme every drink name on Home and in the
+catalog was copper, and the wizard's second step stretched Marga's scene to the height of 191
+pills — a face five screens tall. The first was in the mocked frames and was read past, because the
+light frames beside them were right and the eye averaged the pair; the second could not be in them,
+because the mocked shelf had a handful of pills and the column never grew. Both were found in ten
+minutes by signing in to the running app with a stocked household and capturing the same frames
+against the real API (the capture script lives in the session's scratchpad, not the repo). Three
+rules from it: **a restyle's browser pass runs against the real API with real data**, and a mock is
+for the states the data cannot easily reach (an error, an empty list), not for the screens; **read
+dark and light as two questions**, not as one frame with two palettes; and **a specificity written
+in a comment is not a specificity** — `:not()` carries its argument's weight, and the rule that
+claimed 0,1,1 was 0,4,1. Both defects are now held by tests that compute the thing the eye missed:
+a colour, and a height.
+
+## CI is now proportional to the change — 2026-09-11
+
+**`LOCALCI-3` shipped**, pulled forward ahead of `LOCALCI-1` and `LOCALCI-2` and needing neither. A
+job called `changes` reads the diff once and publishes `code` / `native` / `docs`; every non-deploy
+job gates on it. A docs-only push stops billing roughly thirty minutes for markdown — which the QA
+plan's own pull request paid in full, for three text files.
+
+**Two jobs never gate on code**, and this is the half worth remembering: `secret-scan`, because a
+credential pasted into a markdown file is still a leaked credential, and `qa-artifacts`, because
+editing the plan without regenerating the PDFs is the ONLY way to break it — gating it on code would
+switch it off for precisely the change it exists to catch. A test enforces both halves.
+
+**It fails open.** An unreachable diff base — a force push, a new branch, a scheduled run — runs
+everything. Skipping a gate because the diff could not be read is the one failure mode worth paying
+thirty minutes to avoid.
+
+**The Apple smoke moved to a weekly cron** (87 billed minutes, macOS at 10×), returning to every push
+the moment a self-hosted Mac is configured. The Apple BUILD still runs per develop push, so compile
+rot is caught within one merge. ⚠️ **A green develop run is no longer a green Apple smoke** — QA §13c
+says to dispatch it by hand before shipping a native client.
+
+**Still to observe:** the skip/run pattern on the real runners, one docs-only PR and one code PR.

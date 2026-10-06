@@ -1,0 +1,88 @@
+/* Marga (MARGA-1). Scoped to the component so no screen re-spells her layout. */
+
+.marga {
+    display: flex;
+    align-items: flex-start;
+    gap: .65rem;
+}
+
+.marga-face {
+    border-radius: 50%;
+    flex: 0 0 auto;
+    /* The illustration is a night bar scene, so it carries its own dark ground in both themes and
+       needs no ring to separate it from the card behind it. */
+    object-fit: cover;
+}
+
+.marga-body {
+    min-width: 0;
+}
+
+.marga-line {
+    /* Her voice, not the system's: slightly larger and warmer than the caption it replaces, which
+       is the whole point of moving a substitution out of a washed-out caveat and into advice. */
+    font-size: .95rem;
+    line-height: 1.4;
+    color: var(--bs-body-color);
+    min-width: 0;
+}
+
+.marga-aside {
+    display: block;
+    margin-top: .15rem;
+    font-size: .78rem;
+    color: var(--bs-secondary-color);
+}
+
+/* In a list row she is a footnote to the drink above her, not a card of her own. */
+.marga-compact {
+    gap: .45rem;
+    align-items: center;
+}
+
+.marga-compact .marga-line {
+    font-size: .85rem;
+}
+
+/* ── BACKBAR-1: the two tones, handoff page 02 ─────────────────────────────────────────────── */
+
+/* Card: the page's voice. 96px, a label above, the line in the display face at 23–29px and in the
+   ink — never muted grey, because it is advice rather than a caption. */
+.marga-card {
+    gap: 1.1rem;
+}
+
+.marga-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--label-accent);
+    margin-bottom: .3rem;
+}
+
+.marga-card .marga-line {
+    font-size: clamp(23px, 1.4rem + .6vw, 29px);
+    line-height: 1.25;
+    color: var(--ink, var(--bs-body-color));
+    text-wrap: balance;
+}
+
+/* A 1px brass ring on dark only (page 02): on the night ground the drawing's own edge is the same
+   dark as the panel, so the ring is what separates her from it. On light the drawing does that
+   itself. */
+[data-bs-theme="dark"] .marga-card .marga-face {
+    box-shadow: 0 0 0 1px var(--brand-accent);
+}
+
+/* Inline: a footnote to the row above her. 32px, 14px sans, no label. */
+.marga-inline {
+    gap: .5rem;
+    align-items: center;
+}
+
+.marga-inline .marga-line {
+    font-size: 14px;
+    line-height: 1.4;
+}

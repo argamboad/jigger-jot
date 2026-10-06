@@ -1,0 +1,68 @@
+.app-header {
+    /* BACKBAR-2 (JJ-037): on the surface, with a hairline, in both themes. Copper is reserved for
+       actions, the count and Marga's advice — "the copper header is what makes today's app read as a
+       Bootstrap admin" (handoff page 04). The colours come from the tokens, so the bar follows the
+       theme without a rule per theme. */
+    background: var(--surface);
+    border-bottom: 1px solid var(--app-border);
+    /* min-height (not height): on phones the collapsed menu expands below the bar and
+       must not be clipped. Stays 60px tall when closed / on wide screens. */
+    min-height: var(--header-height, 60px);
+    /* Clear the iOS notch/status bar (WKWebView + viewport-fit=cover in the MAUI
+       index.html). On Android the shell pads the content view by the status-bar inset
+       itself and hands the WebView insets with the top spent, so this resolves to 0
+       there — older WebViews report 0 anyway, current ones would otherwise add the
+       height a second time (MainActivity, 2026-09-16). Resolves to 0 on web/desktop. */
+    padding-top: env(safe-area-inset-top, 0px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.app-brand {
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: -.01em;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    color: var(--ink);
+}
+
+.brand-icon {
+    height: 32px;
+    width: auto;
+    display: block;
+}
+
+.brand-text {
+    line-height: 1;
+}
+
+/* The household's name: copper-tinted, the way the Owner badge will be — the one thing in the
+   account cluster that is about this household rather than about the app. */
+.tenant-badge {
+    background: var(--bs-primary-bg-subtle);
+    color: var(--bs-primary-text-emphasis);
+    font-size: .75rem;
+    font-weight: 600;
+    padding: .25rem .65rem;
+    border-radius: 999px;
+    letter-spacing: .02em;
+}
+
+.user-name {
+    font-size: .85rem;
+
+    /* The one thing in this bar nobody needs: you know your own email address. It is 117px of a row
+       that overflowed at 1024px — clipping "Sign out" off the right edge and making the PAGE scroll
+       sideways — so it earns its place only where there is room to spare. */
+}
+
+@media (max-width: 1199.98px) {
+    .user-name {
+        display: none;
+    }
+}
+
+/* SHELL-1's tab styles are NOT here, and cannot be. See the block in app.css. */

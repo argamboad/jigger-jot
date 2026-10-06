@@ -1,0 +1,113 @@
+{
+  "$comment": [
+    "The substitution graph (JJ-004, JJ-005, JJ-006): what a household may pour when a recipe asks",
+    "for something it does not have. This is the file that decides whether 'no Cointreau' ends the",
+    "search or offers the Curaçao on the shelf, so it is hand-written and deliberately conservative.",
+    "",
+    "Global only: both ends are shared catalog ingredients. A household's own ingredient satisfies a",
+    "recipe line by exact match and never through this graph (JJ-005, JJ-018).",
+    "",
+    "Two shapes, because substitution is not always mutual.",
+    "  interchangeable - every member stands in for every other, both ways.",
+    "  oneWay          - 'recipeAsksFor' may be poured as 'youMayPour', and NOT the reverse. A recipe",
+    "                    asking for brandy is happy with cognac; one asking for cognac is not happy",
+    "                    with any brandy, and a graph that pretended otherwise would recommend drinks",
+    "                    the household cannot actually make well.",
+    "",
+    "Both shapes expand to DIRECTED rows (JJ-006): an interchangeable group of three becomes six.",
+    "The bar for inclusion is 'a bartender would pour this without comment', not 'these are both",
+    "brown'. Bourbon for rye, yes. Mezcal for tequila, no - it changes the drink, and someone who",
+    "wants that can fork the recipe."
+  ],
+
+  "interchangeable": [
+    { "note": "Orange liqueurs. Genuinely swapped behind every bar; the sweetness differs, the drink survives.",
+      "members": ["Cointreau", "Curaçao", "Grand Marnier"] },
+
+    { "note": "Dry gins. Plymouth is softer and London dry sharper, but no recipe breaks on the swap.",
+      "members": ["London dry gin", "Plymouth gin"] },
+
+    { "note": "American whiskeys. Rye is drier and bourbon sweeter; a Manhattan works with either, and the books disagree about which it wanted.",
+      "members": ["Bourbon", "Rye whiskey", "Canadian whisky"] },
+
+    { "note": "Aged rums. The line between gold, dark and aged is a marketing decision as often as a production one.",
+      "members": ["Gold rum", "Dark rum", "Aged rum"] },
+
+    { "note": "Anise spirits. Absinthe, pastis and anisette differ in strength and sugar, and all three do the job when a recipe wants a rinse or a dash.",
+      "members": ["Absinthe", "Pastis", "Anisette"] },
+
+    { "note": "Sparkling wines. A recipe topping a drink with bubbles does not care whose.",
+      "members": ["Champagne", "Prosecco", "Sparkling wine"] },
+
+    { "note": "Bitter aperitivi. Aperol is lighter and sweeter than Campari and the drink shifts, but it is the standard swap and every bar makes it.",
+      "members": ["Campari", "Aperol"] },
+
+    { "note": "Chartreuse. Yellow is milder and sweeter than green; recipes name one and accept the other.",
+      "members": ["Green Chartreuse", "Yellow Chartreuse"] },
+
+    { "note": "Berry liqueurs.",
+      "members": ["Crème de cassis", "Crème de mûre", "Raspberry brandy"] },
+
+    { "note": "Stone fruit liqueurs.",
+      "members": ["Apricot brandy", "Peach brandy", "Prunelle"] },
+
+    { "note": "Citrus juice. The Savoy itself writes 'Lemon or Lime Juice' on ten lines, which settles it.",
+      "members": ["Lemon juice", "Lime juice"] },
+
+    { "note": "Plain sweetening syrups. Gomme is simple syrup with gum arabic; demerara is darker. Interchangeable by the spoonful.",
+      "members": ["Simple syrup", "Gomme syrup", "Demerara syrup"] },
+
+    { "note": "Carbonated water under any name.",
+      "members": ["Soda water", "Sparkling mineral water"] },
+
+    { "note": "Ginger. The ale is sweeter and milder than the beer, and a Mule made with either is still a Mule.",
+      "members": ["Ginger ale", "Ginger beer"] },
+
+    { "note": "Nut liqueurs.",
+      "members": ["Amaretto", "Crème de noyau"] },
+
+    { "note": "Grape eau-de-vie.",
+      "members": ["Pisco", "Grappa"] },
+
+    { "note": "Quinquina aperitif wines. All four are bitter, wine-based and hard to find; whichever one a household has is the one it will use.",
+      "members": ["Lillet Blanc", "Dubonnet", "Byrrh", "Caperitif"] }
+  ],
+
+  "oneWay": [
+    { "recipeAsksFor": "Brandy", "youMayPour": "Cognac",
+      "note": "Every cognac is a brandy. The reverse is not true, and a recipe naming cognac names it for a reason." },
+
+    { "recipeAsksFor": "Brandy", "youMayPour": "Apple brandy",
+      "note": "Thin, but the older books use 'brandy' loosely and an apple brandy carries most of them." },
+
+    { "recipeAsksFor": "White rum", "youMayPour": "Gold rum",
+      "note": "A gold rum in a daiquiri is a darker daiquiri, not a mistake. A white rum where the recipe wanted an aged one is a thinner drink, so this does not run the other way." },
+
+    { "recipeAsksFor": "White rum", "youMayPour": "Cachaça",
+      "note": "Both are unaged cane spirits. Cachaça is grassier, so a caipirinha is not improved by white rum and the reverse is not offered." },
+
+    { "recipeAsksFor": "White rum", "youMayPour": "Rhum agricole",
+      "note": "As cachaça: cane juice rather than molasses, one direction only." },
+
+    { "recipeAsksFor": "Sugar", "youMayPour": "Simple syrup",
+      "note": "Dissolved sugar is sugar, and syrup saves the stirring. Not the reverse: a recipe calling for syrup is usually shaken, where a sugar cube will not dissolve." },
+
+    { "recipeAsksFor": "Honey", "youMayPour": "Honey syrup",
+      "note": "As sugar and simple syrup." },
+
+    { "recipeAsksFor": "Agave nectar", "youMayPour": "Agave syrup",
+      "note": "The same thing under two names in two books." },
+
+    { "recipeAsksFor": "Dry vermouth", "youMayPour": "Blanc vermouth",
+      "note": "Blanc is sweeter. It carries a martini; a recipe built on blanc's sweetness is not carried by dry." },
+
+    { "recipeAsksFor": "Cream", "youMayPour": "Milk",
+      "note": "Thinner and it shows, but the drink is recognisably itself. Never the reverse." },
+
+    { "recipeAsksFor": "Orange bitters", "youMayPour": "Angostura bitters",
+      "note": "A dash of the wrong bitters beats no bitters at all, and every bar has Angostura. Not the reverse: Angostura is what most recipes actually specify." },
+
+    { "recipeAsksFor": "Scotch whisky", "youMayPour": "Irish whiskey",
+      "note": "Lighter and unpeated. It works where the recipe wanted a blend, which is most of the Savoy." }
+  ]
+}

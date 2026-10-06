@@ -1,0 +1,17 @@
+.auth-error {
+    padding: 2rem 1.5rem;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.auth-error > * {
+    width: 100%;
+}
+
+@media (max-width: 991.98px) {
+    .auth-error {
+        padding: 0 0 2rem;
+        align-items: flex-start;
+    }
+}

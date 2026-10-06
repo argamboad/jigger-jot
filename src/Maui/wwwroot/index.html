@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>JiggerJot</title>
+    <base href="/" />
+    <!-- bootstrap is still a vendored copy per host (kept in sync with src/Web/wwwroot/lib);
+         app.css (brand tokens + shared styles) is single-sourced from the RCL. -->
+    <!-- Theme bootstrap BEFORE the stylesheets: applies the saved data-bs-theme pre-paint (no flash). -->
+    <script src="_content/JiggerJot.Shared.Ui/js/theme.js"></script>
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="_content/JiggerJot.Shared.Ui/css/app.css" />
+    <!-- Auto-aggregated bundle of the RCL's scoped component CSS. -->
+    <link rel="stylesheet" href="JiggerJot.Maui.styles.css" />
+    <link rel="icon" href="data:,">
+</head>
+
+<body>
+
+    <div class="status-bar-safe-area"></div>
+
+    <!-- SHELL-2, proposal screen 9. Keep in sync with src/Web/wwwroot/index.html — see the note
+         there. This host showed the literal word "Loading..." until now, so the parity rule was
+         already being broken before there was a boot state to break it with.
+
+         `boot-indeterminate` is the one intended difference between the two files. A WebView loads
+         the app out of the app package: there is no download to measure, so --blazor-load-percentage
+         is never set and an arc reading it would sit frozen at zero for the whole boot. The sweep
+         says "something is happening" without claiming a number nothing measured. -->
+    <div id="app" class="boot-indeterminate">
+        <div class="boot">
+            <img class="boot-scene" src="_content/JiggerJot.Shared.Ui/brand/marga_scene_512.png"
+                 alt="" aria-hidden="true" width="512" height="512" />
+            <div class="boot-meter">
+                <svg class="loading-progress" viewBox="0 0 100 100">
+                    <circle r="46" cx="50" cy="50" />
+                    <circle r="46" cx="50" cy="50" />
+                </svg>
+                <div class="loading-progress-text"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui" data-nosnippet>
+        An unhandled error has occurred.
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss">🗙</span>
+    </div>
+
+    <!-- MFA enrollment QR (vendored qrcode-generator, MIT) — client-side only -->
+    <script src="_content/JiggerJot.Shared.Ui/js/qrcode-generator.min.js"></script>
+    <script src="_content/JiggerJot.Shared.Ui/js/mfa-qr.js"></script>
+    <!-- Reload bfcache restores so Back after sign-out can't show a stale authenticated view (QA-SEC-03; browser-only, no-op in the WebView — loaded for host parity). -->
+    <script src="_content/JiggerJot.Shared.Ui/js/bfcache-guard.js"></script>
+    <!-- Small DOM helpers the RCL's components call (appUi.*). -->
+    <script src="_content/JiggerJot.Shared.Ui/js/ui.js"></script>
+    <script src="_framework/blazor.webview.js" autostart="false"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,29 @@
+using Microsoft.EntityFrameworkCore;
+using JiggerJot.Core.Entities;
+using JiggerJot.Core.Repositories;
+using JiggerJot.Infrastructure.Persistence;
+
+namespace JiggerJot.Infrastructure.Repositories;
+
+public class UserLoginRepository(AppDbContext db) : IUserLoginRepository
+{
+    public async Task<List<UserLogin>> GetForUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await db.UserLogins
+            .Where(l => l.UserId == userId)
+            .OrderBy(l => l.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<UserLogin?> GetByProviderForUserAsync(Guid userId, string provider, CancellationToken cancellationToken = default)
+    {
+        return await db.UserLogins
+            .FirstOrDefaultAsync(l => l.UserId == userId && l.Provider == provider, cancellationToken);
+    }
+
+    public async Task DeleteAsync(UserLogin login, CancellationToken cancellationToken = default)
+    {
+        db.UserLogins.Remove(login);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+}

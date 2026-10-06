@@ -1,0 +1,10 @@
+@* The not-found view (BACKBAR-8): the empty-state layout — her scene, the line, a link home — in
+   place of a bare "404" on a blank page. A component rather than markup in App.razor so it can be
+   rendered in a test; the strings are the platform's own literals, unchanged and untranslated as
+   they were (no new strings in the restyle). *@
+<div class="catalog-empty" data-testid="not-found">
+    <img src="_content/JiggerJot.Shared.Ui/brand/marga_scene_512.png"
+         alt="" aria-hidden="true" class="empty-scene" width="512" height="512" />
+    <p class="catalog-empty-line font-display">This page doesn't exist.</p>
+    <a href="/" class="btn btn-primary">Go home</a>
+</div>
