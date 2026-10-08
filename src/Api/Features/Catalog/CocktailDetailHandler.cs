@@ -29,7 +29,7 @@ namespace JiggerJot.Api.Features.Catalog;
 /// </summary>
 public class CocktailDetailHandler(
     IRepository<Cocktail> cocktails,
-    IUserRepository users,
+    IRepository<UserUnitPreference> unitPreferences, // the reader's measuring system (Arch A3)
     IRepository<TenantInventory> inventory,
     IRepository<IngredientSubstitution> substitutions)
 {
@@ -170,15 +170,12 @@ public class CocktailDetailHandler(
     /// which is what is stored (<see cref="BarMeasure.ReaderSystem"/>).
     /// </summary>
     /// <remarks>
-    /// Through <see cref="IUserRepository"/> rather than the generic repository. User is a platform
-    /// entity with its own repository, and the generic one's cross-tenant escape hatch is banned in
-    /// feature slices for good reason — an architecture test says so, and it said so about the first
-    /// draft of this method.
+    /// From the reader's own <see cref="UserUnitPreference"/> row (user-keyed, so <c>Query()</c> needs no tenant and no
+    /// cross-tenant escape hatch); none means the reader never chose (Arch A3).
     /// </remarks>
     private async Task<UnitSystem?> PreferredSystemAsync(Guid? userId, CancellationToken cancellationToken)
     {
         if (userId is not { } id) return null;
-        var user = await users.GetByIdAsync(id, cancellationToken);
-        return user?.PreferredUnitSystem;
+        return await unitPreferences.Query().Where(p => p.UserId == id).Select(p => (UnitSystem?)p.UnitSystem).FirstOrDefaultAsync(cancellationToken);
     }
 }

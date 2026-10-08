@@ -262,6 +262,36 @@
           "event": [{ "listen": "test", "script": { "exec": ["pm.test(\"2xx\", () => pm.expect(pm.response.code).to.be.below(300));"], "type": "text/javascript" } }]
         },
         {
+          "name": "Preferences — read measurements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/unit-preference",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "unit-preference"
+              ]
+            },
+            "description": "The signed-in reader's measuring system (JJ-008): \"unitSystem\" is \"Metric\" or \"Imperial\", and \"isDefault\" is true for a reader who never chose: they read ounces, because ounces are what is stored (JJ-041). User-keyed, so the same answer in every household. The UnitPreference slice (Arch A3, jigger-jot#164)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Preferences — set measurements",
           "request": {
             "method": "PUT",
@@ -272,14 +302,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/auth/unit-system",
+              "raw": "{{baseUrl}}/api/unit-preference",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "auth",
-                "unit-system"
+                "unit-preference"
               ]
             },
             "body": {
@@ -291,7 +320,7 @@
                 }
               }
             },
-            "description": "How this reader wants recipe amounts shown (JJ-008). \"Metric\" or \"Imperial\", case-insensitive — nothing else.\n\n**null, empty or omitted is a 400** (JJ-041). Every volume is stored in ounces, so there is no \"as written\" to clear back to: it would only ever mean imperial. A reader who never chose reads ounces, and GET /api/auth/me reports \"Imperial\" for them.\n\n**\"Neutral\" is rejected with 400.** Neutral is a property of a UNIT, not something a reader can prefer: \"show me everything in dashes\" is not a request anyone can act on, and accepting it would silently do nothing.\n\n403 from an impersonation session — staff must not mutate the target's preferences (ADR-022). The value comes back on GET /api/auth/me. Errors: 400 `unsupported_unit_system`, 403 `impersonation_not_allowed`."
+            "description": "How this reader wants recipe amounts shown (JJ-008). \"Metric\" or \"Imperial\", case-insensitive — nothing else.\n\n**null, empty or omitted is a 400** (JJ-041). Every volume is stored in ounces, so there is no \"as written\" to clear back to: it would only ever mean imperial. A reader who never chose reads ounces, and GET /api/unit-preference reports \"Imperial\" with isDefault true.\n\n**\"Neutral\" is rejected with 400.** Neutral is a property of a UNIT, not something a reader can prefer: \"show me everything in dashes\" is not a request anyone can act on, and accepting it would silently do nothing.\n\n403 from an impersonation session — staff must not mutate the target's preferences (ADR-022). The value comes back on GET /api/unit-preference. Errors: 400 `unsupported_unit_system`, 403 `impersonation_not_allowed`."
           },
           "response": [],
           "event": [

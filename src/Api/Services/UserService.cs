@@ -40,13 +40,6 @@ public interface IUserService
 
     /// <summary>Updates the user's preferred UI theme (null = follow the OS scheme).</summary>
     Task UpdateThemeAsync(Guid userId, string? theme, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Saves how the user wants recipe amounts shown. The endpoint only ever sends Metric or Imperial;
-    /// a null left in the column means "never chose" and reads as imperial (JJ-041).
-    /// </summary>
-    Task UpdatePreferredUnitSystemAsync(
-        Guid userId, UnitSystem? unitSystem, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -235,16 +228,6 @@ public class UserService(
         var user = await repository.GetByIdAsync(userId, cancellationToken);
         if (user is null) return;
         user.Theme = theme;
-        user.UpdatedAt = clock.GetUtcNow();
-        await repository.UpdateAsync(user, cancellationToken);
-    }
-
-    public async Task UpdatePreferredUnitSystemAsync(
-        Guid userId, UnitSystem? unitSystem, CancellationToken cancellationToken = default)
-    {
-        var user = await repository.GetByIdAsync(userId, cancellationToken);
-        if (user is null) return;
-        user.PreferredUnitSystem = unitSystem;
         user.UpdatedAt = clock.GetUtcNow();
         await repository.UpdateAsync(user, cancellationToken);
     }

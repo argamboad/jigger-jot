@@ -26,7 +26,7 @@ public sealed class CocktailEditingTests(PostgresFixture fixture) : PostgresTest
             new EfRepository<GlassType>(db),
             new EfRepository<Method>(db),
             new EfRepository<CocktailIngredient>(db),
-            new UserRepository(db),
+            new EfRepository<UserUnitPreference>(db),
             new TestCurrentTenant { TenantId = tenantId });
 
     private async Task SeedAsync()
@@ -58,8 +58,9 @@ public sealed class CocktailEditingTests(PostgresFixture fixture) : PostgresTest
     private async Task<Guid> ReaderAsync(UnitSystem? preference)
     {
         await using var db = Fixture.CreateContext();
-        var user = new User { Email = $"editor-{Guid.CreateVersion7():N}@example.com", PreferredUnitSystem = preference };
+        var user = new User { Email = $"editor-{Guid.CreateVersion7():N}@example.com" };
         db.Users.Add(user);
+        if (preference is { } chosen) db.Add(new UserUnitPreference { UserId = user.Id, UnitSystem = chosen, CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow });
         await db.SaveChangesAsync();
         return user.Id;
     }

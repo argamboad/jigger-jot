@@ -51,12 +51,12 @@ else
     {
         // Unlike theme and language, this has no device-local copy to read back: nothing renders
         // differently until a recipe is opened, and the server does the conversion. So the server is
-        // the only source, and the control simply reflects it — the profile already says "Imperial"
+        // the only source, and the control simply reflects it — the slice already says "Imperial"
         // for a reader who never chose.
         try
         {
-            var profile = await Http.GetFromJsonAsync<Profile>("/api/auth/me");
-            _current = profile?.PreferredUnitSystem ?? Imperial;
+            var preference = await Http.GetFromJsonAsync<Preference>("/api/unit-preference");
+            _current = preference?.UnitSystem ?? Imperial;
         }
         catch
         {
@@ -73,7 +73,7 @@ else
 
         try
         {
-            var response = await Http.PutAsJsonAsync("/api/auth/unit-system", new { unitSystem = chosen });
+            var response = await Http.PutAsJsonAsync("/api/unit-preference", new { unitSystem = chosen });
             _syncFailed = !response.IsSuccessStatusCode;
         }
         catch
@@ -82,5 +82,5 @@ else
         }
     }
 
-    private record Profile(string? PreferredUnitSystem);
+    private record Preference([property: System.Text.Json.Serialization.JsonPropertyName("unitSystem")] string? UnitSystem);
 }

@@ -4,8 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using JiggerJot.Api.Authentication;
 using JiggerJot.Api.Models;
 using JiggerJot.Api.Services;
-using JiggerJot.Core.Catalog;
-using JiggerJot.Core.Entities;
 using JiggerJot.Core.Abstractions;
 using JiggerJot.Core.Repositories;
 
@@ -46,10 +44,7 @@ public class AccountController(
         return Ok(new UserProfileResponse
         {
             UserName = user.DisplayName ?? user.Email,
-            TenantName = tenantName ?? string.Empty,
-            // What the reader actually reads (JJ-041): a reader who never chose reads ounces, because
-            // ounces are what is stored — said here once rather than known by every client.
-            PreferredUnitSystem = BarMeasure.ReaderSystem(user.PreferredUnitSystem).ToString(),
+            TenantName = tenantName ?? string.Empty
         });
     }
 
@@ -116,35 +111,6 @@ public class AccountController(
             return BadRequest(new ErrorResponse("unsupported_theme", "Unsupported theme."));
 
         await userService.UpdateThemeAsync(userId, theme, cancellationToken);
-        return Ok();
-    }
-
-    /// <summary>
-    /// Saves how the signed-in user wants recipe amounts shown, so it follows them across devices
-    /// (JJ-008): ounces or millilitres. Every volume is stored in ounces (JJ-041), so there is no
-    /// "as written" to clear back to — an empty value is refused like any other that is not a system.
-    /// </summary>
-    [HttpPut("unit-system")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public async Task<IActionResult> SetUnitSystem(
-        [FromBody] UnitSystemRequest req, CancellationToken cancellationToken)
-    {
-        if (!TryGetUserId(out var userId)) return Unauthorized();
-        if (ImpersonatedPrefWrite() is { } denied) return denied;
-
-        // Neutral is a property of a UNIT, not something a reader can prefer: "show me everything in
-        // dashes" is not a request anyone can act on. A bare number parses as an enum value, so it is
-        // held to the defined ones too.
-        if (string.IsNullOrWhiteSpace(req.UnitSystem)
-            || !Enum.TryParse<UnitSystem>(req.UnitSystem.Trim(), ignoreCase: true, out var unitSystem)
-            || !Enum.IsDefined(unitSystem)
-            || unitSystem == UnitSystem.Neutral)
-        {
-            return BadRequest(new ErrorResponse(
-                "unsupported_unit_system", "Unsupported unit system."));
-        }
-
-        await userService.UpdatePreferredUnitSystemAsync(userId, unitSystem, cancellationToken);
         return Ok();
     }
 
