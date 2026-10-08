@@ -9,6 +9,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- SmtpEmailSender.BuildMessage is internal; the MIME shape is unit-tested without an SMTP server. -->
+    <InternalsVisibleTo Include="JiggerJot.Api.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- The header lockup, embedded for CID inline-embedding in branded emails (BrandedEmail). Rendered
          from the RCL's lockup_light.svg by docs/brand/build_assets.py, flat on white. -->
     <EmbeddedResource Include="Email\Assets\lockup.png" />
