@@ -214,7 +214,7 @@ public class CocktailBrowseJourneyTests : E2ETestBase
 
         // Two bottles on the shelf first, so the drink written below is makeable the moment it exists.
         await Page.GetByTestId("nav-shelf").ClickAsync();
-        await Expect(Page.Locator("[data-testid^='shelf-item-']").First)
+        await Expect(Page.Locator("[data-testid='shelf-item']").First)
             .ToBeVisibleAsync(new() { Timeout = 30_000 });
         foreach (var ingredient in new[] { "London dry gin", "Campari" })
         {

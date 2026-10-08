@@ -70,7 +70,7 @@ public class WelcomeWizardTests : ComponentTestBase
         {
             // Answering "which of these is wrong" is far faster than picking a dozen bottles out of
             // 191, and that only works if they start selected.
-            Assert.True(page.Find($"[data-testid='onboard-item-{Gin}']").HasAttribute("checked"));
+            Assert.True(page.Find($"[data-testid='onboard-item'][data-ingredient-id='{Gin}']").HasAttribute("checked"));
 
             // A household that joined by invitation already has a shelf (FEATURES §7), and so does
             // anyone who opens this a second time. Neither should find their answers thrown away.
@@ -82,9 +82,9 @@ public class WelcomeWizardTests : ComponentTestBase
     public void NothingIsWrittenUntilFinish()
     {
         var page = RenderWizard();
-        page.WaitForAssertion(() => page.Find($"[data-testid='onboard-item-{Gin}']"));
+        page.WaitForAssertion(() => page.Find($"[data-testid='onboard-item'][data-ingredient-id='{Gin}']"));
 
-        page.Find($"[data-testid='onboard-item-{Gin}']").Change(false);
+        page.Find($"[data-testid='onboard-item'][data-ingredient-id='{Gin}']").Change(false);
         page.Find("[data-testid='onboard-next']").Click();
 
         // Untick a suggestion, walk to the second step — and the server has still heard nothing. A
@@ -96,12 +96,12 @@ public class WelcomeWizardTests : ComponentTestBase
     public void Finish_SendsTheWholeShelfInOneRequest()
     {
         var page = RenderWizard();
-        page.WaitForAssertion(() => page.Find($"[data-testid='onboard-item-{Gin}']"));
+        page.WaitForAssertion(() => page.Find($"[data-testid='onboard-item'][data-ingredient-id='{Gin}']"));
 
         // Step one shows only the suggestions, so anything else is ticked on step two — which is what
         // the second step is for.
         page.Find("[data-testid='onboard-next']").Click();
-        page.Find($"[data-testid='onboard-item-{Rum}']").Change(true);
+        page.Find($"[data-testid='onboard-item'][data-ingredient-id='{Rum}']").Change(true);
         page.Find("[data-testid='onboard-finish']").Click();
 
         page.WaitForAssertion(() => Assert.NotNull(Written()));
@@ -123,11 +123,11 @@ public class WelcomeWizardTests : ComponentTestBase
     public void AnUntickedSuggestion_IsSentAsUnavailable_NotOmitted()
     {
         var page = RenderWizard();
-        page.WaitForAssertion(() => page.Find($"[data-testid='onboard-item-{Gin}']"));
+        page.WaitForAssertion(() => page.Find($"[data-testid='onboard-item'][data-ingredient-id='{Gin}']"));
 
-        page.Find($"[data-testid='onboard-item-{Gin}']").Change(false);   // a suggestion, on step one
+        page.Find($"[data-testid='onboard-item'][data-ingredient-id='{Gin}']").Change(false);   // a suggestion, on step one
         page.Find("[data-testid='onboard-next']").Click();
-        page.Find($"[data-testid='onboard-item-{Owned}']").Change(false); // already owned, on step two
+        page.Find($"[data-testid='onboard-item'][data-ingredient-id='{Owned}']").Change(false); // already owned, on step two
         page.Find("[data-testid='onboard-finish']").Click();
 
         page.WaitForAssertion(() => Assert.NotNull(Written()));

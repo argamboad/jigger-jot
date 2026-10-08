@@ -54,7 +54,7 @@ public class ShelfPageTests : ComponentTestBase
         var page = RenderShelf();
 
         page.WaitForAssertion(() =>
-            Assert.Equal(3, page.FindAll("[data-testid^='shelf-item-']").Count));
+            Assert.Equal(3, page.FindAll("[data-testid='shelf-item']").Count));
 
         // Grouped, because 191 of these in a flat list is not a screen anyone fills in.
         var markup = page.Markup;
@@ -66,13 +66,13 @@ public class ShelfPageTests : ComponentTestBase
     public void APill_IsStillACheckbox()
     {
         var page = RenderShelf();
-        page.WaitForAssertion(() => page.Find($"[data-testid='shelf-item-{Gin}']"));
+        page.WaitForAssertion(() => page.Find($"[data-testid='shelf-item'][data-ingredient-id='{Gin}']"));
 
         // INV-3 changed the control's appearance and nothing else. Bootstrap's .btn-check is a real
         // checkbox that is visually hidden and styled through its label, so the semantics, the
         // keyboard and the screen-reader announcement are the ones the browser already provides —
         // which is the whole reason for using it instead of drawing a pill and wiring clicks to it.
-        var input = page.Find($"[data-testid='shelf-item-{Gin}']");
+        var input = page.Find($"[data-testid='shelf-item'][data-ingredient-id='{Gin}']");
         Assert.Equal("checkbox", input.GetAttribute("type"));
         Assert.Contains("btn-check", input.GetAttribute("class"));
 
@@ -86,23 +86,23 @@ public class ShelfPageTests : ComponentTestBase
     {
         Http.On(HttpMethod.Put, $"/api/inventory/{Gin}", status: HttpStatusCode.NoContent);
         var page = RenderShelf();
-        page.WaitForAssertion(() => page.Find($"[data-testid='shelf-item-{Gin}']"));
+        page.WaitForAssertion(() => page.Find($"[data-testid='shelf-item'][data-ingredient-id='{Gin}']"));
 
         Assert.Equal("Shelf_CategoryCount[0, 2]",
-            page.Find("[data-testid='shelf-cat-count-gin']").TextContent.Trim());
+            page.Find("[data-testid='shelf-cat-count'][data-category='gin']").TextContent.Trim());
 
-        page.Find($"[data-testid='shelf-item-{Gin}']").Change(true);
+        page.Find($"[data-testid='shelf-item'][data-ingredient-id='{Gin}']").Change(true);
 
         // One number, rendered twice. The card and the jump link read the same value rather than
         // computing it separately, which is what stops them disagreeing after a tick.
         page.WaitForAssertion(() =>
         {
             Assert.Equal("Shelf_CategoryCount[1, 2]",
-                page.Find("[data-testid='shelf-cat-count-gin']").TextContent.Trim());
+                page.Find("[data-testid='shelf-cat-count'][data-category='gin']").TextContent.Trim());
             Assert.Contains("Shelf_CategoryCount[1, 2]",
-                page.Find("[data-testid='shelf-jump-gin']").TextContent);
+                page.Find("[data-testid='shelf-jump'][data-category='gin']").TextContent);
             Assert.Contains("Shelf_CategoryCount[0, 1]",
-                page.Find("[data-testid='shelf-jump-rum']").TextContent);
+                page.Find("[data-testid='shelf-jump'][data-category='rum']").TextContent);
         });
     }
 
@@ -110,7 +110,7 @@ public class ShelfPageTests : ComponentTestBase
     public void TheJumpBar_LinksToTheCardsThemselves()
     {
         var page = RenderShelf();
-        page.WaitForAssertion(() => page.Find("[data-testid='shelf-jump-gin']"));
+        page.WaitForAssertion(() => page.Find("[data-testid='shelf-jump'][data-category='gin']"));
 
         // Real links, so the keyboard and the browser's own history do the work. A link that points
         // at nothing is worse than no jump bar, so the anchor is asserted against the card's id.
@@ -118,9 +118,9 @@ public class ShelfPageTests : ComponentTestBase
         // The path is part of the href on purpose: index.html carries <base href="/">, and a
         // fragment-only href resolves against the BASE rather than the current URL, so "#cat-gin"
         // means "/#cat-gin" — the home page. The browser found that one; this holds it fixed.
-        Assert.Equal("/shelf#cat-gin", page.Find("[data-testid='shelf-jump-gin']").GetAttribute("href"));
+        Assert.Equal("/shelf#cat-gin", page.Find("[data-testid='shelf-jump'][data-category='gin']").GetAttribute("href"));
         Assert.NotNull(page.Find("#cat-gin"));
-        Assert.Equal("/shelf#cat-rum", page.Find("[data-testid='shelf-jump-rum']").GetAttribute("href"));
+        Assert.Equal("/shelf#cat-rum", page.Find("[data-testid='shelf-jump'][data-category='rum']").GetAttribute("href"));
         Assert.NotNull(page.Find("#cat-rum"));
     }
 
@@ -135,7 +135,7 @@ public class ShelfPageTests : ComponentTestBase
         // The bottle you tick is the one that completes a drink, so the footer has to say so — that
         // is the difference between filling in a form and watching something add up.
         Http.On(HttpMethod.Get, "/api/cocktails", Makeable(4));
-        page.Find($"[data-testid='shelf-item-{Gin}']").Change(true);
+        page.Find($"[data-testid='shelf-item'][data-ingredient-id='{Gin}']").Change(true);
 
         // The recount waits for the ticking to go quiet, on the injected clock (R148): the wait is stepped, not slept.
         page.WaitForAssertion(
@@ -159,7 +159,7 @@ public class ShelfPageTests : ComponentTestBase
         Http.On(HttpMethod.Put, $"/api/inventory/{Sloe}", status: HttpStatusCode.NoContent);
         Http.On(HttpMethod.Put, $"/api/inventory/{Rum}", status: HttpStatusCode.NoContent);
         var page = RenderShelf(makeable: 1);
-        page.WaitForAssertion(() => page.Find($"[data-testid='shelf-item-{Gin}']"));
+        page.WaitForAssertion(() => page.Find($"[data-testid='shelf-item'][data-ingredient-id='{Gin}']"));
 
         var beforeTicking = AskedForTheCount(Http);
 
@@ -171,7 +171,7 @@ public class ShelfPageTests : ComponentTestBase
         // renderer has already replaced.
         foreach (var id in new[] { Gin, Sloe, Rum })
         {
-            await page.InvokeAsync(() => page.Find($"[data-testid='shelf-item-{id}']").Change(true));
+            await page.InvokeAsync(() => page.Find($"[data-testid='shelf-item'][data-ingredient-id='{id}']").Change(true));
         }
 
         // The quiet period is on the injected clock (R148), so it is stepped once the three ticks are in.
@@ -194,9 +194,9 @@ public class ShelfPageTests : ComponentTestBase
     {
         Http.On(HttpMethod.Get, "/api/inventory/categories", Categories);
         var page = RenderShelf();
-        page.WaitForAssertion(() => page.Find("[data-testid='shelf-add-in-gin']"));
+        page.WaitForAssertion(() => page.Find("[data-testid='shelf-add-in'][data-category='gin']"));
 
-        page.Find("[data-testid='shelf-add-in-gin']").Click();
+        page.Find("[data-testid='shelf-add-in'][data-category='gin']").Click();
 
         // The form belongs to the card it was opened from: you are standing in front of the gin
         // shelf holding a bottle of gin, and being made to say so again in a dropdown is the part
@@ -211,9 +211,9 @@ public class ShelfPageTests : ComponentTestBase
     {
         Http.On(HttpMethod.Put, $"/api/inventory/{Gin}", status: HttpStatusCode.NoContent);
         var page = RenderShelf();
-        page.WaitForAssertion(() => page.Find($"[data-testid='shelf-item-{Gin}']"));
+        page.WaitForAssertion(() => page.Find($"[data-testid='shelf-item'][data-ingredient-id='{Gin}']"));
 
-        page.Find($"[data-testid='shelf-item-{Gin}']").Change(true);
+        page.Find($"[data-testid='shelf-item'][data-ingredient-id='{Gin}']").Change(true);
 
         // The count is what tells a household how far it has got, so it has to move with the tick
         // rather than after a round trip.
@@ -226,13 +226,13 @@ public class ShelfPageTests : ComponentTestBase
     {
         Http.On(HttpMethod.Put, $"/api/inventory/{Gin}", status: HttpStatusCode.NoContent);
         var page = RenderShelf();
-        page.WaitForAssertion(() => page.Find($"[data-testid='shelf-item-{Gin}']"));
+        page.WaitForAssertion(() => page.Find($"[data-testid='shelf-item'][data-ingredient-id='{Gin}']"));
 
-        page.Find($"[data-testid='shelf-item-{Gin}']").Change(true);
+        page.Find($"[data-testid='shelf-item'][data-ingredient-id='{Gin}']").Change(true);
         page.WaitForAssertion(() =>
             Assert.Contains("1", page.Find("[data-testid='shelf-count']").TextContent));
 
-        page.Find($"[data-testid='shelf-item-{Gin}']").Change(false);
+        page.Find($"[data-testid='shelf-item'][data-ingredient-id='{Gin}']").Change(false);
         page.WaitForAssertion(() =>
             Assert.Contains("0", page.Find("[data-testid='shelf-count']").TextContent));
     }
@@ -242,9 +242,9 @@ public class ShelfPageTests : ComponentTestBase
     {
         Http.On(HttpMethod.Put, $"/api/inventory/{Gin}", status: HttpStatusCode.InternalServerError);
         var page = RenderShelf();
-        page.WaitForAssertion(() => page.Find($"[data-testid='shelf-item-{Gin}']"));
+        page.WaitForAssertion(() => page.Find($"[data-testid='shelf-item'][data-ingredient-id='{Gin}']"));
 
-        page.Find($"[data-testid='shelf-item-{Gin}']").Change(true);
+        page.Find($"[data-testid='shelf-item'][data-ingredient-id='{Gin}']").Change(true);
 
         // Optimism is only honest if it is undone when the save fails. A tick that stays put after a
         // failed write is a lie the household finds out about later, when a drink they were promised

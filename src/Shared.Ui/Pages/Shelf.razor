@@ -34,7 +34,7 @@
                        a parent matches all its children when filtering, so a mismatched pair would
                        file the bottle where nobody looks for it. *@
                     <label class="form-label small mb-1" for="add-subcategory">@Localizer["Shelf_AddSubcategory"]</label>
-                    <select class="form-select" id="add-subcategory" data-testid="shelf-add-subcategory"
+                    <select class="form-select" id="add-subcategory"
                             disabled="@(!Subcategories.Any())" @bind="_newSubcategory">
                         <option value="">—</option>
                         @foreach (var s in Subcategories)
@@ -150,7 +150,7 @@ else
                <base href="/">, and a fragment-only href resolves against the BASE rather than the
                current URL — so "#cat-gin" is "/#cat-gin", which is the home page. Found in the
                browser: every jump link left the shelf. *@
-            <a class="shelf-jump-link" href="/shelf#cat-@Slug(group.Key)" data-testid="shelf-jump-@Slug(group.Key)">
+            <a class="shelf-jump-link" href="/shelf#cat-@Slug(group.Key)" data-testid="shelf-jump" data-category="@Slug(group.Key)">
                 @group.Key
                 <span class="shelf-jump-count">@CountFor(group.Key)</span>
             </a>
@@ -165,13 +165,13 @@ else
         @* BACKBAR-3 (page 11): a section on a hairline, not a card — 191 pills in 16 cards was 16
            boxes of chrome around the only thing that matters. The anchor and the test id stay on
            the section; the heading is the serif. *@
-        <section class="shelf-section" id="cat-@Slug(group.Key)" data-testid="shelf-cat-@Slug(group.Key)">
+        <section class="shelf-section" id="cat-@Slug(group.Key)" data-testid="shelf-cat" data-category="@Slug(group.Key)">
                 <div class="shelf-section-head">
                     <h2 class="shelf-section-title font-display">@group.Key</h2>
                     @* The count is over the WHOLE category, never over what search has left on screen.
                        It measures progress against the shelf, and a number that changed meaning when
                        someone typed in the search box would measure nothing. *@
-                    <span class="shelf-section-count" data-testid="shelf-cat-count-@Slug(group.Key)">
+                    <span class="shelf-section-count" data-testid="shelf-cat-count" data-category="@Slug(group.Key)">
                         @CountFor(group.Key)
                     </span>
                 </div>
@@ -185,7 +185,7 @@ else
                            three-column grid gave "Gin" exactly as much room as "Crème de cacao". *@
                         <input class="btn-check" type="checkbox" autocomplete="off"
                                id="@($"ing-{item.Id}")"
-                               data-testid="@($"shelf-item-{item.Id}")"
+                               data-testid="shelf-item" data-ingredient-id="@item.Id"
                                checked="@item.IsAvailable"
                                @onchange="e => ToggleAsync(item, e)" />
                         @* The bottle she just named is outlined (page 11) so it can be found among
@@ -204,7 +204,7 @@ else
                         @if (item.IsOwn)
                         {
                             <button type="button" class="btn btn-sm btn-link shelf-own-delete"
-                                    data-testid="@($"shelf-delete-{item.Id}")"
+                                    data-testid="shelf-delete" data-ingredient-id="@item.Id"
                                     aria-label="@Localizer["Shelf_DeleteLabel", item.Name]"
                                     title="@Localizer["Shelf_DeleteLabel", item.Name]"
                                     disabled="@_saving"
@@ -215,7 +215,7 @@ else
                     @* FEATURES §8: adding a custom ingredient is an affordance OF the checklist, not a
                        separate screen — and it belongs beside the bottles it files itself among
                        rather than in a toolbar detached from them. *@
-                    <button class="btn btn-sm shelf-add-pill" data-testid="shelf-add-in-@Slug(group.Key)"
+                    <button class="btn btn-sm shelf-add-pill" data-testid="shelf-add-in" data-category="@Slug(group.Key)"
                             @onclick="() => OpenAddInAsync(group.Key)">
                         + @Localizer["Shelf_AddYourOwn"]
                     </button>

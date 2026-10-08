@@ -53,9 +53,9 @@ public class ShelfSectionsTests : ComponentTestBase
 
             // The anchor and its test id survive on the section; the heading is the serif.
             var gin = page.Find("#cat-gin");
-            Assert.Equal("shelf-cat-gin", gin.GetAttribute("data-testid"));
+            Assert.Equal("cat-gin", page.Find("[data-testid='shelf-cat'][data-category='gin']").Id); // the section's test id and its category
             Assert.NotNull(gin.QuerySelector("h2.font-display"));
-            Assert.Equal("Shelf_CategoryCount[1, 1]", page.Find("[data-testid='shelf-cat-count-gin']").TextContent.Trim());
+            Assert.Equal("Shelf_CategoryCount[1, 1]", page.Find("[data-testid='shelf-cat-count'][data-category='gin']").TextContent.Trim());
         });
     }
 
@@ -68,12 +68,12 @@ public class ShelfSectionsTests : ComponentTestBase
         {
             Assert.Equal("Marga_ShelfNext[Sweet vermouth, 4]", page.Find("[data-testid='shelf-marga'] .marga-line").TextContent.Trim());
 
-            var vermouth = page.Find($"[data-testid='shelf-item-{Vermouth}']");
+            var vermouth = page.Find($"[data-testid='shelf-item'][data-ingredient-id='{Vermouth}']");
             var vermouthPill = page.Find($"label[for='{vermouth.GetAttribute("id")}']");
             Assert.Contains("shelf-pill-named", vermouthPill.ClassList);
             Assert.False(vermouth.HasAttribute("checked"), "the named bottle must never read as owned");
 
-            var gin = page.Find($"[data-testid='shelf-item-{Gin}']");
+            var gin = page.Find($"[data-testid='shelf-item'][data-ingredient-id='{Gin}']");
             var ginPill = page.Find($"label[for='{gin.GetAttribute("id")}']");
             Assert.DoesNotContain("shelf-pill-named", ginPill.ClassList);
         });
@@ -95,9 +95,9 @@ public class ShelfSectionsTests : ComponentTestBase
     public void TheAddFormOpensInPlace_AsAPanelNotACard()
     {
         var page = RenderShelf();
-        page.WaitForAssertion(() => page.Find("[data-testid='shelf-add-in-gin']"));
+        page.WaitForAssertion(() => page.Find("[data-testid='shelf-add-in'][data-category='gin']"));
 
-        page.Find("[data-testid='shelf-add-in-gin']").Click();
+        page.Find("[data-testid='shelf-add-in'][data-category='gin']").Click();
 
         page.WaitForAssertion(() =>
         {
