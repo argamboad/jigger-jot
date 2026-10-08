@@ -6,7 +6,7 @@ using JiggerJot.Core.Entities;
 
 namespace JiggerJot.Infrastructure.Persistence;
 
-public class AppDbContext : DbContext, IDataProtectionKeyContext
+public partial class AppDbContext : DbContext, IDataProtectionKeyContext
 {
     private readonly ICurrentTenant _currentTenant;
 
@@ -81,29 +81,6 @@ public class AppDbContext : DbContext, IDataProtectionKeyContext
     // append-only via AuditAppendOnlyInterceptor.
     public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
 
-    // 🗑️ DELETE-ME: sample feature set (remove with the Features/Notes slice).
-    public DbSet<Note> Notes => Set<Note>();
-
-    // ── JiggerJot domain (JJ-031) ────────────────────────────────────────────────────────────
-    // Curated global lookups: no tenant column at all, so no filter and no RLS policy (JJ-022).
-    public DbSet<IngredientCategory> IngredientCategories => Set<IngredientCategory>();
-    public DbSet<GlassType> GlassTypes => Set<GlassType>();
-    public DbSet<Method> Methods => Set<Method>();
-    public DbSet<Unit> Units => Set<Unit>();
-    public DbSet<RecipeSource> RecipeSources => Set<RecipeSource>();
-
-    // Global-only substitution graph, both directions stored (JJ-005, JJ-006).
-    public DbSet<IngredientSubstitution> IngredientSubstitutions => Set<IngredientSubstitution>();
-
-    // Dual-natured: shared catalog (TenantId null) + household-owned rows in one table. NOT
-    // ITenantScoped — see ISharedOrTenantScoped and JJ-031. Filtered by the second loop in
-    // OnModelCreating and by a hand-written RLS policy in their creating migration.
-    public DbSet<Ingredient> Ingredients => Set<Ingredient>();
-    public DbSet<Cocktail> Cocktails => Set<Cocktail>();
-    public DbSet<CocktailIngredient> CocktailIngredients => Set<CocktailIngredient>();
-
-    // The household's shelf — ordinary ITenantScoped data, fully covered by the platform.
-    public DbSet<TenantInventory> TenantInventories => Set<TenantInventory>();
 
     // Tenant isolation is structural in BOTH directions: the global query filter (below)
     // scopes reads, and this interceptor scopes writes — stamping the current tenant onto
@@ -139,17 +116,23 @@ public class AppDbContext : DbContext, IDataProtectionKeyContext
                     .MakeGenericMethod(entityType.ClrType)
                     .Invoke(this, [builder]);
 
-            // JiggerJot's catalog shape (JJ-031): rows that are EITHER shared (TenantId null) or
-            // household-owned. ITenantScoped cannot express them — its TenantId is non-nullable and
-            // its filter would hide every shared row — so they get this parallel filter instead.
-            // Deliberately in the same loop as the rule above so the two are read as a pair and a
-            // future reader can't take "not ITenantScoped" to mean "not filtered".
+            // The shared-or-tenant shape (Arch A4, ISharedOrTenantScoped): rows that are EITHER shared (TenantId
+            // null) OR one tenant's. ITenantScoped cannot express them — its TenantId is non-nullable and its filter
+            // would hide every shared row — so they get this parallel filter. Deliberately in the same loop, so the
+            // two are read as a pair and a reader cannot take "not ITenantScoped" to mean "not filtered".
             if (typeof(ISharedOrTenantScoped).IsAssignableFrom(entityType.ClrType))
                 ApplySharedOrTenantFilterMethod
                     .MakeGenericMethod(entityType.ClrType)
                     .Invoke(this, [builder]);
         }
+
+        // The app's model rules, if it has any (Arch A1): AppDbContext.App.cs implements the partial method.
+        OnAppModelCreating(builder);
     }
+
+    /// <summary>The app's half of the model (Arch A1, R159): its own filters and conventions, in <c>AppDbContext.App.cs</c>.
+    /// Unimplemented on the platform; the compiler drops the call.</summary>
+    partial void OnAppModelCreating(ModelBuilder builder);
 
     private static readonly MethodInfo ApplyTenantFilterMethod =
         typeof(AppDbContext).GetMethod(nameof(ApplyTenantFilter),
@@ -163,17 +146,12 @@ public class AppDbContext : DbContext, IDataProtectionKeyContext
             BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     /// <summary>
-    /// The JJ-031 filter: a household sees the shared catalog plus its own rows, and nothing of
-    /// anyone else's. Mirrored by the hand-written RLS policy on the same tables — change the two
-    /// together or the database and the app disagree about what is visible.
-    /// <para>
-    /// With no tenant current (a system/seed context, where <c>CurrentTenantId</c> is
-    /// <c>Guid.Empty</c>) this admits exactly the shared rows, which is what seeding the catalog
-    /// needs and is why it is not written as a fail-closed comparison.
-    /// </para>
+    /// A tenant sees the shared rows plus its own, and nothing of anyone else's. Mirrored by the four command-scoped
+    /// RLS policies (<see cref="RlsDdl.SharedOrTenantStatementsFor(string, string)"/>) — change the two together or
+    /// the database and the app disagree about what is visible. With no tenant current (<see cref="CurrentTenantId"/>
+    /// is <see cref="Guid.Empty"/>: a system or seed context) this admits exactly the shared rows, which is what
+    /// seeding a catalog needs and why it is not written as a fail-closed comparison.
     /// </summary>
-    private void ApplySharedOrTenantFilter<TEntity>(ModelBuilder builder)
-        where TEntity : class, ISharedOrTenantScoped
-        => builder.Entity<TEntity>()
-            .HasQueryFilter(e => e.TenantId == null || e.TenantId == CurrentTenantId);
+    private void ApplySharedOrTenantFilter<TEntity>(ModelBuilder builder) where TEntity : class, ISharedOrTenantScoped
+        => builder.Entity<TEntity>().HasQueryFilter(e => e.TenantId == null || e.TenantId == CurrentTenantId);
 }

@@ -85,14 +85,16 @@ public sealed class ServiceHarness(AppDbContext db, TimeProvider? clock = null, 
             QuotaService(), tenantContext, Clock, NullLogger<TenantInvitationService>.Instance);
     }
 
-    /// <summary>The <see cref="ITenantDataContributor"/>s this app registers in DI, bar one: the platform's six
-    /// (API keys, webhooks, usage metering, billing, the audit log, the outbox) plus the app's own household catalog and
-    /// inventory shelf. The app's content contributors are in, so an accept under test consults what production
-    /// consults: an empty household must read as empty to them too, and their WipeAsync must run cleanly inside
-    /// the dissolve. The one left out is the DELETE-ME Notes sample — still registered in Program.cs, but
-    /// platform tests may not depend on it (<c>PlatformTests_DoNotDependOnTheDeleteMeNotesSample</c>, R9/TR-1),
-    /// and it holds no rows the accept tests seed. Keep this in step with the
-    /// <c>AddScoped&lt;ITenantDataContributor, …&gt;</c> registrations when a feature adds one.</summary>
+    /// <summary>Every <see cref="ITenantDataContributor"/> DI registers, as production resolves them: the platform's six
+    /// plus the app's slices' (<c>AppTestComposition.Contributors</c>, Arch A1). The whole set, so an accept-and-dissolve
+    /// test proves no slice counts an empty household as content and every slice's wipe runs inside the dissolve.</summary>
+    public IReadOnlyList<ITenantDataContributor> Contributors() =>
+    [
+        .. PlatformContributors(),
+        .. JiggerJot.Api.Tests.App.AppTestComposition.Contributors(Db, Clock),
+    ];
+
+    /// <summary>The platform's own contributors: API keys, webhooks, usage metering, billing, the audit log, the outbox.</summary>
     public IReadOnlyList<ITenantDataContributor> PlatformContributors() =>
     [
         new ApiKeyDataContributor(new EfRepository<ApiKey>(Db)),
@@ -104,9 +106,6 @@ public sealed class ServiceHarness(AppDbContext db, TimeProvider? clock = null, 
         // billing.cancel this dissolve queues must be.
         new JiggerJot.Infrastructure.Outbox.OutboxDataContributor(new EfRepository<OutboxMessage>(Db),
             [new JiggerJot.Infrastructure.Email.EmailOutboxHandler(new NoopEmailSender())]),
-        new JiggerJot.Api.Features.Catalog.CatalogDataContributor(new EfRepository<Ingredient>(Db),
-            new EfRepository<Cocktail>(Db), new EfRepository<CocktailIngredient>(Db)),
-        new JiggerJot.Api.Features.Inventory.InventoryDataContributor(new EfRepository<TenantInventory>(Db)),
     ];
 }
 
@@ -134,7 +133,7 @@ internal sealed class TestMfaSettings : IMfaSettings
 
 internal sealed class TestAppSettings : IApplicationSettings
 {
-    public string ClientUrl => "https://localhost:7208";
+    public string ClientUrl => LocalPorts.WebHttpsUrl;
     public string NativeCallbackScheme => string.Empty;
 }
 
@@ -153,7 +152,8 @@ internal sealed class TestJwtSettings : IJwtSettings
 internal sealed class NoopEmailSender : IEmailSender
 {
     public Task SendAsync(string to, string subject, string htmlBody,
-        IReadOnlyList<EmailInlineImage>? inlineImages = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        IReadOnlyList<EmailInlineImage>? inlineImages = null, IReadOnlyList<EmailAttachment>? attachments = null,
+        CancellationToken cancellationToken = default) => Task.CompletedTask;
 }
 
 /// <summary>Test double for the export service — used by controller tests that don't exercise export.</summary>
