@@ -436,37 +436,6 @@ namespace JiggerJot.Infrastructure.Persistence.Migrations
                     b.ToTable("MfaRecoveryCodes");
                 });
 
-            modelBuilder.Entity("JiggerJot.Core.Entities.Note", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("Notes");
-                });
-
             modelBuilder.Entity("JiggerJot.Core.Entities.Notification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -921,9 +890,6 @@ namespace JiggerJot.Infrastructure.Persistence.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
 
-                    b.Property<int?>("PreferredUnitSystem")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Theme")
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
@@ -1005,6 +971,32 @@ namespace JiggerJot.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("UserMfa");
+                });
+
+            modelBuilder.Entity("JiggerJot.Core.Entities.UserUnitPreference", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UnitSystem")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserUnitPreferences");
                 });
 
             modelBuilder.Entity("JiggerJot.Core.Entities.WebhookDelivery", b =>
@@ -1252,6 +1244,15 @@ namespace JiggerJot.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JiggerJot.Core.Entities.UserUnitPreference", b =>
+                {
+                    b.HasOne("JiggerJot.Core.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("JiggerJot.Core.Entities.Cocktail", b =>

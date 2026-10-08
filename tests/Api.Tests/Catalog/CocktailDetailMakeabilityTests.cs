@@ -30,7 +30,7 @@ public sealed class CocktailDetailMakeabilityTests(PostgresFixture fixture) : Po
 
     private static CocktailDetailHandler Handler(AppDbContext db) =>
         new(new EfRepository<Cocktail>(db),
-            new UserRepository(db),
+            new EfRepository<UserUnitPreference>(db),
             new EfRepository<TenantInventory>(db),
             new EfRepository<IngredientSubstitution>(db));
 

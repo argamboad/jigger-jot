@@ -267,7 +267,8 @@ public sealed class CustomIngredientTests(PostgresFixture fixture) : PostgresTes
             await new CatalogDataContributor(
                 new EfRepository<Ingredient>(db),
                 new EfRepository<Cocktail>(db),
-                new EfRepository<CocktailIngredient>(db)).WipeAsync(_household);
+                new EfRepository<CocktailIngredient>(db),
+                new HouseholdIngredients(new EfRepository<Ingredient>(db))).WipeAsync(_household);
         }
 
         // The reason this test exists: the platform's dissolution canary only sees a NON-nullable

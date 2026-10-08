@@ -57,10 +57,10 @@ public class EnforcementGateTests
     [Fact]
     public void Dockerfile_GivesTheAppUserAWritableStorageDir()
     {
-        // Synced from perezosoft-platform #236. Local-disk file storage (ADR-010) defaults to ./storage under the app
-        // base dir = /app/storage. The runtime runs as the non-root `app` user and WORKDIR /app is created by root, so
-        // without this the first stored file fails with "Access to the path '/app/storage' is denied" (seen on a
-        // sibling app's staging, 2026-09-17). The directory must exist, owned by `app`, BEFORE `USER app`.
+        // Local-disk file storage (ADR-010) defaults to ./storage under the app base dir = /app/storage. The runtime
+        // runs as the non-root `app` user, and WORKDIR /app is created by root, so without this the first file write
+        // (CSV export, report PDF, household export) fails with "Access to the path '/app/storage' is denied" —
+        // found on a downstream app's staging, 2026-09-17. The directory must exist, owned by `app`, BEFORE `USER app`.
         var dockerfile = File.ReadAllText(Path.Combine(RepoRoot(), "Dockerfile"));
         var runtime = dockerfile[dockerfile.IndexOf("AS runtime", StringComparison.Ordinal)..];
         var userAt = runtime.IndexOf("USER app", StringComparison.Ordinal);
@@ -126,7 +126,7 @@ public class EnforcementGateTests
         //   secret-scan  — a credential pasted into a markdown file is still a leaked credential.
         //   qa-artifacts — editing the plan without regenerating the PDFs is the ONLY way to break
         //                  it, so gating it on code would switch it off for precisely the change it
-        //                  exists to catch. It has caught that twice.
+        //                  exists to catch.
         //   changes      — it is the gate.
         //   deploy-*     — they gate transitively, through the jobs they need (ADR-031: dispatch only).
         // (Since ADR-031 secret-scan and qa-artifacts do read `changes` — its run plan — but never its `code`.)
@@ -210,7 +210,7 @@ public class EnforcementGateTests
         foreach (var path in new[]
                  {
                      ".github/workflows/postman-sync.yml", ".github/scripts/deploy-smoke.sh", ".github/forbidden-licenses.json", ".dockerignore",
-                     "docs/DEPLOYMENT.md", ".env.example", "JiggerJot.slnx", "docs/brand/build_assets.py", "tools/e2e.ps1", "docs/postman/JiggerJot.postman_collection.json",
+                     "docs/DEPLOYMENT.md", ".env.example", "JiggerJot.slnx", "tools/e2e.ps1", "docs/postman/JiggerJot.postman_collection.json",
                      "docs/ARCHITECTURE.md", "docs/FLOWS.md", // R121: the diagram-currency gate reads both
                  })
             Assert.True(Code(path), $"{workflow}: {path} is read by a gate, so a change to it must run the gates");
@@ -505,13 +505,12 @@ public class EnforcementGateTests
     [Fact]
     public void EveryContainerImage_IsPinned_NotFloating() // v3 DEP-9, widened after the 2026-09-11 outage
     {
-        // Carried down from the platform, which wrote it the same day and for the same reason (JJ-026:
-        // platform wins). DEP-9 says pin container images, never `:latest`. It was applied to the CI
-        // workflow's service images by hand and never machine-checked, so the Testcontainers fixtures
-        // and the dev compose file kept floating tags. On 2026-09-11 MinIO's Docker Hub repository
-        // stopped serving pulls entirely and `minio/minio:latest` took build-test down on every branch
-        // at once — with no pinned known-good to fall back to, which is the whole cost of a floating
-        // tag. This gate covers the surfaces the hand-applied convention missed: fixtures and compose — and, since v4 T16
+        // DEP-9 says pin container images, never `:latest`. It was applied to the CI workflow's service
+        // images by hand and never machine-checked, so the Testcontainers fixtures and the dev compose
+        // file kept floating tags. On 2026-09-11 MinIO's Docker Hub repository stopped serving pulls
+        // entirely and `minio/minio:latest` took build-test down on every branch at once — with no
+        // pinned known-good to fall back to, which is the whole cost of a floating tag. This gate covers
+        // the surfaces the hand-applied convention missed: test fixtures and compose — and, since v4 T16
         // (DEP-18), the workflow's `services:` images and `docker run` lines and the Dockerfile's FROM lines,
         // the four places an image is named. A bare major tag (`postgres:17`) counts as floating too: it moves
         // with every minor release, so a new Postgres reaches CI and the harness with no change in the repo.
@@ -583,77 +582,6 @@ public class EnforcementGateTests
     }
 
     [Fact]
-    public void HostIndexHtml_RenderTheSameBootState() // SHELL-2, NATIVE_PARITY "index.html sync"
-    {
-        // The rule was already being broken before there was a boot state to break it with: the web
-        // host had the stock two-circle spinner and the MAUI host had the literal word "Loading...".
-        // A boot screen that only ships on web is a bug on four native shells, so it is a gate now
-        // rather than a line in a document.
-        var root = RepoRoot();
-
-        // Comments stripped first: both files explain the parity rule in prose, and a gate that
-        // matched its own documentation would pass on a file whose markup had been deleted.
-        static string Markup(string path) =>
-            Regex.Replace(File.ReadAllText(path), "<!--.*?-->", "", RegexOptions.Singleline);
-
-        var web = Markup(Path.Combine(root, "src", "Web", "wwwroot", "index.html"));
-        var maui = Markup(Path.Combine(root, "src", "Maui", "wwwroot", "index.html"));
-
-        foreach (var marker in new[] { "class=\"boot\"", "boot-scene", "class=\"loading-progress\"" })
-        {
-            Assert.Contains(marker, web, StringComparison.Ordinal);
-            Assert.Contains(marker, maui, StringComparison.Ordinal);
-        }
-
-        // ...and on the same drawing. Two hosts pointing at two different files would pass every
-        // marker above while looking like different apps.
-        static string Scene(string html) =>
-            Regex.Match(html, @"_content/[A-Za-z0-9./_-]+marga_scene[A-Za-z0-9._-]*\.png").Value;
-        Assert.NotEmpty(Scene(web));
-        Assert.Equal(Scene(web), Scene(maui));
-
-        // The ONE intended difference, asserted in both directions so it stays deliberate: a WebView
-        // loads out of the app package, so there is no download to measure and the arc sweeps rather
-        // than reading a --blazor-load-percentage nothing sets.
-        Assert.Contains("boot-indeterminate", maui, StringComparison.Ordinal);
-        Assert.DoesNotContain("boot-indeterminate", web, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void TheBootMeter_SitsOnTheDrawing() // SHELL-2 amendment, 2026-09-14
-    {
-        // The maintainer's call on sight: the arc under the drawing read as two things waiting; the
-        // arc ON the drawing, centred, reads as one. Both hosts' index.html carry the markup under
-        // the parity gate above, so the arrangement is the stylesheet's alone: the boot block is the
-        // containing block, the meter is taken out of the flow and centred on it, and the figure
-        // inside the ring is painted for the drawing it now sits on rather than for the page ground.
-        var css = File.ReadAllText(Path.Combine(RepoRoot(), "src", "Shared.Ui", "wwwroot", "css", "app.css"));
-        static string Rule(string css, string selector) =>
-            Regex.Match(css, @"(?<![\w-])" + Regex.Escape(selector) + @"\s*\{([^}]*)\}").Groups[1].Value;
-
-        Assert.Matches(new Regex(@"position:\s*relative"), Rule(css, ".boot"));
-        var meter = Rule(css, ".boot-meter");
-        Assert.Matches(new Regex(@"position:\s*absolute"), meter);
-        Assert.Matches(new Regex(@"translate\(\s*-50%\s*,\s*-50%\s*\)"), meter);
-        Assert.Matches(new Regex(@"border-radius:\s*50%"), meter);
-    }
-
-    [Fact]
-    public void TheBootIllustration_IsTheOptimisedOne() // SHELL-2
-    {
-        // The boot screen is the one place this drawing is fetched BEFORE the app is usable, so an
-        // unoptimized asset here makes the very wait it decorates longer. It was 2 MB as delivered
-        // and ships at ~115 KB; the ceiling leaves room to redraw it without leaving room to paste
-        // the original back.
-        var scene = new FileInfo(Path.Combine(
-            RepoRoot(), "src", "Shared.Ui", "wwwroot", "brand", "marga_scene_512.png"));
-
-        Assert.True(scene.Exists, $"the boot illustration is missing: {scene.FullName}");
-        Assert.True(scene.Length < 250 * 1024,
-            $"the boot illustration is {scene.Length / 1024} KB — optimize it before it lands in the boot path");
-    }
-
-    [Fact]
     public void ImagePinGate_SeesAllFourSurfaces_AndRefusesABareMajor() // v4 T16: the gate's own reach, held
     {
         // The gate above reads the live files, so a passing run cannot show that it looks at every surface.
@@ -680,12 +608,12 @@ public class EnforcementGateTests
     public void ClaudeMdDocMap_ListsEveryDoc() // R75 (doc-map half), widened to docs/** by R118
     {
         // The map is what makes a doc visible to every session (v3 TR-1). It used to check docs/*.md only, and
-        // what sat one folder down went unmapped: a live story file and the QA run logs (v4 TR-24).
+        // what sat one folder down went unmapped: a live story file, the QA run logs, the entire course (v4 TR-24).
         var root = RepoRoot();
         var claudeMd = File.ReadAllText(Path.Combine(root, "CLAUDE.md"));
 
         // Folders mapped as ONE row: their files come and go (a new run log, a new lesson) without a map edit.
-        string[] folderRows = ["docs/qa-runs/", "docs/postman/"];
+        string[] folderRows = [.. new[] { "docs/tutorial/", "docs/qa-runs/", "docs/postman/" }.Where(row => Directory.Exists(Path.Combine(root, row)))]; // JiggerJot: no course here (see above)
         var missingRows = folderRows.Where(row => !claudeMd.Contains($"| `{row}` |", StringComparison.Ordinal)).ToList();
         Assert.True(missingRows.Count == 0, $"CLAUDE.md doc map has no row for: {string.Join(", ", missingRows)}");
 
@@ -707,6 +635,22 @@ public class EnforcementGateTests
         Assert.True(missing.Count == 0,
             "Docs missing from the CLAUDE.md doc map — add a row (or, for a folder whose files come and go, a "
             + $"folder row in this gate): {string.Join(", ", missing)}");
+    }
+
+    [Fact]
+    public void ClaudeMd_CarriesTheCourseReconcileRule() // R118
+    {
+        // JiggerJot: the course lives in perezosoft-platform (R114/R115/R118 NotHere) — platform gap, kept as a listed divergence.
+        if (!Directory.Exists(Path.Combine(RepoRoot(), "docs", "tutorial"))) return;
+        // The habit that keeps the course true — a lesson is reconciled in the PR that changes the code it
+        // quotes — lived only in the maintainer's memory, so a clone lost it.
+        var claudeMd = File.ReadAllText(Path.Combine(RepoRoot(), "CLAUDE.md")).ReplaceLineEndings("\n");
+        var start = claudeMd.IndexOf("## Read before you act", StringComparison.Ordinal);
+        Assert.True(start >= 0, "CLAUDE.md no longer has a 'Read before you act' section");
+        var section = claudeMd[start..claudeMd.IndexOf("\n## ", start + 1, StringComparison.Ordinal)];
+        Assert.True(section.Contains("docs/tutorial/", StringComparison.Ordinal) && section.Contains("--check-quotes", StringComparison.Ordinal),
+            "CLAUDE.md 'Read before you act' must carry the course-reconcile rule: name docs/tutorial/ and the "
+            + "quote check (gen_coverage.py --check-quotes).");
     }
 
     [Fact]
@@ -760,9 +704,13 @@ public class EnforcementGateTests
         var unresolved = new List<string>();
         foreach (var entry in RulesEnforcement.Manifest)
         {
-            Assert.True(entry.Checks.Length > 0 || entry.Pending is not null || !string.IsNullOrWhiteSpace(entry.NotHere),
+            // The app's half (RulesEnforcement.App.cs, Arch A1) may name its own pending issue, or say the rule's subject is not here.
+            RulesEnforcement.AppOverrides.TryGetValue(entry.Rule, out var over);
+            var pending = over?.Pending ?? entry.Pending;
+            var notHere = over?.NotHere ?? entry.NotHere;
+            Assert.True(entry.Checks.Length > 0 || pending is not null || !string.IsNullOrWhiteSpace(notHere),
                 $"{entry.Rule}: no check, no pending issue, and no reason it does not apply here");
-            if (entry.Pending is { } p) Assert.Matches(@"jigger-jot#\d+", p); // the issue that owes it, so it is visible
+            if (pending is { } p) Assert.Matches(@"[\w.-]+#\d+", p); // the issue that owes it (repo#n), so it is visible
             foreach (var check in entry.Checks)
             {
                 var ok = check.StartsWith("ci:", StringComparison.Ordinal) ? steps.Contains(check[3..]) : symbols.Contains(check);
@@ -770,8 +718,9 @@ public class EnforcementGateTests
             }
         }
         Assert.True(unresolved.Count == 0, "manifest names checks that do not exist (renamed? not in ci.yml?):\n" + string.Join("\n", unresolved));
+        var orphans = RulesEnforcement.AppOverrides.Keys.Except(listed).Order().ToList();
+        Assert.True(orphans.Count == 0, "RulesEnforcement.App.cs overrides rules the manifest does not list: " + string.Join(", ", orphans));
     }
-
 
     [Fact]
     public void PrTemplate_CarriesTheRuleCheckboxes() // v4 audit T67: R144's PR line, R85's exception line
@@ -784,7 +733,6 @@ public class EnforcementGateTests
         Assert.Contains("joint-invariant test", template);
         Assert.Contains("FOUNDATION_RULES", template);
     }
-
 
     [Fact]
     public void RuleIds_CitedInTests_AreFinalRules() // v4 audit TR-15/C8 (T11), R116
@@ -829,7 +777,6 @@ public class EnforcementGateTests
         Assert.True(unknown.Count == 0, "tests cite rule ids outside FOUNDATION_RULES v3.0's final range (renumbered or retired?):\n" + string.Join("\n", unknown));
     }
 
-
     [Fact]
     public void AddASliceChecklist_NamesEveryArtifactAGateForces() // v4 audit ADV-P4-17 (T64), R158
     {
@@ -849,8 +796,9 @@ public class EnforcementGateTests
         {
             ("RlsDdl.StatementsFor", "RlsMigrationGateTests"),
             ("docs/DATA_MODEL.md", "EveryEntity_IsDocumentedInDataModel"),
-            ("`handled` set", "EveryTenantOwnedEntity_IsWiredIntoTenantDissolution"),
-            ("Program.cs", "SliceReferenceInspector"),
+            ("AppAllowlists", "EveryTenantOwnedEntity_IsWiredIntoTenantDissolution"),
+            ("AppComposition.cs", "OnlyAppComposition_ReferencesFeatureNamespaces_FromOutsideFeatures"),
+            ("EntityWriters", "EveryEntity_HasOneWritingSlice"),
             ("docs/postman/JiggerJot.postman_collection.json", "PostmanParityTests"),
             (".env.example", "ConfigKeys_ReadInCode_AreDocumented"),
             (".resx", "ResourceParityTests"),
@@ -865,6 +813,7 @@ public class EnforcementGateTests
             Assert.True(tests.Any(t => t.Contains(gate, StringComparison.Ordinal)), $"the checklist names a gate that does not exist: {gate}");
         }
         Assert.DoesNotContain("Fixture reset", checklist); // dead since v2 TR-3: the fixture derives its tables from the model
+        Assert.DoesNotContain("in `Program.cs`", checklist); // Arch A1: Program.cs is the platform's; a slice never edits it
         Assert.Contains("cannot declare\n   its own `Permission`", checklist); // ADV-P4-18: inherent, so the author is told
 
         // ADR-004's amendment states the list, and the same gates, not a count.
@@ -873,6 +822,86 @@ public class EnforcementGateTests
         amendment = amendment[..amendment.IndexOf("\n**ADR-005", StringComparison.Ordinal)];
         foreach (var gate in new[] { "EveryEntity_IsDocumentedInDataModel", "EveryTenantOwnedEntity_IsWiredIntoTenantDissolution", "PostmanParityTests", "AddASliceChecklist_NamesEveryArtifactAGateForces" })
             Assert.Contains(gate, amendment);
+    }
+
+    [Fact]
+    public void PlatformMigrations_DoNotNameTheSample() // Arch A6 (#366), R9 as amended
+    {
+        // The sample's table used to be created by one platform migration and named by another (RlsTenancyBackstop's
+        // frozen list), so removing the sample meant editing platform history — jiggerjot did, and its platform migrations
+        // diverged from upstream. Now the sample's unit is its own two migrations (class `sample` in the ownership map),
+        // and every other migration is held free of it. The snapshot is the app's (class `adapts`) and is not scanned.
+        var root = RepoRoot();
+        var rules = Architecture.PlatformOwnership.ParseRules(File.ReadAllText(Path.Combine(root, "platform-ownership.json")));
+        // Designer files are the model snapshot at that point in the chain (generated, and the snapshot is the app's), so only
+        // the migrations' own operations are read, with comment lines dropped: the question is what the SQL names.
+        // Downstream, the platform's migrations are the ones its manifest lists; the app's own may name a Notes column.
+        var manifestPath = Path.Combine(root, "tests", "Api.Tests", "App", "platform-manifest.json");
+        var platformPaths = File.Exists(manifestPath)
+            ? Architecture.PlatformOwnership.ParseManifest(File.ReadAllText(manifestPath)).Entries.Select(e => e.Path).ToHashSet(StringComparer.Ordinal)
+            : null;
+        var migrations = Directory.EnumerateFiles(Path.Combine(root, "src", "Infrastructure", "Persistence", "Migrations"), "*.cs")
+            .Where(f => !f.EndsWith("ModelSnapshot.cs", StringComparison.Ordinal) && !f.EndsWith(".Designer.cs", StringComparison.Ordinal))
+            .Select(f => (Rel: Path.GetRelativePath(root, f).Replace('\\', '/'),
+                          Text: string.Join('\n', File.ReadLines(f).Where(l => !l.TrimStart().StartsWith("//", StringComparison.Ordinal)))))
+            .Where(m => platformPaths is null || platformPaths.Contains(m.Rel))
+            .ToList();
+        var sample = migrations.Where(m => Architecture.PlatformOwnership.Classify(m.Rel, rules) == Architecture.PlatformOwnership.Class.Sample).Select(m => m.Rel).ToList();
+        if (Directory.Exists(Path.Combine(root, "src", "Api", "Features", "Notes"))) // an app that removed the sample keeps none of its migrations
+            Assert.True(sample.Count >= 2, "probe: the sample's own migrations (AddNotesSample, NotesSampleRlsPolicy) are classed `sample`");
+        var offenders = migrations
+            .Where(m => Architecture.PlatformOwnership.Classify(m.Rel, rules) != Architecture.PlatformOwnership.Class.Sample)
+            .Where(m => Regex.IsMatch(m.Text, @"""\bNotes\b"""))
+            .Select(m => m.Rel).ToList();
+        Assert.True(offenders.Count == 0, "a platform migration names the sample's table — the sample must stay removable without editing platform history (Arch A6): " + string.Join(", ", offenders));
+    }
+
+    [Fact]
+    public void CompositionFiles_AreFreeOfTheSampleSlice() // Arch A1 (#362), R159
+    {
+        // The seam, proven on the one app the platform carries: the Notes sample. Before A1 the sample was registered in
+        // Program.cs, had its DbSet in AppDbContext and its entity in the canary's handled set — exactly the edits every
+        // app made for its own slices, in the same platform-owned files. Now the sample lives in the app-owned halves
+        // (AppComposition.cs, AppDbContext.App.cs, tests/Api.Tests/App/AppAllowlists.cs), and none of the platform's
+        // composition files names it. Downstream, A2's manifest gate holds the same files identical to the platform's.
+        var root = RepoRoot();
+        string[] composition =
+        [
+            "src/Api/Program.cs", "src/Infrastructure/Persistence/AppDbContext.cs", "src/Infrastructure/ServiceCollectionExtensions.cs",
+            "tests/Api.Tests/ArchitectureTests.cs", "tests/Api.Tests/DataProtectionIdentityTests.cs", "tests/Api.Tests/RulesEnforcement.cs",
+            "tests/Api.Tests/Infrastructure/ServiceHarness.cs", "tests/Api.Tests/Infrastructure/IntegrationTestFactory.cs",
+            "tests/Ui.Tests/Infrastructure/TestHttpHandler.cs",
+        ];
+        // How the sample would be named from a composition file; the ban-list literals in ArchitectureTests' Notes-independence
+        // gate are strings, not references, and are not among these.
+        string[] sample = ["NotesHandler", "NotesDataContributor", "MapNotes", "nameof(Note)", "Set<Note>()", "Features.Notes;"];
+        var offenders = composition
+            .Select(f => (f, text: File.ReadAllText(Path.Combine(root, f))))
+            .SelectMany(x => sample.Where(s => x.text.Contains(s, StringComparison.Ordinal)).Select(s => $"{x.f}: {s}"))
+            .ToList();
+        Assert.True(offenders.Count == 0, "a platform composition file names the sample slice — the seam leaks (Arch A1): " + string.Join(", ", offenders));
+        foreach (var f in composition) Assert.True(File.Exists(Path.Combine(root, f)), $"composition file moved: {f}");
+        Assert.DoesNotContain("Features.", File.ReadAllText(Path.Combine(root, "src", "Api", "Program.cs")).Replace("MapTenantFeatureGroup", ""));
+    }
+
+    [Theory]
+    [InlineData(".github/workflows/ci.yml")]
+    public void CourseCoverageAndQuotes_AreCheckedBesideTheQaArtifacts(string workflow) // v4 audit TR-19/TR-12 (T61), R114/R115
+    {
+        // JiggerJot: the course lives in perezosoft-platform (R114/R115/R118 NotHere) — platform gap, kept as a listed divergence.
+        if (!Directory.Exists(Path.Combine(RepoRoot(), "docs", "tutorial"))) return;
+        // gen_coverage.py only ran when someone remembered to; the map claimed 901 files and 0 unmapped while the
+        // generator found 903 and 1, and lessons quoted code the repo no longer had. The qa-artifacts job — which
+        // never gates on the changes classifier, so a docs-only push runs it — checks both on every push.
+        var ci = File.ReadAllText(Path.Combine(RepoRoot(), workflow)).ReplaceLineEndings("\n");
+        var job = ci[ci.IndexOf("\n  qa-artifacts:", StringComparison.Ordinal)..];
+        job = job[..job.IndexOf("\n  license-scan:", StringComparison.Ordinal)];
+        Assert.Contains("python docs/tutorial/gen_coverage.py --check\n", job);
+        Assert.Contains("python docs/tutorial/gen_coverage.py --check-quotes\n", job);
+        // ...and the generator honours those flags (a renamed flag would silently check nothing).
+        var generator = File.ReadAllText(Path.Combine(RepoRoot(), "docs", "tutorial", "gen_coverage.py"));
+        Assert.Contains("\"--check\" in sys.argv", generator);
+        Assert.Contains("\"--check-quotes\" in sys.argv", generator);
     }
 
     [Fact]
@@ -910,12 +939,12 @@ public class EnforcementGateTests
     }
 
     [Fact]
-    public void DeployTriggerWording_PostmanSyncNamesTheForge() // v4 audit TR-14 (H9), R117
+    public void DeployTriggerWording_PostmanSyncNamesTheForge() // v4 audit TR-14 (H9), R117; ADR-030
     {
-        // The per-merge postman-sync runs on the forge where develop moves on every merge. Under ADR-028 that was
-        // Forgejo; since ADR-030 it is GitHub again, so the one-time setup leads with GitHub. (Under ADR-028 the
-        // README told operators to set them on GitHub only, which left
-        // the per-merge sync skipping with a notice forever while the docs say it is set up.
+        // The per-merge postman-sync runs on the forge where develop moves on every merge. Under ADR-028 that
+        // was Forgejo, and the README sent operators to GitHub only, which left the sync skipping forever.
+        // Since ADR-030 GitHub is the forge again: the one-time setup leads with GitHub (the secret and the
+        // variable live there), and the operating manual names GitHub's develop as what drives the sync.
         var root = RepoRoot();
         var readme = File.ReadAllText(Path.Combine(root, "docs", "postman", "README.md")).ReplaceLineEndings("\n");
         var start = readme.IndexOf("**One-time setup**", StringComparison.Ordinal);

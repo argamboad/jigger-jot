@@ -79,7 +79,7 @@ Postman descriptions updated; app working.
 
 ### PREFS-2 — Measurement preference
 
-**Status: ✅ Implemented.** `PUT /api/auth/unit-system` and the `UnitSwitcher` beside language and
+**Status: ✅ Implemented.** `PUT /api/auth/unit-system` (since Arch A3, jigger-jot#164: `GET`/`PUT /api/unit-preference`, a user-keyed `UserUnitPreference` row in the UnitPreference slice) and the `UnitSwitcher` beside language and
 theme in Settings. **Amended by PREFS-3 (JJ-041):** two options, not three — "as written" is gone, and
 the scenario below that keeps it is history.
 

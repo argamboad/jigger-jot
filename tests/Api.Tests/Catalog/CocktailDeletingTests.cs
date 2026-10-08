@@ -26,7 +26,7 @@ public sealed class CocktailDeletingTests(PostgresFixture fixture) : PostgresTes
             new EfRepository<GlassType>(db),
             new EfRepository<Method>(db),
             new EfRepository<CocktailIngredient>(db),
-            new UserRepository(db),
+            new EfRepository<UserUnitPreference>(db),
             new TestCurrentTenant { TenantId = tenantId });
 
     private async Task SeedAsync()

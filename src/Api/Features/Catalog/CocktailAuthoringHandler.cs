@@ -32,7 +32,7 @@ public class CocktailAuthoringHandler(
     IRepository<GlassType> glasses,
     IRepository<Method> methods,
     IRepository<CocktailIngredient> recipeLines,
-    IUserRepository users,
+    IRepository<UserUnitPreference> unitPreferences, // the reader's measuring system (Arch A3)
     ICurrentTenant tenant)
 {
     private const int MaxNameLength = 200;
@@ -193,7 +193,7 @@ public class CocktailAuthoringHandler(
             return new CocktailDraftResult(CocktailDraftOutcome.ReadOnly);
 
         var preference = userId is { } reader
-            ? (await users.GetByIdAsync(reader, cancellationToken))?.PreferredUnitSystem
+            ? await unitPreferences.Query().Where(p => p.UserId == reader).Select(p => (UnitSystem?)p.UnitSystem).FirstOrDefaultAsync(cancellationToken)
             : null;
         var writerUnit = BarMeasure.VolumeUnitFor(preference);
         var writerUnitId = await units.Query()
@@ -228,7 +228,7 @@ public class CocktailAuthoringHandler(
     public async Task<AuthoringOptions> OptionsAsync(Guid? userId, CancellationToken cancellationToken)
     {
         var preference = userId is { } id
-            ? (await users.GetByIdAsync(id, cancellationToken))?.PreferredUnitSystem
+            ? await unitPreferences.Query().Where(p => p.UserId == id).Select(p => (UnitSystem?)p.UnitSystem).FirstOrDefaultAsync(cancellationToken)
             : null;
         var mine = BarMeasure.VolumeUnitFor(preference);
 

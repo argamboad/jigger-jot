@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using JiggerJot.Core.Abstractions;
+using JiggerJot.Core.Catalog;
 using JiggerJot.Core.Entities;
 using JiggerJot.Core.Repositories;
 
@@ -28,7 +29,8 @@ namespace JiggerJot.Api.Features.Catalog;
 public sealed class CatalogDataContributor(
     IRepository<Ingredient> ingredients,
     IRepository<Cocktail> cocktails,
-    IRepository<CocktailIngredient> lines) : ITenantDataContributor
+    IRepository<CocktailIngredient> lines,
+    IHouseholdIngredients householdIngredients) : ITenantDataContributor // the bottles are the shelf's to write (Arch A8)
 {
     /// <summary>
     /// True when the household authored anything of its own. This IS tenant content — a solo owner who
@@ -53,7 +55,7 @@ public sealed class CatalogDataContributor(
         // The explicit non-null predicate is what keeps the shared catalog (TenantId null) out of range.
         await lines.Query().Where(l => l.TenantId == tenantId).ExecuteDeleteAsync(cancellationToken);
         await cocktails.Query().Where(c => c.TenantId == tenantId).ExecuteDeleteAsync(cancellationToken);
-        await ingredients.Query().Where(i => i.TenantId == tenantId).ExecuteDeleteAsync(cancellationToken);
+        await householdIngredients.WipeAsync(tenantId, cancellationToken); // after the lines and cocktails that reference them
     }
 
     public string ExportKey => "catalog";

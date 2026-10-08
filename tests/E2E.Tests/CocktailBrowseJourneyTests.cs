@@ -286,7 +286,7 @@ public class CocktailBrowseJourneyTests : E2ETestBase
             // BACKBAR-7: the measurement preference is a segmented control — two radios driven
             // through their labels since JJ-041 — writing the same PUT the select did.
             () => Page.Locator("label[for='unit-choice-Metric']").ClickAsync(),
-            r => r.Url.EndsWith("/api/auth/unit-system") && r.Request.Method == "PUT");
+            r => r.Url.EndsWith("/api/unit-preference") && r.Request.Method == "PUT");
 
         // Same recipe, read in millilitres at the bar's ounce. The stored ounce has not moved — only
         // the reading of it.
@@ -297,7 +297,7 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         await BlazorBoot.GotoAsync(Page, $"{BaseUrl}/settings");
         await Page.RunAndWaitForResponseAsync(
             () => Page.Locator("label[for='unit-choice-Imperial']").ClickAsync(),
-            r => r.Url.EndsWith("/api/auth/unit-system") && r.Request.Method == "PUT");
+            r => r.Url.EndsWith("/api/unit-preference") && r.Request.Method == "PUT");
 
         await BlazorBoot.GotoAsync(Page, recipeUrl);
         await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("1 oz", new() { Timeout = 15_000 });

@@ -7,8 +7,8 @@ namespace JiggerJot.Infrastructure.Outbox;
 
 /// <summary>
 /// Makes the outbox participate in tenant dissolve (v4 audit H6, R145). The outbox is platform infrastructure,
-/// but a row that names a tenant carries that tenant's content — an invitation, a notification email, a
-/// webhook body — and before this nothing removed it, so a dissolved household's mail and recipient
+/// but a row that names a tenant carries that tenant's content — an invitation, an export and its attachment, a
+/// webhook body — and before this nothing removed it, so a dissolved household's document and recipient
 /// outlived the household. Removes the tenant's rows of every type whose handler says it
 /// <see cref="IOutboxHandler.DissolvesWithItsTenant"/>, in any status: pending mail is never sent, and a sent
 /// row's record goes too. A type no registered handler claims is kept — never guess an effect away; the one

@@ -8,7 +8,9 @@
 - `id` primary key on every entity unless noted. UUIDv7 (`Guid.CreateVersion7()`) used — time-ordered,
   supported in .NET 9+ and already active in base entities.
 - Timestamps (`created_at`, `updated_at`) assumed on all entities; omitted below for brevity.
-- **Tenant scoping:** every app entity that holds tenant data implements `ITenantScoped`
+- **Tenant scoping:** every app entity that holds tenant data implements `ITenantScoped` — or
+  `ISharedOrTenantScoped` when its rows are either shared (`TenantId` null, a curated catalog) or one tenant's
+  (Arch A4; a second filter, a write rule and four command-scoped RLS policies) —
   (a `TenantId`) and is filtered automatically by a global EF query filter (see ADR-003) — you
   can't forget to scope a read. Genuinely cross-tenant/pre-auth reads use the sanctioned escape
   hatch **`IRepository<T>.QueryAllTenants()`** (audited; used by dissolve contributors), and a
@@ -161,6 +163,13 @@ stored.
 > `Guid?` keys too and lists all three tables, so this third gap is closed; `SharedOrTenantDissolutionTests`
 > stays as the app-level pin.)* `TenantInventory` is ordinary tenant data and does
 > implement `ITenantScoped`; the lookup tables carry no tenant column at all.
+>
+> **Moved upstream by Arch A4 (jigger-jot#165, perezosoft-platform#364).** The shape is now the platform's
+> `ISharedOrTenantScoped`: the second query filter lives in the platform's `AppDbContext`, the four
+> policies in its `RlsDdl`, and the gaps above are closed by platform gates — the stamping interceptor
+> refuses a shared or foreign row under a household, `EverySharedOrTenantTable_HasForcedRlsAndAllFourPolicies_AfterMigrations`
+> holds the policies, and `EverySharedOrTenantEntity_ShipsItsLifecycleSpec` asks each table for its four
+> lifecycle facets (dissolve, export, shared writes, erasure). The history above is kept as the reasoning.
 
 ### Ingredient
 Single table for both shared and custom ingredients (JJ-011).
@@ -237,6 +246,20 @@ The availability checklist. Sparse — a row exists only for ingredients the hou
 - `ingredient_id` → Ingredient (shared or this household's custom)
 - `is_available` — boolean. (Absence of a row = not available.) Boolean only — JJ-023.
 
+### UserUnitPreference — user-keyed, not tenant-scoped
+How a person wants recipe amounts shown (JJ-008). It follows the person to every device and household,
+like the platform's theme and language, so it has no tenant column and no RLS policy; account erasure
+wipes it (`UnitPreferenceUserDataContributor`). One row per user; no row = never chose = imperial.
+Written by the UnitPreference slice (`GET`/`PUT /api/unit-preference`).
+- `id`
+- `user_id` → User, unique, cascade on delete
+- `unit_system` — `metric` | `imperial` (never `neutral`)
+- `created_at`, `updated_at`
+
+> Until Arch A3 (jigger-jot#164) this was `preferred_unit_system`, a column on the platform's `User`.
+> The platform's row is not the app's to extend, so it moved here (`AddUserUnitPreferences`: create,
+> copy every choice, drop the old column; its Down puts the column and the choices back).
+
 ### RecipeSource
 Where a seeded recipe came from, and the credit owed to it (JJ-032). Curated global lookup, no
 tenant column.
@@ -271,15 +294,15 @@ Not tables, but they live in `src/Core/Entities/` and the schema is written in t
 - **`ISharedOrTenantScoped`** — the marker on `Ingredient`, `Cocktail` and `CocktailIngredient`: a
   nullable `TenantId` where null means "shared catalog, readable by every household and owned by none"
   (JJ-031). Its sibling `ITenantScoped` cannot express that row, which is the whole reason it exists.
-  Anything marked with it opts out of three platform guarantees — see the note at the top of this
-  section.
+  The platform's marker since Arch A4: it carries its own filter, write rule, policies and lifecycle gate
+  — see the note at the top of this section.
 - **`ServingType`** — `shot` | `full_drink`, on `Cocktail`. A browse filter facet.
 - **`RecipeRole`** — `base` | `modifier` | `juice` | `syrup` | `bitters` | `garnish` | `mixer` |
   `other`, on `CocktailIngredient`. **Display grouping only** — makeability keys off `is_required`, so a
   garnish blocks nothing by virtue of its role (JJ-009, JJ-010).
-- **`UnitSystem`** — `metric` | `imperial` | `neutral`, on `Unit` and on `User.preferred_unit_system`.
+- **`UnitSystem`** — `metric` | `imperial` | `neutral`, on `Unit` and on `UserUnitPreference.unit_system`.
   A neutral unit has no millilitre factor and always displays as written; so do `tsp` and `tbsp`, and
-  a null `preferred_unit_system` reads as imperial (JJ-041, JJ-008).
+  a reader with no preference row reads imperial (JJ-041, JJ-008).
 
 ## Relationship summary
 - Tenant 1 — N TenantMembership N — 1 User *(constant; unique on `user_id` = one tenant per user)*
@@ -474,7 +497,8 @@ matches by ingredient name.
 ## Platform entities (built — ADRs 006–016)
 
 > These are the tenant-/platform-scoped tables the platform epics added. All have EF Core migrations.
-> New app/domain tables you add should implement `ITenantScoped` (so the global tenant filter covers
+> New app/domain tables you add should implement `ITenantScoped` (or `ISharedOrTenantScoped` for a shared-or-owned
+> catalog, Arch A4; its migration then carries `RlsDdl.SharedOrTenantStatementsFor`) (so the global tenant filter covers
 > them) and register an **`ITenantDataContributor`** (with `ExportKey` + `ExportAsync` **and**
 > `HasDataAsync`/`WipeAsync`) so they participate in tenant export + dissolve — there is **no** central
 > `HasDataAsync`/`WipeDataAsync` method to edit (adding a feature never means touching central code).

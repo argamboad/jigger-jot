@@ -21,10 +21,7 @@ namespace JiggerJot.Api.Tests.Tenancy;
 /// contributors say "not content", so they never block the accept: dissolving is the only thing that removes them.
 /// (An audit trail does count as content, so a household with one refuses the accept instead — not this path.)
 /// Accept now dissolves through <see cref="ITenantDissolutionService"/>, the same sequence as a sole owner leaving
-/// and as account erasure. The accept runs with the contributors this app registers (the harness's
-/// <c>PlatformContributors</c>, which leaves out only the DELETE-ME Notes sample), so the app's content
-/// contributors — the household catalog and the inventory shelf — must also read the household as empty and
-/// wipe cleanly inside the dissolve.
+/// and as account erasure.
 /// </summary>
 [Collection(PostgresCollection.Name)]
 public class AcceptDissolveTests(PostgresFixture fixture) : PostgresTestBase(fixture)
@@ -43,7 +40,7 @@ public class AcceptDissolveTests(PostgresFixture fixture) : PostgresTestBase(fix
         {
             var harness = new ServiceHarness(db, currentTenant: ambient);
             Assert.Equal(AcceptStatus.Joined,
-                await harness.InvitationService(contributors: harness.PlatformContributors()).AcceptAsync(joinerId, token));
+                await harness.InvitationService(contributors: harness.Contributors()).AcceptAsync(joinerId, token));
         }
 
         await using var read = Fixture.CreateContext();

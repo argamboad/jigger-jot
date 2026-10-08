@@ -186,8 +186,10 @@ public sealed class SharedCatalogRlsTests(PostgresFixture fixture) : IAsyncLifet
             TenantId = null,
         });
 
-        var error = await Assert.ThrowsAsync<DbUpdateException>(() => household.SaveChangesAsync());
-        Assert.Equal("42501", (error.InnerException as PostgresException)?.SqlState);
+        // Since Arch A4 the platform's stamping interceptor refuses it before the database is asked; the database's own
+        // refusal of the same write is the platform's SharedOrTenantRlsTests, on every shared-or-tenant table's policies.
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => household.SaveChangesAsync());
+        Assert.Contains("shared row", error.Message);
     }
 
     /// <summary>A context on the RLS-subject runtime role, acting as the given household (null = system).</summary>
