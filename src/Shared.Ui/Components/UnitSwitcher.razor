@@ -18,7 +18,7 @@
 }
 else
 {
-    <select class="form-select form-select-sm" value="@_current" data-testid="unit-switcher"
+    <select class="form-select form-select-sm" value="@_current"
             @onchange="OnChange" aria-label="@Localizer["Units_Label"]">
         @foreach (var (value, label) in Choices)
         {
@@ -28,7 +28,7 @@ else
 }
 @if (_syncFailed)
 {
-    <span class="text-warning small ms-1" data-testid="unit-sync-failed"
+    <span class="text-warning small ms-1"
           title="@Localizer["Pref_SyncFailed"]" role="status">&#9888;</span>
 }
 

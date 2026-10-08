@@ -46,14 +46,14 @@ public class WriteLayoutTests : ComponentTestBase
         Assert.NotNull(page.Find("h1.page-title"));
 
         // The drink on the left, its ingredients on the right; every id of the drink survives.
-        foreach (var id in new[] { "new-name", "new-serving", "new-glass", "new-method", "new-instructions" })
-            Assert.NotNull(page.Find($".write-drink [data-testid='{id}']"));
+        foreach (var id in new[] { "[data-testid='new-name']", "[data-testid='new-serving']", "[data-testid='new-glass']", "[data-testid='new-method']", "[data-testid='new-instructions']" })
+            Assert.NotNull(page.Find($".write-drink {id}"));
 
         // A line's five controls are all in the row, none behind an open step — the handoff's popover
         // was refused (F4) because it would hide two ids the journeys fill.
         var line = page.Find("[data-testid='new-line']");
-        foreach (var id in new[] { "new-line-amount", "new-line-unit", "new-line-ingredient", "new-line-role", "new-line-required", "new-line-remove" })
-            Assert.NotNull(line.QuerySelector($"[data-testid='{id}']"));
+        foreach (var id in new[] { "[data-testid='new-line-amount']", "[data-testid='new-line-unit']", "[data-testid='new-line-ingredient']", "[data-testid='new-line-role']", "[data-testid='new-line-required']", "[data-testid='new-line-remove']" })
+            Assert.NotNull(line.QuerySelector(id));
         Assert.Empty(line.QuerySelectorAll("[hidden], .popover, details"));
     }
 

@@ -32,7 +32,7 @@
 
     @* FEATURES §14. Next to the catalog rather than hidden in a menu: a household's own drinks live
        in this list beside everything else, so this is where you would look to add one. *@
-    <a class="btn btn-outline-primary btn-sm" href="/cocktails/new" data-testid="cocktail-write">
+    <a class="btn btn-outline-primary btn-sm" href="/cocktails/new">
         @Localizer["Cocktail_New"]
     </a>
 </div>
@@ -46,7 +46,7 @@
 
    The ids stay on the inputs — cocktail-makeable and cocktail-almost as before, cocktail-all new —
    and only the SELECTED chip carries a count: the response's own total, never a second request. *@
-<div class="catalog-scope mb-3" role="radiogroup" data-testid="cocktail-scope">
+<div class="catalog-scope mb-3" role="radiogroup">
     <input class="btn-check" type="radio" name="catalog-scope" id="catalog-makeable" autocomplete="off"
            data-testid="cocktail-makeable" checked="@_makeableOnly"
            @onchange="() => SetScopeAsync(makeable: true, almost: false)" />
@@ -97,7 +97,7 @@
             </div>
             <div>
                 <label class="form-label small mb-1" for="filter-glass">@Localizer["Cocktails_FilterGlass"]</label>
-                <select class="form-select" id="filter-glass" data-testid="cocktail-filter-glass"
+                <select class="form-select" id="filter-glass"
                         value="@_glass" @onchange="e => ApplyAsync(() => _glass = e.Value?.ToString() ?? string.Empty)">
                     <option value="">@Localizer["Cocktails_FilterAny"]</option>
                     @foreach (var g in _options.Glasses)
@@ -108,7 +108,7 @@
             </div>
             <div>
                 <label class="form-label small mb-1" for="filter-serving">@Localizer["Cocktails_FilterServing"]</label>
-                <select class="form-select" id="filter-serving" data-testid="cocktail-filter-serving"
+                <select class="form-select" id="filter-serving"
                         value="@_serving" @onchange="e => ApplyAsync(() => _serving = e.Value?.ToString() ?? string.Empty)">
                     <option value="">@Localizer["Cocktails_FilterAny"]</option>
                     @foreach (var s in _options.ServingTypes)
@@ -296,7 +296,6 @@ else
     @* Pagination as text-weight controls on a hairline — no button group (page 08). *@
     <div class="catalog-pager">
         <button class="btn btn-link btn-sm catalog-pager-link"
-                data-testid="cocktail-prev"
                 disabled="@(_page.Page <= 1)"
                 @onclick="() => GoToAsync(_page.Page - 1)">@Localizer["Common_Previous"]</button>
         <span class="catalog-pager-page" data-testid="cocktail-page">@Localizer["Cocktails_PageOf", _page.Page, LastPage]</span>
