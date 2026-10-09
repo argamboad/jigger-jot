@@ -427,6 +427,12 @@ spec is something the drink is made of. Read by category, the Mojito's mint, the
 the Bellini's peach purée were garnishes, optional — and a Mojito was makeable without mint. 22 lines
 corrected; `SeedRolesParityTests` holds the one sanctioned difference from the authoring rule.
 
+**An existing database is reseeded by a migration.** The seeder only adds what is missing, so a
+database seeded before SEED-5 would keep its old 969 (or 31) beside the curated set. The one-off
+`ReseedCuratedCatalog` migration deletes the SHARED recipes — never a household's — and the next
+startup seeds the curated file whole; ids derive from source + slug, so a recipe that stays keeps its
+id and a fork of it links again. `ReseedMigrationTests` holds all of that.
+
 **Names.** The Savoy's "Cocktail" suffix goes (*Dry Martini Cocktail* → *Dry Martini*), unless what is
 left is an ingredient or a fragment (*Coffee Cocktail*, *Devil's Cocktail*); the book's quotes and
 footnote marks go too. No two shipped recipes share a name — the build fails if they do.
@@ -454,13 +460,28 @@ Scenario: The one-away list reads every drink, however many pages it runs to
   When I compare the bottles ranked by what they unlock with the one-away list
   Then every drink a bottle names is one bottle away, from that bottle
   And the ranking accounts for every row of the list
+
+Scenario: A database seeded before the curated catalog is reseeded
+  Given a database carrying a shared recipe the curated file no longer ships
+  When the migration runs and the app starts
+  Then the shared catalog is exactly the curated file, with no name repeated
+
+Scenario: Reseeding never touches what a household owns
+  Given a household with a recipe of its own and a fork of the Negroni
+  When the migration runs
+  Then the shared catalog is empty and the household's recipes and lines are whole
+  And once the catalog is seeded again the fork's "based on" finds the Negroni
+
+Scenario: The migration is safe to run twice
+  When the migration runs twice
+  Then the second run changes nothing
 ```
 
 **Tests.** `CatalogSeederTests.Seed_ShipsOneRecipePerDrink`,
 `Seed_GivesEveryRecipeAGlass_AndLeavesAnUnstatedMethodNull`, `SeedRolesParityTests.EveryIbaLine_IsRequired`,
 `UnlockingBottleTests.EveryDrinkItNames_IsOneBottleAwayFromExactlyThatBottle`,
-`CocktailBrowseTests.Browse_ShowsADrinkBothBooksHaveOnce_CreditedToTheIba`. The build script itself
-is the gate for the overlap, the bar and repeated names.
+`CocktailBrowseTests.Browse_ShowsADrinkBothBooksHaveOnce_CreditedToTheIba`, and the three in
+`ReseedMigrationTests`. The build script itself is the gate for the overlap, the bar and repeated names.
 
 ---
 

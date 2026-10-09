@@ -2449,8 +2449,11 @@ lacks (chosen, the maintainer's).**
    fails if they do.
 5. **The starter set retires.** One shipped file; a test that needs a shape the curated set no
    longer has builds its own rows.
-6. **Existing databases are cleaned by hand**, once: staging is the only database and has one user.
-   The seeder stays add-only.
+6. **Existing databases are cleaned by a one-off migration** (`ReseedCuratedCatalog`): it deletes the
+   shared recipes, and the seeder writes the curated set on the next startup with the same ids. Only
+   shared rows; a household's recipes and forks are untouched. Chosen over a hand-run cleanup because
+   it reaches every database — staging, a developer's, the next one — the same way. The seeder stays
+   add-only.
 
 *Consequences.* 644 recipes (102 IBA + 542 Savoy); 33 Savoy recipes superseded, 292 below the bar.
 The extraction is untouched and remains the record of what each book wrote. `Cocktail.glass_type_id`
