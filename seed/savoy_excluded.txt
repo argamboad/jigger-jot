@@ -1,0 +1,296 @@
+# Savoy recipes that do not ship (JJ-043), written by seed/build_cocktails.py.
+# The bar: a glass, a method, two or more required lines, an amount on every one.
+# Superseded drinks are in seed/overlap.json, not here.
+
+absinthe-drip-cocktail	Absinthe Drip	no glass; fewer than two required lines
+addington-cocktail	Addington	no glass
+alabama-fizz	Alabama Fizz	no glass
+albemarle-fizz	Albemarle Fizz	no glass
+albertine-cocktail	Albertine	a required line without an amount
+ale-flip	Ale Flip	no glass; a required line without an amount
+alfonso-cocktail	Alfonso	no glass; a required line without an amount
+almond-cocktail	Almond Cocktail	no glass; a required line without an amount
+amer-picon-highball	Amer Picon Highball	no glass; no method
+american-beauty-cocktail	American Beauty	no glass
+angels-kiss-cocktail	Angel’s Kiss	no method
+angels-wing-cocktail	Angel’s Wing	no method
+angels-wings-cocktail	Angel’s Wings	no method
+apple-cocktail	Apple	no glass; a required line without an amount
+apple-blow-fizz	Apple Blow Fizz	no glass
+apple-toddy	Apple Toddy	no glass
+approve-cocktail	Approve	no glass
+apricot-cocktail-dry	Apricot Cocktail (Dry)	no glass; a required line without an amount
+apricot-cocktail-sweet	Apricot Cocktail (Sweet)	no glass; a required line without an amount
+balm-cocktail	Balm	no glass
+basic-sour	Basic Sour	no glass
+bass-wyatt-cocktail	Bass Wyatt	no glass
+bijou-cocktail	Bijou	no glass; no method
+biter-cocktail	Biter	a required line without an amount
+black-velvet	Black Velvet	no method
+blackthorn-cocktail-no-2	Blackthorn (No. 2)	a required line without an amount
+block-and-fall-cocktail	Block and Fall	no glass; no method
+blue-blazer	Blue Blazer	no glass; fewer than two required lines
+blues-cocktail	Blues	no glass; a required line without an amount
+bombay-cocktail-no-1	Bombay (No. 1)	fewer than two required lines
+bombay-punch	Bombay Punch	no glass
+booksellers-special-pride	Bookseller’s (Special) Pride	a required line without an amount
+booster-cocktail	Booster	no glass
+bosom-caresser-cocktail	Bosom Caresser	no glass
+brandy-blazer-cocktail	Brandy Blazer	no glass
+brandy-fix	Brandy Fix	no glass; a required line without an amount
+brandy-fizz	Brandy Fizz	no glass
+brandy-punch	Brandy Punch	no glass; no method; a required line without an amount
+brandy-shrub	Brandy Shrub	no glass; no method; a required line without an amount
+brandy-special-cocktail	Brandy Special	no glass; a required line without an amount
+brandy-toddy	Brandy Toddy	no glass; no method; a required line without an amount
+broadway-smile-cocktail	Broadway Smile	no method
+brooklyn-cocktail	Brooklyn	no glass
+bucks-fizz	Bucks Fizz	no method; fewer than two required lines
+bull-dog-cocktail	Bull-Dog	a required line without an amount
+byrrh-cassis	Byrrh Cassis	no glass; no method
+c-f-h-cocktail	C. F. H.	no glass; no method
+cafe-de-paris-cocktail	Cafe de Paris	no glass
+calvados-cocktail	Calvados Cocktail	no glass
+capetown-cocktail	Capetown	a required line without an amount
+cardinal-punch	Cardinal Punch	no glass; no method; a required line without an amount
+cats-eye-cocktail	Cats-Eye	a required line without an amount
+champagne-cup	Champagne Cup	no glass; no method
+champagne-julep	Champagne Julep	fewer than two required lines
+champagne-punch	Champagne Punch	no glass; no method
+champs-elysees-cocktail	Champs Elysees	a required line without an amount
+chanticler-cocktail	Chanticler	no glass
+cherry-blossom-cocktail	Cherry Blossom	no glass; a required line without an amount
+chocolate-cocktail-no-1	Chocolate Cocktail (No. 1)	no glass
+chocolate-cocktail-no-2	Chocolate Cocktail (No. 2)	no glass
+choker-cocktail	Choker	no glass
+chorus-lady-cocktail	Chorus Lady	no glass
+cider-cup	Cider Cup (No. 1)	no glass; a required line without an amount
+cider-cup-no-2	Cider Cup (No. 2)	no glass; no method
+cinzano-sparkling-cocktail	Cinzano Sparkling	no glass; a required line without an amount
+claret-cup	Claret Cup	no glass; no method
+claret-punch	Claret Punch	no glass; no method
+clover-leaf-cocktail	Clover Leaf	no glass; no method; a required line without an amount
+cobblers	Cobblers	no glass; a required line without an amount
+coffee-cocktail	Coffee Cocktail	no glass
+commodore-cocktail	Commodore	a required line without an amount
+country-club-cooler	Country Club Cooler	no glass; no method
+cream-fizz	Cream Fizz	no glass
+crystal-bronx-cocktail	Crystal Bronx	no glass; no method
+cupid-cocktail	Cupid	no glass; a required line without an amount
+curacao-cocktail	Curacao Cocktail	no glass; a required line without an amount
+currant-shrub	Currant Shrub	no glass
+depth-charge-brandy-cocktail	Depth-Charge Brandy	no glass; a required line without an amount
+derby-fizz	Derby Fizz	no glass
+devonia-cocktail	Devonia	no glass; a required line without an amount
+diabolo-cocktail	Diabolo	no glass; a required line without an amount
+diana-cocktail	Diana	no glass; no method; fewer than two required lines; a required line without an amount
+dinah-cocktail	Dinah	no glass; a required line without an amount
+dixie-whisky-cocktail	Dixie Whisky	no glass; a required line without an amount
+dubonnet-fizz	Dubonnet Fizz	no glass
+duke-of-marlborough-cocktail	Duke of Marlborough	no glass
+dunhills-special-cocktail	Dunhill’s Special	no glass; a required line without an amount
+duppy-cocktail	Duppy	no glass; a required line without an amount
+eagles-dream-cocktail	Eagle’s Dream	no glass
+east-indian-cocktail	East Indian	a required line without an amount
+eclipse-cocktail	Eclipse	no method
+egg-nogg	Egg Nogg	a required line without an amount
+egg-sour	Egg Sour	no glass
+elks-own-cocktail	Elk’s Own	no glass
+everybodys-irish-cocktail	Everybody’s Irish	no glass; no method; a required line without an amount
+everything-but-cocktail	Everything But	a required line without an amount
+fancy-cocktail	Fancy Cocktail	no glass; a required line without an amount
+fifth-avenue-cocktail	Fifth Avenue	no method
+fish-house-punch	Fish House Punch	no glass; no method
+flying-scotchman-cocktail	Flying Scotchman	a required line without an amount
+fox-river-cocktail	Fox River	no glass; no method
+fox-trot-cocktail	Fox Trot	a required line without an amount
+frappe	Frappe	no glass
+gasper-cocktail	Gasper	no glass; a required line without an amount
+general-harrisons-egg-nogg	General Harrison’s Egg Nogg	no glass; a required line without an amount
+gimblet-cocktail	Gimblet	no glass
+gimlet-cocktail	Gimlet	no glass
+gin-cocktail	Gin Cocktail	a required line without an amount
+gin-fix	Gin Fix	no glass
+gin-sling	Gin Sling	no method; a required line without an amount
+glasgow-punch	Glasgow Punch	no glass; no method; a required line without an amount
+golden-fizz	Golden Fizz	no glass
+graces-delight-cocktail	Grace’s Delight	no glass; a required line without an amount
+grand-royal-clover-club-cocktail	Grand Royal Clover Club	no glass
+grand-royal-fizz	Grand Royal Fizz	no glass
+grand-slam-cocktail	Grand Slam	no glass
+grapefruit-cocktail	Grapefruit	no glass; a required line without an amount
+health-cocktail	Health Cocktail	no glass
+hell-cocktail	Hell	no glass; a required line without an amount
+highland-cooler	Highland Cooler	no method
+hoffmann-fizz	Hoffmann Fizz	no glass
+holland-fizz	Holland Fizz	no glass
+honolulu-cocktail-no-1	Honolulu (No. 1)	a required line without an amount
+i-b-f-pick-me-up-cocktail	I. B. F. Pick-Me-Up	a required line without an amount
+ichbien-cocktail	Ichbien	no glass
+imperial-cocktail	Imperial Cocktail	no glass
+imperial-fizz	Imperial Fizz	no glass
+jewel-cocktail	Jewel Cocktail	no glass
+keep-sober-cocktail	Keep Sober	no method
+king-cole-cocktail	King Cole	no glass
+kingston-cocktail	Kingston	no glass; a required line without an amount
+knickerbocker-special-cocktail	Knickerbocker Special	no glass; no method
+l-g-cocktail	L.G.	no glass; no method
+ladies-cocktail	Ladies’	no glass
+leap-frog-cocktail	Leap-Frog	no method
+lemon-pie-cocktail	Lemon Pie	no glass; no method
+linstead-cocktail	Linstead	no glass; a required line without an amount
+london-buck-cocktail	London Buck	no method
+lone-tree-cooler	Lone Tree Cooler	no glass
+manhattan-cocktail-no-1	Manhattan (No. 1)	no glass
+manhattan-cooler	Manhattan Cooler	no glass
+maragato-cocktail-special	Maragato (Special)	a required line without an amount
+marmalade-cocktail	Marmalade	no glass
+martini-special-cocktail	Martini (Special)	no glass; no method; a required line without an amount
+may-blossom-fizz	May Blossom Fizz	no glass
+milk-punch-no-1	Milk Punch (No. 1)	no glass
+million-dollar-cocktail	Million Dollar	no glass; a required line without an amount
+mint-cocktail	Mint Cocktail	no glass; a required line without an amount
+mint-cooler	Mint Cooler	no glass; no method
+mint-juleps	Mint Juleps	no glass; no method; a required line without an amount
+monte-carlo-imperial-cocktail	Monte Carlo Imperial	no glass
+moonlight-cocktail	Moonlight	no glass; a required line without an amount
+moonraker-cocktail	Moonraker	no glass; a required line without an amount
+moonshine-cocktail	Moonshine	no glass; no method
+morning-glory-cocktail	Morning Glory	no glass
+mountain-cocktail	Mountain	no glass
+mr-eric-suttons-gin-blind-cocktail	Mr. Eric Sutton’s Gin Blind	no glass; no method
+mr-manhattan-cocktail-2	Mr. Manhattan (Prohibition)	a required line without an amount
+nicolaski-cocktail	Nicolaski	no glass; no method
+nineteen-twenty-pick-me-up-cocktail	Nineteen-Twenty Pick-Me-Up	no glass
+nuremberg-punch	Nuremberg Punch	no glass; a required line without an amount
+oh-harry-cocktail	Oh Harry!	a required line without an amount
+oh-henry-cocktail	Oh, Henry!	no glass
+opal-cocktail	Opal	no glass; a required line without an amount
+orange-cocktail	Orange Cocktail	no glass; a required line without an amount
+orange-fizz	Orange Fizz	no glass
+orange-martini-cocktail	Orange Martini	no glass; a required line without an amount
+orgeat-fizz	Orgeat Fizz	no glass
+ostend-fizz	Ostend Fizz	no glass
+oxford-punch	Oxford Punch	no glass; a required line without an amount
+pantomime-cocktail	Pantomime	no glass
+parsons-special-cocktail	Parson’s Special	no glass
+pats-special-cocktail	Pat’s Special	no glass; a required line without an amount
+peach-blow-fizz	Peach Blow Fizz	no glass
+peach-cup	Peach Cup	no glass; a required line without an amount
+philadelphia-scotchman-cocktail	Philadelphia Scotchman	no glass; no method
+philomel-cocktail	Philomel	no glass; a required line without an amount
+piccad-cocktail	Piccad	no glass
+picon-and-grenadine-cocktail	Picon and Grenadine	no glass; no method
+pineapple-cocktail	Pineapple Cocktail	no glass; a required line without an amount
+pineapple-fizz	Pineapple Fizz	no glass
+pineapple-julep	Pineapple Julep	no glass; a required line without an amount
+ping-pong-special-cocktail	Ping-Pong Special	no glass; a required line without an amount
+pink-baby-cocktail	Pink Baby	no glass
+pink-lady-cocktail	Pink Lady	no glass
+pink-pearl-cocktail	Pink Pearl	no glass; a required line without an amount
+plain-sherry-cocktail	Plain Sherry	no glass; a required line without an amount
+plain-vermouth-cocktail	Plain Vermouth	no glass; a required line without an amount
+port-wine-cocktail-no-1	Port Wine Cocktail (No. 1)	no glass
+port-wine-sangaree	Port Wine Sangaree	no glass; a required line without an amount
+prairie-hen-cocktail	Prairie Hen	no glass; no method
+prairie-oyster-cocktail	Prairie Oyster	no glass; no method
+princess-cocktail	Princess	no method
+pruneaux-cocktail	Pruneaux	no glass; a required line without an amount
+rainbow-cocktail	Rainbow	no method
+raspberry-cocktail	Raspberry Cocktail	no glass; a required line without an amount
+rattlesnake-cocktail	Rattlesnake	no glass; a required line without an amount
+remsen-cooler	Remsen Cooler	no method
+rhine-wine-cup	Rhine Wine Cup	no glass; no method
+rhine-wine-punch	Rhine Wine Punch	no glass; no method
+rickeys	Rickeys	no glass; no method; fewer than two required lines
+rock-and-rye-cocktail	Rock and Rye	no glass; no method; a required line without an amount
+roman-punch	Roman Punch	no glass
+royal-cocktail-no-1	Royal (No. 1)	no glass
+royal-clover-club-cocktail	Royal Clover Club	no glass
+royal-fizz	Royal Fizz	no glass
+ruby-fizz	Ruby Fizz	no glass
+rum-flip	Rum Flip	no glass
+rum-shrub	Rum Shrub	no glass; no method; a required line without an amount
+russian-cocktail	Russian Cocktail	no glass; no method
+santa-cruz-fix	Santa Cruz Fix	no glass; no method; a required line without an amount
+santa-cruz-rum-daisy	Santa Cruz Rum Daisy	no glass; a required line without an amount
+saratoga-cocktail	Saratoga	no glass
+satans-whiskers-cocktail-curled	Satan’s Whiskers (Curled)	a required line without an amount
+satans-whiskers-cocktail-straight	Satan’s Whiskers (Straight)	a required line without an amount
+saucy-sue-cocktail	Saucy Sue	no glass
+sauterne-cup	Sauterne Cup	no method; a required line without an amount
+sauterne-punch	Sauterne Punch	no glass; no method
+savoy-hotel-cocktail	Savoy Hotel	no method
+savoy-hotel-rickey	Savoy Hotel Rickey	no glass; no method
+savoy-sangaree	Savoy Sangaree	no glass
+sea-breeze-cooler	Sea Breeze Cooler	no method
+september-morn-cocktail	September Morn	no glass
+seventh-heaven-cocktail-no-2	Seventh Heaven (No. 2)	no glass
+shady-grove-cooler	Shady Grove Cooler	no method
+sharky-punch-cocktail	Sharky Punch	no glass
+sherry-and-egg-cocktail	Sherry and Egg	no method; a required line without an amount
+sherry-sangaree	Sherry Sangaree	no glass; no method
+sherry-twist-cocktail-no-2	Sherry Twist (No. 2)	no glass; a required line without an amount
+ship-cocktail	Ship Cocktail	a required line without an amount
+silver-fizz	Silver Fizz	no glass
+silver-stallion-cocktail	Silver Stallion	no glass; no method
+sleepy-head-cocktail	Sleepy Head	no method; fewer than two required lines
+smashes	Smashes	no glass; no method; a required line without an amount
+snicker-cocktail	Snicker	no glass
+soda-cocktail	Soda Cocktail	no method
+south-side-fizz	South Side Fizz	no glass
+soyer-au-champagne-cocktail	Soyer-Au-Champagne	no glass
+spanish-town-cocktail	Spanish Town	no glass; fewer than two required lines
+special-rough-cocktail	Special Rough	no glass; no method
+spring-cocktail	Spring Cocktail	no glass; no method
+stars-and-stripes	Stars and Stripes	no method
+stone-fence	Stone Fence	no method
+straits-sling	Straits Sling	no glass; a required line without an amount
+strawberry-cocktail	Strawberry Cocktail	no glass; a required line without an amount
+suisse-cocktail	Suisse	no glass
+summer-time-cocktail	Summer Time	no glass
+sunrise	Sunrise	no method
+sunset-cocktail	Sunset	no glass; a required line without an amount
+sunshine-cocktail-no-1	Sunshine (No. 1)	no glass
+swizzles-cocktail	Swizzles	no glass
+texas-fizz	Texas Fizz	no glass
+the-barbary-coast-cocktail	The Barbary Coast	no method
+the-blue-train-special-cocktail	The Blue Train Special	no glass; a required line without an amount
+the-corn-popper	The Corn Popper	no method
+the-golden-gate-cocktail	The Golden Gate	no glass
+the-judge-jr-cocktail	The Judge, Jr.	a required line without an amount
+the-mamie-taylor-cocktail	The Mamie Taylor	no glass; no method
+the-nevada-cocktail	The Nevada	a required line without an amount
+the-nose-dive-cocktail	The Nose-Dive	no glass; no method; a required line without an amount
+the-white-cargo-cocktail	The White Cargo	no glass
+third-degree-cocktail	Third Degree	no glass
+thunder-and-lightning-cocktail	Thunder and Lightning	no glass
+thunderclap-cocktail	Thunderclap	no glass; a required line without an amount
+toddys-cocktail	Toddy’s Cocktail	no glass; fewer than two required lines; a required line without an amount
+tom-and-jerry	Tom and Jerry	no glass
+tom-collins-whisky	Tom Collins Whisky	no glass; a required line without an amount
+twin-six-cocktail	Twin Six	no glass
+uncle-toby-punch-english	Uncle Toby Punch – English	no glass; a required line without an amount
+union-jack	Union Jack	no method
+upstairs-cocktail	Upstairs	no glass; no method; a required line without an amount
+valencia-cocktail-no-2	Valencia (No. 2)	no glass
+vermouth-and-cassis-cocktail	Vermouth and Cassis	no glass; no method
+vermouth-and-curacao-cocktail	Vermouth and Curacao	no glass; no method
+victory-cocktail	Victory Cocktail	no glass
+virgin-special-cocktail	Virgin Special	no glass; a required line without an amount
+wards-cocktail	Ward’s Cocktail	no method
+west-indian-cocktail	West Indian	no glass
+westbrook-cocktail	Westbrook	no glass; no method; a required line without an amount
+whisky-daisy	Whisky Daisy	no glass
+whisky-special-cocktail	Whisky Special	no glass
+whisky-toddy	Whisky Toddy	no glass
+whisper-cocktail	Whisper	no glass
+white-currant-shrub	White Currant Shrub	no glass; no method; fewer than two required lines; a required line without an amount
+white-rose-cocktail	White Rose	no glass
+widows-dream-cocktail	Widow’s Dream	no glass
+windy-corner-cocktail	Windy Corner	fewer than two required lines
+wyoming-swing-cocktail	Wyoming Swing	no glass
+yale-cocktail	Yale	no glass
+yellow-daisy-cocktail	Yellow Daisy	no glass; no method
+yodel-cocktail	Yodel	no glass; no method
+zanzibar-cocktail	Zanzibar	no glass; a required line without an amount

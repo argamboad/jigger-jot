@@ -1,0 +1,53 @@
+{
+  "$comment": [
+    "JJ-043: where both books have a drink, the IBA spec ships and the Savoy one does not.",
+    "Every Savoy recipe whose normalised name matches an IBA drink must appear in exactly one of the",
+    "two sections below; build_cocktails.py fails on a candidate it cannot find here. 'superseded'",
+    "names the IBA drink that replaces it; 'distinct' says why it is a different drink that happens to",
+    "share the name. Pairs the name match cannot see (a drink the books name differently) are listed",
+    "under 'superseded' by hand. Reviewed drink by drink, 2026-10-09, against both extractions."
+  ],
+  "superseded": {
+    "alexander-cocktail-no-2": { "by": "alexander", "why": "brandy, crème de cacao and cream in equal parts: the IBA Alexander" },
+    "angel-face-cocktail": { "by": "angel-face", "why": "gin, apricot brandy and calvados in equal parts" },
+    "aviation-cocktail": { "by": "aviation", "why": "the same drink; the Savoy famously omits the crème de violette" },
+    "between-the-sheets-cocktail": { "by": "between-the-sheets", "why": "rum, brandy, Cointreau and lemon" },
+    "brandy-crusta-cocktail": { "by": "brandy-crusta", "why": "brandy, curaçao, maraschino, lemon and bitters" },
+    "casino-cocktail": { "by": "casino", "why": "Old Tom gin, maraschino, orange bitters and lemon" },
+    "champagne-cocktail": { "by": "champagne-cocktail", "why": "sugar, bitters and Champagne" },
+    "clover-club-cocktail": { "by": "clover-club", "why": "gin, lemon, egg white and a red syrup; grenadine in 1930, raspberry today" },
+    "corpse-reviver-no-2": { "by": "corpse-reviver-2", "why": "gin, Cointreau, Lillet, lemon and a dash of absinthe" },
+    "daiquiri-cocktail": { "by": "daiquiri", "why": "rum, lime and sugar" },
+    "dry-martini-cocktail": { "by": "dry-martini", "why": "gin and dry vermouth" },
+    "martini-dry-cocktail": { "by": "dry-martini", "why": "two thirds gin, one third French vermouth: a Dry Martini under the book's other title" },
+    "the-french-75-cocktail": { "by": "french-75", "why": "gin, lemon and sugar topped with Champagne" },
+    "gin-fizz": { "by": "gin-fizz", "why": "gin, lemon, sugar and soda" },
+    "hanky-panky-cocktail": { "by": "hanky-panky", "why": "gin, Italian vermouth and Fernet-Branca" },
+    "john-collins": { "by": "john-collins", "why": "gin, lemon, sugar and soda; Hollands in 1930" },
+    "manhattan-cocktail-no-2": { "by": "manhattan", "why": "whisky, Italian vermouth and Angostura" },
+    "manhattan-cocktail-sweet": { "by": "manhattan", "why": "whisky and Italian vermouth: the Manhattan itself, the 'sweet' only setting it against the dry one" },
+    "martinez-cocktail": { "by": "martinez", "why": "gin, vermouth, maraschino and orange bitters" },
+    "mary-pickford-cocktail": { "by": "mary-pickford", "why": "rum, pineapple, grenadine and maraschino" },
+    "monkey-gland-cocktail": { "by": "monkey-gland", "why": "gin, orange juice, absinthe and grenadine" },
+    "old-fashioned-cocktail": { "by": "old-fashioned", "why": "whisky, sugar and Angostura" },
+    "paradise-cocktail": { "by": "paradise", "why": "gin, apricot brandy and orange juice" },
+    "sazerac-cocktail": { "by": "sazerac", "why": "the same drink; rye in 1930, cognac in the IBA spec" },
+    "sidecar-cocktail": { "by": "sidecar", "why": "brandy, Cointreau and lemon" },
+    "singapore-sling": { "by": "singapore-sling", "why": "the same name for the same drink; the IBA spec is the Raffles one" },
+    "south-side-cocktail": { "by": "south-side", "why": "gin, lemon, sugar and mint" },
+    "stinger-cocktail": { "by": "stinger", "why": "brandy and white crème de menthe" },
+    "tipperary-cocktail-no-1": { "by": "tipperary", "why": "Irish whiskey, Italian vermouth and green Chartreuse" },
+    "tuxedo-cocktail-no-2": { "by": "tuxedo", "why": "gin, French vermouth, maraschino, absinthe and orange bitters" },
+    "white-lady-cocktail": { "by": "white-lady", "why": "gin, Cointreau and lemon" },
+    "southern-mint-julep": { "by": "mint-julep", "why": "whisky, mint and sugar; named differently, found by hand" },
+    "new-orleans-gin-fizz": { "by": "ramos-fizz", "why": "gin, citrus, sugar, egg white, cream and orange-flower water: the Ramos Gin Fizz, found by hand" }
+  },
+  "distinct": {
+    "alexander-cocktail-no-1": "gin, not brandy: the original gin Alexander",
+    "corpse-reviver-no-1": "brandy, calvados and Italian vermouth; nothing in common with the No. 2",
+    "manhattan-cocktail-dry": "French and Italian vermouth together: the drink now called a Perfect Manhattan",
+    "manhattan-cocktail-no-1": "the nineteenth-century build, with curaçao or maraschino and a wineglass of vermouth",
+    "tipperary-cocktail-no-2": "gin, French vermouth, orange juice, grenadine and mint: another drink under the same name",
+    "tuxedo-cocktail-no-1": "no maraschino and no bitters; gin, French vermouth, absinthe and lemon peel"
+  }
+}
