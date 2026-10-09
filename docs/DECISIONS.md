@@ -1949,9 +1949,10 @@ breaks upstream.
 
 
 **JJ-032 — Seed sources: the Savoy for depth, the IBA list for the canon; the two 1930s bar books
-are dropped. (decided 2026-09-09)**
+are dropped. (decided 2026-09-09; amended by JJ-043)**
 *Closes the rights question raised in `docs/stories/seed.md`. Read with JJ-017 (ingredients are
-generic, never brands) and the PROJECT_BRIEF scope line.*
+generic, never brands) and the PROJECT_BRIEF scope line. **Amended 2026-10-09 by JJ-043:** where
+both sources have a drink, only the IBA spec ships.*
 
 **The problem.** Four sources were on the table: the scraped 1930 Savoy Cocktail Book, two local
 PDFs (Jerry Thomas's 1862 *Bar-Tender's Guide* and 1931's *Old Waldorf Bar Days*), and whatever
@@ -2058,8 +2059,12 @@ same drink? If yes, store the category. If no, store the product.
 *Decided 2026-09-09.*
 
 
-**JJ-034 — A recipe's glass and method are optional. (decided 2026-09-09)**
+**JJ-034 — A recipe's glass and method are optional. (decided 2026-09-09; the glass half retired by
+JJ-043)**
 *Amends the `Cocktail` shape in `docs/DATA_MODEL.md`. Forced by SEED-3, measured before deciding.*
+***Retired in part 2026-10-09 by JJ-043:** a glass is required on every recipe, and a recipe whose
+source names none does not ship. Method stays optional. The rule against filling a fact in silently
+stands.*
 
 **The problem.** `Cocktail.glass_type_id` and `method_id` were non-nullable, on the reasonable
 assumption that every recipe states both. Against the real catalog, they do not:
@@ -2405,6 +2410,55 @@ the extraction is still the record of what each book wrote. The migration has no
 `docs/stories/prefs.md`; QA-CAT-07 rewritten and QA-CAT-10 added; CLAUDE.md's golden rule 4 restated.
 
 *Decided 2026-09-15.*
+
+**JJ-043 — A curated catalog: one recipe per drink, the IBA list first, and every recipe has a glass.
+(2026-10-09; amends JJ-032, retires JJ-034's "glass is optional")**
+Staging carried all 969 extracted recipes — SEED-3 shipped them, MAKE-1 cut the shipped file to a
+31-recipe starter set, and the add-only seeder never removed the rest — and the maintainer read them
+as duplicates: *Dry Martini* beside *Dry Martini Cocktail*, *Daiquiri* beside *Daiquiri Cocktail*.
+Measured, 29 drinks appear in both books under near-identical names, and four more under different
+ones (*Mint Julep* / *Southern Mint Julep*, *Ramos Fizz* / *New Orleans Gin Fizz*). JiggerJot is for
+people who care about the spec — classic recipes from credited sources, not social-media trend
+recipes — and to them two specs of one drink is noise.
+
+*Options.* **Group the versions** under one drink ("Daiquiri, 2 versions"): keeps every recipe, but
+needs a drink/version model and still ships two specs. **Keep the names and research each recipe
+online**: for the famous drinks the IBA spec already *is* the accepted recipe; for the ~800
+Savoy-only drinks there is nothing beyond the Savoy to find; and a spec assembled from websites has no
+public-domain source to credit, which JJ-032 exists to avoid. **IBA first, the Savoy for what the IBA
+lacks (chosen, the maintainer's).**
+
+*Decision.*
+1. **One recipe per drink.** Where both books have a drink, the IBA spec ships and the Savoy one does
+   not. "The same drink" is a judgement made drink by drink in `seed/overlap.json`, never a name match
+   — *Corpse Reviver (No. 1)* is not the IBA's #2, and *Manhattan (Dry)* is a Perfect Manhattan — and
+   `seed/build_cocktails.py` fails on any name-match candidate the file does not settle.
+2. **A Savoy recipe ships only as a usable spec:** a glass, a method, two or more required lines, an
+   amount on every one. The prose recipes recovered from tag lists and the book's how-to entries
+   ("Cobblers", "Basic Sour") stay in the extraction; `seed/savoy_excluded.txt` lists each with its
+   reason. The IBA list ships whole.
+3. **A glass is required, period — on every recipe, the household's own included.** The glass is part
+   of the cocktail. It comes from the source's glass, from the source's own instructions where they
+   name one, or — for five IBA drinks whose source names none (Mojito, Piña Colada, Kir,
+   Canchanchara, and Champagne Cocktail's "large Champagne glass") — from a curator's call, labelled
+   as one in the build script. What JJ-034 forbade still stands: nothing is filled in silently, and a
+   Savoy recipe whose text names no usable glass does not ship. Method stays optional.
+4. **The Savoy's "Cocktail" suffix goes** from the shipped name (*Dry Martini Cocktail* → *Dry
+   Martini*), unless what is left would be an ingredient or a fragment (*Coffee Cocktail*, *Devil's
+   Cocktail*). Qualifiers stay (*Alexander (No. 1)*). No two shipped recipes share a name; the build
+   fails if they do.
+5. **The starter set retires.** One shipped file; a test that needs a shape the curated set no
+   longer has builds its own rows.
+6. **Existing databases are cleaned by hand**, once: staging is the only database and has one user.
+   The seeder stays add-only.
+
+*Consequences.* 644 recipes (102 IBA + 542 Savoy); 33 Savoy recipes superseded, 292 below the bar.
+The extraction is untouched and remains the record of what each book wrote. `Cocktail.glass_type_id`
+becomes NOT NULL and the authoring endpoints refuse a recipe without one; Marga says so on the form.
+A new curated glass, *Goblet*, for the IBA's goblets and footed copos. Milestone *Curated catalog*,
+issues #176–#182.
+
+*Decided 2026-10-09.*
 
 **ADR-028 — The self-hosted Forgejo is the primary forge and runs the full CI/CD; GitHub stays a mirror whose own CI runs only when pushed to on purpose (LOCALCI-4). (2026-09-16) — SUPERSEDED by ADR-030 (2026-10-02)**
 The maintainer moved day-to-day git to a private Forgejo on the Windows desk (WSL2 + Docker, reachable over
