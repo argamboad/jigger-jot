@@ -3,6 +3,7 @@ using System;
 using JiggerJot.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace JiggerJot.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261009183705_ReseedCuratedCatalog")]
+    partial class ReseedCuratedCatalog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -126,7 +129,7 @@ namespace JiggerJot.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("ForkedFromCocktailId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("GlassTypeId")
+                    b.Property<Guid?>("GlassTypeId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Instructions")
@@ -1108,8 +1111,7 @@ namespace JiggerJot.Infrastructure.Persistence.Migrations
                     b.HasOne("JiggerJot.Core.Entities.GlassType", "GlassType")
                         .WithMany()
                         .HasForeignKey("GlassTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("JiggerJot.Core.Entities.Method", "Method")
                         .WithMany()

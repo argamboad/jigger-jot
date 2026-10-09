@@ -4,6 +4,7 @@ using Microsoft.Extensions.Time.Testing;
 using JiggerJot.Api.Features.Catalog;
 using JiggerJot.Api.Features.Inventory;
 using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Catalog;
 using JiggerJot.Core.Entities;
 using JiggerJot.Infrastructure.Persistence;
 using JiggerJot.Infrastructure.Persistence.Seed;
@@ -85,6 +86,7 @@ public sealed class StarterBottleTests(PostgresFixture fixture) : PostgresTestBa
         {
             TenantId = _household,
             Name = "The House Test",
+            GlassTypeId = SeedId.For("glass", "Cocktail glass"),
             ServingType = ServingType.FullDrink,
             Lines =
             [

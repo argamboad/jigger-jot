@@ -96,8 +96,11 @@ public sealed class CocktailAuthoringTests(PostgresFixture fixture) : PostgresTe
         return await Handler(db, household ?? _household).CreateAsync(request, default);
     }
 
+    /// <summary>The seeded cocktail glass: every recipe names its glass (JJ-043).</summary>
+    private static Guid CocktailGlass => SeedId.For("glass", "Cocktail glass");
+
     private async Task<AuthorCocktailRequest> ANegroniOfMyOwnAsync(string name = "House Negroni") =>
-        new(name, null, null, ServingType.FullDrink, "Stir over ice.",
+        new(name, CocktailGlass, null, ServingType.FullDrink, "Stir over ice.",
         [
             await LineAsync("London dry gin"),
             await LineAsync("Campari", role: RecipeRole.Modifier),
@@ -224,15 +227,28 @@ public sealed class CocktailAuthoringTests(PostgresFixture fixture) : PostgresTe
     }
 
     [Fact]
-    public async Task GlassAndMethodAreOptional()
+    public async Task AGlassIsRequired_AndARecipeWithoutOneWritesNothing()
+    {
+        await SeedAsync();
+
+        var result = await WriteAsync(await ANegroniOfMyOwnAsync() with { GlassTypeId = null });
+
+        // JJ-043: the glass is part of the cocktail. Refused like any other form mistake, not as an
+        // unknown lookup — the form names the field.
+        Assert.Equal(AuthorCocktailOutcome.GlassRequired, result.Outcome);
+        await using var db = Fixture.CreateContext(_household);
+        Assert.False(await db.Cocktails.AnyAsync(c => c.TenantId == _household));
+    }
+
+    [Fact]
+    public async Task TheMethodStaysOptional()
     {
         await SeedAsync();
 
         var recipe = (await ReadAsync((await WriteAsync(await ANegroniOfMyOwnAsync())).Id!.Value))!;
 
-        // JJ-034: a quarter of the seeded catalog never says which glass, and a household writing
-        // down what it actually pours should not have to invent one either.
-        Assert.Null(recipe.Glass);
+        // JJ-034's other half still stands: a method is the writer's to state or not.
+        Assert.Equal("Cocktail glass", recipe.Glass);
         Assert.Null(recipe.Method);
     }
 
@@ -453,7 +469,7 @@ public sealed class CocktailAuthoringTests(PostgresFixture fixture) : PostgresTe
     {
         await SeedAsync();
 
-        var request = new AuthorCocktailRequest("Two To One", null, null, ServingType.FullDrink, null,
+        var request = new AuthorCocktailRequest("Two To One", CocktailGlass, null, ServingType.FullDrink, null,
         [
             await LineAsync("London dry gin", 2m, BarMeasure.Part),
             await LineAsync("Sweet vermouth", 1m, BarMeasure.Part, role: RecipeRole.Modifier),

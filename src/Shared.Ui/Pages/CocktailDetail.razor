@@ -52,9 +52,9 @@ else if (_recipe is not null)
                 <span class="badge @MakeabilityClass" data-testid="cocktail-makeability">@Localizer[MakeabilityLabel]</span>
             </p>
 
-            @* Glass and method are optional (JJ-034). When a recipe never said, the item is simply
-               absent — no "unknown", which would read as a fact about the drink rather than a gap in
-               the book. FORK-1's provenance rides here too: a copy says what it was BASED ON; it
+            @* Every recipe has its glass (JJ-043); the method is optional (JJ-034), and when a recipe
+               never said, the item is simply absent — no "unknown", which would read as a fact about
+               the drink rather than a gap in the book. FORK-1's provenance rides here too: a copy says what it was BASED ON; it
                does not claim the book wrote it (JJ-013), and the link goes once the original is
                deleted, because it is not a foreign key. *@
             @if (Facets().Any() || _recipe.ForkedFrom is not null)

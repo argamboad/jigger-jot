@@ -451,6 +451,8 @@
   <data name="Cocktail_FieldServing" xml:space="preserve"><value>Served as</value></data>
   <data name="Cocktail_FieldInstructions" xml:space="preserve"><value>Instructions</value></data>
   <data name="Cocktail_NotStated" xml:space="preserve"><value>Not stated</value></data>
+  <data name="Cocktail_ChooseGlass" xml:space="preserve"><value>Choose a glass</value></data>
+  <data name="Marga_GlassRequired" xml:space="preserve"><value>A Martini without its glass is just cold gin. Pick one.</value></data>
   <data name="Cocktail_LineIngredient" xml:space="preserve"><value>Ingredient</value></data>
   <data name="Cocktail_LineAmount" xml:space="preserve"><value>Amount</value></data>
   <data name="Cocktail_LineUnit" xml:space="preserve"><value>Unit</value></data>

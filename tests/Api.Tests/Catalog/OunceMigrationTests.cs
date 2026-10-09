@@ -78,6 +78,7 @@ public sealed class OunceMigrationTests(PostgresFixture fixture) : PostgresTestB
         {
             Name = name,
             TenantId = household,
+            GlassTypeId = SeedId.For("glass", "Cocktail glass"),
             ServingType = ServingType.FullDrink,
             Lines = [.. lines.Select((line, index) => new CocktailIngredient
             {

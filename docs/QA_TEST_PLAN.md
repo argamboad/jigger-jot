@@ -87,11 +87,12 @@ dotnet run --project src/Api --launch-profile https    # binds https:7360 (web/d
 | **A screen reader** | NVDA (Windows) or VoiceOver (macOS), for QA-SHELF-12 and QA-CHROME-03/05. The shelf's controls are hidden checkboxes styled through their labels, so "does it still announce as a checkbox" is not something you can see. |
 | **A Spanish reader** | QA-CHROME-09 asks whether Marga's lines read as written Spanish rather than as a translation. That is a judgement, not a check. |
 
-> **Which catalog is loaded matters.** The app ships a **31-recipe starter set**; the full 969-recipe
-> extraction is one flag away. Cases in §10d–§10i name specific drinks, which hold either way, but the
-> COUNTS will differ — and **QA-MAKE-10 is unreachable on the full catalog**, because single-ingredient
-> recipes mean an empty shelf is one bottle away from several drinks. Record the catalog size on the
-> sign-off sheet when it is not the starter set.
+> **Which catalog is loaded matters.** The app ships the **curated catalog** (JJ-043): 644 recipes,
+> one per drink, every one with a glass — the IBA list plus the Savoy recipes it does not have. Cases in
+> §10d–§10i name specific drinks; counts are the curated catalog's. No shipped recipe has a single
+> required line, so an empty shelf is one bottle away from nothing (QA-MAKE-10). A database seeded
+> before JJ-043 carries the old 969 or 31 until the `ReseedCuratedCatalog` migration runs — record the
+> catalog size on the sign-off sheet if it is not 644.
 
 > **Database reset between full runs (optional but recommended):** to retest "new user" onboarding
 > cleanly, you need users that don't yet exist. Either use fresh email addresses each run, or reset
@@ -1241,8 +1242,8 @@ And cancelling at the provider returns me to /billing/cancel — the same page w
 >
 > **The QA shelf.** Several cases below need a known shelf. Unless a case says otherwise, tick
 > **London dry gin**, **Campari** and **Sweet vermouth** — that is a Negroni, and it is the shortest
-> path to a non-empty makeable list. Cases that name a specific drink depend on the shipped 31-recipe
-> starter set; if the full catalog is switched on, the names still work but the counts will differ.
+> path to a non-empty makeable list. Cases that name a specific drink use the curated catalog's names
+> (JJ-043): the Savoy's "Cocktail" suffix is gone, so *Hawaiian*, not *Hawaiian Cocktail*.
 
 ### QA-SHELF-01 — The shelf lists the whole catalog, grouped 🔴 (Web) ⚙️ Automated in CI
 **Gherkin**
@@ -1399,10 +1400,11 @@ And paging moves through it
 method and glass where the recipe states them, the instructions, and the source credited by name —
 written per source rather than from a template.
 
-### QA-CAT-03 — A recipe that never stated a glass says nothing 🟢 (Web)
-**Walkthrough:** find a row whose glass or method is blank in the list and open it. **Expected:** the
-detail page omits that field entirely rather than showing a guess or a placeholder. *(About a quarter
-of the catalog does not state a glass; filling one in would be inventing a fact.)*
+### QA-CAT-03 — Every recipe names its glass; an unstated method says nothing 🟢 (Web)
+**Walkthrough:** page through the catalog. **Expected:** every row names a glass (JJ-043). Open the
+**Mojito**. **Expected:** a Highball glass — one of the five IBA drinks whose glass the curator chose,
+since the IBA names none. Find a recipe whose method is blank and open it. **Expected:** the detail page
+omits the method entirely rather than showing a guess or a placeholder (JJ-034).
 
 ### QA-CAT-04 — Filtering by ingredient is wider than searching 🟠 (Web) ⚙️ Automated in CI
 **Gherkin**
@@ -1454,7 +1456,7 @@ returning nothing says something about the search, not about the household.
 **Walkthrough**
 1. As Imperial, open the Savoy's **Absinthe (Special) Cocktail**. **Expected:** **2 oz** absinthe,
    **1/2 oz** gin, **1/2 oz** anisette, then the dashes — no line says "part" (JJ-041).
-2. Open the **Hawaiian Cocktail** (the book's 4 : 2 : 1). **Expected:** **1 3/4 oz**, **3/4 oz**,
+2. Open the Savoy's **Hawaiian** (the book's 4 : 2 : 1). **Expected:** **1 3/4 oz**, **3/4 oz**,
    **1/2 oz**.
 3. Switch to **Metric** and reopen both. **Expected:** 60 / 15 / 15 ml and 52.5 / 22.5 / 15 ml.
 4. Open any recipe that used a glass measure in the book (the batch recipes). **Expected:** ounces or
@@ -1584,8 +1586,8 @@ the recipe lines at query time, so this is free rather than a second thing to ke
 
 ### QA-MINE-05 — The form refuses what it cannot store 🟢 (Web)
 **Walkthrough:** try each in turn — save with no ingredient lines; a unit with no amount; a name left
-blank. **Expected:** an inline message for each and nothing written. **Expected:** glass and method can
-both be left blank and it still saves, the same way a quarter of the catalog leaves them unstated.
+blank. **Expected:** an inline message for each and nothing written. **Expected:** the method can be
+left blank and it still saves; the glass cannot (QA-MINE-11).
 
 ### QA-MINE-06 — The authoring form's lists are not the filter lists 🟢 (Web)
 **Walkthrough:** compare the **glass** dropdown on the authoring form with the one in the catalog
@@ -1652,6 +1654,28 @@ And a book's recipe offers no Delete at all
    it is no longer listed. Its old URL shows the not-found state.
 5. Write a cocktail, fork it, then delete the **original**. **Expected:** the fork is still there with every
    line.
+
+### QA-MINE-11 — No glass, no cocktail: Marga says so beside the field 🟠 (Web) ⚙️ Automated in CI
+**Gherkin**
+```gherkin
+Given I am writing a cocktail with a name and its lines
+When I save without choosing a glass
+Then nothing is sent, and Marga says beside the glass that it needs one
+When I choose a glass
+Then she goes, and the cocktail saves
+```
+**Walkthrough**
+1. **Write a cocktail.** **Expected:** the glass list opens on **Choose a glass**, and there is no "Not
+   stated" glass; the method list still has *Not stated*.
+2. Give it a name and a line, leave the glass, and **Save**. **Expected:** you stay on the form; the glass
+   is outlined red and Marga, small, beside it: *"A Martini without its glass is just cold gin. Pick
+   one."* (ES: *"Un Martini sin su copa es solo ginebra fría. Elige una."*). Nothing in the summary above
+   Save.
+3. Choose **Rocks glass**. **Expected:** she goes at once. **Save.** **Expected:** you land on the recipe,
+   which names its glass.
+4. **Edit** it, set the glass back to *Choose a glass*, and save. **Expected:** the same line, nothing
+   written.
+5. *(API)* Send the create request with `glassTypeId` null. **Expected:** **400 `glass_required`**.
 
 ---
 
@@ -3411,6 +3435,7 @@ is the product. Cited decisions are `JJ-nnn` in `docs/DECISIONS.md`.
 | Authoring (AUTHORING-1) | **MINE-03/04** (⚙️ E2E) + MINE-05/06 | `POST /api/cocktails`, `GET /api/cocktails/lookups`. **Two lookup endpoints that must not be merged:** `/filters` is catalog-derived so no filter is a dead end, `/lookups` is the whole curated set (JJ-022) so a form can reach a glass no recipe uses. Refuses a lineless recipe, a unit with no amount, and an ingredient the household cannot see. Request enums cross the wire BY NAME. |
 | The ingredient suggests the role (AUTHORING-3) | **MINE-07** (⚙️ E2E) + `Core.Tests` (`RecipeRolesTests`) + `Api.Tests` (`SeedRolesParityTests`, `CocktailAuthoringTests`) + `Ui.Tests` (`WriteRoleSuggestionTests`) | `GET /api/cocktails/roles?ingredient=…` — roles in the order asked, from the ingredient's top-level category through Core's `RecipeRoles` (the seed script's rule, held to it by a parity test). First spirit Base, later spirits Modifier, a garnish optional; another household's ingredient is Other (JJ-031). The form never overwrites a role or required box set by hand. |
 | A searchable ingredient picker (AUTHORING-4) | **MINE-08** (⚙️ E2E) + `Ui.Tests` (`IngredientPickerTests`) | none — presentation only. `IngredientPicker` in the RCL: an ARIA combobox (input `role="combobox"`, `aria-controls` → listbox, `aria-activedescendant` → the arrowed option) over the bottles this household can see; names starting with the typed text first, then name or category contains it; at most fifty shown; arrows + Enter + Escape; picks only from the list (JJ-031); on-shelf bottles marked. Test ids `new-line-ingredient` / `-option` / `-empty`. |
+| A glass on every recipe (AUTHORING-6, JJ-043) | **MINE-11** (⚙️ E2E) + **CAT-03** + `Api.Tests` (`CocktailAuthoringTests`, `CocktailEditingTests`, `CocktailAuthoringEndpointTests`, `CatalogSeederTests`) + `Ui.Tests` (`WriteLayoutTests`) | `POST`/`PUT /api/cocktails` refuse a recipe without a glass: **400 `glass_required`**, checked after the name and the lines. `Cocktails.GlassTypeId` NOT NULL (`CocktailGlassRequired`, which stops with a message naming the rows if any cocktail has none). The form: *Choose a glass* in place of *Not stated*, Marga's compact line beside the field (`new-glass-marga`) for the client's check and the server's code alike. Method stays optional (JJ-034). |
 | Editing a cocktail (AUTHORING-2) | **MINE-09** (⚙️ E2E) + `Api.Tests` (`CocktailEditingTests`) + `Core.Tests` (`BarMeasureTests`) + `Ui.Tests` (`WriteEditTests`) | `GET /api/cocktails/{id}/draft` (the request's shape, volumes in the caller's writing unit), `PUT /api/cocktails/{id}` (same body and 400 codes as POST). Household-owned only; the shared catalog **403 `catalog_read_only`** (JJ-002), another household **404** (JJ-031). A fork keeps `forkedFrom` (JJ-013). Every line replaced; one `PrepareAsync` behind writing and editing; last save wins. `/cocktails/{id}/edit` is the same page as `/cocktails/new`; `cocktail-edit` on the recipe page for own cocktails only. |
 | Onboarding wizard (ONBOARD-1) | **START-01/02/03/05** (⚙️ E2E) + START-04/06/07 | `GET /api/inventory` + `GET /api/cocktails/starters?limit=12` + `PUT /api/inventory`. Offered, never forced: **no redirect and no dismissal flag**, so there is no "has this household been onboarded" fact to store — `Tenant` is the platform's. Members joining by invitation skip it for free, because they already have a shelf (FEATURES §7, JJ-021). |
 | Marga (MARGA-1/2/3/5/6) | CHROME-01/02/03/**10/11/12/13/26**, MAKE-08/09/10 + `Ui.Tests` (`MargaPresenceTests`, `MargaEverywhereTests`) | none of her own. **She is a drawn character, not an assistant**: every line is a localized resource string with real data in its placeholders, picked whole rather than assembled, from queries that already exist. Her component takes a FINISHED sentence — it cannot build one, pick one or fetch anything. She is `alt=""`/`aria-hidden`. |
@@ -3549,7 +3574,7 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-MAKE-07 | Web | | | | | |
 | QA-MAKE-08 | Web | | | | | |
 | QA-MAKE-09 | Web | | | | | |
-| QA-MAKE-10 | Web | | | | | N-A if the full catalog is enabled — note the catalog size |
+| QA-MAKE-10 | Web | | | | | note the catalog size if it is not the curated 644 |
 | QA-MINE-01 | Web | | | | | |
 | QA-MINE-02 | Web | | | | | |
 | QA-MINE-03 | Web | | | | | |
@@ -3560,6 +3585,7 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-MINE-08 | Web | | | | | Keyboard only, and a screen reader |
 | QA-MINE-09 | Web | | | | | A Metric member for step 3; two browsers for step 7 |
 | QA-MINE-10 | Web | | | | | A phone width for step 2 |
+| QA-MINE-11 | Web | | | | | Both languages for step 2 |
 | QA-START-01 | Web | | | | | Needs a brand-new household |
 | QA-START-02 | Web | | | | | |
 | QA-START-03 | Web | | | | | |
@@ -4009,3 +4035,8 @@ Critical/High defects. 🟢 Edge cases triaged (Pass or accepted-known-issue).
   platform these were first recorded Blocked while the findings were open; every remediation had landed here
   before the cases did, so they arrive unseeded. QA-ADV-15 now counts seats relative to the cap (T47).
   237 → 254 cases.
+- **Updated 2026-10-09 (JJ-043, milestone *Curated catalog*)** — the catalog is curated: 644 recipes, one
+  per drink, every one with a glass; the 31-recipe starter set is retired and the notes that described it
+  are rewritten. **QA-CAT-03** now checks that every recipe names its glass; **QA-MINE-05** no longer
+  expects a glassless save; new **QA-MINE-11** — no glass, no cocktail, and Marga says so beside the
+  field. 254 → 255 cases.

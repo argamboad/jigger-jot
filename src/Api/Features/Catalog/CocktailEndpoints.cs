@@ -33,6 +33,10 @@ public static class CocktailEndpoints
             AuthorCocktailOutcome.InvalidLine => Results.BadRequest(new ErrorResponse(
                 "invalid_line", "Check the amounts and units on each line")),
 
+            // JJ-043: its own code, so the form answers beside the glass rather than in a summary.
+            AuthorCocktailOutcome.GlassRequired => Results.BadRequest(new ErrorResponse(
+                "glass_required", "A cocktail needs its glass")),
+
             // AUTHORING-2. Not a 404: a book's recipe is visible to every household, so saying it does
             // not exist would be false — it is theirs to read and to fork, not to change (JJ-002).
             AuthorCocktailOutcome.ReadOnly => Results.Json(new ErrorResponse(
