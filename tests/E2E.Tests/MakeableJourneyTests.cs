@@ -205,7 +205,11 @@ public class MakeableJourneyTests : E2ETestBase
         var card = Page.GetByTestId("cocktail-unlocks");
         await Expect(card).ToBeVisibleAsync(new() { Timeout = 30_000 });
         await Expect(card).ToContainTextAsync("Sweet vermouth");
-        await Expect(Page.GetByTestId("cocktail-unlocks-drinks")).ToContainTextAsync("Negroni");
+        // ...and names what it opens: the first few drinks by name and the rest as a count. Which drinks
+        // lead is the catalog's alphabet, so the journey asks only that the card names some and counts
+        // the rest — sixteen open with sweet vermouth, more than fit on the line.
+        await Expect(Page.GetByTestId("cocktail-unlocks-drinks")).ToContainTextAsync(" · ");
+        await Expect(Page.GetByTestId("cocktail-unlocks-drinks")).ToContainTextAsync("more");
 
         // It belongs to this filter only. Turning it off takes the card with it, because a shopping
         // suggestion over the whole catalog would be a claim nothing on screen supports.
