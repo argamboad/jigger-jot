@@ -233,7 +233,9 @@ Flow:
 
 ### 14. Authoring a custom cocktail (from scratch)
 Flow:
-- Create a tenant-owned `Cocktail`: name, method, glass, serving type, instructions.
+- Create a tenant-owned `Cocktail`: name, glass (required — it is part of the cocktail, JJ-043),
+  method (optional, JJ-034), serving type, instructions. Without a glass the form does not save, and
+  Marga says so beside the field.
 - Add recipe lines: pick ingredient (shared or custom), amount + unit, required/optional, role,
   order, notes. The form offers the writer's own volume unit (oz or ml) and saves it as ounces
   (JJ-041). Choosing a line's ingredient suggests its role and whether it is required — the first

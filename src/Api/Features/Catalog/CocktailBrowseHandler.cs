@@ -261,9 +261,9 @@ public class CocktailBrowseHandler(
             .Distinct().OrderBy(o => o.Name)
             .ToListAsync(cancellationToken);
 
+        // Every recipe has a glass (JJ-043), so no recipe is left out of this list.
         var glasses = await cocktails.Query()
-            .Where(c => c.GlassTypeId != null)
-            .Select(c => new { Id = c.GlassTypeId!.Value, c.GlassType!.Name })
+            .Select(c => new { Id = c.GlassTypeId, c.GlassType!.Name })
             .Distinct().OrderBy(o => o.Name)
             .ToListAsync(cancellationToken);
 

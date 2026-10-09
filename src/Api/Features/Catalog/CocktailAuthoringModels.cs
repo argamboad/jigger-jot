@@ -6,10 +6,10 @@ namespace JiggerJot.Api.Features.Catalog;
 /// <summary>
 /// A cocktail a household is writing from scratch (AUTHORING-1, FEATURES §14).
 /// </summary>
-/// <param name="GlassTypeId">Optional, and meant to stay that way (JJ-034): a quarter of the seeded
-/// catalog never states a glass, and someone writing down what they actually pour should not have to
-/// invent one.</param>
-/// <param name="MethodId">Optional for the same reason.</param>
+/// <param name="GlassTypeId">Required (JJ-043): the glass is part of the cocktail. Nullable on the wire
+/// only so that leaving it out is a <see cref="AuthorCocktailOutcome.GlassRequired"/> the form can put
+/// beside the field, rather than a binding failure.</param>
+/// <param name="MethodId">Optional (JJ-034): a method is the writer's to state or not.</param>
 /// <param name="ServingType">By NAME — "Shot" or "FullDrink" — because that is what
 /// <c>GET /api/cocktails/lookups</c> hands out and what every response has always sent. Numbers are
 /// accepted too. The converter is on the property rather than configured globally: every other
@@ -67,6 +67,9 @@ public enum AuthorCocktailOutcome
     /// <summary>The glass or the method does not exist.</summary>
     UnknownLookup,
 
+    /// <summary>No glass was named. Every recipe has its glass (JJ-043).</summary>
+    GlassRequired,
+
     /// <summary>An edit was saved (AUTHORING-2).</summary>
     Updated,
 
@@ -104,7 +107,7 @@ public record CocktailDraftResult(CocktailDraftOutcome Outcome, CocktailDraft? D
 public record CocktailDraft(
     Guid Id,
     string Name,
-    Guid? GlassTypeId,
+    Guid GlassTypeId,
     Guid? MethodId,
     string ServingType,
     string? Instructions,

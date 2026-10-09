@@ -1,10 +1,11 @@
 # Stories — Authoring a cocktail (AUTHORING)
 
-> One file per epic. A household writes its own recipe, from nothing. Read with **JJ-034** (glass and
-> method are optional), **JJ-009**/**JJ-010** (optional lines and roles), **JJ-003**/**JJ-014**
+> One file per epic. A household writes its own recipe, from nothing. Read with **JJ-043** (the glass
+> is required) and **JJ-034** (the method is optional), **JJ-009**/**JJ-010** (optional lines and roles), **JJ-003**/**JJ-014**
 > (makeability and filtering are derived, never stored) and **JJ-031** (nothing stamps these tables).
 > Stories use Gherkin acceptance criteria.
-> **Status: ✅ COMPLETE** — AUTHORING-1 through AUTHORING-5 shipped, editing and deleting included.
+> **Status: ✅ COMPLETE** — AUTHORING-1 through AUTHORING-6 shipped, editing and deleting included, and since
+> AUTHORING-6 (JJ-043) every recipe names its glass.
 
 **Epic key:** `AUTHORING`
 
@@ -39,9 +40,9 @@ whole curated lookup (JJ-022), because a household writing down what it actually
 to reach a glass no seeded recipe happens to use. Locally that is twenty glasses against twelve. They
 answer different questions and a test asserts the difference.
 
-**Glass and method stay optional** (JJ-034) and the form says *"Not stated"* rather than defaulting to
-something plausible. A quarter of the seeded catalog is in that position and a person writing at their
-own bar is often in it too.
+**The glass is required; the method stays optional** (AUTHORING-6, JJ-043 — this story first shipped
+with both optional under JJ-034). The method select says *"Not stated"* rather than defaulting to
+something plausible.
 
 **Line order is the array's.** `DisplayOrder` is assigned from position, so nobody types a number into
 a form. The same ingredient may appear on several lines — FEATURES §14 says so, and there is
@@ -386,3 +387,77 @@ Scenario: The recipe's actions are one row, the primary first
 `CocktailBrowseJourneyTests` now deletes its copy.
 
 **Out of scope:** undo, or a bin to restore from; deleting from the catalog list.
+
+---
+
+### AUTHORING-6 — A glass on every recipe, and Marga says so (JJ-043)
+
+**Story.** As a household writing down a drink, I want the form to insist on its glass, so that every
+recipe in my book is whole — and when I forget, I want to be told beside the field, in her voice.
+
+**Context / notes.** JJ-043 retires the glass half of JJ-034: the glass is part of the cocktail. The
+shared catalog already meets it (SEED-5), and staging's seven household cocktails all named one, so
+`Cocktails.GlassTypeId` becomes NOT NULL in the `CocktailGlassRequired` migration — which stops with a
+message naming the rows if any database has a cocktail without one, rather than inventing a glass for
+it. The method stays optional.
+
+- **API.** `POST` and `PUT /api/cocktails` refuse a recipe without a glass with **400 `glass_required`**,
+  checked after the name and the lines, through the one `PrepareAsync` and the one refusal mapping, so
+  an edit is held to the same rule. A refused write writes nothing. The request keeps a nullable
+  `glassTypeId` on purpose: leaving it out is a code the form can answer, not a binding failure.
+- **Form.** The glass list opens on *Choose a glass*; there is no "Not stated" glass any more. Saving
+  without one sends nothing and puts Marga beside the field — the compact inline aside, since the page
+  already has its page-level Marga (MARGA rules) — with a fixed line: *"A Martini without its glass is
+  just cold gin. Pick one."* (ES: *"Un Martini sin su copa es solo ginebra fría. Elige una."*). Choosing
+  a glass sends her away. A client that skipped the check gets the same line for the server's
+  `glass_required`, beside the glass rather than in the summary above Save.
+- **Display.** Browse rows and the recipe page always have a glass; the DTOs say so (`string Glass`).
+  The method keeps its "say nothing when unstated" path.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: A cocktail without a glass is refused, and nothing is written
+  Given I write a cocktail with a name and its lines but no glass
+  Then it is refused as glass_required
+  And my household has no new cocktail
+
+Scenario: The method stays optional
+  Given I write a cocktail with a glass and no method
+  Then it is saved with its glass and no method
+
+Scenario: An edit cannot take the glass away
+  Given a cocktail my household owns
+  When I save it without a glass
+  Then the edit is refused as glass_required and nothing changes
+
+Scenario: Over HTTP the refusal is a code the form can read
+  When a cocktail without a glass is posted
+  Then the answer is 400 with the code glass_required
+
+Scenario: The form says so in her voice, beside the glass
+  Given the write form with a name and a line
+  When I save without choosing a glass
+  Then Marga says beside the glass that it needs one, and nothing is sent
+
+Scenario: Choosing a glass sends her away
+  When I choose a glass after she has spoken
+  Then her line is gone and the field is no longer marked
+
+Scenario: The server's glass_required is her line too
+  Given a server that answers glass_required
+  When I save
+  Then her line appears beside the glass, not above Save
+
+Scenario: There is no "not stated" glass
+  Then the glass list opens on a prompt, and offers no "not stated"
+```
+
+**Tests.** `CocktailAuthoringTests` (`AGlassIsRequired_AndARecipeWithoutOneWritesNothing`,
+`TheMethodStaysOptional`), `CocktailEditingTests.AnEditIsHeldToTheSameRulesAsWriting`,
+`CocktailAuthoringEndpointTests.ARecipeWithoutAGlass_OverHttp_Is400GlassRequired`, `WriteLayoutTests`
+(`NoGlass_MargaSaysSoBesideTheGlass_AndNothingIsSent`, `PickingAGlass_SendsHerAway`,
+`TheServersGlassRequired_IsHerLineToo`, `TheGlassOffersNo_NotStated_Option`), and the writing journey in
+`CocktailBrowseJourneyTests` saves once without a glass first. QA-MINE-11.
+
+**Out of scope:** making the method required; a default glass per method.

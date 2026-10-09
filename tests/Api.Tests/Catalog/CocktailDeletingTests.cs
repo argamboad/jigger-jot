@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using JiggerJot.Api.Features.Catalog;
 using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Catalog;
 using JiggerJot.Core.Entities;
 using JiggerJot.Infrastructure.Persistence;
 using JiggerJot.Infrastructure.Persistence.Seed;
@@ -51,7 +52,7 @@ public sealed class CocktailDeletingTests(PostgresFixture fixture) : PostgresTes
 
         await using var db = Fixture.CreateContext(household ?? _household);
         return (await Authoring(db, household ?? _household).CreateAsync(
-            new AuthorCocktailRequest(name, null, null, ServingType.FullDrink, null,
+            new AuthorCocktailRequest(name, SeedId.For("glass", "Cocktail glass"), null, ServingType.FullDrink, null,
                 [new AuthorLineRequest(gin, null, null, true, RecipeRole.Base, null)]), default)).Id!.Value;
     }
 

@@ -243,12 +243,21 @@ public class CocktailBrowseJourneyTests : E2ETestBase
         await Page.GetByTestId("new-line-amount").Nth(1).FillAsync("1");
         await Page.GetByTestId("new-line-unit").Nth(1).SelectOptionAsync(new SelectOptionValue { Label = "oz" });
 
+        // JJ-043: no glass yet, so Save does not send — Marga says so beside the glass instead.
+        await Page.GetByTestId("new-save").ClickAsync();
+        await Expect(Page.GetByTestId("new-glass-marga")).ToBeVisibleAsync(new() { Timeout = 15_000 });
+        await Expect(Page.GetByTestId("new-glass-marga")).ToContainTextAsync("cold gin");
+
+        // Picking one sends her away.
+        await Page.GetByTestId("new-glass").SelectOptionAsync(new SelectOptionValue { Label = "Rocks glass" });
+        await Expect(Page.GetByTestId("new-glass-marga")).Not.ToBeVisibleAsync();
+
         await Page.RunAndWaitForResponseAsync(
             () => Page.GetByTestId("new-save").ClickAsync(),
             r => r.Url.EndsWith("/api/cocktails") && r.Request.Method == "POST" && r.Status == 201);
 
-        // It opens, with both lines and the amounts as written. Glass and method were left unstated,
-        // which is allowed and shows as nothing rather than as a guess (JJ-034).
+        // It opens, with both lines and the amounts as written. The method was left unstated, which
+        // is allowed and shows as nothing rather than as a guess (JJ-034).
         await Expect(Page.GetByTestId("cocktail-name")).ToContainTextAsync(name, new() { Timeout = 30_000 });
         await Expect(Page.GetByTestId("cocktail-lines").Locator("li")).ToHaveCountAsync(2);
         await Expect(Page.GetByTestId("cocktail-lines")).ToContainTextAsync("1 oz");

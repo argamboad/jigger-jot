@@ -85,7 +85,7 @@ public class WriteEditTests : ComponentTestBase
         // draft sends 1.0000 and 0.7500 — and the form opened reading "1.0000", clipped to "1.00" on a
         // phone. A person writes 1 and 0.75.
         var page = RenderEdit($$"""
-            {"id":"{{Id}}","name":"Negroni","glassTypeId":null,"methodId":null,"servingType":"FullDrink",
+            {"id":"{{Id}}","name":"Negroni","glassTypeId":"{{Coupe}}","methodId":null,"servingType":"FullDrink",
              "instructions":null,
              "lines":[{"ingredientId":"{{Gin}}","amount":1.0000,"unitId":"{{Ml}}","isRequired":true,"role":"Base","notes":null},
                       {"ingredientId":"{{Lemon}}","amount":0.7500,"unitId":"{{Ml}}","isRequired":true,"role":"Juice","notes":null}]}

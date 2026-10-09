@@ -95,6 +95,7 @@ public class WriteLayoutTests : ComponentTestBase
         var page = RenderForm();
 
         page.Find("[data-testid='new-name']").Change("Gamboa Sour");
+        page.Find("[data-testid='new-glass']").Change(Coupe);
         // AUTHORING-4: the ingredient is a combobox now — type the name, pick the option.
         page.Find("[data-testid='new-line-ingredient']").Input("London dry gin");
         page.Find("[data-testid='new-line-ingredient-option']").MouseDown();
@@ -109,5 +110,83 @@ public class WriteLayoutTests : ComponentTestBase
                 "new-error keeps its place above Save");
             Assert.Contains("Cocktail_ErrLine", error.TextContent);
         });
+    }
+
+    private const string Coupe = "11111111-1111-1111-1111-111111111111";
+
+    /// <summary>A recipe the form would send but for its glass: a name and one picked ingredient.</summary>
+    private static void NameAndALine(IRenderedComponent<WriteCocktail> page)
+    {
+        page.Find("[data-testid='new-name']").Change("Gamboa Sour");
+        page.Find("[data-testid='new-line-ingredient']").Input("London dry gin");
+        page.Find("[data-testid='new-line-ingredient-option']").MouseDown();
+    }
+
+    [Fact]
+    public async Task NoGlass_MargaSaysSoBesideTheGlass_AndNothingIsSent()
+    {
+        var page = RenderForm();
+        NameAndALine(page);
+
+        await page.Find("[data-testid='new-save']").ClickAsync(new());
+
+        // JJ-043: the glass is required, and the form says so in her voice, beside the field it is about —
+        // the compact aside, since the page already has its page-level Marga. Nothing goes to the API.
+        page.WaitForAssertion(() =>
+        {
+            var aside = page.Find(".write-drink [data-testid='new-glass-marga']");
+            Assert.Contains("Marga_GlassRequired", aside.TextContent);
+            Assert.NotNull(aside.QuerySelector("[data-testid='marga']"));
+            Assert.Contains("is-invalid", page.Find("[data-testid='new-glass']").ClassList);
+        });
+        Assert.DoesNotContain(Http.Requests, r => r.Method == HttpMethod.Post);
+    }
+
+    [Fact]
+    public async Task PickingAGlass_SendsHerAway()
+    {
+        var page = RenderForm();
+        NameAndALine(page);
+        await page.Find("[data-testid='new-save']").ClickAsync(new());
+        page.WaitForAssertion(() => page.Find("[data-testid='new-glass-marga']"));
+
+        page.Find("[data-testid='new-glass']").Change(Coupe);
+
+        page.WaitForAssertion(() =>
+        {
+            Assert.Empty(page.FindAll("[data-testid='new-glass-marga']"));
+            Assert.DoesNotContain("is-invalid", page.Find("[data-testid='new-glass']").ClassList);
+        });
+    }
+
+    [Fact]
+    public async Task TheServersGlassRequired_IsHerLineToo()
+    {
+        // A client that skipped the check still gets the same answer, in the same place.
+        Http.On(HttpMethod.Post, "/api/cocktails", """{"error":"glass_required","message":"A cocktail needs its glass"}""", HttpStatusCode.BadRequest);
+        var page = RenderForm();
+        NameAndALine(page);
+        page.Find("[data-testid='new-glass']").Change(Coupe);
+
+        await page.Find("[data-testid='new-save']").ClickAsync(new());
+
+        page.WaitForAssertion(() =>
+        {
+            Assert.Contains("Marga_GlassRequired", page.Find("[data-testid='new-glass-marga']").TextContent);
+            Assert.Empty(page.FindAll("[data-testid='new-error']"));
+        });
+    }
+
+    [Fact]
+    public void TheGlassOffersNo_NotStated_Option()
+    {
+        var page = RenderForm();
+
+        // There is no "not stated" glass any more (JJ-043): the first option is a prompt, and choosing a
+        // glass is the only way past it.
+        var options = page.Find("[data-testid='new-glass']").QuerySelectorAll("option");
+        Assert.DoesNotContain(options, o => o.TextContent.Contains("Cocktail_NotStated"));
+        Assert.Equal(string.Empty, options[0].GetAttribute("value"));
+        Assert.Contains("Cocktail_ChooseGlass", options[0].TextContent);
     }
 }

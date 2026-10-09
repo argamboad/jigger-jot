@@ -201,9 +201,10 @@ Single table for both shared and custom cocktails (JJ-012).
   "Create my own version" of another. **A fork is a full snapshot copy** — changes to the
   original never propagate (JJ-013).
 - `name`
-- `glass_type_id` → GlassType — **nullable** (JJ-034): a recipe may not say, and 259 of the 969
-  seeded ones either say nothing or say something that is not a glass type
-- `method_id` → Method — **nullable**, for the same reason (94 seeded recipes)
+- `glass_type_id` → GlassType — **required** (JJ-043, retiring JJ-034's nullable glass): the glass is
+  part of the cocktail. A seeded recipe whose source names none does not ship, and a household cannot
+  save one without it
+- `method_id` → Method — **nullable** (JJ-034): a recipe may not say, and nothing guesses for it
 - `source_id` → RecipeSource — nullable; set for seeded recipes, null for a household's own
 - `serving_type` — enum: `shot` | `full_drink`
 - `instructions` — free text (preparation steps / notes)
@@ -314,7 +315,7 @@ Not tables, but they live in `src/Core/Entities/` and the schema is written in t
 - Cocktail 1 — N CocktailIngredient (recipe lines); Ingredient 1 — N CocktailIngredient
 - Ingredient N — N Ingredient via IngredientSubstitution (both directions stored)
 - IngredientCategory self-referencing (parent / subcategory)
-- Cocktail → GlassType, Method (both optional), RecipeSource; CocktailIngredient → Unit;
+- Cocktail → GlassType (required, JJ-043), Method (optional), RecipeSource; CocktailIngredient → Unit;
   Ingredient → IngredientCategory ×2
 
 ### ER diagram — identity & auth foundation

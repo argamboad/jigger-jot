@@ -217,12 +217,12 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
     }
 
     /// <summary>
-    /// The shared recipe catalog (JJ-012): 969 cocktails and their lines, plus the sources they are
-    /// credited to (JJ-032). Shared rows, like the ingredients — <c>TenantId</c> null on both the
+    /// The shared recipe catalog (JJ-012): the curated cocktails and their lines (JJ-043), plus the
+    /// sources they are credited to (JJ-032). Shared rows, like the ingredients — <c>TenantId</c> null on both the
     /// cocktail and every one of its lines, since a line carries its parent's nature (JJ-031).
     /// <para>
-    /// Glass and method are optional (JJ-034): a recipe that did not say gets null rather than a
-    /// plausible guess. A cocktail is written once, whole, or not at all — a partially seeded recipe
+    /// Every recipe has a glass (JJ-043) and a file without one is refused; a method the recipe did not
+    /// state stays null rather than a plausible guess (JJ-034). A cocktail is written once, whole, or not at all — a partially seeded recipe
     /// is worse than an absent one, so a cocktail already present is skipped rather than reconciled.
     /// </para>
     /// </summary>
@@ -273,7 +273,9 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
                 TenantId = null,
                 Name = cocktail.Name,
                 SourceId = SeedId.For("source", cocktail.Source),
-                GlassTypeId = cocktail.GlassType is null ? null : SeedId.For("glass", cocktail.GlassType),
+                GlassTypeId = SeedId.For("glass", cocktail.GlassType
+                    ?? throw new InvalidOperationException(
+                        $"Seed cocktail '{cocktail.Source}:{cocktail.Slug}' has no glass; every recipe names one (JJ-043).")),
                 MethodId = cocktail.Method is null ? null : SeedId.For("method", cocktail.Method),
                 ServingType = Enum.Parse<ServingType>(cocktail.ServingType, ignoreCase: true),
                 Instructions = cocktail.Instructions,

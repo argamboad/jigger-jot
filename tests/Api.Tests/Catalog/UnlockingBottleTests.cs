@@ -4,6 +4,7 @@ using Microsoft.Extensions.Time.Testing;
 using JiggerJot.Api.Features.Catalog;
 using JiggerJot.Api.Features.Inventory;
 using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Catalog;
 using JiggerJot.Core.Entities;
 using JiggerJot.Infrastructure.Persistence;
 using JiggerJot.Infrastructure.Persistence.Seed;
@@ -252,7 +253,7 @@ public sealed class UnlockingBottleTests(PostgresFixture fixture) : PostgresTest
                 new TestCurrentTenant { TenantId = _household });
 
             var result = await authoring.CreateAsync(new AuthorCocktailRequest(
-                "House Bitter", null, null, ServingType.FullDrink, null,
+                "House Bitter", SeedId.For("glass", "Rocks glass"), null, ServingType.FullDrink, null,
                 [
                     new AuthorLineRequest(gin, 30m, null, true, RecipeRole.Base, null),
                     new AuthorLineRequest(campari, 30m, null, true, RecipeRole.Modifier, null),

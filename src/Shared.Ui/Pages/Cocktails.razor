@@ -255,8 +255,8 @@ else
                         <span class="badge text-bg-primary catalog-row-yours">@Localizer["Cocktails_Yours"]</span>
                     }
                     <div class="catalog-row-meta">
-                        @* Glass and method are optional (JJ-034): a recipe that never said which
-                           glass shows nothing here rather than a guess or an "unknown" chip. *@
+                        @* The glass is always there (JJ-043); the method is optional (JJ-034), and a
+                           recipe that never said shows nothing rather than a guess or an "unknown" chip. *@
                         @string.Join(" · ", Facets(c))
                     </div>
                     @* FEATURES §9: a drink that qualified only because of a substitute has to say

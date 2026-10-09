@@ -72,19 +72,27 @@ else
                     </select>
                 </div>
 
-                @* Both optional, and meant to stay that way (JJ-034): a quarter of the seeded catalog
-                   never states a glass, and someone writing down what they actually pour should not
-                   have to invent one. *@
+                @* The glass is required (JJ-043): it is part of the cocktail, so the first option is a
+                   prompt, not a "not stated". The method stays optional (JJ-034). When the glass is
+                   missing Marga says so beside it — the compact aside, since the page already has its
+                   page-level Marga — whether the form caught it or the server's glass_required did. *@
                 <div class="write-fields-pair">
                     <div>
                         <label class="form-label small mb-1" for="new-glass">@Localizer["Cocktail_FieldGlass"]</label>
-                        <select class="form-select" id="new-glass" data-testid="new-glass" @bind="_glass">
-                            <option value="">@Localizer["Cocktail_NotStated"]</option>
+                        <select class="form-select @(_glassError ? "is-invalid" : null)" id="new-glass" data-testid="new-glass"
+                                @bind="_glass" @bind:after="() => _glassError = _glassError && !Guid.TryParse(_glass, out _)">
+                            <option value="">@Localizer["Cocktail_ChooseGlass"]</option>
                             @foreach (var g in _options.Glasses)
                             {
                                 <option value="@g.Id">@g.Name</option>
                             }
                         </select>
+                        @if (_glassError)
+                        {
+                            <div class="write-glass-marga mt-2" data-testid="new-glass-marga" role="alert">
+                                <MargaSays Tone="MargaTone.Inline">@Localizer["Marga_GlassRequired"]</MargaSays>
+                            </div>
+                        }
                     </div>
                     <div>
                         <label class="form-label small mb-1" for="new-method">@Localizer["Cocktail_FieldMethod"]</label>
@@ -200,6 +208,9 @@ else
     private bool _nameError;
     private bool _linesError;
 
+    // JJ-043: the glass is required; Marga says so beside it until one is picked.
+    private bool _glassError;
+
     private string _name = string.Empty;
     private string _glass = string.Empty;
     private string _method = string.Empty;
@@ -254,12 +265,13 @@ else
     {
         _error = null;
 
-        // BACKBAR-6: both checks run, each marks its own field, and neither reaches the summary
+        // BACKBAR-6: every check runs, each marks its own field, and none reaches the summary
         // alert — that one is for the server's answer.
         _nameError = string.IsNullOrWhiteSpace(_name);
         var lines = _lines.Where(l => Guid.TryParse(l.IngredientId, out _)).ToList();
         _linesError = lines.Count == 0;
-        if (_nameError || _linesError) return;
+        _glassError = !Guid.TryParse(_glass, out _);
+        if (_nameError || _linesError || _glassError) return;
 
         _saving = true;
         try
@@ -293,6 +305,14 @@ else
                 // The API's codes are the ones with the reasoning behind them; the page just gives
                 // each one a sentence someone can act on.
                 var problem = await response.Content.ReadFromJsonAsync<ErrorView>();
+
+                // JJ-043: her line beside the glass, not a sentence in the summary.
+                if (problem?.Error == "glass_required")
+                {
+                    _glassError = true;
+                    return;
+                }
+
                 _error = problem?.Error switch
                 {
                     "invalid_name" => Localizer["Cocktail_ErrName"],
