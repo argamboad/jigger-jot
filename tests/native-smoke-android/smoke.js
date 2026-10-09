@@ -8,6 +8,7 @@
 // from a plain `adb install`), `adb reverse` on the API's local http port (the MAUI csproj does it),
 // the API on that port, Mailpit on MAILPIT_BASE_URL (default: this repo's Mailpit UI port, local-ports.props).
 
+const { execFileSync } = require('child_process');
 const PKG = process.env.NATIVE_SMOKE_PKG || 'com.jiggerjot.app';
 const MAILPIT = process.env.MAILPIT_BASE_URL || `http://localhost:${localPort('LocalMailUiPort')}`;
 
@@ -15,6 +16,33 @@ const MAILPIT = process.env.MAILPIT_BASE_URL || `http://localhost:${localPort('L
 function localPort(name) {
   const props = require('fs').readFileSync(require('path').join(__dirname, '..', '..', 'local-ports.props'), 'utf8');
   return props.match(new RegExp(`<${name}>(\\d+)</${name}>`))[1];
+}
+
+const stamp = () => new Date().toISOString();
+
+// A device handle, fresh each time. Run 35024411715 lost the whole adb connection mid-journey: the
+// WebView target closed, the separately-recorded `adb logcat` ended in the same second, and the retry's
+// first `device.shell` threw "Device is closed" — Playwright never hands a closed AndroidDevice back to
+// life, so a retry on the old handle cannot succeed. Every attempt asks for a new one, restarting the
+// adb server if the old one is gone, within a deadline like every other wait here.
+//
+// omitDriverInstall: the smoke drives the WebView over CDP and never uses Playwright's on-device driver
+// (taps and fills on native widgets). Installing it is a package change on the device, and the last
+// line logcat recorded on that run was logd re-reading the package list.
+async function acquireDevice(timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    try {
+      const devices = await _android.devices({ omitDriverInstall: true });
+      if (devices.length > 0) return devices[0];
+      console.error(`${stamp()} no adb device listed yet`);
+    } catch (e) {
+      console.error(`${stamp()} adb server unreachable (${e.message.split('\n')[0]}); starting it`);
+      try { execFileSync('adb', ['start-server'], { timeout: 30_000, stdio: 'inherit' }); } catch { /* retried below */ }
+    }
+    if (Date.now() >= deadline) throw new Error(`no adb device within ${timeoutMs / 1000}s`);
+    await new Promise(r => setTimeout(r, 3000));
+  }
 }
 
 async function mailpit(path, init) {
