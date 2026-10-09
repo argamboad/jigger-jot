@@ -40,7 +40,7 @@ public sealed partial class TestHttpHandler : HttpMessageHandler // the app's ha
 
     /// <summary>
     /// Stub "METHOD /path" with a body chosen per request — for one path asked two different questions,
-    /// told apart by the query (MARGA-6: the catalog list and the pourable count behind it).
+    /// told apart by the query (an app's list and the count behind it).
     /// </summary>
     public TestHttpHandler On(HttpMethod method, string path, Func<HttpRequestMessage, string> json)
     {
@@ -49,6 +49,17 @@ public sealed partial class TestHttpHandler : HttpMessageHandler // the app's ha
         {
             Content = new StringContent(json(request), Encoding.UTF8, "application/json"),
         };
+        return this;
+    }
+
+    /// <summary>
+    /// Stub "METHOD /path" to fail the way an unreachable server does — no response at all (DNS, no signal,
+    /// a connection dropped while the host cold-starts): the client sees an <see cref="HttpRequestException"/>.
+    /// </summary>
+    public TestHttpHandler OnUnreachable(HttpMethod method, string path)
+    {
+        _gated.Remove(Key(method, path));
+        _routes[Key(method, path)] = _ => throw new HttpRequestException("No such host is known.");
         return this;
     }
 
@@ -67,17 +78,6 @@ public sealed partial class TestHttpHandler : HttpMessageHandler // the app's ha
             Content = new StringContent(jsons[Math.Min(Interlocked.Increment(ref next) - 1, jsons.Length - 1)],
                 Encoding.UTF8, "application/json"),
         };
-        return this;
-    }
-
-    /// <summary>
-    /// Stub "METHOD /path" to fail the way an unreachable server does — no response at all (DNS, no signal,
-    /// a connection dropped while the host cold-starts): the client sees an <see cref="HttpRequestException"/>.
-    /// </summary>
-    public TestHttpHandler OnUnreachable(HttpMethod method, string path)
-    {
-        _gated.Remove(Key(method, path));
-        _routes[Key(method, path)] = _ => throw new HttpRequestException("No such host is known.");
         return this;
     }
 
