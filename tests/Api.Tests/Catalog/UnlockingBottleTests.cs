@@ -68,13 +68,20 @@ public sealed class UnlockingBottleTests(PostgresFixture fixture) : PostgresTest
         return await Handler(db).UnlockingBottlesAsync(limit, default);
     }
 
-    /// <summary>The almost-makeable rows, which this endpoint is a regrouping of.</summary>
+    /// <summary>The almost-makeable rows, which this endpoint is a regrouping of — every page of them, since
+    /// the curated catalog leaves more than one page one bottle away from a partial shelf.</summary>
     private async Task<IReadOnlyList<CocktailSummary>> AlmostAsync()
     {
         await using var db = Fixture.CreateContext(_household);
-        var page = await Handler(db).BrowseAsync(
-            new CocktailBrowseRequest(null, 1, 100, AlmostMakeableOnly: true), default);
-        return page.Items;
+        var handler = Handler(db);
+        var rows = new List<CocktailSummary>();
+        for (var page = 1; ; page++)
+        {
+            var items = (await handler.BrowseAsync(
+                new CocktailBrowseRequest(null, page, CocktailBrowseRequest.MaxPageSize, AlmostMakeableOnly: true), default)).Items;
+            if (items.Count == 0) return rows;
+            rows.AddRange(items);
+        }
     }
 
     /// <summary>A deliberately partial shelf: several drinks within one bottle, in different ways.</summary>
@@ -145,7 +152,8 @@ public sealed class UnlockingBottleTests(PostgresFixture fixture) : PostgresTest
         await SeedAsync();
         await APartialShelfAsync();
 
-        var bottles = await UnlocksAsync(limit: 20);
+        // Every bottle, not the first twenty: the last assertion sums the whole ranking.
+        var bottles = await UnlocksAsync(limit: 1000);
         var almost = await AlmostAsync();
 
         // This is the regrouping test: the two endpoints read the same set, so every claim here has

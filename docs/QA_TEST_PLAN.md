@@ -87,11 +87,12 @@ dotnet run --project src/Api --launch-profile https    # binds https:7360 (web/d
 | **A screen reader** | NVDA (Windows) or VoiceOver (macOS), for QA-SHELF-12 and QA-CHROME-03/05. The shelf's controls are hidden checkboxes styled through their labels, so "does it still announce as a checkbox" is not something you can see. |
 | **A Spanish reader** | QA-CHROME-09 asks whether Marga's lines read as written Spanish rather than as a translation. That is a judgement, not a check. |
 
-> **Which catalog is loaded matters.** The app ships a **31-recipe starter set**; the full 969-recipe
-> extraction is one flag away. Cases in §10d–§10i name specific drinks, which hold either way, but the
-> COUNTS will differ — and **QA-MAKE-10 is unreachable on the full catalog**, because single-ingredient
-> recipes mean an empty shelf is one bottle away from several drinks. Record the catalog size on the
-> sign-off sheet when it is not the starter set.
+> **Which catalog is loaded matters.** The app ships the **curated catalog** (JJ-043): 644 recipes,
+> one per drink, every one with a glass — the IBA list plus the Savoy recipes it does not have. Cases in
+> §10d–§10i name specific drinks; counts are the curated catalog's. No shipped recipe has a single
+> required line, so an empty shelf is one bottle away from nothing (QA-MAKE-10). A database seeded
+> before JJ-043 carries the old 969 or 31 until the `ReseedCuratedCatalog` migration runs — record the
+> catalog size on the sign-off sheet if it is not 644.
 
 > **Database reset between full runs (optional but recommended):** to retest "new user" onboarding
 > cleanly, you need users that don't yet exist. Either use fresh email addresses each run, or reset
@@ -1241,8 +1242,8 @@ And cancelling at the provider returns me to /billing/cancel — the same page w
 >
 > **The QA shelf.** Several cases below need a known shelf. Unless a case says otherwise, tick
 > **London dry gin**, **Campari** and **Sweet vermouth** — that is a Negroni, and it is the shortest
-> path to a non-empty makeable list. Cases that name a specific drink depend on the shipped 31-recipe
-> starter set; if the full catalog is switched on, the names still work but the counts will differ.
+> path to a non-empty makeable list. Cases that name a specific drink use the curated catalog's names
+> (JJ-043): the Savoy's "Cocktail" suffix is gone, so *Hawaiian*, not *Hawaiian Cocktail*.
 
 ### QA-SHELF-01 — The shelf lists the whole catalog, grouped 🔴 (Web) ⚙️ Automated in CI
 **Gherkin**
@@ -1454,7 +1455,7 @@ returning nothing says something about the search, not about the household.
 **Walkthrough**
 1. As Imperial, open the Savoy's **Absinthe (Special) Cocktail**. **Expected:** **2 oz** absinthe,
    **1/2 oz** gin, **1/2 oz** anisette, then the dashes — no line says "part" (JJ-041).
-2. Open the **Hawaiian Cocktail** (the book's 4 : 2 : 1). **Expected:** **1 3/4 oz**, **3/4 oz**,
+2. Open the Savoy's **Hawaiian** (the book's 4 : 2 : 1). **Expected:** **1 3/4 oz**, **3/4 oz**,
    **1/2 oz**.
 3. Switch to **Metric** and reopen both. **Expected:** 60 / 15 / 15 ml and 52.5 / 22.5 / 15 ml.
 4. Open any recipe that used a glass measure in the book (the batch recipes). **Expected:** ounces or
@@ -3549,7 +3550,7 @@ the rest of the app has nothing to work with until a shelf exists, so a failure 
 | QA-MAKE-07 | Web | | | | | |
 | QA-MAKE-08 | Web | | | | | |
 | QA-MAKE-09 | Web | | | | | |
-| QA-MAKE-10 | Web | | | | | N-A if the full catalog is enabled — note the catalog size |
+| QA-MAKE-10 | Web | | | | | note the catalog size if it is not the curated 644 |
 | QA-MINE-01 | Web | | | | | |
 | QA-MINE-02 | Web | | | | | |
 | QA-MINE-03 | Web | | | | | |

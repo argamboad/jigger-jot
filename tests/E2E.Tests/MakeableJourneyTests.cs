@@ -190,14 +190,17 @@ public class MakeableJourneyTests : E2ETestBase
         await Mailpit.ClearAsync();
         await SignInAsync(Page, UniqueEmail("unlocks"));
 
+        // Dry vermouth on the shelf too: on gin and Campari alone the curated catalog ties sweet and dry
+        // vermouth at seven drinks each and the name breaks the tie, so the card would lead with dry.
+        // With it, sweet vermouth opens sixteen and leads by a distance.
         await Page.GetByTestId("nav-shelf").ClickAsync();
-        foreach (var ingredient in new[] { "London dry gin", "Campari" }) await StockAsync(ingredient);
+        foreach (var ingredient in new[] { "London dry gin", "Campari", "Dry vermouth" }) await StockAsync(ingredient);
 
         await ShowMakeableAsync();
         await SetCatalogFilterAsync("all");
         await SetCatalogFilterAsync("almost");
 
-        // The summary is the point of the slice: eighty-one rows each naming a bottle is correct and
+        // The summary is the point of the slice: dozens of rows each naming a bottle is correct and
         // unreadable, so the card says which single purchase opens the most.
         var card = Page.GetByTestId("cocktail-unlocks");
         await Expect(card).ToBeVisibleAsync(new() { Timeout = 30_000 });

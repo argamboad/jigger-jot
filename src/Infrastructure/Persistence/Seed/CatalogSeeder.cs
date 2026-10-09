@@ -254,11 +254,10 @@ public sealed class CatalogSeeder(AppDbContext db, ILogger<CatalogSeeder> logger
 
         foreach (var cocktail in file.Cocktails)
         {
-            // Identity is the SOURCE plus that source's own slug, never the name. Four names appear
-            // in both books, and the Savoy alone has "Mr. Manhattan Cocktail" twice, in different
-            // chapters and with different recipes. Keyed on the name, one of each pair would
-            // silently replace the other, and the loss would surface as a missing drink rather than
-            // an error.
+            // Identity is the SOURCE plus that source's own slug, never the name. The shipped name is
+            // the curator's (JJ-043 drops the Savoy's "Cocktail" suffix), so keying on it would turn a
+            // rename into a new row and orphan every fork's provenance; the slug is the book's and
+            // does not move.
             var id = SeedId.For($"cocktail:{cocktail.Source}", cocktail.Slug);
             if (existing.Contains(id)) continue;
 

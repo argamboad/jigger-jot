@@ -105,10 +105,9 @@ public class CocktailBrowseJourneyTests : E2ETestBase
             r => r.Url.Contains("ingredient=gin") && r.Status == 200);
 
         // The catalog holds no drink CALLED gin, so every one of these came from a recipe line —
-        // matched on the ingredient's name, its category or its subcategory.
-        await Expect(Page.GetByTestId("cocktail-list")).ToContainTextAsync("Negroni", new() { Timeout = 30_000 });
-        var withGin = await Page.GetByTestId("cocktail-count").InnerTextAsync();
-        Assert.That(withGin, Is.Not.EqualTo(everything));
+        // matched on the ingredient's name, its category or its subcategory. The count is what moves;
+        // a named drink would be a claim about which page of a long gin list it lands on.
+        await Expect(Page.GetByTestId("cocktail-count")).Not.ToHaveTextAsync(everything, new() { Timeout = 30_000 });
 
         // Combinable, which is the whole claim of §11: stack a method on top and the list narrows
         // again rather than starting over.

@@ -233,11 +233,14 @@ deferred items without an explicit decision.
   **Done (SEED-2):** the ingredient catalog — 175 curated ingredients from 395 raw names, in
   `ingredients.json`, seeded as shared rows; `seed/build_ingredients.py` fails the build while any raw
   name is neither mapped nor explicitly excluded. **Done (SEED-3):** 969 cocktails and 3526 recipe
-  lines extracted, each credited to a `RecipeSource` (JJ-032). **The SHIPPED catalog is a 31-recipe
-  starter set** chosen to cover every shape the model handles (metric and proportional amounts,
-  duplicate names within and across sources, missing glass/method, an optional garnish, a substitution
-  in play, modern spirits); `python seed/build_cocktails.py --full` emits all 969. Developing against
-  nine hundred rows made every test assertion a claim about the catalog rather than about behaviour.
+  lines extracted, each credited to a `RecipeSource` (JJ-032). **Done (SEED-5, JJ-043): the SHIPPED
+  catalog is CURATED — one recipe per drink, 644 of them**: the IBA list whole (102) plus the 542
+  Savoy recipes the IBA does not have that pass a build-checked bar (a glass, a method, two or more
+  required lines, an amount on each). Where both books have a drink the IBA spec wins, decided drink
+  by drink in `seed/overlap.json` — never by name match, and the build fails on an unreviewed
+  candidate. **Every recipe has a glass**; the Savoy's "Cocktail" suffix is dropped and no name
+  repeats; every IBA line is required (the IBA's garnish is its own field). The excluded Savoy
+  recipes are listed with reasons in `seed/savoy_excluded.txt`. The 31-recipe starter set is retired.
   **Never hard-code the catalog's size in a test** — derive it from `CatalogSeeder.LoadCocktails()`. **Done (SEED-4):** the substitution graph — 17
   interchangeable groups and 12 one-way entries, 88 directed rows. **The seed epic is complete for
   MVP.** Two threads stay open and neither blocks anything: the Savoy extraction came from a

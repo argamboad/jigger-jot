@@ -104,8 +104,10 @@ public sealed class CatalogFilterTests(PostgresFixture fixture) : PostgresTestBa
                 || (l.Sub?.Contains("gin", StringComparison.OrdinalIgnoreCase) ?? false));
         }
 
-        // And it is genuinely wider than the name filter would be on its own.
-        Assert.Contains(page.Items, c => c.Name == "Negroni");
+        // And it is genuinely wider than the name filter would be on its own. Asked by name too, since
+        // the curated catalog runs to several pages of gin.
+        var negroni = await BrowseAsync(All with { Ingredient = "Gin", Search = "Negroni" });
+        Assert.Contains(negroni.Items, c => c.Name == "Negroni");
     }
 
     [Fact]

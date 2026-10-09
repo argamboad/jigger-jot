@@ -99,9 +99,9 @@ public class CocktailBrowseHandler(
         var total = await query.CountAsync(cancellationToken);
 
         var items = await query
-            // Name, then Id. Name alone is NOT a total order in this catalog — four names appear in
-            // both books and "Mr. Manhattan Cocktail" appears twice in the Savoy — and a non-total
-            // order makes Postgres free to return page 2 overlapping page 1.
+            // Name, then Id. Name alone is NOT a total order: the shared catalog has one recipe per
+            // name (JJ-043), but a household's fork keeps its original's name and its own recipes may
+            // borrow one — and a non-total order makes Postgres free to return page 2 overlapping page 1.
             .OrderBy(c => c.Name).ThenBy(c => c.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

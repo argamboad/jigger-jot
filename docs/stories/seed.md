@@ -5,7 +5,8 @@
 > **JJ-031** (how a shared row coexists with tenant isolation) and `docs/DATA_MODEL.md`. Stories use
 > Gherkin acceptance criteria.
 > **Status: ✅ COMPLETE for MVP** — SEED-1 (lookups), the IBA extraction, SEED-2 (ingredients),
-> SEED-3 (recipes) and SEED-4 (substitutions) all done. Sources settled by JJ-032.
+> SEED-3 (recipes), SEED-4 (substitutions) and SEED-5 (the curated catalog, JJ-043) all done. Sources
+> settled by JJ-032.
 
 **Epic key:** `SEED`
 
@@ -251,7 +252,7 @@ that quietly stops being makeable.
 | | |
 |---|---|
 | cocktails extracted | 969 |
-| **cocktails shipped (starter set)** | **31** |
+| **cocktails shipped** | **644** — see SEED-5 |
 | recipe lines extracted | 3526 |
 | lines dropped (ice, water, the SEED-2 exclusions) | 74 |
 | lines the scrape left blank | 13 |
@@ -272,16 +273,15 @@ their quantities remain readable in the instructions. Dropping 60 real cocktails
 amount column would have been the worse trade. One recipe, `Common Highball`, has no ingredients in
 any form and is genuinely dropped.
 
-**Identity is the source plus that source's slug, never the name.** Four names appear in both books,
-and the Savoy alone carries *Mr. Manhattan Cocktail* twice — once in the main chapter and once among
-the Prohibition cocktails, with mint and sugar the second time. Keyed on the name, one of each pair
-would silently replace the other, and the loss would surface as a missing drink rather than an error.
-The build fails outright if two recipes from one source ever share a slug.
+**Identity is the source plus that source's slug, never the name.** The Savoy alone carries *Mr.
+Manhattan Cocktail* twice — once in the main chapter and once among the Prohibition cocktails, with
+mint and sugar the second time — and SEED-5 renames what ships. Keyed on the name, a rename would be a
+new row. The build fails outright if two recipes from one source ever share a slug.
 
-**Glass and method became optional (JJ-034).** 259 of 969 recipes state no glass or state something
-that is not one; the Savoy's "medium size glass" and bare "glass" are 108 between them. Filling those
-in would put a fact in the database that nobody wrote down, and afterwards it would be
-indistinguishable from a fact somebody did.
+**Glass and method became optional (JJ-034)** — *the glass half retired by SEED-5 (JJ-043).* 259 of
+969 recipes state no glass or state something that is not one; the Savoy's "medium size glass" and
+bare "glass" are 108 between them. Filling those in would put a fact in the database that nobody wrote
+down, and that still holds: since JJ-043 such a recipe does not ship, rather than ship without a glass.
 
 **Roles are derived, never tagged.** The first spirit in a drink is its base and later spirits are
 modifiers; bitters, juice, syrup and mixers come from the ingredient's category. A garnish is simply
@@ -302,16 +302,6 @@ Scenario: Every seeded recipe is credited
   Then each cocktail names a source
   And each source carries an attribution
 
-Scenario: Two sources may share a recipe name
-  Given the catalog has been seeded
-  When I look up "Gin Fizz"
-  Then I find two recipes, one from each source
-
-Scenario: A recipe that did not state a glass has none
-  Given the catalog has been seeded
-  Then some cocktails have no glass and no method
-  And most still do
-
 Scenario: Proportional amounts keep the fraction the book wrote
   Given the catalog has been seeded
   Then the proportional lines carry the neutral "part" unit
@@ -325,17 +315,10 @@ Scenario: Garnishes are optional and nothing else is
 
 **Tests.** `tests/Api.Tests/Catalog/CatalogSeederTests.cs` (sixteen in total across SEED-1 to 3).
 
-**The shipped catalog is a starter set, not the whole extraction.** 969 recipes is the right eventual
-catalog and the wrong thing to develop against: every test assertion ends up being a claim about nine
-hundred rows rather than about behaviour, and a change to the data breaks tests that had nothing to do
-with it. `build_cocktails.py` therefore emits 31 by default and all 969 behind `--full`.
-
-The picks are not arbitrary — between them they cover every **shape** the model handles: metric and
-absolute amounts, proportional fractions and whole "parts", unmeasured lines recovered from a tag
-list, one name in two books, one name twice in a single book, a recipe with no glass or method
-recorded, an optional garnish line, a substitution in play, and the modern spirits the Savoy never
-had. Enough to page, few enough to reason about. The build fails if a named slug stops existing,
-rather than quietly shipping a smaller catalog.
+**The shipped catalog was a starter set until SEED-5.** From MAKE-1 to SEED-5 the build emitted 31
+recipes chosen to cover every shape the model handles, because developing against 969 made every test
+assertion a claim about the data. SEED-5 retired it: the curated catalog is the one shipped file, and
+tests derive sizes from `CatalogSeeder.LoadCocktails()` rather than hard-coding them.
 
 **Known data debt, deliberately left visible.** Two Savoy lines were merged by the scrape (a lemon
 and a grapefruit juice; an allspice dram and a lime juice) and are excluded rather than guessed at.
@@ -399,6 +382,85 @@ Scenario: A one-way substitution does not run backwards
 **Tests.** `tests/Api.Tests/Catalog/CatalogSeederTests.cs` (eighteen across the whole epic). The
 one-way assertion is the load-bearing one: it is the only thing standing between a considered graph
 and a symmetric one that quietly over-promises.
+
+---
+
+### SEED-5 — The curated catalog: one recipe per drink (JJ-043)
+
+**Story.** As a household that cares about the spec, I want one recipe per drink, every one with its
+glass, so that the catalog reads like a bar book and not like two books stapled together.
+
+**Context / notes.** Staging carried all 969 extracted recipes (SEED-3 shipped them, MAKE-1 cut the
+shipped file to 31, and the add-only seeder never removed the rest), and the maintainer read them as
+duplicates: *Dry Martini* beside *Dry Martini Cocktail*. Measured, 29 drinks appear in both books under
+near-identical names and four more under different ones. Milestone *Curated catalog*, #176–#182.
+
+| | |
+|---|---|
+| IBA recipes shipped | 102 (all of them) |
+| Savoy recipes extracted | 867 |
+| superseded by the IBA (`seed/overlap.json`) | 33 |
+| below the bar (`seed/savoy_excluded.txt`) | 292 — 234 no glass, 110 an unmeasured required line, 88 no method, 12 fewer than two required lines (a recipe can miss more than one) |
+| **Savoy recipes shipped** | **542** |
+| **catalog shipped** | **644** |
+| IBA glasses read from the recipe's own words / assigned by the curator | 10 / 5 |
+
+**The overlap is a judgement, written down.** `seed/overlap.json` names every Savoy recipe the IBA
+supersedes, with the IBA drink and a one-line reason, and every name-match that is a *different* drink
+— *Corpse Reviver (No. 1)*, *Manhattan (Dry)* (a Perfect Manhattan), the gin *Alexander (No. 1)*. The
+build fails on any name-match candidate the file does not settle, so a re-extraction cannot slip a
+duplicate back in. Pairs a name match cannot see were found by hand: *Southern Mint Julep* (Mint
+Julep), *New Orleans Gin Fizz* (Ramos Fizz), *Martini (Dry)* (Dry Martini).
+
+**The bar for a Savoy recipe:** a glass, a method, two or more required lines, an amount on every
+one. That leaves out the prose recipes recovered from tag lists and the book's how-to entries
+(*Cobblers*, *Basic Sour*).
+
+**Every recipe has a glass.** From the source's glass; from its own instructions where they name one
+(`GLASS_FROM_TEXT`, each phrase checked to still occur); or, for five IBA drinks whose source names
+none — Mojito, Piña Colada, Kir, Canchanchara, Champagne Cocktail's "large Champagne glass" — the
+curator's call, labelled as one in `GLASS_ASSIGNED`. A new curated glass, *Goblet*, for the IBA's
+goblets, footed copos and *coppa grande*.
+
+**Every IBA line is required.** The IBA lists its garnish in a field of its own, so every line of its
+spec is something the drink is made of. Read by category, the Mojito's mint, the Caipirinha's lime and
+the Bellini's peach purée were garnishes, optional — and a Mojito was makeable without mint. 22 lines
+corrected; `SeedRolesParityTests` holds the one sanctioned difference from the authoring rule.
+
+**Names.** The Savoy's "Cocktail" suffix goes (*Dry Martini Cocktail* → *Dry Martini*), unless what is
+left is an ingredient or a fragment (*Coffee Cocktail*, *Devil's Cocktail*); the book's quotes and
+footnote marks go too. No two shipped recipes share a name — the build fails if they do.
+
+**Acceptance criteria**
+
+```gherkin
+Scenario: A drink both books have ships once, as the IBA wrote it
+  Given the catalog has been seeded
+  When I look up "Gin Fizz"
+  Then I find one recipe, credited to the IBA
+  And no two recipes share a name
+
+Scenario: Every recipe has a glass, and a method only if its source gave one
+  Given the catalog has been seeded
+  Then every cocktail has a glass
+  And some cocktails have no method
+
+Scenario: Every line of an IBA spec is required
+  Given the shipped catalog
+  Then no IBA line is optional
+
+Scenario: The one-away list reads every drink, however many pages it runs to
+  Given a partial shelf
+  When I compare the bottles ranked by what they unlock with the one-away list
+  Then every drink a bottle names is one bottle away, from that bottle
+  And the ranking accounts for every row of the list
+```
+
+**Tests.** `CatalogSeederTests.Seed_ShipsOneRecipePerDrink`,
+`Seed_GivesEveryRecipeAGlass_AndLeavesAnUnstatedMethodNull`, `SeedRolesParityTests.EveryIbaLine_IsRequired`,
+`UnlockingBottleTests.EveryDrinkItNames_IsOneBottleAwayFromExactlyThatBottle`,
+`CocktailBrowseTests.Browse_ShowsADrinkBothBooksHaveOnce_CreditedToTheIba`. The build script itself
+is the gate for the overlap, the bar and repeated names.
 
 ---
 

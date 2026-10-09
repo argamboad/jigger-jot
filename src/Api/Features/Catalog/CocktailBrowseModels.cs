@@ -72,8 +72,8 @@ public record PagedResponse<T>(IReadOnlyList<T> Items, int Page, int PageSize, i
 /// <param name="Glass">Null when the recipe never said (JJ-034), which the UI renders as nothing at all.</param>
 /// <param name="Method">Null for the same reason.</param>
 /// <param name="Source">The book or list this came from; null for a cocktail the household wrote.
-/// Load-bearing in a list, not decoration — four names appear in both books and one appears twice in
-/// the Savoy alone, so without it the browse shows duplicate rows and no way to tell them apart.</param>
+/// Load-bearing in a list, not decoration — it is the credit the source is owed (JJ-032), and it is how
+/// a reader tells the catalog's recipe from a household's fork of it, which keeps the same name.</param>
 /// <param name="IsOwn">True when this row belongs to the household rather than the shared catalog.</param>
 /// <param name="Substitutions">Why this drink qualified when the household does not have exactly
 /// what the recipe asks for (FEATURES §9). Empty unless a makeability filter is on, because outside
