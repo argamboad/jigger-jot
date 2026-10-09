@@ -33,6 +33,7 @@ async function acquireDevice(timeoutMs) {
   const deadline = Date.now() + timeoutMs;
   for (;;) {
     try {
+      const { _android } = require('playwright-core'); // here, not at the top: the unit tests load this file without it
       const devices = await _android.devices({ omitDriverInstall: true });
       if (devices.length > 0) return devices[0];
       console.error(`${stamp()} no adb device listed yet`);
