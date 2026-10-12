@@ -24,7 +24,7 @@ namespace JiggerJot.Infrastructure.Outbox;
 /// A finished row — sent or dead — is stamped with <see cref="OutboxMessage.ProcessedAt"/> and its payload
 /// cleared to <see cref="OutboxMessage.ClearedPayload"/> unless its handler keeps it (v4 audit H7, decision #6):
 /// the payload is a delivery instruction, and once there is nothing left to deliver, a recipient, a body and
-/// an inline image have no reason to stay. <see cref="OutboxRetentionJob"/> deletes finished rows later.
+/// an attachment have no reason to stay. <see cref="OutboxRetentionJob"/> deletes finished rows later.
 /// </para>
 /// </summary>
 public sealed class OutboxProcessor(

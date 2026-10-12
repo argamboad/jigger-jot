@@ -118,7 +118,7 @@ public class AnonymousLayoutTests : ComponentTestBase
             Assert.Equal(2, sections.Count);
             Assert.NotNull(sections[0].QuerySelector("h2.shelf-section-title.font-display"));
             Assert.NotNull(sections[0].QuerySelector(".shelf-section-count"));
-            Assert.NotNull(page.Find($"[data-testid='onboard-item-{Gin}']"));
+            Assert.NotNull(page.Find($"[data-testid='onboard-item'][data-ingredient-id='{Gin}']"));
         });
     }
 

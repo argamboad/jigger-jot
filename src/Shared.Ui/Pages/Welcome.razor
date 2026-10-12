@@ -28,7 +28,7 @@
     }
     else if (_error is not null)
     {
-        <div class="alert alert-danger" data-testid="onboard-error">@_error</div>
+        <div class="alert alert-danger">@_error</div>
     }
     else
     {
@@ -56,7 +56,7 @@
                     {
                         <input class="btn-check" type="checkbox" autocomplete="off"
                                id="@($"sug-{item.IngredientId}")"
-                               data-testid="@($"onboard-item-{item.IngredientId}")"
+                               data-testid="onboard-item" data-ingredient-id="@item.IngredientId"
                                checked="@_wanted.Contains(item.IngredientId)"
                                @onchange="e => Toggle(item.IngredientId, e)" />
                         <label class="btn btn-sm btn-outline-secondary shelf-pill" for="@($"sug-{item.IngredientId}")">
@@ -67,7 +67,7 @@
 
                 @if (_staples.Count == 0)
                 {
-                    <p class="text-body-secondary" data-testid="onboard-no-staples">
+                    <p class="text-body-secondary">
                         @Localizer["Onboard_NothingToSuggest"]
                     </p>
                 }
@@ -77,7 +77,7 @@
                 <h1 class="page-title mb-1">@Localizer["Onboard_RestHeading"]</h1>
                 <p class="text-body-secondary mb-3">@Localizer["Onboard_RestBody"]</p>
 
-                <input class="form-control onboard-search mb-3" type="search" data-testid="onboard-search"
+                <input class="form-control onboard-search mb-3" type="search"
                        placeholder="@Localizer["Shelf_SearchPlaceholder"]"
                        aria-label="@Localizer["Shelf_SearchPlaceholder"]"
                        @bind="_search" @bind:event="oninput" />
@@ -97,7 +97,7 @@
                             {
                                 <input class="btn-check" type="checkbox" autocomplete="off"
                                        id="@($"all-{item.Id}")"
-                                       data-testid="@($"onboard-item-{item.Id}")"
+                                       data-testid="onboard-item" data-ingredient-id="@item.Id"
                                        checked="@_wanted.Contains(item.Id)"
                                        @onchange="e => Toggle(item.Id, e)" />
                                 <label class="btn btn-sm btn-outline-secondary shelf-pill" for="@($"all-{item.Id}")">
@@ -110,7 +110,7 @@
 
                 @if (!Visible.Any())
                 {
-                    <p class="text-body-secondary" data-testid="onboard-no-matches">
+                    <p class="text-body-secondary">
                         @Localizer["Shelf_NoMatches"]
                     </p>
                 }
@@ -131,7 +131,7 @@
 
                 @if (_step > 1)
                 {
-                    <button class="btn btn-outline-secondary" data-testid="onboard-back"
+                    <button class="btn btn-outline-secondary"
                             disabled="@_saving" @onclick="() => _step--">
                         @Localizer["Onboard_Back"]
                     </button>
@@ -154,7 +154,7 @@
             @* A wizard nobody can leave is a wizard people resent. It writes nothing and the
                catalog is one tap away regardless. *@
             <div class="mt-3">
-                <a class="btn btn-link btn-sm px-0" href="/cocktails" data-testid="onboard-skip">
+                <a class="btn btn-link btn-sm px-0" href="/cocktails">
                     @Localizer["Onboard_Skip"]
                 </a>
             </div>

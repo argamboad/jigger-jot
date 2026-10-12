@@ -254,26 +254,26 @@ public sealed class CatalogSeederTests(PostgresFixture fixture) : PostgresTestBa
     }
 
     [Fact]
-    public async Task Seed_KeepsBothRecipesWhenTwoSourcesShareAName()
+    public async Task Seed_ShipsOneRecipePerDrink()
     {
         await using (var db = Fixture.CreateContext())
             await Build(db).SeedAsync();
 
         await using var read = Fixture.CreateContext();
-        var fizzes = await read.Cocktails.IgnoreQueryFilters()
-            .Where(c => c.Name == "Gin Fizz")
+        var shared = await read.Cocktails.IgnoreQueryFilters()
+            .Where(c => c.TenantId == null)
             .Include(c => c.Source)
             .ToListAsync();
 
-        // Four names appear in both books. A 1930 Gin Fizz and the IBA's are different drinks that
-        // share a name, so the seed id is keyed on the source too — keyed on name alone, one would
-        // silently replace the other and the loss would show up as a missing drink, never an error.
-        Assert.Equal(2, fizzes.Count);
-        Assert.Equal(2, fizzes.Select(f => f.SourceId).Distinct().Count());
+        // JJ-043. Both books have a Gin Fizz; the IBA's ships and the Savoy's does not, and no two
+        // shipped recipes share a name — the build fails before that file could exist.
+        var fizz = Assert.Single(shared, c => c.Name == "Gin Fizz");
+        Assert.Equal("IBA Official Cocktails", fizz.Source!.Name);
+        Assert.Equal(shared.Count, shared.Select(c => c.Name.ToLowerInvariant()).Distinct().Count());
     }
 
     [Fact]
-    public async Task Seed_LeavesGlassAndMethodNull_WhenTheRecipeDidNotSay()
+    public async Task Seed_GivesEveryRecipeAGlass_AndLeavesAnUnstatedMethodNull()
     {
         await using (var db = Fixture.CreateContext())
             await Build(db).SeedAsync();
@@ -281,12 +281,10 @@ public sealed class CatalogSeederTests(PostgresFixture fixture) : PostgresTestBa
         await using var read = Fixture.CreateContext();
         var cocktails = await read.Cocktails.IgnoreQueryFilters().ToListAsync();
 
-        // JJ-034. A quarter of the catalog states no glass or states one that is not a glass type,
-        // and filling those in would be indistinguishable afterwards from a fact somebody wrote down.
-        Assert.Contains(cocktails, c => c.GlassTypeId is null);
+        // JJ-043: a glass is part of the cocktail, so a recipe whose source names none does not ship.
+        // The method is still the source's to state (JJ-034's other half), and three IBA specs do not.
+        Assert.All(cocktails, c => Assert.True(c.GlassTypeId is { } glass && glass != Guid.Empty, c.Name));
         Assert.Contains(cocktails, c => c.MethodId is null);
-        // ...but most DO say, so a mapping that quietly resolved nothing would not pass here.
-        Assert.True(cocktails.Count(c => c.GlassTypeId is not null) > cocktails.Count / 2);
     }
 
     [Fact]
@@ -324,7 +322,7 @@ public sealed class CatalogSeederTests(PostgresFixture fixture) : PostgresTestBa
 
         await using var read = Fixture.CreateContext();
         var lines = await read.CocktailIngredients.IgnoreQueryFilters()
-            .Where(l => l.Cocktail!.Name == "Hawaiian Cocktail")
+            .Where(l => l.Cocktail!.Name == "Hawaiian")
             .OrderBy(l => l.DisplayOrder)
             .Select(l => new { l.Amount, Unit = l.Unit!.Name })
             .ToListAsync();

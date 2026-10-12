@@ -14,9 +14,9 @@ namespace JiggerJot.Api.Tests.Outbox;
 
 /// <summary>
 /// v4 audit H7 (T23, JOBS-2 + C14, R90) and decision #6: an outbox row is a delivery instruction, not an archive.
-/// It used to keep its whole payload after delivery — recipient, body, base64 inline images — with
+/// It used to keep its whole payload after delivery — recipient, body, up to ~13 MiB of base64 attachment — with
 /// nothing ever purging it, a dead-lettered row had no terminal timestamp, and erasing an account left the mail
-/// still addressed to it (ported here from the platform's fix). Now a finished row (sent or dead) keeps only <c>{}</c>, dead rows are stamped, a
+/// still addressed to it. Now a finished row (sent or dead) keeps only <c>{}</c>, dead rows are stamped, a
 /// scheduled job deletes finished rows after <c>Outbox:RetentionDays</c> (30), and erasure removes the user's
 /// pending mail. The one exception is a handler that declares its payload a record — the platform broadcast, the
 /// only attribution of who sent a platform-wide announcement — which is neither cleared nor purged.
@@ -113,8 +113,8 @@ public class OutboxRetentionTests(PostgresFixture fixture) : PostgresTestBase(fi
             db.Users.Add(new User { Id = userId, Email = "bob+bank@x.com" });
             await db.SaveChangesAsync();
         }
-        var logo = new EmailInlineImage("logo", "logo.png", [0x89, 0x50, 0x4E, 0x47], "image/png");
-        var toUser = await SeedAsync(Email("Bob+Bank@X.com", [logo])); // address as the sender typed it
+        var attachment = new EmailAttachment("statement.pdf", [0x25, 0x50, 0x44, 0x46], "application/pdf");
+        var toUser = await SeedAsync(Email("Bob+Bank@X.com", [attachment])); // address as the sender typed it
         var toOther = await SeedAsync(Email("alice@x.com"));
         var mentionsUser = await SeedAsync(Email("alice@x.com", subject: "bob+bank@x.com")); // the address, but not as recipient
 
@@ -123,7 +123,7 @@ public class OutboxRetentionTests(PostgresFixture fixture) : PostgresTestBase(fi
 
         await using var read = Fixture.CreateContext();
         var left = await read.Set<OutboxMessage>().Select(m => m.Id).ToListAsync();
-        Assert.DoesNotContain(toUser, left);  // gone, image bytes with it
+        Assert.DoesNotContain(toUser, left);  // gone, attachment bytes with it
         Assert.Contains(toOther, left);
         Assert.Contains(mentionsUser, left);  // only the recipient field counts, not another field holding the address
     }
@@ -197,10 +197,10 @@ public class OutboxRetentionTests(PostgresFixture fixture) : PostgresTestBase(fi
         return row;
     }
 
-    private static OutboxMessage Email(string to, IReadOnlyList<EmailInlineImage>? images = null, string subject = "s")
+    private static OutboxMessage Email(string to, IReadOnlyList<EmailAttachment>? attachments = null, string subject = "s")
     {
         var row = Pending(OutboxEmailSender.MessageType);
-        row.Payload = JsonSerializer.Serialize(new EmailOutboxPayload(to, subject, "<p>b</p>", images));
+        row.Payload = JsonSerializer.Serialize(new EmailOutboxPayload(to, subject, "<p>b</p>", null, attachments));
         return row;
     }
 }

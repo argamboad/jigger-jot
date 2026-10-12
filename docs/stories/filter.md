@@ -41,7 +41,7 @@ know which of the three their word happens to be. Matching only the name would f
 matching only the category would fail the third.
 
 **The dropdown options come from the catalog, not from the lookup tables.** The curated lookups hold
-nineteen glasses and ten methods; the shipped 31-recipe catalog uses a fraction of them, and a filter
+nineteen glasses and ten methods; the catalog shipped then (31 recipes) used a fraction of them, and a filter
 whose options mostly return nothing reads as broken rather than as precise. Deriving them from the
 cocktails the household can see also means the lists grow by themselves when the full catalog is
 switched on, and that a household's own cocktails contribute their glasses while another's never do.

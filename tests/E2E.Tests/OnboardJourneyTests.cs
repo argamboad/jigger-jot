@@ -31,7 +31,7 @@ public class OnboardJourneyTests : E2ETestBase
         // Step one is the suggestions, and they arrive ticked — answering "which of these is wrong"
         // is the whole reason this is faster than the shelf.
         await Expect(Page.GetByTestId("onboard-staples")).ToBeVisibleAsync(new() { Timeout = 30_000 });
-        var suggestions = Page.Locator("[data-testid^='onboard-item-']");
+        var suggestions = Page.Locator("[data-testid='onboard-item']");
         var suggested = await suggestions.CountAsync();
         Assert.That(suggested, Is.GreaterThan(0), "the wizard suggested nothing to start from");
         await Expect(suggestions.First).ToBeCheckedAsync();

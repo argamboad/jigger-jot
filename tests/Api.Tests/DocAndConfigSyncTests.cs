@@ -146,7 +146,7 @@ public class DocAndConfigSyncTests
     {
         // .env.example documents every key an operator can set, and ends with the limits they cannot: a number
         // compiled into the code is invisible to whoever sizes a deployment unless it is written down there. The
-        // client's keep-alive timings shipped unlisted (on the platform, the attachment caps too). A limit is a numeric or
+        // 7 MiB attachment cap and the client's keep-alive timings shipped unlisted. A limit is a numeric or
         // TimeSpan constant in Core or the client's auth code whose name says it bounds something.
         var root = RepoRoot();
         var envExample = File.ReadAllText(Path.Combine(root, ".env.example")).ReplaceLineEndings("\n");
@@ -160,7 +160,7 @@ public class DocAndConfigSyncTests
             .SelectMany(f => CompiledInLimit.Matches(File.ReadAllText(f)).Select(m => m.Groups[1].Value))
             .Distinct()
             .ToList();
-        Assert.True(limits.Count >= 6, $"probe: only {limits.Count} compiled-in limits found ({string.Join(", ", limits)})"); // six: this app sends no email attachments, so the platform's attachment caps are not here
+        Assert.True(limits.Count >= 8, $"probe: only {limits.Count} compiled-in limits found ({string.Join(", ", limits)})");
 
         var unlisted = limits.Where(name => !Regex.IsMatch(block, $@"\b{name}\b")).ToList();
         Assert.True(unlisted.Count == 0,

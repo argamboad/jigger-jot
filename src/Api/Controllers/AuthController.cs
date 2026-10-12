@@ -318,7 +318,7 @@ public class AuthController(
 
         var emailBody = BrandedEmail.MagicLink(link, passwordlessSettings.MagicLinkLifespanMinutes,
             BrandedEmail.ResolveCulture(req.Culture));
-        await emailSender.SendAsync(email, emailBody.Subject, emailBody.Html, emailBody.InlineImages, cancellationToken);
+        await emailSender.SendAsync(email, emailBody.Subject, emailBody.Html, emailBody.InlineImages, cancellationToken: cancellationToken);
 
         return Ok();
     }
@@ -369,7 +369,7 @@ public class AuthController(
 
         var emailBody = BrandedEmail.Otp(code, passwordlessSettings.OtpLifespanMinutes,
             BrandedEmail.ResolveCulture(req.Culture));
-        await emailSender.SendAsync(email, emailBody.Subject, emailBody.Html, emailBody.InlineImages, cancellationToken);
+        await emailSender.SendAsync(email, emailBody.Subject, emailBody.Html, emailBody.InlineImages, cancellationToken: cancellationToken);
 
         return Ok();
     }

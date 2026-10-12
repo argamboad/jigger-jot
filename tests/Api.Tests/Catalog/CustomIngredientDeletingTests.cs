@@ -4,6 +4,7 @@ using Microsoft.Extensions.Time.Testing;
 using JiggerJot.Api.Features.Catalog;
 using JiggerJot.Api.Features.Inventory;
 using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Catalog;
 using JiggerJot.Core.Entities;
 using JiggerJot.Infrastructure.Persistence;
 using JiggerJot.Infrastructure.Persistence.Seed;
@@ -57,8 +58,8 @@ public sealed class CustomIngredientDeletingTests(PostgresFixture fixture) : Pos
         var authoring = new CocktailAuthoringHandler(
             new EfRepository<Cocktail>(db), new EfRepository<Ingredient>(db), new EfRepository<Unit>(db),
             new EfRepository<GlassType>(db), new EfRepository<Method>(db), new EfRepository<CocktailIngredient>(db),
-            new UserRepository(db), new TestCurrentTenant { TenantId = _household });
-        var result = await authoring.CreateAsync(new AuthorCocktailRequest(cocktail, null, null, ServingType.FullDrink, null,
+            new EfRepository<UserUnitPreference>(db), new TestCurrentTenant { TenantId = _household });
+        var result = await authoring.CreateAsync(new AuthorCocktailRequest(cocktail, SeedId.For("glass", "Cocktail glass"), null, ServingType.FullDrink, null,
             [new AuthorLineRequest(ingredient, null, null, true, RecipeRole.Syrup, null)]), default);
         Assert.Equal(AuthorCocktailOutcome.Created, result.Outcome);
     }

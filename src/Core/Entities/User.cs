@@ -24,18 +24,6 @@ public class User
     /// </summary>
     public string? Theme { get; set; }
 
-    /// <summary>
-    /// Which measurement system this user reads recipes in (JJ-008). JiggerJot's ONLY per-user
-    /// preference — everything else about a drink belongs to the household — so two members of one
-    /// household can read the same recipe in different units.
-    /// <para>
-    /// Display only: every volume is stored in ounces (JJ-041) and read in this system on the way out.
-    /// Teaspoons and neutral units (a dash, a barspoon) are never converted whatever this says. Null
-    /// means the user never chose, and reads as imperial.
-    /// </para>
-    /// </summary>
-    public UnitSystem? PreferredUnitSystem { get; set; }
-
     // Tenant membership is the source of truth for which tenant a user belongs to;
     // resolve it via TenantMembership (one tenant per user). See ITenantRepository.
 

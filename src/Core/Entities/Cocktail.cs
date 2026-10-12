@@ -27,15 +27,14 @@ public class Cocktail : ISharedOrTenantScoped
     public required string Name { get; set; }
 
     /// <summary>
-    /// Nullable because a recipe may simply not say (JJ-034). A quarter of the seeded catalog either
-    /// states no glass or states one that is not a glass type — the Savoy's "medium size glass" and
-    /// plain "glass" are 165 recipes on their own — and picking one for them would be inventing a
-    /// fact. Null reads as "not specified" and filters as such.
+    /// Required (JJ-043): the glass is part of the cocktail. A seeded recipe whose source names no
+    /// glass does not ship rather than ship with a guess, and a household cannot save one without it.
     /// </summary>
-    public Guid? GlassTypeId { get; set; }
+    public Guid GlassTypeId { get; set; }
     public GlassType? GlassType { get; set; }
 
-    /// <summary>Nullable for the same reason as <see cref="GlassTypeId"/> (JJ-034).</summary>
+    /// <summary>Nullable because a recipe may simply not say (JJ-034): a method is the source's to
+    /// state, and picking one for it would be inventing a fact.</summary>
     public Guid? MethodId { get; set; }
     public Method? Method { get; set; }
 

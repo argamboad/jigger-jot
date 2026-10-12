@@ -22,7 +22,8 @@ public class SettingsLayoutTests : ComponentTestBase
         Http.On(HttpMethod.Get, "/api/auth/logins", """[{"provider":"google"}]""");
         Http.On(HttpMethod.Get, "/api/notifications/preferences", """{"inApp":true,"email":false}""");
         Http.On(HttpMethod.Get, "/api/auth/mfa", """{"enabled":false}""");
-        Http.On(HttpMethod.Get, "/api/auth/me", """{"preferredUnitSystem":null}""");
+        Http.On(HttpMethod.Get, "/api/auth/me", "{}");
+        Http.On(HttpMethod.Get, "/api/unit-preference", """{"unitSystem":"Imperial","isDefault":true}""");
         var page = Render<Settings>();
         // Wait for the provider rows, which arrive after the probe and the logins load.
         page.WaitForAssertion(() => page.Find(".settings-row"));
@@ -85,8 +86,9 @@ public class SettingsLayoutTests : ComponentTestBase
     public async Task TheSegmentedUnitControl_WritesTheSamePreference()
     {
         await SignInAsync();
-        Http.On(HttpMethod.Get, "/api/auth/me", """{"preferredUnitSystem":null}""");
-        Http.On(HttpMethod.Put, "/api/auth/unit-system", "{}");
+        Http.On(HttpMethod.Get, "/api/auth/me", "{}");
+        Http.On(HttpMethod.Get, "/api/unit-preference", """{"unitSystem":"Imperial","isDefault":true}""");
+        Http.On(HttpMethod.Put, "/api/unit-preference", "{}");
 
         var cut = Render<UnitSwitcher>(ps => ps.Add(p => p.Segmented, true));
         cut.WaitForAssertion(() => cut.Find("#unit-choice-Metric"));
@@ -94,7 +96,7 @@ public class SettingsLayoutTests : ComponentTestBase
         await cut.Find("#unit-choice-Metric").ChangeAsync(new() { Value = "Metric" });
 
         cut.WaitForAssertion(() => Assert.Contains(Http.Requests, r =>
-            r.Method == HttpMethod.Put && r.RequestUri!.AbsolutePath == "/api/auth/unit-system"));
+            r.Method == HttpMethod.Put && r.RequestUri!.AbsolutePath == "/api/unit-preference"));
         Assert.True(cut.Find("#unit-choice-Metric").HasAttribute("checked"));
     }
 
@@ -102,7 +104,8 @@ public class SettingsLayoutTests : ComponentTestBase
     public async Task AReaderWhoNeverChose_SeesImperialSelected()
     {
         await SignInAsync();
-        Http.On(HttpMethod.Get, "/api/auth/me", """{"preferredUnitSystem":null}""");
+        Http.On(HttpMethod.Get, "/api/auth/me", "{}");
+        Http.On(HttpMethod.Get, "/api/unit-preference", """{"unitSystem":"Imperial","isDefault":true}""");
 
         var cut = Render<UnitSwitcher>(ps => ps.Add(p => p.Segmented, true));
 

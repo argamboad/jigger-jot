@@ -19,7 +19,7 @@ public sealed class CocktailDetailTests(PostgresFixture fixture) : PostgresTestB
 {
     private static CocktailDetailHandler Handler(AppDbContext db) =>
         new(new EfRepository<Cocktail>(db),
-            new UserRepository(db),
+            new EfRepository<UserUnitPreference>(db),
             new EfRepository<TenantInventory>(db),
             new EfRepository<IngredientSubstitution>(db));
 
@@ -38,8 +38,9 @@ public sealed class CocktailDetailTests(PostgresFixture fixture) : PostgresTestB
     private async Task<Guid> UserAsync(UnitSystem? preference)
     {
         await using var db = Fixture.CreateContext();
-        var user = new User { Email = $"detail-{Guid.CreateVersion7():N}@example.com", PreferredUnitSystem = preference };
+        var user = new User { Email = $"detail-{Guid.CreateVersion7():N}@example.com" };
         db.Users.Add(user);
+        if (preference is { } chosen) db.Add(new UserUnitPreference { UserId = user.Id, UnitSystem = chosen, CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow });
         await db.SaveChangesAsync();
         return user.Id;
     }

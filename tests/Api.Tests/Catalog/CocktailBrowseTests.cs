@@ -70,16 +70,18 @@ public sealed class CocktailBrowseTests(PostgresFixture fixture) : PostgresTestB
         await using var db = Fixture.CreateContext(_household);
         var handler = Handler(db);
 
-        // Half the catalog, rounded UP, so two pages cover it exactly however many there are. Rounding
-        // down leaves an orphan on page three and the assertion below counts one short.
-        var pageSize = Math.Max(1, (SeededCount + 1) / 2);
-        var first = await handler.BrowseAsync(new CocktailBrowseRequest(null, 1, pageSize), default);
-        var second = await handler.BrowseAsync(new CocktailBrowseRequest(null, 2, pageSize), default);
+        // Every page at the largest size the endpoint allows, until one comes back empty. The order is
+        // name then id, so a page boundary can never split a tie and repeat or drop a row: the curated
+        // catalog has no repeated name (JJ-043), but a household's own recipe can share one with it.
+        var ids = new List<Guid>();
+        for (var page = 1; ; page++)
+        {
+            var items = (await handler.BrowseAsync(
+                new CocktailBrowseRequest(null, page, CocktailBrowseRequest.MaxPageSize), default)).Items;
+            if (items.Count == 0) break;
+            ids.AddRange(items.Select(i => i.Id));
+        }
 
-        // The catalog holds a name that appears in both books and one that appears twice within a
-        // single book, so an ordering keyed on name alone is not a total order and pages would
-        // quietly overlap. This is the assertion that catches it.
-        var ids = first.Items.Concat(second.Items).Select(i => i.Id).ToList();
         Assert.Equal(SeededCount, ids.Count);
         Assert.Equal(SeededCount, ids.Distinct().Count());
     }
@@ -141,19 +143,18 @@ public sealed class CocktailBrowseTests(PostgresFixture fixture) : PostgresTestB
     }
 
     [Fact]
-    public async Task Browse_TellsTheTwoGinFizzesApart_ByTheirSource()
+    public async Task Browse_ShowsADrinkBothBooksHaveOnce_CreditedToTheIba()
     {
         await SeedAsync();
 
         await using var db = Fixture.CreateContext(_household);
         var page = await Handler(db).BrowseAsync(new CocktailBrowseRequest("Gin Fizz", 1, 20), default);
 
-        // Two drinks, one name, different books. Without the source in the summary the browse list
-        // shows a duplicate row and no way to tell which is which.
-        var fizzes = page.Items.Where(i => i.Name.Equals("Gin Fizz", StringComparison.OrdinalIgnoreCase)).ToList();
-        Assert.Equal(2, fizzes.Count);
-        Assert.Equal(2, fizzes.Select(f => f.Source).Distinct().Count());
-        Assert.All(fizzes, f => Assert.False(string.IsNullOrWhiteSpace(f.Source)));
+        // Both books have a Gin Fizz; one recipe per drink, and the IBA's is the one (JJ-043). Every row
+        // still names its source, which is how a reader tells the IBA's from the Savoy's elsewhere.
+        var fizz = Assert.Single(page.Items, i => i.Name.Equals("Gin Fizz", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal("IBA Official Cocktails", fizz.Source);
+        Assert.All(page.Items, i => Assert.False(string.IsNullOrWhiteSpace(i.Source)));
     }
 
     [Fact]

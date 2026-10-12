@@ -451,6 +451,8 @@
   <data name="Cocktail_FieldServing" xml:space="preserve"><value>Se sirve como</value></data>
   <data name="Cocktail_FieldInstructions" xml:space="preserve"><value>Instrucciones</value></data>
   <data name="Cocktail_NotStated" xml:space="preserve"><value>Sin indicar</value></data>
+  <data name="Cocktail_ChooseGlass" xml:space="preserve"><value>Elige una copa</value></data>
+  <data name="Marga_GlassRequired" xml:space="preserve"><value>Un Martini sin su copa es solo ginebra fría. Elige una.</value></data>
   <data name="Cocktail_LineIngredient" xml:space="preserve"><value>Ingrediente</value></data>
   <data name="Cocktail_LineAmount" xml:space="preserve"><value>Cantidad</value></data>
   <data name="Cocktail_LineUnit" xml:space="preserve"><value>Unidad</value></data>

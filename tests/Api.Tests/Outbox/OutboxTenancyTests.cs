@@ -15,9 +15,9 @@ namespace JiggerJot.Api.Tests.Outbox;
 
 /// <summary>
 /// v4 audit H6 (T22, JOBS-2, ADV-P4-7, R91/R145): the outbox is platform infrastructure, but what it carries is
-/// often a household's content — an invitation, a notification email, a webhook body. Emails were
-/// enqueued with no tenant id and no dissolve path touched the table, so the platform audit's Phase 4 found a
-/// dissolved household's mail and recipient still sitting in the outbox (ported here with the fix). Now the email sender stamps the ambient tenant, and
+/// often a household's content — an invitation, an export with its attachment, a webhook body. Emails were
+/// enqueued with no tenant id and no dissolve path touched the table, so Phase 4 found a dissolved household's
+/// document and recipient still sitting in the outbox. Now the email sender stamps the ambient tenant, and
 /// <see cref="OutboxDataContributor"/> removes a dissolved tenant's rows of every type that dissolves with its
 /// tenant. Which types do is each handler's own declaration: <c>billing.cancel</c> is queued BY the dissolve and
 /// must still run afterwards, or Stripe keeps charging a household that no longer exists.
@@ -31,7 +31,7 @@ public class OutboxTenancyTests(PostgresFixture fixture) : PostgresTestBase(fixt
         var household = Guid.CreateVersion7();
         await using (var db = Fixture.CreateContext(household))
             await new OutboxEmailSender(new EfOutbox(db, TimeProvider.System), db, new TestCurrentTenant { TenantId = household })
-                .SendAsync("member@x.com", "You're invited", "<p>join our bar</p>");
+                .SendAsync("member@x.com", "Your export", "<p>attached</p>");
 
         // A sign-in code goes out before anyone has a tenant — nothing to stamp.
         await using (var db = Fixture.CreateContext())
@@ -83,7 +83,7 @@ public class OutboxTenancyTests(PostgresFixture fixture) : PostgresTestBase(fixt
         // fails here until it is listed with the answer and the reason.
         var expected = new Dictionary<string, bool>
         {
-            [OutboxEmailSender.MessageType] = true,              // the household's mail: recipient, body, inline images
+            [OutboxEmailSender.MessageType] = true,              // the household's mail: recipient, body, attachments
             [WebhookOutboxHandler.MessageType] = true,           // the household's event body, for a subscription the dissolve deletes
             [BillingCancelOutboxHandler.MessageType] = false,    // queued BY the dissolve: must still cancel the Stripe subscription
             [AdminBroadcastOutboxHandler.MessageType] = false,   // platform-wide; never any one household's

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using JiggerJot.Api.Features.Catalog;
+using JiggerJot.Api.Features.Inventory;
 using JiggerJot.Api.Tests.Infrastructure;
 using JiggerJot.Core.Entities;
 using JiggerJot.Infrastructure.Persistence;
@@ -29,7 +30,7 @@ public sealed class CocktailForkTests(PostgresFixture fixture) : PostgresTestBas
 
     private static CocktailDetailHandler Detail(AppDbContext db) =>
         new(new EfRepository<Cocktail>(db),
-            new UserRepository(db),
+            new EfRepository<UserUnitPreference>(db),
             new EfRepository<TenantInventory>(db),
             new EfRepository<IngredientSubstitution>(db));
 
@@ -280,7 +281,8 @@ public sealed class CocktailForkTests(PostgresFixture fixture) : PostgresTestBas
             await new CatalogDataContributor(
                 new EfRepository<Ingredient>(db),
                 new EfRepository<Cocktail>(db),
-                new EfRepository<CocktailIngredient>(db)).WipeAsync(_household);
+                new EfRepository<CocktailIngredient>(db),
+                new HouseholdIngredients(new EfRepository<Ingredient>(db))).WipeAsync(_household);
 
         // The platform's dissolution canary cannot see either of these tables — a nullable TenantId is
         // invisible to it (JJ-031) — so this is the app's own proof that a dissolved household takes

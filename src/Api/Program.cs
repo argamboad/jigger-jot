@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Extensions;
@@ -7,15 +7,11 @@ using JiggerJot.Api;
 using JiggerJot.Api.Authentication;
 using JiggerJot.Api.Configuration;
 using JiggerJot.Api.Endpoints;
-using JiggerJot.Api.Features.Catalog;
-using JiggerJot.Api.Features.Inventory;
-using JiggerJot.Api.Features.Notes;
 using JiggerJot.Api.Observability;
 using JiggerJot.Api.Services;
 using JiggerJot.Core.Abstractions;
 using JiggerJot.Infrastructure;
 using JiggerJot.Infrastructure.Persistence;
-using JiggerJot.Infrastructure.Persistence.Seed;
 
 // Local dev: load secrets/config from the repo-root .env (the single local source of truth —
 // see docs/DECISIONS.md), walking up from the working dir; a no-op without one (production uses real env vars)
@@ -118,23 +114,10 @@ builder.Services.AddPlatformAdminServices(builder.Configuration);
 builder.Services.AddRbacServices();
 builder.Services.AddBillingServices();
 
-// 🗑️ DELETE-ME: sample feature slice (Features/Notes) — the reference for how a vertical
-// slice wires up: a handler + a tenant-data contributor, with endpoints mapped below. Kept inline
-// here (not in ServiceRegistrationExtensions) because only Program.cs may reference Features.* (R8).
-builder.Services.AddScoped<NotesHandler>();
-builder.Services.AddScoped<ITenantDataContributor, NotesDataContributor>();
-
-// JiggerJot domain (epic CKTL): the tenant-data hooks for the household's own catalog and its shelf.
-// The catalog one is load-bearing beyond dissolve — the platform's arch canary keys off a NON-nullable
-// TenantId, so it cannot see the ISharedOrTenantScoped tables at all (JJ-031).
-builder.Services.AddScoped<ITenantDataContributor, CatalogDataContributor>();
-builder.Services.AddScoped<CocktailBrowseHandler>();
-builder.Services.AddScoped<CocktailDetailHandler>();
-builder.Services.AddScoped<CocktailForkHandler>();
-builder.Services.AddScoped<CocktailAuthoringHandler>();
-builder.Services.AddScoped<InventoryHandler>();
-builder.Services.AddScoped<IngredientRemovalHandler>();
-builder.Services.AddScoped<ITenantDataContributor, InventoryDataContributor>();
+// The app's half of composition (Arch A1, R159): every slice's services, registered in AppComposition.cs — the
+// one file outside Features/ that may name a slice (R8 as amended). This file is identical in the platform and
+// every app; a slice never edits it.
+builder.Services.AddAppServices(builder.Configuration);
 
 // Caches + session (LinkTokenService uses IMemoryCache; session backed by distributed cache).
 builder.Services.AddMemoryCache();
@@ -244,17 +227,13 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// The curated global lookups (SEED-1, JJ-022): glass types, methods, units and ingredient categories.
-// After Migrate() because it needs the tables, and BEFORE anything serves, because the catalog
-// vocabulary is what every recipe row points at. Idempotent — a boot with nothing to add is a count
-// query per lookup and no writes. The scope carries no ambient household, which is both what the RLS
-// insert policy requires for a shared row and what CatalogSeeder asserts before it writes (JJ-031).
-if (app.Configuration.GetValue(CatalogSeeder.EnabledConfigKey, true))
+// App startup tasks (Arch A1, IStartupTask): work that needs the schema and must precede the first request — a
+// curated catalog seed, an app-owned backfill — registered in AppComposition, run here in registration order in
+// one fresh scope (no ambient tenant). The platform registers none; the loop is the seam.
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    if (db.Database.IsRelational())
-        await scope.ServiceProvider.GetRequiredService<CatalogSeeder>().SeedAsync();
+    foreach (var task in scope.ServiceProvider.GetServices<IStartupTask>())
+        await task.RunAsync(app.Lifetime.ApplicationStopping);
 }
 
 // RLS posture guard (ADR-020, config-gated; prod activation enables it): refuse to start if the
@@ -322,7 +301,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // HTTPS redirect is a production concern. In Development we deliberately skip it so the
-// Android emulator can talk cleartext HTTP to the host (http://10.0.2.2:5438) without the
+// Android emulator can talk cleartext HTTP to the host (10.0.2.2, the API's http port) without the
 // request being 307'd to a port/cert it can't reach. Native auth uses body tokens (no
 // cookies), so none of the web client's HTTPS/SameSite requirements apply to that leg.
 if (!app.Environment.IsDevelopment())
@@ -353,18 +332,20 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check 
 // Deployed build identity (DEPLOY-3). Anonymous; returns the commit this instance is running, from the
 // platform's env (Render sets RENDER_GIT_COMMIT) or an explicit APP_BUILD_COMMIT, else "unknown". The
 // post-deploy smoke polls this to wait for the NEW build to actually be live before asserting — the old
-// instance keeps serving during a build, so health alone can't tell old from new.
+// instance keeps serving during a build, so health alone can't tell old from new. `platform` is the
+// perezosoft-platform commit this build is synced to (Arch A2: platform-stamp.json, copied beside the
+// binaries; "platform" on the platform itself).
+var platformCommit = PlatformStamp.ReadCommit(Path.Combine(AppContext.BaseDirectory, "platform-stamp.json"));
 app.MapGet("/api/version", () => Results.Ok(new
 {
     commit = Environment.GetEnvironmentVariable("APP_BUILD_COMMIT")
              ?? Environment.GetEnvironmentVariable("RENDER_GIT_COMMIT")
              ?? "unknown",
+    platform = platformCommit,
 })).AllowAnonymous().WithTags("Platform");
 
-// 🗑️ DELETE-ME: sample feature slice endpoints (remove with Features/Notes).
-app.MapNotes();
-app.MapCocktails();
-app.MapInventory();
+// The app's endpoint groups (Arch A1): AppComposition.MapAppEndpoints, each through MapTenantFeatureGroup (R6).
+app.MapAppEndpoints();
 // Billing is a platform controller (BillingController) — auto-mapped by MapControllers above.
 
 // PUBAPI (ADR-015): map key management + the public routes only when enabled — off ⇒ they don't exist.

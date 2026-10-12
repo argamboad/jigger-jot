@@ -71,11 +71,10 @@ public static class RlsDdl
         ];
     }
 
-    // ── JiggerJot addition (JJ-031) ─────────────────────────────────────────────────────────────
-    // The platform's policy above cannot express a shared catalog row: it tests TenantId = current,
-    // so a row with a NULL TenantId matches nothing and the seeded catalog would be invisible at the
-    // database. ISharedOrTenantScoped tables therefore get their own, deliberately ASYMMETRIC set of
-    // policies — reads admit the shared catalog, writes never do.
+    // ── The shared-or-tenant shape (Arch A4, ISharedOrTenantScoped) ──────────────────────────────────────────────
+    // The policy above cannot express a shared row: it tests TenantId = current, so a row with a NULL TenantId
+    // matches nothing and a seeded catalog would be invisible at the database. ISharedOrTenantScoped tables get
+    // their own, deliberately ASYMMETRIC set of policies — reads admit the shared rows, writes never do.
 
     /// <summary>The four command-scoped policy names on a shared-or-tenant table, in DDL order.</summary>
     public static readonly IReadOnlyList<string> SharedOrTenantPolicyNames =
@@ -103,18 +102,16 @@ public static class RlsDdl
         SharedOrTenantTables(model).SelectMany(t => SharedOrTenantStatementsFor(t.Table, t.TenantColumn)).ToList();
 
     /// <summary>
-    /// The DDL for one shared-or-tenant table (JJ-031). Four command-scoped policies rather than one
-    /// <c>FOR ALL</c>, because reading and writing a shared row are not the same question:
+    /// The DDL for one shared-or-tenant table. Four command-scoped policies rather than one <c>FOR ALL</c>, because
+    /// reading and writing a shared row are not the same question:
     /// <list type="bullet">
-    /// <item><b>SELECT</b> admits shared rows (<c>TenantId IS NULL</c>) plus the household's own — this is
-    /// the whole point of the shape.</item>
-    /// <item><b>INSERT / UPDATE / DELETE</b> admit ONLY the household's own. A single <c>FOR ALL</c> policy
-    /// would have let a household DELETE the shared catalog, since <c>DELETE</c> is checked against
-    /// <c>USING</c> and <c>WITH CHECK</c> never applies to it. That is the read-only-catalog rule
-    /// (JJ-002) enforced at the database, not just in code.</item>
+    /// <item><b>SELECT</b> admits shared rows (<c>TenantId IS NULL</c>) plus the tenant's own — the point of the shape.</item>
+    /// <item><b>INSERT / UPDATE / DELETE</b> admit ONLY the tenant's own. A single <c>FOR ALL</c> policy would let a
+    /// tenant DELETE the shared rows, since <c>DELETE</c> is checked against <c>USING</c> and <c>WITH CHECK</c> never
+    /// applies to it. That is the read-only-catalog rule enforced at the database, not just in code.</item>
     /// </list>
-    /// Seeding and curating the shared catalog is therefore a bypass-GUC operation by construction.
-    /// Fail-closed exactly like the platform policy: an unset or empty tenant GUC matches no owned rows.
+    /// Seeding and curating the shared rows is therefore a bypass-GUC operation by construction (a tenant-less context).
+    /// Fail-closed exactly like the tenant policy: an unset or empty tenant GUC matches no owned rows.
     /// </summary>
     public static IReadOnlyList<string> SharedOrTenantStatementsFor(string table, string tenantColumn)
     {

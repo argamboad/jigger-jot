@@ -131,7 +131,7 @@ public class MargaBottlePagingTests : ComponentTestBase
 
     private static string PillClasses(IRenderedComponent<Shelf> page, string ingredientId)
     {
-        var input = page.Find($"[data-testid='shelf-item-{ingredientId}']");
+        var input = page.Find($"[data-testid='shelf-item'][data-ingredient-id='{ingredientId}']");
         return page.Find($"label[for='{input.GetAttribute("id")}']").ClassName ?? "";
     }
 
@@ -165,7 +165,7 @@ public class MargaBottlePagingTests : ComponentTestBase
         Assert.Equal("Marga_BottlePosition[2, 3]", Position(page));
 
         // A tick re-ranks the bottles; staying on "2 of 3" would point at whatever is second now.
-        page.Find($"[data-testid='shelf-item-{Absinthe}']").Change(true);
+        page.Find($"[data-testid='shelf-item'][data-ingredient-id='{Absinthe}']").Change(true);
 
         // The recount waits for the ticking to go quiet, on the injected clock (R148): the wait is stepped, not slept.
         page.WaitForAssertion(() =>

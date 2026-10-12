@@ -10,22 +10,28 @@ resolve to a curated ingredient, a known unit and a known glass and method, or b
 reason this script names out loud. A recipe that quietly loses a line is a recipe that quietly stops
 being makeable.
 
-Three judgements are worth knowing about before reading the code.
+The shipped catalog is CURATED (JJ-043): one recipe per drink. Four judgements are worth knowing
+about before reading the code.
 
-**Glass and method may be absent (JJ-034).** A quarter of the catalog states no glass or states one
-that is not a glass type - the Savoy's "medium size glass" and bare "glass" are 165 recipes between
-them. Those become null. Mapping them to something plausible would put a fact in the database that
-nobody wrote down.
+**The IBA list wins where both books have a drink.** It is the accepted modern spec. The Savoy adds
+the drinks the IBA does not have. Which Savoy recipe is "the same drink" is decided by hand, drink by
+drink, in seed/overlap.json - a name match would delete real drinks (Corpse Reviver No. 1 is not the
+IBA #2) - and the build fails on any name-match candidate that file does not settle.
+
+**A glass is required, period (JJ-043, retiring JJ-034's "optional").** Every IBA drink ships, and
+every one ends up with a glass: from the source's glass, from its own instructions where they name one
+(GLASS_FROM_TEXT, each phrase checked to occur), or, for five drinks whose source names none, from a
+curator's call that is labelled as one (GLASS_ASSIGNED). A Savoy recipe ships only if its source
+names a glass; "medium size glass" and bare "glass" are not glasses, and nothing is guessed for it.
+
+**A Savoy recipe must be a usable spec to ship.** A glass, a method, at least two required lines,
+and an amount on every required line. That leaves out the prose recipes recovered from tag lists and
+the book's how-to-make-a-Cobbler entries. The excluded list, with reasons, is written to
+seed/savoy_excluded.txt so a reviewer can read what did not ship.
 
 **Proportional amounts are stored as authored (JJ-007).** A 1930 recipe reading "2/3 Absinthe, 1/6
-Gin" has no absolute volume in it, so the fraction is stored against the neutral `part` unit. The
-tempting alternative - scaling to a common denominator so it reads "4 parts / 1 part" - preserves the
-ratio exactly and is genuinely nicer to read, but it changes the stored number, and JJ-007 says the
-stored number is what the author wrote. Rendering a decimal back as a fraction is a display problem.
-
-**Four names appear in both books.** Champagne Cocktail, Gin Fizz, John Collins and Singapore Sling.
-Both are kept. They are different drinks that share a name, the source column is what tells them
-apart, and the cocktail name index is deliberately not unique.
+Gin" has no absolute volume in it, so the fraction is stored against the neutral `part` unit; the
+seeder turns it into ounces (JJ-041).
 
     python seed/build_cocktails.py
 """
@@ -45,45 +51,60 @@ LOOKUPS_PATH = ROOT / "src/Infrastructure/Persistence/Seed/lookups.json"
 OUT_PATH = ROOT / "src/Infrastructure/Persistence/Seed/cocktails.json"
 
 
-# ── the starter set ─────────────────────────────────────────────────────────────────────────────
-# The extraction produces 969 recipes. That is the right eventual catalog and the wrong thing to
-# develop against: every test assertion ends up being a claim about nine hundred rows rather than
-# about behaviour, seeding costs seconds on every run, and a change to the data breaks tests that had
-# nothing to do with it. So the shipped catalog is a small set by default, and the full one is a flag
-# away:
-#
-#     python seed/build_cocktails.py --full
-#
-# The picks are not arbitrary. Between them they cover every SHAPE the model has to handle, which is
-# what the tests actually need:
-#
-#   metric, absolute amounts ................. every IBA drink
-#   proportional 1930 amounts ("2/3") ........ absinthe-special-cocktail
-#   ...and whole ones ("4 Parts") ............ hawaiian-cocktail
-#   unmeasured lines from a tag list ......... alfonso-cocktail
-#   one name in two books .................... gin-fizz (IBA + Savoy)
-#   one name twice in ONE book ............... mr-manhattan-cocktail + -2
-#   no glass and no method recorded .......... martini-special-cocktail
-#   an optional garnish line ................. mojito, old-fashioned
-#   a substitution in play ................... white-lady (Cointreau ↔ Curaçao)
-#   modern spirits Savoy never had ........... margarita, espresso-martini, cosmopolitan
-#
-# Enough drinks to page (20 per page) and few enough to reason about.
-STARTER_SET = {
-    "iba": [
-        "negroni", "dry-martini", "white-lady", "daiquiri", "margarita", "espresso-martini",
-        "mojito", "manhattan", "whiskey-sour", "cosmopolitan", "boulevardier", "last-word",
-        "gin-fizz", "old-fashioned", "americano", "aviation", "sidecar", "mai-tai",
-        "caipirinha", "paloma", "bloody-mary", "french-75", "sazerac", "tommys-margarita",
-    ],
-    "savoy": [
-        "gin-fizz", "mr-manhattan-cocktail", "mr-manhattan-cocktail-2",
-        "absinthe-special-cocktail", "alfonso-cocktail", "martini-special-cocktail",
-        "hawaiian-cocktail",
-    ],
+OVERLAP_PATH = ROOT / "seed/overlap.json"
+EXCLUDED_PATH = ROOT / "seed/savoy_excluded.txt"
+
+
+# ── glass the source names in its prose (JJ-043) ────────────────────────────────────────────────
+# The IBA site has no glass field; scrape_iba.py reads the glass out of the method text and is
+# deliberately conservative about it, so fifteen drinks came back with none. Ten of them name their
+# glass plainly in words the regex did not take. The phrase is kept beside the answer and the build
+# fails if it stops occurring in the recipe's instructions, so every row here stays checkable.
+GLASS_FROM_TEXT = {
+    ("iba", "chartreuse-swizzle"): ("tall glass", "Highball glass"),
+    ("iba", "dons-special-daiquiri"): ("footed copo glass", "Goblet"),
+    ("iba", "french-75"): ("Champagne flute", "Champagne flute"),
+    ("iba", "grand-margarita"): ("rock glass", "Rocks glass"),
+    ("iba", "irish-coffee"): ("Irish coffee glass", "Irish coffee mug"),
+    ("iba", "john-collins"): ("highball", "Highball glass"),
+    ("iba", "missionarys-downfall"): ("Coppa grande", "Goblet"),
+    ("iba", "pisco-punch"): ("large goblet", "Goblet"),
+    ("iba", "planters-punch"): ("small tumbler", "Rocks glass"),
+    ("iba", "three-dots-and-a-dash"): ("footed copo glass", "Goblet"),
 }
 
-FULL = "--full" in sys.argv
+# ── glass the source does not name: the curator's call (JJ-043, maintainer 2026-10-09) ────────────
+# These five say "the glass", "a large glass", "a large Champagne glass" (flute or coupe?) or nothing,
+# and the IBA site has nothing more. Dropping the Mojito and the Piña Colada from a cocktail app to
+# keep a rule pure was the worse trade, so each gets the glass it is conventionally served in - and
+# the reason is written here, so this is never mistaken for something the source said.
+GLASS_ASSIGNED = {
+    ("iba", "canchanchara"): ("Rocks glass", "source names none; served short over cracked ice"),
+    ("iba", "champagne-cocktail"): ("Champagne flute", "source says 'large Champagne glass'"),
+    ("iba", "kir"): ("Wine glass", "source says 'glass'; white wine topped up"),
+    ("iba", "mojito"): ("Highball glass", "source says 'the glass'; a tall drink topped with soda"),
+    ("iba", "pina-colada"): ("Hurricane glass", "source says 'a large glass'"),
+}
+
+# ── names (JJ-043, #179) ────────────────────────────────────────────────────────────────────────
+# The Savoy titles every entry "X Cocktail"; that is the book's convention, not the drink's name, and
+# it made the same drink look like a near-duplicate of the IBA's ("Dry Martini" / "Dry Martini
+# Cocktail"). The word goes - unless what is left would be an ingredient or a bare word that is not a
+# drink's name on its own ("Coffee", "Brandy", "Perfect").
+KEEP_COCKTAIL = {
+    "champagne", "coffee", "bacardi", "soda", "white", "silver", "perfect", "classic", "ideal",
+    "club", "irish", "russian", "canadian", "chinese", "colonial", "imperial", "oriental",
+    "parisian", "tropical", "london", "spring", "morning", "breakfast", "health", "opening",
+    "prohibition", "victory", "liberty", "fancy", "dream", "elixir", "ship", "wax", "whip",
+    "thunder", "virgin", "cape", "doctor", "president", "derby", "turf", "empire", "jewel",
+    "kina", "melon", "picon", "cinzano", "xeres", "sloeberry", "‘flu",
+}
+
+# Where the book reuses a title for a different recipe, the second needs a name of its own; the
+# qualifier comes from the book (the chapter it appears in), not from us.
+NAME_OVERRIDE = {
+    ("savoy", "mr-manhattan-cocktail-2"): "Mr. Manhattan (Prohibition)",
+}
 
 SOURCES = [
     {
@@ -125,7 +146,7 @@ GLASS = {
     "flute glass": "Champagne flute",
     "wine glass": "Wine glass", "large wine glass": "Wine glass", "small wine glass": "Wine glass",
     "medium-size wine glass": "Wine glass", "medium sized wine glass": "Wine glass",
-    "wine cup": "Wine glass", "goblet glass": "Wine glass",
+    "wine cup": "Wine glass", "goblet glass": "Goblet",
     "sherry glass": "Sherry glass",
     "liqueur glass": "Liqueur glass",
     "hurricane glass": "Hurricane glass",
@@ -265,7 +286,7 @@ def resolve_line(line, lookup, excluded, report):
     }
 
 
-def assign_roles(lines):
+def assign_roles(lines, source_key):
     """Base is the first spirit in the drink; every later spirit is a modifier (JJ-010)."""
     seen_spirit = False
     for line in lines:
@@ -275,31 +296,93 @@ def assign_roles(lines):
             seen_spirit = True
         else:
             line["role"] = ROLE_BY_CATEGORY.get(category, "Other")
+        # The IBA lists its garnish in a field of its own (it reaches the instructions), so every line
+        # of an IBA spec is something the drink is MADE of: the Mojito's mint, the Caipirinha's lime,
+        # the Bellini's peach purée. Read by category they would be garnishes, optional, and a Mojito
+        # would be makeable without mint (JJ-043). The Savoy has no garnish field - its peels, slices
+        # and sprigs sit among the lines - so the category rule stands there.
+        if source_key == "iba" and line["role"] == "Garnish":
+            line["role"] = "Other"
         # A garnish never blocks makeability (JJ-009); everything else does until told otherwise.
         line["isRequired"] = line["role"] != "Garnish"
 
 
+def name_key(name):
+    """What makes two titles 'the same drink' to a reader: no qualifiers, no 'Cocktail'/'The', no
+    punctuation or digits. Used only to FIND overlap candidates; the verdict is overlap.json's."""
+    n = re.sub(r"\(.*?\)", "", name.lower())
+    n = re.sub(r"\b(cocktail|the)\b", "", n)
+    return re.sub(r"[^a-z]", "", n)
+
+
+def shipped_name(source_key, slug, name, ingredient_keys):
+    """The name a household reads. The IBA's names are already plain; the Savoy loses its suffix."""
+    override = NAME_OVERRIDE.get((source_key, slug))
+    if override:
+        return override
+    if source_key != "savoy":
+        return name
+    # "X Cocktail", "X Cocktail (No. 1)", "X (Dry) Cocktail". A "*" is the book's footnote mark, and a
+    # title in quotes ("“Old Pal” Cocktail") is the book's typography, not part of the name.
+    name = name.replace("*", "")
+    stripped = re.sub(r"\s+Cocktail(?=\s*(\(|$))", "", name).strip()
+    stem = re.sub(r"\s*\(.*?\)\s*", " ", stripped).strip()
+    if stripped == name or not stem:
+        return name
+    # "Devil’s Cocktail" is the Devil's; "Devil’s" alone is a fragment.
+    if (normalise(stem) in ingredient_keys or stem.lower() in KEEP_COCKTAIL
+            or stem.endswith(("’s", "'s"))):
+        return name
+    quoted = re.fullmatch(r"“([^”]+)”(.*)", stripped)
+    return f"{quoted.group(1)}{quoted.group(2)}" if quoted else stripped
+
+
+def resolve_glass(source_key, c, report):
+    """The glass, or None. Never a guess: the source's field, its own words, or a labelled call."""
+    key = (source_key, c["slug"])
+    if key in GLASS_ASSIGNED:
+        report["glass_assigned"] += 1
+        return GLASS_ASSIGNED[key][0]
+    if key in GLASS_FROM_TEXT:
+        phrase, glass = GLASS_FROM_TEXT[key]
+        if phrase.lower() not in (c.get("instructions") or "").lower():
+            report["stale_glass_text"].append(f"{source_key}:{c['slug']} no longer says {phrase!r}")
+        report["glass_from_text"] += 1
+        return glass
+
+    glass_raw = (c.get("glass") or "").strip().lower()
+    glass = GLASS.get(glass_raw)
+    if glass is None:
+        report["no_glass" if not glass_raw else
+               "vague_glass" if glass_raw in GLASS_TOO_VAGUE else "unknown_glass"] += 1
+    return glass
+
+
+def shortfalls(recipe):
+    """Why a Savoy recipe is not a usable spec - empty when it ships (JJ-043, #178)."""
+    required = [line for line in recipe["lines"] if line["isRequired"]]
+    reasons = []
+    if recipe["glassType"] is None:
+        reasons.append("no glass")
+    if recipe["method"] is None:
+        reasons.append("no method")
+    if len(required) < 2:
+        reasons.append("fewer than two required lines")
+    if any(line["amount"] is None and line["unit"] is None for line in required):
+        reasons.append("a required line without an amount")
+    return reasons
+
+
 def build(source, lookup, excluded, report):
     raw = json.loads(source["path"].read_text(encoding="utf-8"))["cocktails"]
-
-    if not FULL:
-        keep = set(STARTER_SET[source["key"]])
-        raw = [c for c in raw if c["slug"] in keep]
-        missing = keep - {c["slug"] for c in raw}
-        if missing:
-            # A slug that stopped existing would silently shrink the catalog and take a test's
-            # premise with it, so say so rather than quietly emitting fewer rows.
-            report["missing_starters"].extend(f"{source['key']}:{m}" for m in sorted(missing))
-
+    ingredient_keys = set(lookup)
     out = []
 
     for c in raw:
         # 60 Savoy recipes are written as prose - "Put on the fire in a saucepan one quart of Ale" -
-        # so the line parser found nothing in them. The site's own ingredient TAGS did, and those are
-        # enough: makeability is a question about which ingredients a drink needs, not how much of
-        # each (JJ-003), so these recipes work fully with unmeasured lines and their quantities stay
-        # readable in the instructions. Dropping 60 real cocktails to avoid an empty amount column
-        # would be the worse trade.
+        # so the line parser found nothing in them, and the site's ingredient TAGS stand in. They
+        # carry no amounts, so the shipping bar leaves them out; they are kept this far so the
+        # report can say so.
         raw_lines = c["ingredient_lines"]
         if not raw_lines and c.get("ingredients"):
             raw_lines = [{"ingredient": tag, "quantity": None, "unit": None}
@@ -317,13 +400,9 @@ def build(source, lookup, excluded, report):
             report["empty"].append(f"{source['key']}:{c['name']}")
             continue
 
-        assign_roles(lines)
+        assign_roles(lines, source["key"])
 
-        glass_raw = (c.get("glass") or "").strip().lower()
-        glass = GLASS.get(glass_raw)
-        if glass is None:
-            report["no_glass" if not glass_raw else
-                   "vague_glass" if glass_raw in GLASS_TOO_VAGUE else "unknown_glass"] += 1
+        glass = resolve_glass(source["key"], c, report)
 
         method = METHOD.get((c.get("method") or "").strip().lower())
         if method is None:
@@ -331,40 +410,93 @@ def build(source, lookup, excluded, report):
 
         instructions = (c.get("instructions") or "").strip() or None
         garnish = (c.get("garnish") or "").strip() or None
-        if garnish:
+        if garnish and garnish.upper() != "N/A":
             instructions = f"{instructions} {garnish}".strip() if instructions else garnish
 
         out.append({
-            # The source's own slug, not the name, is what identifies a recipe. The Savoy has
-            # "Mr. Manhattan Cocktail" twice - once in the main chapter and once among the
-            # Prohibition cocktails, with mint and sugar the second time. Keyed on the name, the two
-            # would collide and one would vanish; keyed on the slug they are what they are, two
-            # recipes that happen to share a title.
+            # The source's own slug, not the name, is what identifies a recipe (its id derives from
+            # source + slug), so a renamed title keeps its row.
             "slug": c["slug"],
-            "name": c["name"],
+            "name": shipped_name(source["key"], c["slug"], c["name"], ingredient_keys),
             "source": source["name"],
             "glassType": glass,
             "method": method,
             "servingType": "FullDrink",
             "instructions": instructions,
             "lines": lines,
+            "_key": name_key(c["name"]),
         })
 
     return out
 
 
+def check_overlap(iba, savoy):
+    """Every name-match candidate is settled in overlap.json, and every entry there is real."""
+    data = json.loads(OVERLAP_PATH.read_text(encoding="utf-8"))
+    superseded, distinct = data["superseded"], data["distinct"]
+    iba_slugs = {c["slug"] for c in iba}
+    savoy_slugs = {c["slug"] for c in savoy}
+    iba_keys = {c["_key"] for c in iba}
+    problems = []
+
+    for slug in sorted(set(superseded) & set(distinct)):
+        problems.append(f"{slug} is both superseded and distinct")
+    for slug in sorted(set(superseded) | set(distinct)):
+        if slug not in savoy_slugs:
+            problems.append(f"{slug} is not a Savoy recipe")
+    for slug, entry in sorted(superseded.items()):
+        if entry["by"] not in iba_slugs:
+            problems.append(f"{slug} is superseded by {entry['by']!r}, which is not an IBA recipe")
+    for c in savoy:
+        if c["_key"] in iba_keys and c["slug"] not in superseded and c["slug"] not in distinct:
+            problems.append(f"{c['slug']} ({c['name']}) looks like an IBA drink and is not reviewed")
+    return set(superseded), problems
+
+
 def main():
     lookup, excluded = load_ingredient_lookup()
     report = {
-        "excluded_lines": 0, "blank_lines": 0, "from_tags": 0, "missing_starters": [],
+        "excluded_lines": 0, "blank_lines": 0, "from_tags": 0,
         "unresolved": collections.Counter(),
         "unknown_units": collections.Counter(), "empty": [],
         "no_glass": 0, "vague_glass": 0, "unknown_glass": 0, "no_method": 0,
+        "glass_from_text": 0, "glass_assigned": 0, "stale_glass_text": [],
     }
 
-    cocktails = []
-    for source in SOURCES:
-        cocktails.extend(build(source, lookup, excluded, report))
+    built = {source["key"]: build(source, lookup, excluded, report) for source in SOURCES}
+    iba, savoy = built["iba"], built["savoy"]
+
+    superseded, overlap_problems = check_overlap(iba, savoy)
+    if overlap_problems:
+        print("OVERLAP NOT SETTLED - review these in seed/overlap.json:")
+        for problem in overlap_problems:
+            print(f"  {problem}")
+        return 1
+
+    iba_without_glass = [c["slug"] for c in iba if c["glassType"] is None]
+    if iba_without_glass:
+        print(f"IBA DRINKS WITHOUT A GLASS - every IBA drink ships, so each needs one in "
+              f"GLASS_FROM_TEXT or GLASS_ASSIGNED: {', '.join(iba_without_glass)}")
+        return 1
+    if report["stale_glass_text"]:
+        print("GLASS_FROM_TEXT PHRASES NOT FOUND in the instructions they were read from:")
+        for line in report["stale_glass_text"]:
+            print(f"  {line}")
+        return 1
+
+    savoy_shipped, savoy_excluded = [], []
+    why_counts = collections.Counter()
+    for c in savoy:
+        if c["slug"] in superseded:
+            continue
+        reasons = shortfalls(c)
+        if reasons:
+            savoy_excluded.append((c["slug"], c["name"], reasons))
+            why_counts.update(reasons)
+        else:
+            savoy_shipped.append(c)
+
+    cocktails = iba + savoy_shipped
 
     keys = collections.Counter((c["source"], c["slug"]) for c in cocktails)
     collisions = [k for k, n in keys.items() if n > 1]
@@ -373,20 +505,28 @@ def main():
               f"would become one: {collisions}")
         return 1
 
-    if report["missing_starters"]:
-        print("STARTER SLUGS NOT FOUND in the extraction — the set names recipes that no longer "
-              f"exist: {', '.join(report['missing_starters'])}")
+    names = collections.defaultdict(list)
+    for c in cocktails:
+        names[c["name"].casefold()].append(f"{c['source']}:{c['slug']}")
+    repeated = {n: s for n, s in names.items() if len(s) > 1}
+    if repeated:
+        print("REPEATED NAMES - one recipe per drink (JJ-043); settle the overlap or give the "
+              "recipe a name of its own in NAME_OVERRIDE:")
+        for name, slugs in sorted(repeated.items()):
+            print(f"  {name!r}: {', '.join(slugs)}")
         return 1
 
     total_lines = sum(len(c["lines"]) for c in cocktails)
-    print(f"catalog          {'FULL' if FULL else 'starter set'}")
-    print(f"cocktails        {len(cocktails)}")
+    print(f"cocktails        {len(cocktails)} ({len(iba)} IBA + {len(savoy_shipped)} Savoy)")
     print(f"recipe lines     {total_lines}")
+    print(f"Savoy extracted  {len(savoy)}: {len(superseded)} superseded by the IBA, "
+          f"{len(savoy_excluded)} below the bar, {len(savoy_shipped)} shipped")
+    for reason, n in why_counts.most_common():
+        print(f"  below the bar  {n:4}  {reason}")
+    print(f"glass            {report['glass_from_text']} read from the IBA's own words, "
+          f"{report['glass_assigned']} assigned by the curator")
     print(f"lines dropped    {report['excluded_lines']} (ice, water, the deliberate exclusions)"
           f" + {report['blank_lines']} the scrape left blank")
-    print(f"from tag lists   {report['from_tags']} recipes whose prose defeated the line parser")
-    print(f"glass: null      {report['no_glass']} unstated + {report['vague_glass']} too vague to map")
-    print(f"method: null     {report['no_method']}")
 
     if report["unknown_glass"]:
         print(f"\nUNKNOWN GLASS on {report['unknown_glass']} recipes — a glass name that is neither "
@@ -400,25 +540,29 @@ def main():
         print(f"\nUNKNOWN UNITS — add to UNIT or NOT_UNITS:")
         for unit, n in report["unknown_units"].most_common():
             print(f"  {n:4}  {unit!r}")
-    if report["empty"]:
-        print(f"\nRECIPES WITH NO USABLE LINES ({len(report['empty'])}), dropped: "
-              f"{', '.join(report['empty'][:10])}")
 
     if report["unresolved"] or report["unknown_units"] or report["unknown_glass"]:
         return 1
+
+    with open(EXCLUDED_PATH, "w", encoding="utf-8", newline="\n") as f:
+        f.write("# Savoy recipes that do not ship (JJ-043), written by seed/build_cocktails.py.\n"
+                "# The bar: a glass, a method, two or more required lines, an amount on every one.\n"
+                "# Superseded drinks are in seed/overlap.json, not here.\n\n")
+        for slug, name, reasons in sorted(savoy_excluded, key=lambda x: x[1].lower()):
+            f.write(f"{slug}\t{name}\t{'; '.join(reasons)}\n")
+
+    for c in cocktails:
+        del c["_key"]
 
     shipped = {
         "$comment": [
             "The shared recipe catalog (JJ-012), built by seed/build_cocktails.py from the two",
             "extractions in seed/. Do not hand-edit: the next build overwrites it.",
             "",
-            "Glass and method are null where the source did not say, or said something that is not a",
-            "glass (JJ-034). Amounts are as the books wrote them, so a proportional 1930 recipe carries",
-            "fractions against the 'part' unit. The seeder stores every volume in ounces (JJ-041).",
-            "",
-            "This is the STARTER SET, not the whole extraction: a small catalog chosen to cover every",
-            "shape the model handles, so that slice work is about behaviour rather than about nine",
-            "hundred rows. `python seed/build_cocktails.py --full` emits all of them.",
+            "Curated, one recipe per drink (JJ-043): the IBA official list whole, plus the Savoy",
+            "recipes the IBA does not have that are usable specs. Every recipe has a glass. Amounts",
+            "are as the books wrote them, so a proportional 1930 recipe carries fractions against the",
+            "'part' unit; the seeder stores every volume in ounces (JJ-041).",
         ],
         "sources": [
             {k: v for k, v in s.items() if k in ("name", "year", "url", "attribution")}
@@ -431,6 +575,7 @@ def main():
         f.write("\n")
 
     print(f"\nWrote {len(cocktails)} cocktails to {OUT_PATH.relative_to(ROOT).as_posix()}")
+    print(f"Wrote {len(savoy_excluded)} exclusions to {EXCLUDED_PATH.relative_to(ROOT).as_posix()}")
     return 0
 
 

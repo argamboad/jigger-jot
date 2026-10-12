@@ -32,7 +32,7 @@ public class CocktailAuthoringHandler(
     IRepository<GlassType> glasses,
     IRepository<Method> methods,
     IRepository<CocktailIngredient> recipeLines,
-    IUserRepository users,
+    IRepository<UserUnitPreference> unitPreferences, // the reader's measuring system (Arch A3)
     ICurrentTenant tenant)
 {
     private const int MaxNameLength = 200;
@@ -55,7 +55,7 @@ public class CocktailAuthoringHandler(
             // platform would see it.
             TenantId = tenantId,
             Name = prepared.Name,
-            GlassTypeId = request.GlassTypeId,
+            GlassTypeId = prepared.Glass,
             MethodId = request.MethodId,
             ServingType = request.ServingType,
             Instructions = Tidy(request.Instructions),
@@ -106,7 +106,7 @@ public class CocktailAuthoringHandler(
             return new AuthorCocktailResult(refusal);
 
         cocktail.Name = prepared.Name;
-        cocktail.GlassTypeId = request.GlassTypeId;
+        cocktail.GlassTypeId = prepared.Glass;
         cocktail.MethodId = request.MethodId;
         cocktail.ServingType = request.ServingType;
         cocktail.Instructions = Tidy(request.Instructions);
@@ -193,7 +193,7 @@ public class CocktailAuthoringHandler(
             return new CocktailDraftResult(CocktailDraftOutcome.ReadOnly);
 
         var preference = userId is { } reader
-            ? (await users.GetByIdAsync(reader, cancellationToken))?.PreferredUnitSystem
+            ? await unitPreferences.Query().Where(p => p.UserId == reader).Select(p => (UnitSystem?)p.UnitSystem).FirstOrDefaultAsync(cancellationToken)
             : null;
         var writerUnit = BarMeasure.VolumeUnitFor(preference);
         var writerUnitId = await units.Query()
@@ -228,7 +228,7 @@ public class CocktailAuthoringHandler(
     public async Task<AuthoringOptions> OptionsAsync(Guid? userId, CancellationToken cancellationToken)
     {
         var preference = userId is { } id
-            ? (await users.GetByIdAsync(id, cancellationToken))?.PreferredUnitSystem
+            ? await unitPreferences.Query().Where(p => p.UserId == id).Select(p => (UnitSystem?)p.UnitSystem).FirstOrDefaultAsync(cancellationToken)
             : null;
         var mine = BarMeasure.VolumeUnitFor(preference);
 
@@ -298,7 +298,11 @@ public class CocktailAuthoringHandler(
         if (request.Lines is not { Count: > 0 } lines)
             return Prepared.Refused(AuthorCocktailOutcome.NoLines);
 
-        if (!await LookupsExistAsync(request.GlassTypeId, request.MethodId, cancellationToken))
+        // JJ-043: the glass is part of the cocktail.
+        if (request.GlassTypeId is not { } glass)
+            return Prepared.Refused(AuthorCocktailOutcome.GlassRequired);
+
+        if (!await LookupsExistAsync(glass, request.MethodId, cancellationToken))
             return Prepared.Refused(AuthorCocktailOutcome.UnknownLookup);
 
         if (LineShape(lines) is { } badShape)
@@ -331,7 +335,7 @@ public class CocktailAuthoringHandler(
         if (ounce is null && measured.Any(m => m.Unit == BarMeasure.Ounce))
             return Prepared.Refused(AuthorCocktailOutcome.InvalidLine);
 
-        return new Prepared(null, name, [.. lines.Select((l, position) => new CocktailIngredient
+        return new Prepared(null, name, glass, [.. lines.Select((l, position) => new CocktailIngredient
         {
             TenantId = tenantId,
             IngredientId = l.IngredientId,
@@ -345,22 +349,21 @@ public class CocktailAuthoringHandler(
         })]);
     }
 
-    private sealed record Prepared(AuthorCocktailOutcome? Refusal, string Name, List<CocktailIngredient> Lines)
+    private sealed record Prepared(AuthorCocktailOutcome? Refusal, string Name, Guid Glass, List<CocktailIngredient> Lines)
     {
-        public static Prepared Refused(AuthorCocktailOutcome outcome) => new(outcome, string.Empty, []);
+        public static Prepared Refused(AuthorCocktailOutcome outcome) => new(outcome, string.Empty, Guid.Empty, []);
     }
 
     private static string? Tidy(string? text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();
 
     /// <summary>
-    /// Glass and method, when given. Both are optional by design (JJ-034) — "not stated" is a fact
-    /// about a recipe, not a gap to fill with a plausible guess.
+    /// The glass, which every recipe names (JJ-043), and the method when given — the method is optional
+    /// (JJ-034), because "not stated" is a fact about a recipe, not a gap to fill with a plausible guess.
     /// </summary>
     private async Task<bool> LookupsExistAsync(
-        Guid? glassId, Guid? methodId, CancellationToken cancellationToken)
+        Guid glass, Guid? methodId, CancellationToken cancellationToken)
     {
-        if (glassId is { } glass
-            && !await glasses.Query().AnyAsync(g => g.Id == glass, cancellationToken))
+        if (!await glasses.Query().AnyAsync(g => g.Id == glass, cancellationToken))
             return false;
 
         return methodId is not { } method

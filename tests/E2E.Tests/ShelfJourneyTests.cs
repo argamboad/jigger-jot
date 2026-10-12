@@ -54,12 +54,12 @@ public class ShelfJourneyTests : E2ETestBase
         await Expect(Page.GetByTestId("shelf-count")).ToContainTextAsync("1 ", new() { Timeout = 30_000 });
 
         // The count on the card is the same number the jump bar shows, because both read one value.
-        var ginCard = Page.Locator("[data-testid^='shelf-cat-count-']").First;
+        var ginCard = Page.Locator("[data-testid='shelf-cat-count']").First;
         await Expect(ginCard).ToBeVisibleAsync();
 
         // "Only what I have" is how a filled shelf stays readable once a household owns forty things.
         await Page.GetByTestId("shelf-only-available").CheckAsync();
-        await Expect(Page.Locator("[data-testid^='shelf-item-']")).ToHaveCountAsync(1);
+        await Expect(Page.Locator("[data-testid='shelf-item']")).ToHaveCountAsync(1);
 
         // ...and unticking puts it back, which is the half a one-way test would never notice.
         await Page.GetByTestId("shelf-only-available").UncheckAsync();
@@ -87,13 +87,13 @@ public class ShelfJourneyTests : E2ETestBase
         // Wait for a real ROW, not the counter. The counter renders immediately, as zero, while the
         // catalog is still loading — the test above says so — so a click gated on it can land before
         // the page is interactive, and the request the next step waits for would never be made.
-        await Expect(Page.Locator("[data-testid^='shelf-item-']").First)
+        await Expect(Page.Locator("[data-testid='shelf-item']").First)
             .ToBeVisibleAsync(new() { Timeout = 30_000 });
 
         // INV-3 moved the button inside the category card it files the bottle into. Whichever card
         // comes first will do: this test is about the flow, not about the catalog's contents, and
         // naming a category here would be a claim about the seed data.
-        var addInFirstCategory = Page.Locator("[data-testid^='shelf-add-in-']").First;
+        var addInFirstCategory = Page.Locator("[data-testid='shelf-add-in']").First;
 
         // Opening the form fetches the category tree, so wait on that rather than on the markup.
         await Page.RunAndWaitForResponseAsync(

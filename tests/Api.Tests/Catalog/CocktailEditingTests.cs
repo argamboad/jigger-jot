@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using JiggerJot.Api.Features.Catalog;
 using JiggerJot.Api.Tests.Infrastructure;
+using JiggerJot.Core.Catalog;
 using JiggerJot.Core.Entities;
 using JiggerJot.Infrastructure.Persistence;
 using JiggerJot.Infrastructure.Persistence.Seed;
@@ -26,7 +27,7 @@ public sealed class CocktailEditingTests(PostgresFixture fixture) : PostgresTest
             new EfRepository<GlassType>(db),
             new EfRepository<Method>(db),
             new EfRepository<CocktailIngredient>(db),
-            new UserRepository(db),
+            new EfRepository<UserUnitPreference>(db),
             new TestCurrentTenant { TenantId = tenantId });
 
     private async Task SeedAsync()
@@ -58,8 +59,9 @@ public sealed class CocktailEditingTests(PostgresFixture fixture) : PostgresTest
     private async Task<Guid> ReaderAsync(UnitSystem? preference)
     {
         await using var db = Fixture.CreateContext();
-        var user = new User { Email = $"editor-{Guid.CreateVersion7():N}@example.com", PreferredUnitSystem = preference };
+        var user = new User { Email = $"editor-{Guid.CreateVersion7():N}@example.com" };
         db.Users.Add(user);
+        if (preference is { } chosen) db.Add(new UserUnitPreference { UserId = user.Id, UnitSystem = chosen, CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow });
         await db.SaveChangesAsync();
         return user.Id;
     }
@@ -87,7 +89,7 @@ public sealed class CocktailEditingTests(PostgresFixture fixture) : PostgresTest
     }
 
     private async Task<AuthorCocktailRequest> HouseSourAsync(string name = "House Sour") =>
-        new(name, null, null, ServingType.FullDrink, "Shake hard.",
+        new(name, SeedId.For("glass", "Cocktail glass"), null, ServingType.FullDrink, "Shake hard.",
         [
             await LineAsync("London dry gin", 2m, "oz"),
             await LineAsync("Lemon juice", 1m, "oz", RecipeRole.Juice),
@@ -150,7 +152,7 @@ public sealed class CocktailEditingTests(PostgresFixture fixture) : PostgresTest
                 .ForkAsync(negroni, default))!.Value;
         var originalBefore = await StoredAsync(negroni);
 
-        var result = await EditAsync(fork, new AuthorCocktailRequest("Our Negroni", null, null, ServingType.FullDrink, null,
+        var result = await EditAsync(fork, new AuthorCocktailRequest("Our Negroni", SeedId.For("glass", "Rocks glass"), null, ServingType.FullDrink, null,
             [await LineAsync("London dry gin", 1.5m, "oz"), await LineAsync("Campari", 1m, "oz", RecipeRole.Modifier)]));
 
         Assert.Equal(AuthorCocktailOutcome.Updated, result.Outcome);
@@ -202,6 +204,8 @@ public sealed class CocktailEditingTests(PostgresFixture fixture) : PostgresTest
         Assert.Equal(AuthorCocktailOutcome.NoLines, (await EditAsync(id, sour with { Lines = [] })).Outcome);
         Assert.Equal(AuthorCocktailOutcome.InvalidLine,
             (await EditAsync(id, sour with { Lines = [await LineAsync("London dry gin", null, "oz")] })).Outcome);
+        // JJ-043: an edit cannot take the glass away either.
+        Assert.Equal(AuthorCocktailOutcome.GlassRequired, (await EditAsync(id, sour with { GlassTypeId = null })).Outcome);
 
         // A refused edit writes nothing — least of all half a set of lines.
         Assert.Equal(before, await StoredAsync(id));

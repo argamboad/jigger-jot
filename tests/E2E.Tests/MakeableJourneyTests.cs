@@ -190,19 +190,26 @@ public class MakeableJourneyTests : E2ETestBase
         await Mailpit.ClearAsync();
         await SignInAsync(Page, UniqueEmail("unlocks"));
 
+        // Dry vermouth on the shelf too: on gin and Campari alone the curated catalog ties sweet and dry
+        // vermouth at seven drinks each and the name breaks the tie, so the card would lead with dry.
+        // With it, sweet vermouth opens sixteen and leads by a distance.
         await Page.GetByTestId("nav-shelf").ClickAsync();
-        foreach (var ingredient in new[] { "London dry gin", "Campari" }) await StockAsync(ingredient);
+        foreach (var ingredient in new[] { "London dry gin", "Campari", "Dry vermouth" }) await StockAsync(ingredient);
 
         await ShowMakeableAsync();
         await SetCatalogFilterAsync("all");
         await SetCatalogFilterAsync("almost");
 
-        // The summary is the point of the slice: eighty-one rows each naming a bottle is correct and
+        // The summary is the point of the slice: dozens of rows each naming a bottle is correct and
         // unreadable, so the card says which single purchase opens the most.
         var card = Page.GetByTestId("cocktail-unlocks");
         await Expect(card).ToBeVisibleAsync(new() { Timeout = 30_000 });
         await Expect(card).ToContainTextAsync("Sweet vermouth");
-        await Expect(Page.GetByTestId("cocktail-unlocks-drinks")).ToContainTextAsync("Negroni");
+        // ...and names what it opens: the first few drinks by name and the rest as a count. Which drinks
+        // lead is the catalog's alphabet, so the journey asks only that the card names some and counts
+        // the rest — sixteen open with sweet vermouth, more than fit on the line.
+        await Expect(Page.GetByTestId("cocktail-unlocks-drinks")).ToContainTextAsync(" · ");
+        await Expect(Page.GetByTestId("cocktail-unlocks-drinks")).ToContainTextAsync("more");
 
         // It belongs to this filter only. Turning it off takes the card with it, because a shopping
         // suggestion over the whole catalog would be a claim nothing on screen supports.

@@ -199,7 +199,7 @@ public class MargaEverywhereTests : ComponentTestBase
         Http.On(HttpMethod.Get, "/api/inventory", ShelfJson);
         Http.On(HttpMethod.Get, "/api/cocktails", CountOf(0));
         var page = Render<Shelf>();
-        page.WaitForAssertion(() => Assert.NotEmpty(page.FindAll("[data-testid^='shelf-item-']")));
+        page.WaitForAssertion(() => Assert.NotEmpty(page.FindAll("[data-testid='shelf-item']")));
         return page;
     }
 

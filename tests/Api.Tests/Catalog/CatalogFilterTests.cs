@@ -104,8 +104,10 @@ public sealed class CatalogFilterTests(PostgresFixture fixture) : PostgresTestBa
                 || (l.Sub?.Contains("gin", StringComparison.OrdinalIgnoreCase) ?? false));
         }
 
-        // And it is genuinely wider than the name filter would be on its own.
-        Assert.Contains(page.Items, c => c.Name == "Negroni");
+        // And it is genuinely wider than the name filter would be on its own. Asked by name too, since
+        // the curated catalog runs to several pages of gin.
+        var negroni = await BrowseAsync(All with { Ingredient = "Gin", Search = "Negroni" });
+        Assert.Contains(negroni.Items, c => c.Name == "Negroni");
     }
 
     [Fact]
@@ -133,10 +135,9 @@ public sealed class CatalogFilterTests(PostgresFixture fixture) : PostgresTestBa
         await using (var db = Fixture.CreateContext())
         {
             var glass = await db.Cocktails.IgnoreQueryFilters()
-                .Where(c => c.GlassTypeId != null)
                 .Select(c => new { c.GlassTypeId, Name = c.GlassType!.Name })
                 .FirstAsync();
-            (glassId, glassName) = (glass.GlassTypeId!.Value, glass.Name);
+            (glassId, glassName) = (glass.GlassTypeId, glass.Name);
         }
 
         var page = await BrowseAsync(All with { GlassTypeId = glassId });
@@ -146,20 +147,20 @@ public sealed class CatalogFilterTests(PostgresFixture fixture) : PostgresTestBa
     }
 
     [Fact]
-    public async Task AGlassFilter_ExcludesRecipesThatNeverSaid()
+    public async Task TheGlassFilters_BetweenThemCoverTheWholeCatalog()
     {
         await SeedAsync();
 
-        Guid glassId;
+        List<Guid> glasses;
         await using (var db = Fixture.CreateContext())
-            glassId = await db.Cocktails.IgnoreQueryFilters()
-                .Where(c => c.GlassTypeId != null).Select(c => c.GlassTypeId!.Value).FirstAsync();
+            glasses = await db.Cocktails.IgnoreQueryFilters().Select(c => c.GlassTypeId).Distinct().ToListAsync();
 
-        var page = await BrowseAsync(All with { GlassTypeId = glassId });
+        // JJ-043: every recipe has its glass, so no recipe falls outside every glass filter.
+        var total = 0;
+        foreach (var glass in glasses)
+            total += (await BrowseAsync(All with { GlassTypeId = glass, PageSize = 1 })).Total;
 
-        // JJ-034: a quarter of the catalog never states a glass, and "no glass" is not a glass. They
-        // drop out of a glass filter rather than being swept into whichever one was asked for.
-        Assert.All(page.Items, c => Assert.NotNull(c.Glass));
+        Assert.Equal(CatalogSeeder.LoadCocktails().Cocktails.Count, total);
     }
 
     [Fact]

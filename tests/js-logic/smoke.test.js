@@ -28,8 +28,7 @@ function captureLog(fn) {
   return fn().finally(() => { console.log = original; }).then(result => ({ result, lines }));
 }
 
-// Different from the platform: this repo retries the WHOLE journey once, and only for the shapes a replaced
-// WebView takes (the platform relaunches the boot phase only). These hold that policy.
+// The WHOLE journey is retried once, and only for the shapes a replaced WebView takes. These hold that policy.
 test('retry: the journey is tried twice, never more', () => {
   assert.equal(smoke.ATTEMPTS, 2);
 });

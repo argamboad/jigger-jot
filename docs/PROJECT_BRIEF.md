@@ -27,7 +27,9 @@ Everything in the product serves that loop. If a feature doesn't make the core l
 candidate for the OUT list below.
 
 ## Who it's for
-- **Primary user:** home bartenders and cocktail enthusiasts.
+- **Primary user:** home bartenders and cocktail enthusiasts — people who care about the spec. A
+  serious app for the cocktail snob: classic recipes from credited sources (JJ-032), one recipe per
+  drink, every one with its glass (JJ-043). No social-media recipes, no trend drinks.
 - **Unit of account:** a **tenant** — here a **Household**: a kitchen/bar shared by one or more
   people (JJ-001). Inventory and custom recipes belong to the household, not the individual.
   Multiple users per tenant, via the platform's `TenantMembership`; the platform's reference

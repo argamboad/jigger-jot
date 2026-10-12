@@ -1,0 +1,11 @@
+{
+  "$comment": [
+    "This app's own top-level folders, classed after the platform's rules (perezosoft-platform#375)."
+  ],
+  "rules": [
+    {
+      "glob": "seed/**",
+      "class": "app"
+    }
+  ]
+}

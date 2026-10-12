@@ -1,32 +1,38 @@
 namespace JiggerJot.Core.Entities;
 
 /// <summary>
-/// Marks an entity whose rows are EITHER shared catalog data (<c>TenantId</c> null, readable by every
-/// household and owned by none) OR household-owned (<c>TenantId</c> set) — the JiggerJot catalog shape
-/// (JJ-011, JJ-012, decided in JJ-031).
+/// Marks an entity whose rows are EITHER shared (<c>TenantId</c> null: a curated catalog every tenant reads and none
+/// owns) OR owned by one tenant (<c>TenantId</c> set). The deliberate sibling of <see cref="ITenantScoped"/>, not a
+/// way around it (Arch A4, #364; first built in jigger-jot as JJ-031 and moved upstream): <see cref="ITenantScoped"/>
+/// cannot express these rows at all — its <c>TenantId</c> is non-nullable, and both the global query filter and the
+/// forced RLS policy test <c>TenantId = current</c>, so a shared row would be invisible in the app and at the
+/// database.
 /// <para>
-/// This is the deliberate sibling of <see cref="ITenantScoped"/>, not a way around it.
-/// <see cref="ITenantScoped"/> cannot express these rows at all: its <c>TenantId</c> is non-nullable, and
-/// both the global query filter and the forced RLS policy test <c>TenantId = current</c>, so a shared row
-/// would be invisible in the app AND at the database. Entities marked here get a parallel filter in
-/// <c>AppDbContext.OnModelCreating</c> — <c>TenantId == null || TenantId == CurrentTenantId</c> — mirrored
-/// by a hand-written RLS policy shipped in the same migration that creates the table.
-/// </para>
-/// <para>
-/// <b>Three platform guarantees do NOT apply to entities marked with this interface</b>, because every one
-/// of them keys off <see cref="ITenantScoped"/> or a non-nullable <c>TenantId</c>. Each is replaced by an
-/// app-level test or an explicit call site — see JJ-031:
+/// What the platform guarantees for an entity marked here, each with its own gate:
 /// <list type="number">
-/// <item><c>TenantStampingInterceptor</c> does not stamp them: set <c>TenantId</c> explicitly when creating
-/// a household-owned row.</item>
-/// <item><c>RlsMigrationGateTests</c> does not check their policy: an app test asserts it survives migration.</item>
-/// <item><c>EveryTenantOwnedEntity_IsWiredIntoTenantDissolution</c> does not flag them: their
-/// <c>ITenantDataContributor</c> must wipe the household's own rows and never the shared catalog.</item>
+/// <item><b>Reads</b> see the shared rows plus the current tenant's own, never another tenant's — a second global
+/// query filter in <c>AppDbContext</c> (<c>TenantId == null || TenantId == CurrentTenantId</c>), and with no tenant
+/// current only the shared rows (<c>EveryTenantScopedEntity_HasAGlobalQueryFilter</c> covers both markers).</item>
+/// <item><b>Writes</b> under a tenant may touch only that tenant's own rows: <c>TenantStampingInterceptor</c> refuses
+/// an insert, update or delete of a shared row (null) or of another tenant's row while a tenant is current. There is
+/// no stamping: a row meant to be shared and a row meant to be owned are different intents, so the writer says which
+/// (<c>TenantId</c> set explicitly). Shared rows are written by tenant-less contexts only (a seeder, a curator job).</item>
+/// <item><b>The database agrees</b> through four command-scoped RLS policies (<c>RlsDdl.SharedOrTenantStatementsFor</c>):
+/// SELECT admits shared and own, INSERT/UPDATE/DELETE admit own only, so a tenant cannot delete the catalog even past
+/// the EF filter; writing a shared row needs the bypass GUC a tenant-less context alone gets. The migration-parity gate
+/// (<c>EverySharedOrTenantTable_HasForcedRlsAndAllFourPolicies_AfterMigrations</c>) holds every such table to it.</item>
+/// <item><b>Lifecycle</b>: an <c>ITenantDataContributor</c> wipes and exports the tenant's own rows and never the
+/// shared ones; the tenant-axis canary (<c>EveryTenantOwnedEntity_IsWiredIntoTenantDissolution</c>) counts nullable
+/// keys and so sees these tables; and each such entity ships four facet tests named
+/// <c>&lt;Entity&gt;_SharedOrTenant_{Dissolve,Export,SharedWrites,Erasure}_*</c>
+/// (<c>EverySharedOrTenantEntity_ShipsItsLifecycleSpec</c>): what a dissolve removes and keeps, what the export
+/// carries, who may write a shared row, and that an account erasure leaves the tenant's rows (they are the
+/// tenant's, not the user's).</item>
 /// </list>
 /// </para>
 /// </summary>
 public interface ISharedOrTenantScoped
 {
-    /// <summary>Null = shared catalog row; set = owned by that household.</summary>
+    /// <summary>Null = a shared row, owned by no tenant; set = owned by that tenant.</summary>
     Guid? TenantId { get; }
 }

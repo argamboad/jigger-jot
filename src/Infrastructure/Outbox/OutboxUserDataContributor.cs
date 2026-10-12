@@ -8,7 +8,7 @@ namespace JiggerJot.Infrastructure.Outbox;
 
 /// <summary>
 /// Account erasure removes the mail still waiting to go to the erased user (v4 audit H7 / TB-TEN-22, GDPR-2):
-/// the payload holds their address, the body and any inline image, and a notification or a platform broadcast is
+/// the payload holds their address, the body and any attachment, and a notification or a platform broadcast is
 /// queued with no tenant — so a dissolve would never find it. Finished rows need nothing: their payload is
 /// already cleared. Runs in the erasure transaction before the user row goes, which is how it learns the address.
 /// <para>

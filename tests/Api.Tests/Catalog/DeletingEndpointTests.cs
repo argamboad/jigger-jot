@@ -23,7 +23,7 @@ public sealed class DeletingEndpointTests(IntegrationTestFactory factory)
         var response = await client.PostAsJsonAsync("/api/cocktails", new
         {
             name,
-            glassTypeId = (Guid?)null,
+            glassTypeId = (Guid?)JiggerJot.Core.Catalog.SeedId.For("glass", "Cocktail glass"),
             methodId = (Guid?)null,
             servingType = "FullDrink",
             instructions = (string?)null,

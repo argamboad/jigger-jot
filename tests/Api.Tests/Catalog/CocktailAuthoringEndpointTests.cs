@@ -41,7 +41,7 @@ public sealed class CocktailAuthoringEndpointTests(IntegrationTestFactory factor
         var response = await client.PostAsJsonAsync("/api/cocktails", new
         {
             name = "Endpoint Special",
-            glassTypeId = (Guid?)null,
+            glassTypeId = (Guid?)lookups.Glasses.Single(g => g.Name == "Coupe").Id,
             methodId = (Guid?)null,
             // By NAME, the way a client sends an enum it read from /lookups — which returns names.
             servingType = "FullDrink",
@@ -106,5 +106,32 @@ public sealed class CocktailAuthoringEndpointTests(IntegrationTestFactory factor
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
         Assert.Equal("invalid_name", problem!["error"]);
+    }
+
+    [Fact]
+    public async Task ARecipeWithoutAGlass_OverHttp_Is400GlassRequired()
+    {
+        var user = await factory.SeedUserAsync();
+        var client = factory.CreateClientFor(user);
+        var shelf = await client.GetFromJsonAsync<List<ShelfRow>>("/api/inventory");
+        var gin = shelf!.First(i => i.Name == "London dry gin");
+
+        var response = await client.PostAsJsonAsync("/api/cocktails", new
+        {
+            name = "No Glass",
+            glassTypeId = (Guid?)null,
+            methodId = (Guid?)null,
+            servingType = "FullDrink",
+            instructions = (string?)null,
+            lines = new[]
+            {
+                new { ingredientId = gin.Id, amount = (decimal?)null, unitId = (Guid?)null, isRequired = true, role = "Base", notes = (string?)null },
+            },
+        });
+
+        // JJ-043: its own code, so the form can put the answer beside the glass rather than in a summary.
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+        Assert.Equal("glass_required", problem!["error"]);
     }
 }

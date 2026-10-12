@@ -135,8 +135,10 @@ shared-or-tenant filter, so the handler sees the shared catalog plus the househo
 no more leak across households than a platform slice can (JJ-031). A slice that re-spelled the
 predicate by hand would be the one that eventually got it wrong.
 
-**Ordering is name then id, because name alone is not a total order here.** Four names appear in both
-source books and *Mr. Manhattan Cocktail* appears twice in the Savoy alone. Under a non-total order
+**Ordering is name then id, because name alone is not a total order here.** When this shipped, four
+names appeared in both source books and *Mr. Manhattan Cocktail* twice in the Savoy alone; since
+JJ-043 the shared catalog has one recipe per name, but a household's fork keeps its original's name,
+so the order still needs the id. Under a non-total order
 Postgres is free to return page two overlapping page one, and it will do it intermittently — the
 worst kind of bug to chase. There is a test that pages twice and counts distinct ids.
 
