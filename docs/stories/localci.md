@@ -464,7 +464,7 @@ every push for free.
 
 **Two tests guard it**, and the second is the one that matters:
 `EveryCiJob_EitherGatesOnChanges_OrIsOnTheAlwaysRunList` stops a future job quietly re-billing every
-docs push, and `TheTwoGatesThatCatchDocsMistakes_AreNeverCodeGated` stops anyone gating `secret-scan`
+docs push, and `TheTwoGatesThatCatchDocsMistakes_AreNeverCodeGated` (retired by ADR-033) stops anyone gating `secret-scan`
 or `qa-artifacts` on code — which would switch off the QA-PDF check for precisely the change it
 exists to catch. **Verified by hand against six diffs** (docs-only, this branch, a lockfile bump, the
 workflow itself, a README typo, an empty diff) before trusting it.
