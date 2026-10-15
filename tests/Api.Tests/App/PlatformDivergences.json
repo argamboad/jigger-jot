@@ -7,7 +7,6 @@
   "divergences": {
     "tests/Api.Tests/NativeChromeGateTests.cs": "JiggerJot's Android shell (dd8357a: status bar, top inset, fixed bars) is held by its own gates; the platform's hold SystemBarColors constants this shell does not have",
     "tests/Api.Tests/NativeShellGateTests.cs": "JiggerJot's docs/brand/build_assets.py renders the brand rasters but not the launcher icon's ground, so the icon-ground check reads the shell's own sources",
-    ".config/dotnet-tools.json": "Temporary: carries platform #432 (dotnet-ef 10.0.13, the security bump, jigger-jot#203) ahead of the stamp c254277; the next port matches the platform again and must drop this entry",
-    "global.json": "Temporary: carries platform #437 (SDK 10.0.402, jigger-jot#204) ahead of the stamp c254277; the next port matches the platform again and must drop this entry"
+    "global.json": "SDK 10.0.402 (platform #437, ad0642a) taken ahead of the stamp: the stamp is e7a2962 (the #432 merge, SDK 10.0.401) because #437 sits behind M3 (#435) on platform develop, which this app has not ported; the 10.0.401 SDK is gone from the laptop. Drops out when the next port moves the stamp past ad0642a"
   }
 }
