@@ -91,4 +91,24 @@
     <PackageVersion Include="NUnit3TestAdapter" Version="6.3.0" />
   </ItemGroup>
 
+  <!--
+    The platform, as packages (ADR-034, the pilot: Pkg J.1). One version for all of them, from the platform's feed
+    (nuget.config maps Perezosoft.Platform.* there); a platform bump is this one line. Pinned to 1.0.0-beta.2, the first
+    release with the container for an app on the packages (the pilot's staging, J.8). No project references them yet:
+    J.2-J.4 swap the platform's code for them. Perezosoft.Platform.Build joins as a GlobalPackageReference with J.3,
+    when the build settings stop coming from src/Build here (both at once would import them twice).
+  -->
+  <PropertyGroup>
+    <PlatformPackagesVersion>1.0.0-beta.2</PlatformPackagesVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Perezosoft.Platform.Api" Version="$(PlatformPackagesVersion)" />
+    <PackageVersion Include="Perezosoft.Platform.Client" Version="$(PlatformPackagesVersion)" />
+    <PackageVersion Include="Perezosoft.Platform.Maui" Version="$(PlatformPackagesVersion)" />
+    <PackageVersion Include="Perezosoft.Platform.Testing" Version="$(PlatformPackagesVersion)" />
+    <PackageVersion Include="Perezosoft.Platform.Testing.E2E" Version="$(PlatformPackagesVersion)" />
+    <PackageVersion Include="Perezosoft.Platform.Testing.Ui" Version="$(PlatformPackagesVersion)" />
+    <PackageVersion Include="Perezosoft.Platform.Web" Version="$(PlatformPackagesVersion)" />
+  </ItemGroup>
+
 </Project>
