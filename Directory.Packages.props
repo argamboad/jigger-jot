@@ -40,6 +40,8 @@
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="10.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.13" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <!-- Referenced directly by Infrastructure (and the tests), so the package declares the EF line it compiles against. -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.13" />
     <PackageVersion Include="Stripe.net" Version="52.1.0" />
 
     <!-- Web (Blazor WASM) -->
@@ -66,7 +68,6 @@
 
     <!-- Tests -->
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.7.0" />
@@ -84,6 +85,11 @@
     <PackageVersion Include="Testcontainers.Minio" Version="4.12.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.12.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
+    <!-- The packaged harness (Perezosoft.Platform.Testing, Pkg 5.1a) needs xunit's extension points only (IAsyncLifetime),
+         not the test-project bundle; same version as xunit. -->
+    <PackageVersion Include="xunit.extensibility.core" Version="2.9.3" />
+    <!-- The inheritable suites (Pkg 5.1b) assert, so the package takes xunit's assertions too; same version. -->
+    <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
     <PackageVersion Include="Microsoft.Playwright.NUnit" Version="1.60.0" />
     <PackageVersion Include="NUnit" Version="4.3.2" />
@@ -92,11 +98,10 @@
   </ItemGroup>
 
   <!--
-    The platform, as packages (ADR-034, the pilot: Pkg J.1). One version for all of them, from the platform's feed
-    (nuget.config maps Perezosoft.Platform.* there); a platform bump is this one line. Pinned to 1.0.0-beta.2, the first
-    release with the container for an app on the packages (the pilot's staging, J.8). No project references them yet:
-    J.2-J.4 swap the platform's code for them. Perezosoft.Platform.Build joins as a GlobalPackageReference with J.3,
-    when the build settings stop coming from src/Build here (both at once would import them twice).
+    The platform, as packages (ADR-034). One version for all of them; `dotnet new` wrote the release this app started
+    from, and a platform bump is this one line. Perezosoft.Platform.Build brings every project's build settings (one
+    GlobalPackageReference); the local source switch (build/PlatformSource.*, PLATFORM_SOURCE in .env) turns them into a
+    platform checkout's projects.
   -->
   <PropertyGroup>
     <PlatformPackagesVersion>1.0.0-beta.2</PlatformPackagesVersion>
@@ -109,6 +114,7 @@
     <PackageVersion Include="Perezosoft.Platform.Testing.E2E" Version="$(PlatformPackagesVersion)" />
     <PackageVersion Include="Perezosoft.Platform.Testing.Ui" Version="$(PlatformPackagesVersion)" />
     <PackageVersion Include="Perezosoft.Platform.Web" Version="$(PlatformPackagesVersion)" />
+    <GlobalPackageReference Include="Perezosoft.Platform.Build" Version="$(PlatformPackagesVersion)" />
   </ItemGroup>
 
 </Project>
