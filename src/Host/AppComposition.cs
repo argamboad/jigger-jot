@@ -4,6 +4,8 @@ using JiggerJot.Host.Features.UnitPreference;
 using Perezosoft.Core;
 using Perezosoft.Core.Abstractions;
 using JiggerJot.Host.Catalog;
+using JiggerJot.Host.Email;
+using Perezosoft.Infrastructure.Email;
 using JiggerJot.Host.Persistence.Seed;
 
 namespace JiggerJot.Host;
@@ -21,10 +23,8 @@ public static class AppComposition
     /// <summary>The app's options for the platform: its brand, its plans, its own permissions.</summary>
     public static void ConfigurePlatform(PlatformOptions options)
     {
+        // The name the platform shows beyond the mails: the MFA issuer, the OpenAPI title, the telemetry service.
         options.Brand.Name = "JiggerJot";
-        // Its own mails (the serif, the lockup, Marga) wait for the renderer seam, perezosoft-platform#462;
-        // meanwhile the platform's, in its copper (app.css --bs-primary).
-        options.Brand.Colors.Primary = "#B4562A";
     }
 
     /// <summary>Registers every slice's services. Behind each slice's own <c>Enabled</c> setting where it has one.</summary>
@@ -47,6 +47,10 @@ public static class AppComposition
         services.AddScoped<IngredientRemovalHandler>();
         services.AddScoped<ITenantDataContributor, InventoryDataContributor>();
         services.AddScoped<IHouseholdIngredients, HouseholdIngredients>();     // the Catalog's dissolve wipes bottles through the shelf (Arch A8)
+
+        // The mails are JiggerJot's own design (the display serif, the lockup, Marga): its renderer in place of the
+        // platform's, registered after it (perezosoft-platform#462).
+        services.AddSingleton<IBrandedEmail, JiggerJotEmail>();
 
         // The reader's measuring system (JJ-008), user-keyed (Arch A3, jigger-jot#164).
         services.AddScoped<UnitPreferenceHandler>();

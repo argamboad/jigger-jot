@@ -25,10 +25,8 @@
   <ItemGroup>
     <!-- The catalog's seed (SEED-1, JJ-022), read by CatalogSeeder. -->
     <EmbeddedResource Include="Persistence\Seed\*.json" />
-    <!-- jigger-jot's own mails, parked until the platform's renderer seam (perezosoft-platform#462): Email/README.md. -->
-    <Compile Remove="Email\**" />
-    <EmbeddedResource Remove="Email\**" />
-    <None Include="Email\**" />
+    <!-- JiggerJot's mails (its IBrandedEmail, perezosoft-platform#462): the lockup, Marga and the display serif, embedded. -->
+    <EmbeddedResource Include="Email\Assets\lockup.png;Email\Assets\marga.png;Email\Assets\instrument-serif-latin.woff2" />
   </ItemGroup>
 
 </Project>

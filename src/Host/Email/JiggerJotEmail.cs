@@ -2,13 +2,13 @@ using System.Globalization;
 using System.Net;
 using System.Resources;
 using Perezosoft.Core.Abstractions;
+using Perezosoft.Infrastructure.Email;
 
-namespace Perezosoft.Infrastructure.Email;
-
-/// <summary>A rendered branded email: localized subject, HTML, and the inline images it references.</summary>
-public sealed record EmailBody(string Subject, string Html, IReadOnlyList<EmailInlineImage> InlineImages);
+namespace JiggerJot.Host.Email;
 
 /// <summary>
+/// JiggerJot's mails: the platform renders every transactional mail through <see cref="IBrandedEmail"/>
+/// (perezosoft-platform#462), and <c>AppComposition.AddAppServices</c> registers this one in place of the platform's.
 /// Builds the JiggerJot-branded HTML for transactional emails. Email HTML is its own world —
 /// table-based layout, inline styles — so this does NOT reuse the app's CSS; it copies the app's
 /// values instead, and <c>EmailLookTests</c> holds the copy to them. The lockup and Marga are embedded
@@ -30,7 +30,7 @@ public sealed record EmailBody(string Subject, string Html, IReadOnlyList<EmailI
 /// culture rather than the ambient thread culture.
 /// </para>
 /// </summary>
-public static class BrandedEmail
+public sealed class JiggerJotEmail : IBrandedEmail
 {
     private const string LockupCid = "jiggerjot-lockup";
     private const string MargaCid = "jiggerjot-marga";
@@ -47,7 +47,7 @@ public static class BrandedEmail
     private const string Serif = "'Instrument Serif',Georgia,'Times New Roman',serif"; // --font-display
 
     private static readonly ResourceManager Rm =
-        new("Perezosoft.Infrastructure.Email.EmailStrings", typeof(BrandedEmail).Assembly);
+        new("JiggerJot.Host.Email.EmailStrings", typeof(JiggerJotEmail).Assembly);
     private static readonly CultureInfo DefaultCulture = CultureInfo.GetCultureInfo("en");
 
     /// <summary>Resolves a locale code (e.g. "es") to a culture, defaulting to English.</summary>
@@ -71,7 +71,7 @@ public static class BrandedEmail
     public static EmailInlineImage Marga() => new(MargaCid, "marga.png", LoadAsset("marga.png"), "image/png");
 
     /// <summary>"Email me a 6-digit code" — the OTP code email.</summary>
-    public static EmailBody Otp(string code, int lifespanMinutes, CultureInfo culture) => Compose(
+    public EmailBody Otp(string code, int lifespanMinutes, CultureInfo culture) => Compose(
         T("Otp_Subject", culture),
         T("Otp_Preheader", culture, code),
         $"""
@@ -85,7 +85,7 @@ public static class BrandedEmail
          """, culture, withMarga: true);
 
     /// <summary>"Email me a magic link" — the passwordless sign-in link.</summary>
-    public static EmailBody MagicLink(string link, int lifespanMinutes, CultureInfo culture) => Compose(
+    public EmailBody MagicLink(string link, int lifespanMinutes, CultureInfo culture) => Compose(
         T("MagicLink_Subject", culture),
         T("MagicLink_Preheader", culture),
         $"""
@@ -99,7 +99,7 @@ public static class BrandedEmail
          """, culture, withMarga: true);
 
     /// <summary>Household invitation — join link plus the raw token fallback.</summary>
-    public static EmailBody Invitation(string joinUrl, string token, CultureInfo culture) => Compose(
+    public EmailBody Invitation(string joinUrl, string token, CultureInfo culture) => Compose(
         T("Invitation_Subject", culture),
         T("Invitation_Preheader", culture),
         $"""
@@ -119,7 +119,7 @@ public static class BrandedEmail
     /// are dynamic user-facing content, so they are HTML-encoded before interpolation — email content
     /// can't inject markup. The subject is the (plain) title.
     /// </summary>
-    public static EmailBody Notification(string title, string body, CultureInfo culture) => Compose(
+    public EmailBody Notification(string title, string body, CultureInfo culture) => Compose(
         title,
         WebUtility.HtmlEncode(title),
         $"""
@@ -233,7 +233,7 @@ public static class BrandedEmail
         {
             if (AssetCache.TryGetValue(fileName, out var cached)) return cached;
 
-            var asm = typeof(BrandedEmail).Assembly;
+            var asm = typeof(JiggerJotEmail).Assembly;
             var name = asm.GetManifestResourceNames()
                 .FirstOrDefault(n => n.EndsWith(fileName, StringComparison.OrdinalIgnoreCase))
                 ?? throw new InvalidOperationException($"Embedded email asset ({fileName}) not found.");

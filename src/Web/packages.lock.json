@@ -65,20 +65,20 @@
       },
       "Perezosoft.Platform.Build": {
         "type": "Direct",
-        "requested": "[1.0.0-beta.2, )",
-        "resolved": "1.0.0-beta.2",
-        "contentHash": "kof1748ZGIUUQWvtKLH6HnaV35ChU1uwX8NmjUG3rRe9tThdRml3bwLhazDjtsVnFt0IlB2jIUQnIDCaIJY9ug=="
+        "requested": "[1.0.0-beta.3, )",
+        "resolved": "1.0.0-beta.3",
+        "contentHash": "7S/7OXAqGEcgGQYYl+VUnCiCWeWJ7Smy9bOoJOVnLQM7LkF73aV4GzyIooDQNZaFrCgvQrPuYuWOd3n6PtDzAw=="
       },
       "Perezosoft.Platform.Web": {
         "type": "Direct",
-        "requested": "[1.0.0-beta.2, )",
-        "resolved": "1.0.0-beta.2",
-        "contentHash": "TKEqdwC4mBGQwkgvDoovb2jHdKS/vAiwq94ygz0Ru2J7I0CFFgnU7OsOXfJ9vD9vULIqGHOtncgITssvs4y+JQ==",
+        "requested": "[1.0.0-beta.3, )",
+        "resolved": "1.0.0-beta.3",
+        "contentHash": "curA8E/zv1JP7bM6fcNc9Unm3qgi3MXuxGi1xUb9LrFkHVz/jmOqGA1ZkFWm9HCpXXwhZW0RZ3o9g0jtqcn/ng==",
         "dependencies": {
           "Microsoft.AspNetCore.Components.WebAssembly": "10.0.13",
           "Microsoft.Extensions.Http": "10.0.13",
           "Microsoft.Extensions.Localization": "10.0.13",
-          "Perezosoft.Platform.Client": "1.0.0-beta.2"
+          "Perezosoft.Platform.Client": "1.0.0-beta.3"
         }
       },
       "Microsoft.AspNetCore.Authorization": {
@@ -337,7 +337,7 @@
           "Microsoft.AspNetCore.Components.Authorization": "[10.0.13, )",
           "Microsoft.AspNetCore.Components.Web": "[10.0.13, )",
           "Microsoft.Extensions.Localization": "[10.0.13, )",
-          "Perezosoft.Platform.Client": "[1.0.0-beta.2, )",
+          "Perezosoft.Platform.Client": "[1.0.0-beta.3, )",
           "System.IdentityModel.Tokens.Jwt": "[8.19.1, )"
         }
       },
@@ -368,9 +368,9 @@
       },
       "Perezosoft.Platform.Client": {
         "type": "CentralTransitive",
-        "requested": "[1.0.0-beta.2, )",
-        "resolved": "1.0.0-beta.2",
-        "contentHash": "p4Dkh0vFgNJQSh2lLIdKsGYiZ6pQnwn39iAahUO9IPsEsL7twlRf6FPPATL1OsSm7avrKFwT1vhWRO4xmwJIPw==",
+        "requested": "[1.0.0-beta.3, )",
+        "resolved": "1.0.0-beta.3",
+        "contentHash": "7P/AUiqAEPIUfIxxruwVxSNIhkKPEJ4QVGe3XHcoC0mtU45/ayeSPQbwkhKEAL18sRIinUhx5Gy1Yz+2s16vng==",
         "dependencies": {
           "Microsoft.AspNetCore.Components.Authorization": "10.0.13",
           "Microsoft.AspNetCore.Components.Web": "10.0.13",
