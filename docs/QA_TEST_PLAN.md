@@ -105,7 +105,7 @@ dotnet run --project src/Api --launch-profile https    # binds https:7360 (web/d
 - OAuth uses a **loopback browser flow** — your default system browser will open a tab during OAuth.
 
 ### 1.4 Android (MAUI) — additional setup
-Follow `docs/MOBILE_TESTING.md`. The essential bits:
+Follow the platform's `docs/MOBILE_TESTING.md`. The essential bits:
 - Emulator (AVD) or USB device running.
 - **`adb reverse tcp:5438 tcp:5438`** — **re-run every time the device/emulator restarts** (it does
   not persist). Verify with `adb reverse --list`.
@@ -160,7 +160,7 @@ it owns, "what can I make right now" has no answer, so a failure there cascades 
 
 **Out of scope (per `docs/PROJECT_BRIEF.md` OUT list & current state):** SMS OTP, OAuth providers
 beyond Google/Microsoft, FR/DE/PT languages (scaffolded but not translated — see
-`docs/LOCALIZATION.md`), and the app's own deferred items — publishing household cocktails to a
+the platform's `docs/LOCALIZATION.md`), and the app's own deferred items — publishing household cocktails to a
 community pool, household-specific substitutions, custom ingredients in the substitution graph,
 brand/product granularity, recipe-level substitutions, a manual "primary classification", and
 "running low" inventory. **Editing a cocktail after forking or writing it (`AUTHORING-2`) is not
@@ -920,7 +920,7 @@ And entering a valid code completes sign-in
 
 ### QA-MFA-05 — Native (MAUI) sign-in enforces the step-up 🟠 (Desktop/Android)
 **Precondition:** an account with two-factor **On**; run the desktop/Android shell (see
-`docs/MOBILE_TESTING.md`). Native has no magic link — use **email OTP** or **OAuth**.
+the platform's `docs/MOBILE_TESTING.md`). Native has no magic link — use **email OTP** or **OAuth**.
 **Gherkin**
 ```gherkin
 Given my account has two-factor enabled
@@ -2142,7 +2142,7 @@ auto-sign-in (secure storage cleared).
 **Walkthrough:** spot-check rename, invite (token revealed), and leave on desktop. **Expected:** same
 behavior as web (§7–8) — the UI is shared.
 
-> **NATIVE Wave 2 (ADR-018, `docs/NATIVE_PARITY.md`):** the cases below verify the parity fixes
+> **NATIVE Wave 2 (ADR-018, the platform's `docs/NATIVE_PARITY.md`):** the cases below verify the parity fixes
 > per-feature on desktop — join-by-code (G5), culture persistence (G6), export share (G1), and the
 > billing return-trip (G2) — plus the feature areas the old plan never exercised natively.
 
@@ -2198,7 +2198,7 @@ Then the plan summary refreshes by itself — no re-navigation needed
 1. **Billing** → **Upgrade**. **Expected:** the **system browser** opens the hosted checkout; the
    app stays on Billing (it does not navigate away).
 2. Complete checkout with a test card. **Expected:** the browser lands on the **web** app's billing
-   page (by design — emailed/redirect links are web; `docs/NATIVE_PARITY.md` G2).
+   page (by design — emailed/redirect links are web; the platform's `docs/NATIVE_PARITY.md` G2).
 3. Click back into the desktop app. **Expected:** the summary **refetches on focus** — the plan
    flips to **pro** without touching navigation. (Without Stripe keys the fake provider's checkout
    URL is a stub — then verify only: browser opened, app stayed, and refocusing refetches.)
@@ -2241,7 +2241,7 @@ light/dark setting live.
 ## 13. Android — MAUI 🟠
 
 > Prereq every run: **`adb reverse tcp:5438 tcp:5438`** + API on the https profile. See
-> `docs/MOBILE_TESTING.md`.
+> the platform's `docs/MOBILE_TESTING.md`.
 
 ### QA-AND-01 — OTP sign-in 🔴 (Android) ⚙️ Automated in CI
 **Gherkin**
@@ -2292,7 +2292,7 @@ below the status bar (safe-area padding) and every item is tappable.
 **Walkthrough:** spot-check language switch, invite (token revealed), and leave. **Expected:** parity
 with web.
 
-> **NATIVE Wave 2 (ADR-018, `docs/NATIVE_PARITY.md`):** the cases below verify the parity fixes on
+> **NATIVE Wave 2 (ADR-018, the platform's `docs/NATIVE_PARITY.md`):** the cases below verify the parity fixes on
 > Android — including the two that only exist on this platform (hardware back, share sheet).
 
 ### QA-AND-07 — Hardware back navigates in-app history 🔴 (Android)
@@ -3441,7 +3441,7 @@ is the product. Cited decisions are `JJ-nnn` in `docs/DECISIONS.md`.
 | Marga (MARGA-1/2/3/5/6) | CHROME-01/02/03/**10/11/12/13/26**, MAKE-08/09/10 + `Ui.Tests` (`MargaPresenceTests`, `MargaEverywhereTests`) | none of her own. **She is a drawn character, not an assistant**: every line is a localized resource string with real data in its placeholders, picked whole rather than assembled, from queries that already exist. Her component takes a FINISHED sentence — it cannot build one, pick one or fetch anything. She is `alt=""`/`aria-hidden`. |
 | She pages through the next bottles (MARGA-7) | **CHROME-27** + `Ui.Tests` (`BottlePagerTests`, `MargaBottlePagingTests`) | `GET /api/cocktails/unlocks?limit=10` and `GET /api/cocktails/starters?limit=10` — no new endpoint; every screen had asked for one. One `BottlePager` component (‹ "2 of N" ›, nothing for a single bottle, stopping at both ends, `MaxBottles` = 10) under every line where she names a bottle: Home's panel (her line follows), the shelf (the outlined pill follows), the catalog's one-away panel (its drink names follow, the list below does not), and both "where to start" lines. A later bottle says "or"; a re-rank resets to the best; the line sits in an `aria-live` region. |
 | The responsive shell (SHELL-1) | **CHROME-04/06** (⚙️ E2E `ShellJourneyTests`) + CHROME-05 | none. ONE element repositioned by CSS, never a second copy hidden at one width — two `nav-shelf` in the DOM fails every journey that clicks it. The current tab is weight plus a drawn indicator, never colour alone, plus `aria-current`. |
-| The boot state (SHELL-2) | CHROME-07/08, and the native legs of §12/§13 | none — it renders before the app exists. It lands in **two** `index.html` files (`NATIVE_PARITY.md`), held by a CI gate; the WebView hosts sweep instead of filling, having no download to measure. A second gate caps the illustration's size, since this is the one place it is fetched before the app is usable. |
+| The boot state (SHELL-2) | CHROME-07/08, and the native legs of §12/§13 | none — it renders before the app exists. It lands in **two** `index.html` files (the platform's `docs/NATIVE_PARITY.md`), held by a CI gate; the WebView hosts sweep instead of filling, having no download to measure. A second gate caps the illustration's size, since this is the one place it is fetched before the app is usable. |
 | Marga in the emails (MARGA-4) | **MAIL-05/06/07** + `Api.Tests` (`MargaInEmailTests`) | none — `BrandedEmail` renders her the way it renders the logo: a CID inline image, the one approach Gmail and Outlook both show (they block data-URIs). She is on the three emails a person ASKED for and deliberately not on the notification wrapper, which carries failed payments and security alerts. Attached only when shown, so her 19 KB never rides along unused. Her line is one whole resource string from `EmailStrings.resx`, same contract as in the app. |
 | The app in Spanish | **CHROME-09**, I18N-01..04 | resx only. Her lines are voiced, so the Spanish is a writing job rather than a translation, and the placeholders have to survive the rewrite. |
 | Billing, Admin and the small screens (BACKBAR-8) | **CHROME-24** + BILL-*, ADM-* (⚙️ E2E `BillingJourneyTests`, `SeatQuotaJourneyTests`, `AnnouncementJourneyTests`, unchanged) + `Ui.Tests` (`UndrawnScreensTests`, `BillingGateUiTests`) | none — presentation only (JJ-039), derived by analogy from pages 02 and 16–17 since the handoff never drew these. Billing as two groups with the status pill in the status colours; the console's six cards and one table as groups with tenants and members as rows and every action a text link; statuses as one `.notice`; not-found as a `NotFoundView` on the empty-state layout; the callback's spinner a brass bar; the impersonation banner a hairline strip; the error bar in the error colours. No admin write added (ADR-021); every gate and id intact. |

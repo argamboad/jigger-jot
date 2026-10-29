@@ -99,7 +99,8 @@ public class RestyleGateTests
         var css = File.ReadAllText(Path.Combine(root, "src", "Shared.Ui", "wwwroot", "css", "app.css"));
         Assert.Matches(new Regex(@"\[data-bs-theme=""dark""\]\s*\.brand-icon\s*\{[^}]*content:\s*url\(""?\.\./brand/icon_dark\.svg""?\)"), css);
 
-        var rebranding = File.ReadAllText(Path.Combine(root, "docs", "REBRANDING.md"));
+        // The platform's REBRANDING checklist knows one mark; JiggerJot's own additions to it are in its docs index.
+        var rebranding = File.ReadAllText(Path.Combine(root, "docs", "README.md"));
         Assert.Contains("icon_dark.svg", rebranding, StringComparison.Ordinal);
 
         var script = File.ReadAllText(Path.Combine(root, "docs", "brand", "build_assets.py"));

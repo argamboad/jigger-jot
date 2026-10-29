@@ -12,6 +12,11 @@ checklist of the ingredients on its shelf; the app shows every cocktail it can m
 filter a shared, seeded catalog, fork any cocktail into their own editable copy, and author their
 own. Full context in `docs/PROJECT_BRIEF.md`; tagline "Mix what you have." (JJ-029).
 
+**Built on the Perezosoft platform's packages** (`Perezosoft.Platform.*`, ADR-034; the version is
+`PlatformPackagesVersion` in `Directory.Packages.props` and `commit` in `platform-stamp.json`). The platform's code,
+gates and documents live in perezosoft-platform; this repo holds JiggerJot's own. **`docs/README.md`** indexes this
+repo's documents and links the platform's.
+
 ## Read before you act
 - **This app owns a dev PORT BLOCK, and it is not the platform's or a sibling's.**
   `perezosoft-platform` seeds every new app with its own ports, so out of the box an app cannot run
@@ -26,13 +31,13 @@ own. Full context in `docs/PROJECT_BRIEF.md`; tagline "Mix what you have." (JJ-0
   (Platform 7008/5169 + 7160/5238; y-el-vuelto 7108/5269 + 7260/5338; the next app takes 7308/5469 +
   7460/5538.) The http API leg is what the Android emulator reaches through
   `adb reverse tcp:5438 tcp:5438`, so **provider redirect URIs must name
-  `http://localhost:5438/signin-{provider}`** — see `docs/MOBILE_TESTING.md`. `docs/audits/**` and
-  `docs/qa-runs/**` keep the old ports on purpose: they log what a run actually used.
+  `http://localhost:5438/signin-{provider}`** — see [platform `MOBILE_TESTING.md`](https://github.com/argamboad/perezosoft-platform/blob/develop/docs/MOBILE_TESTING.md). `docs/qa-runs/**` keeps
+  the old ports on purpose: it logs what a run actually used.
 - **Every session → `docs/PLAN.md` first.** The three gates (branch only from `develop`; no next
   slice until the user says "merged"; no commit/push/PR until the user says "C+P+PR"), the slice
   ritual, the editing rules, and the sequenced backlog. It exists because a session broke all
   three gates in one day.
-- **Writing or modifying ANY code → `docs/audits/v4-2026-09/FOUNDATION_RULES_v3.md` (v3.1: R1–R35
+- **Writing or modifying ANY code → [platform `FOUNDATION_RULES_v3.md`](https://github.com/argamboad/perezosoft-platform/blob/develop/docs/audits/v4-2026-09/FOUNDATION_RULES_v3.md) (v3.1: R1–R35
   from v1.0, R36–R76 from v2.0, R81–R162 minus the retired R94, R116, R117, R138 and R156; R77–R80 retired) is
   binding.** It encodes the post-audit invariants (tenancy incl. the RLS backstop parity, second-factor/
   event replay, SSRF, fail-closed normalization, atomic quotas + single-use credentials, per-user AND
@@ -41,29 +46,26 @@ own. Full context in `docs/PROJECT_BRIEF.md`; tagline "Mix what you have." (JJ-0
   Release-build guards) as machine-enforced arch tests + CI gates; each
   `[machine]` rule names the test that holds it. Gates guard behaviour and the truth of documents, never
   process (ADR-033): a slip gets a test for the thing that slipped. Comply; if a task
-  seems to require violating a rule, stop and surface it. The frozen quality bar lives in `CONTRIBUTING.md`
-  (v2.0 at `docs/audits/v3-2026-07/FOUNDATION_RULES_v2.md` and v1.0 at
-  `docs/audits/v2-2026-07/FOUNDATION_RULES.md` remain as the historical layers).
-- **Hardening the template (or a clone) → follow `docs/audits/AUDIT_SUITE.md`.** The single repeatable
-  super-audit (5 diagnostic/gate phases + QA-paranoia + docs/course currency) that produced the `audits/v*`
-  runs. It's **triggered, not routine** — run it on a structural core change, a new wave of epics, a major
-  dependency bump, or before generating a production app (at minimum re-run its Phase 4 adversarial slice
-  pass). Between triggers, keep the gates green instead of re-auditing.
+  seems to require violating a rule, stop and surface it. The rules, the audits that wrote them and the frozen
+  quality bar ([`CONTRIBUTING.md`](https://github.com/argamboad/perezosoft-platform/blob/develop/CONTRIBUTING.md)) are the platform's; the platform's own gates hold its
+  code before a release reaches this repo, and the suites this repo runs come from `Perezosoft.Platform.Testing`.
 - Touching the schema or entities → read **`docs/DATA_MODEL.md`** first.
 - Implementing a screen or flow → read **`docs/FEATURES.md`** first.
-- Starting a build slice → read **`docs/WAYS_OF_WORKING.md`** (slices, story format, PR/commit
-  conventions).
-- Adding an app feature → follow the **clean-platform + vertical-slice convention** in
-  `docs/WAYS_OF_WORKING.md` (and ADR-004); copy `src/Api/Features/Notes` as the reference, then
-  delete the Notes sample.
+- Starting a build slice → read the platform's **[platform `WAYS_OF_WORKING.md`](https://github.com/argamboad/perezosoft-platform/blob/develop/docs/WAYS_OF_WORKING.md)** (slices, story format,
+  PR/commit conventions).
+- Adding an app feature → follow its **vertical-slice convention** (ADR-004): a folder under `src/Host/Features/`
+  (copy `Inventory`, the smallest), registered and mapped in **`src/Host/AppComposition.cs`** — the one file outside
+  the slices that names one (R8, R159).
+- Taking a platform release → `dotnet platform port -Platform <platform checkout> -To <version>`, then the full
+  suite; the steps are [platform `NEW_APP_GUIDE.md`](https://github.com/argamboad/perezosoft-platform/blob/develop/docs/NEW_APP_GUIDE.md)'s.
 - Wondering *why* something is the way it is → check **`docs/DECISIONS.md`** before changing it.
 - Changing a settled decision → add a new dated ADR in `docs/DECISIONS.md`; don't silently
   reverse it.
-- Rebranding (name, logo, colours, tagline) → follow **`docs/REBRANDING.md`** and complete every
-  item. It explicitly covers the **transactional email templates** (`src/Infrastructure/Email/` —
-  `BrandedEmail.cs` + `Assets/lockup.png` + `Assets/marga.png` + `Assets/instrument-serif-latin.woff2`), which are inline and easy to miss; a
-  rebrand that skips them is incomplete. **The assets are copies**, not references: `Infrastructure`
-  does not depend on `Shared.Ui` and must not start.
+- Rebranding (name, logo, colours, tagline) → follow the platform's **[platform `REBRANDING.md`](https://github.com/argamboad/perezosoft-platform/blob/develop/docs/REBRANDING.md)** and complete
+  every item. The **transactional emails** are JiggerJot's own renderer (`src/Host/Email/JiggerJotEmail.cs`, an
+  `IBrandedEmail` registered in `AppComposition`, + `Assets/lockup.png`, `Assets/marga.png`,
+  `Assets/instrument-serif-latin.woff2`); a rebrand that skips them is incomplete. **The assets are copies**, not
+  references: the host does not depend on `Shared.Ui` and must not start.
 
 ## Golden rules — constant (do not violate)
 1. **Tenant-scoped, not user-scoped.** App data belongs to the tenant; never leak across tenants.
@@ -72,7 +74,7 @@ own. Full context in `docs/PROJECT_BRIEF.md`; tagline "Mix what you have." (JJ-0
    filter (see ADR-003); genuinely cross-tenant/pre-auth reads use the sanctioned escape hatch
    `IRepository<T>.QueryAllTenants()`, and signature-/system-authenticated tenant-scoped writes
    (the billing webhook, admin impersonation) enter their tenant via `ITenantContext.EnterTenant`.
-   `IgnoreQueryFilters()` is **banned in `src/Api/Features/**`** (fails CI). Only preferences are
+   `IgnoreQueryFilters()` is **banned in `src/Host/Features/**`** (fails CI). Only preferences are
    per-user. **A Postgres RLS backstop (ADR-020) re-enforces this at the DB**: a new `ITenantScoped`
    entity must ship its policy in the same migration (`RlsDdl.StatementsFor` — the
    `RlsMigrationGateTests` parity gate fails CI otherwise), and set-based cross-tenant *writes*
@@ -83,14 +85,14 @@ own. Full context in `docs/PROJECT_BRIEF.md`; tagline "Mix what you have." (JJ-0
 4. **Derived values are computed, never stored** as stale flags (confirm the app's specific
    derived rules in `docs/DATA_MODEL.md`).
 5. **Web-first for features.** The platform ships MAUI desktop + Android shells with auth wired
-   (see `docs/MOBILE_TESTING.md`); build each app feature on web first and extend the native
+   (see [platform `MOBILE_TESTING.md`](https://github.com/argamboad/perezosoft-platform/blob/develop/docs/MOBILE_TESTING.md)); build each app feature on web first and extend the native
    shells only once it works there.
 6. **Latest stable versions only, never previews.**
 7. **Test-Driven Development — always.** Write the failing test before the production code on
-   every slice. Unit tests (xUnit) in `Core.Tests` / `Api.Tests`; E2E tests (Playwright/NUnit)
-   in `E2E.Tests`. No slice merges without tests that drove it; Gherkin scenarios map 1:1 to tests.
+   every slice. Unit and integration tests (xUnit) in `Api.Tests` — JiggerJot's own under
+   `tests/Api.Tests/App/`, the rest the starter's — and `Ui.Tests`; E2E tests (Playwright/NUnit) in `E2E.Tests`. No slice merges without tests that drove it; Gherkin scenarios map 1:1 to tests.
 8. **Work in vertical slices.** Each slice is end-to-end and leaves the app working; follow
-   `docs/WAYS_OF_WORKING.md` for slices, Gherkin stories, Conventional Commits, and the PR
+   [platform `WAYS_OF_WORKING.md`](https://github.com/argamboad/perezosoft-platform/blob/develop/docs/WAYS_OF_WORKING.md) for slices, Gherkin stories, Conventional Commits, and the PR
    template. Don't build sprawling multi-epic chunks — propose a split.
 
 ## Golden rules — app-specific
@@ -151,9 +153,12 @@ own. Full context in `docs/PROJECT_BRIEF.md`; tagline "Mix what you have." (JJ-0
    policy, and the dissolution canary cannot see them — every one of them needs an
    `ITenantDataContributor` that wipes household rows only.
 
-## Tech stack (see `docs/TECH_STACK.md`)
-- **Versions:** latest stable on the current .NET line — **.NET SDK 10.0.402 (pinned in `global.json`, the single source of truth, with `rollForward: disable` — the 2026-08 drift showed `latestPatch` let runners outrun both the lockfiles and the MCR image catalog), ASP.NET Core / EF Core packages 10.0.13 (security bump, 2026-10-14; `System.Security.Cryptography.Pkcs` pinned 10.0.13 under MimeKit), Npgsql.EF 10.0.3, PostgreSQL 17.** The SDK is **pinned, not floating** (v3 audit DEP-4): CI's `setup-dotnet` reads `global-json-file: global.json`, and both Dockerfile image tags (`sdk:10.0.402` build, `aspnet:10.0.13` runtime) match it — so a runner-image SDK patch can't outrun the committed `packages.lock.json` (the WASM SDK injects patch-sensitive implicit packages → NU1004 in locked-mode restore).
-  - **Bump-together playbook** (do all of these in ONE PR when moving the SDK): ① edit `global.json` `version`; ② `dotnet restore --locked-mode` on the new SDK, and regenerate (`dotnet restore --force-evaluate`) only the lockfiles that fail — a bump that changes no package graph needs none (platform PR perezosoft-platform#220 skipped them all with no harm; v4 DEP-24); ③ bump the two `Dockerfile` tags — build `sdk:X` and runtime `aspnet:Y` where Y = the ASP.NET **package** line in `Directory.Packages.props` (the `SdkPin_HasOneSource` gate checks exactly that; the SDK's bundled runtime may be newer, and the packages move on their own schedule — 2026-09-09: the 10.0.401 SDK bundled 10.0.12 while the packages and the runtime image stayed 10.0.11; since the 2026-10-14 security bump they are 10.0.13, and since 2026-10-15 the pinned 10.0.402 SDK bundles that same 10.0.13 — the runtime image is what executes them, and the WASM build packs in `Web.csproj` follow the SDK's bundled line); ④ reconcile the version strings in this file + `docs/TECH_STACK.md` + `docs/DEPLOYMENT.md`; ⑤ re-check the Apple legs' Xcode requirement (the iOS/macCatalyst workload moves with the SDK; `ci.yml` pins the WORKLOAD SET to the image's default Xcode — non-default Xcodes on the runner images can be incomplete, so bump that pin only together with the image's default Xcode);
+## Tech stack (see [platform `TECH_STACK.md`](https://github.com/argamboad/perezosoft-platform/blob/develop/docs/TECH_STACK.md))
+- **Versions:** the platform's, through its packages — **.NET SDK 10.0.402** pinned in `global.json` (`rollForward:
+  disable`), the platform at `PlatformPackagesVersion` in `Directory.Packages.props`, which brings its own ASP.NET
+  Core / EF Core / Npgsql line; PostgreSQL 17. A platform release moves them together: `dotnet platform port` writes
+  the version, the stamp and the starter's files, and the platform's NEW_APP_GUIDE lists what follows (the lockfiles,
+  the Dockerfile tags, the Apple legs' Xcode).
 - **Backend:** ASP.NET Core Web API behind a clean API boundary.
 - **Web frontend:** Blazor WebAssembly; UI components in a shared **RCL** (hard rule).
 - **DB:** PostgreSQL via **EF Core (Npgsql)**; schema/migrations generated from `docs/DATA_MODEL.md`.
@@ -172,7 +177,8 @@ own. Full context in `docs/PROJECT_BRIEF.md`; tagline "Mix what you have." (JJ-0
   token providers). Magic links and email OTP are single-use, hashed, and time-limited; lifetimes
   are in config (`Auth:MagicLink:TokenLifespanMinutes`, `Auth:Otp:*`).
 - **`IEmailSender` (Core abstraction) is the only way to send email.** Never reference MailKit
-  directly outside `Infrastructure/Email/`.
+  directly; the platform's Infrastructure package owns it. JiggerJot's mails look like JiggerJot through its own
+  `IBrandedEmail` (`src/Host/Email/JiggerJotEmail.cs`).
 - **JWT Bearer auth is configured** in `Program.cs` (validates the app-issued access token, scheme
   `JwtBearerDefaults.AuthenticationScheme`). The token carries a `tenant_id` claim that drives
   tenant query scoping.
@@ -182,9 +188,8 @@ own. Full context in `docs/PROJECT_BRIEF.md`; tagline "Mix what you have." (JJ-0
   `PostmanParityTests` CI gate enforces the floor).** Any change to API
   endpoints (route, verb, path/query params, request/response shape, auth requirements, or error
   codes) must update **`docs/postman/JiggerJot.postman_collection.json`** (+ the environment
-  files when config/env expectations change) in the same slice. Controllers in
-  `src/Api/Controllers/` and slices under `src/Api/Features/` are the source of truth; the
-  collection documents them.
+  files when config/env expectations change) in the same slice. The platform's controllers (in its packages)
+  and the slices under `src/Host/Features/` are the source of truth; the collection documents them.
 - Keep its conventions: numbered folders per area; `{{baseUrl}}`/`{{accessToken}}` variables with
   collection-level Bearer auth; chaining test scripts that capture shown-once secrets; request
   descriptions stating roles, config gates, and expected error codes; env-specific values live in
@@ -201,7 +206,7 @@ deferred items without an explicit decision.
 
 ## Conventions
 - Code term for the tenant is **tenant**; the reference implementation's app-facing label is
-  **Household** (`/api/household`, `HouseholdController`). Rename per app — see `docs/REBRANDING.md`.
+  **Household** (`/api/household`, `HouseholdController`). Rename per app — see [platform `REBRANDING.md`](https://github.com/argamboad/perezosoft-platform/blob/develop/docs/REBRANDING.md).
 - **App decisions are `JJ-nnn`** (closing section of `docs/DECISIONS.md`); platform decisions stay
   `ADR-nnn` / `ADR-Cn`. Cite them that way in code comments, stories and PRs.
 - **The tenant label stays "Household"** — the platform's reference label is the app's real one; no
@@ -210,7 +215,7 @@ deferred items without an explicit decision.
   `MAKE` (makeable engine), `ALMOST`, `FORK`, `AUTHORING`, `ONBOARD`, `FILTER`, `SEED`,
   `MARGA` (the UI character), `SHELL` (header, responsive nav, boot state) and `BACKBAR` (the
   restyle to design direction 1A — presentation only, never behaviour). Feature
-  slices live in `src/Api/Features/<Feature>/` (e.g. `Features/Inventory`).
+  slices live in `src/Host/Features/<Feature>/` (e.g. `Features/Inventory`).
 - **Shared vs. household rows:** `Ingredient` and `Cocktail` use one table each with a nullable
   `tenant_id` — null = shared seed catalog, set = household-owned (JJ-011, JJ-012). Lookups are global.
 - **Recipe line vocabulary:** `is_required` (drives makeable), `role` (`base | modifier | juice |
@@ -223,7 +228,7 @@ deferred items without an explicit decision.
 ## Status / not yet decided
 - **Seed data — in progress** (`docs/stories/seed.md`). **Done (SEED-1):** the curated global
   lookups — glasses, methods, units and the two-level ingredient categories — live in the embedded
-  `src/Infrastructure/Persistence/Seed/lookups.json` and are written at startup by `CatalogSeeder`
+  `src/Host/Persistence/Seed/lookups.json` and are written at startup by `CatalogSeeder`
   (idempotent, adds only what is missing, never deletes). **Extraction workspace** stays in `seed/`:
   the 1930 Savoy Cocktail Book (`seed/savoy_cocktails.json`, 868 recipes) and the **IBA official
   list** (`seed/iba_cocktails.json`, 102 drinks in three groups of 34) are both extracted. Raw
@@ -259,26 +264,14 @@ deferred items without an explicit decision.
 |------|---------|
 | `CLAUDE.md` (root) | This file — operating manual, auto-loaded |
 | `docs/PLAN.md` | **Read first, every session** — the three gates, the slice ritual, the editing rules, where things stand, and the sequenced backlog (every feature flow shipped; the `BACKBAR` restyle ladder built 1 → 9 on `feat/backbar`; what follows is a decision, not a queue) |
-| `docs/NEW_APP_GUIDE.md` | **The onboarding spine** — every phase from idea to production, in order, linking the detailed doc per step |
-| `docs/OVERVIEW.md` | Friendly platform tour (PM/power-user/developer/architect) — no codebase knowledge assumed |
+| `docs/README.md` | Index of this repo's documents + links to the platform's (NEW_APP_GUIDE, WAYS_OF_WORKING, ARCHITECTURE, FLOWS, DEPLOYMENT, MOBILE_TESTING, LOCALIZATION, REBRANDING, TECH_STACK, DECISIONS, the foundation rules) + JiggerJot's ports, staging and OAuth redirect URIs |
 | `docs/PROJECT_BRIEF.md` | Why/what/scope (lean PRD) + OUT list |
 | `docs/brand/build_assets.py` | Regenerates every brand PNG + `favicon.ico` from the SVG sources (headless Edge + Pillow); store/marketing renders land in `docs/brand/` |
 | `seed/` | The seed workspace — both extractions (`savoy_cocktails.json`, `iba_cocktails.json`), their scrapers, and the two curation scripts that emit the shipped files. Not shipped |
 | `docs/FEATURES.md` | User flows & behavior |
 | `docs/DATA_MODEL.md` | Entities, relationships, derived rules |
-| `docs/TECH_STACK.md` | Stack choices + rationale |
-| `docs/DECISIONS.md` | ADR log (the "why") |
-| `docs/ARCHITECTURE.md` | Mermaid diagram layer — solution map, seams, per-subsystem class diagrams; drawn from the code, ADR-cross-linked |
-| `docs/FLOWS.md` | Sequence diagrams for the core call stacks (auth, tenancy, outbox, billing webhook, dissolve) + the OTP line-level walkthrough |
-| `docs/WAYS_OF_WORKING.md` | Slices, story format, commit/PR conventions |
-| `docs/audits/AUDIT_SUITE.md` | **The repeatable super-audit** — 5 diagnostic/gate phases + QA-paranoia + docs/course currency; triggered, not routine; `audits/v1..v3` are its worked runs |
-| `docs/REBRANDING.md` | Every brand touchpoint to replace per app — **incl. the email templates** |
-| `docs/LOCALIZATION.md` | i18n setup (EN/ES live) + how to add a language |
-| `docs/MOBILE_TESTING.md` | Run/sign-in on the Android emulator (adb reverse, OAuth) |
+| `docs/DECISIONS.md` | JiggerJot's decisions, `JJ-…` (the "why"); the platform's `ADR-…` are in [its log](https://github.com/argamboad/perezosoft-platform/blob/develop/docs/DECISIONS.md) |
 | `docs/QA_TEST_PLAN.md` | Manual QA plan — step-by-step tests across web + all four native platforms (255 cases: smoke + regression + §10d–§10i the app's own flows + §14a v3-audit adversarial/tenant-isolation + §14c pre-launch gates + §14d v4-audit adversarial, deploy drills and regressions + §13c native release checklist). **§10d–§10i are JiggerJot's own flows** — the shelf, the catalog and filters, makeable/one-away, forking and authoring, the onboarding wizard, and Marga plus the chrome. They were added in one pass after nineteen app slices had shipped against a plan that covered the platform only; **the slice ritual in `docs/PLAN.md` now carries a step so it cannot drift again** |
-| `docs/ROADMAP.md` | Sequenced plan — pillars + all waves done (terminal state 2026-07-14) + the **post-terminal cost wave** (`LOCALCI` — local/self-hosted CI) + the **flavors wave** (`FLAVORS` — spec + conformance kit, then React/Angular/Flutter fronts, Node/Go/Spring/FastAPI backs, Expo for true-native mobile, tiered DBs incl. SQL Server; both planned 2026-09-08) |
-| `docs/STATUS.md` | 2026-07-04 status snapshot + operator guides — native QA pass (✅ 2026-07-14), Apple first-run smoke (MacBook walkthrough), prod activation (⤵ downstream Phase-8 runbook, ADR-017 amendment); SaaS-readiness assessment |
-| `docs/PLATFORM_BACKLOG.md` | Per-item design sketches for the future foundation slices (the detail behind ROADMAP) |
 | `docs/stories/` | User stories per epic — generated at build time |
 | `docs/stories/seed.md` | epic `SEED` 🚧 IN PROGRESS — SEED-1 ✅ the curated global lookups (19 glasses, 10 methods, 22 units, 25 categories with 154 subcategories) in one embedded `lookups.json`, written at startup by an idempotent `CatalogSeeder` behind `Seed:Catalog:Enabled`; ids derive from names (`SeedId`) so they are stable across environments and a rename is a data migration; the seeder refuses to run under a household because only a system context may write a shared row (JJ-031). plus the IBA extraction ✅ (`seed/scrape_iba.py`, 102 drinks, sitemap-driven, three-groups-of-34 used as a parse check). Sources settled by **JJ-032**: Savoy plus the IBA list, the two 1930s bar books dropped. SEED-2 ✅ the ingredient catalog (175 curated from 395 raw names; coverage enforced by `seed/build_ingredients.py`, brand-name rule in **JJ-033**). SEED-3 ✅ 969 cocktails + 3526 lines, credited to a `RecipeSource`; identity is the source plus its slug, glass and method optional (**JJ-034**), 60 prose recipes recovered from tag lists. SEED-4 ✅ the substitution graph (17 interchangeable groups + 12 one-way entries → 88 directed rows, each carrying its reasoning). **Epic complete for MVP** |
 | `docs/stories/almost.md` | epic `ALMOST` ✅ COMPLETE for MVP — ALMOST-1 `GET /api/cocktails?almost=true` + a second toggle on the catalog screen, exclusive with the makeable one. Exactly ONE required line unsatisfied **after substitutions** (FEATURES §10, JJ-019), and every row names that bottle in `missingIngredient` — the name is the feature, since "one short" alone is just a list of drinks you cannot make. Same predicate as MAKE-1's, counted rather than negated, so the two lists are adjacent and can never overlap; asking for both filters returns an empty page rather than one flag winning. Rows still carry the substitutions in play (FEATURES §9). ALMOST-2 ✅ (**JJ-035**) the inverse — `GET /api/cocktails/unlocks` groups the almost set by MISSING INGREDIENT rather than by cocktail and ranks it, so one bottle can be named as unlocking several drinks (measured: a gin-and-Campari shelf leaves 81 drinks one away, and dry vermouth alone accounts for 13). Runs ALMOST-1's predicate verbatim so the two readings cannot drift; `unlocks` always equals the length of `cocktails`, ties break on name, an empty shelf ranks nothing. Reverses the "no ranked shopping list" exclusion this epic and FORK both carried |
@@ -294,32 +287,10 @@ deferred items without an explicit decision.
 | `docs/stories/inventory.md` | epic `INV` ✅ COMPLETE for MVP — INV-1 the shelf: `GET /api/inventory` (the WHOLE catalog with an availability flag, since you cannot tick what you cannot see) + `PUT /api/inventory/{id}` + the `/shelf` screen, grouped by category with search and an only-what-I-have filter. Unticking updates rather than deletes, so "checked and don't have it" stays distinguishable from "never looked"; ticking is optimistic and rolls back. The one plainly `ITenantScoped` entity, so tenancy is entirely the platform's. INV-2 ✅ add a custom ingredient inline — `POST /api/inventory/ingredients` + `GET /api/inventory/categories` and the add form on `/shelf`. The app's first write to a dual-natured catalog table, so the handler sets `TenantId` by hand (nothing stamps it, JJ-031) and a test dissolves a household to close the gap the platform canary cannot see. Created ticked; duplicates refused case-insensitively against the shared catalog as well as the household's own, with 409 carrying `existingIngredientId`; the category/subcategory pairing is validated (JJ-015, JJ-016). INV-3 ✅ the shelf rework — `.btn-check` pills (a real checkbox, filled when selected so it cannot be confused with the catalog's outlined filter pills), per-category counts, a jump bar reading the same value so the two cannot drift, `+ Add your own` inside the card it files into, and a sticky footer showing the payoff. **No API change**: presentation over data the screen already had. The payoff's makeable total is re-asked of the browse endpoint rather than returned by the write, because a slice may not reference another slice (R7/TR-9) and duplicating the query would give the app two definitions of makeable — and it is asked once per BURST, not once per tick. Category counts are over the whole category, never over what search left visible. A jump link spells out its path (`/shelf#cat-gin`): `<base href="/">` makes a fragment-only href resolve against the base, so every one of them left the page. INV-4 ✅ (2026-09-15) **deleting a bottle the household added** — `DELETE /api/inventory/ingredients/{id}` in its own `IngredientRemovalHandler` (it reads recipe lines; `InventoryHandler`'s constructor is built by a dozen tests); 204 with the shelf row by cascade, 403 `catalog_read_only` for a shared bottle, 404 for another household's, and **409 `ingredient_in_use` with `usedIn` naming the household's recipes that use it — refused, never removed from them** (the maintainer's call). A × BESIDE the pill, never inside its label (the checkbox's click target) |
 | `docs/stories/cocktails.md` | epic `CKTL` ✅ COMPLETE for MVP — CKTL-1 ✅ the nine domain entities, their configurations, the one migration that creates them, and the two walls that make the dual-natured catalog tables safe (app-level query filter + four command-scoped RLS policies, JJ-031) plus the three app-level tests that replace the platform guarantees those tables do not inherit; CKTL-2 ✅ browse — `GET /api/cocktails` (paged, name search, clamped rather than 400) + the `/cocktails` screen in the RCL; ordered name-then-id because name alone is not a total order in this catalog, and the source is shown per row because four names appear in both books. CKTL-3 ✅ detail — `GET /api/cocktails/{id}` + the `/cocktails/{id}` screen; amount display lives in Core's `AmountDisplay` (neutral units never convert, metric never uses fractions, ounces always do, rounding never reaches zero) and conversion happens server-side with the authored values riding along. A cocktail from another household is a 404, never a 403. CKTL-4 ✅ the recipe says where it stands — `makeability` (`Makeable`/`AlmostMakeable`/`NotMakeable`) on the detail response plus per-line `availability` and `substituteWith`, rendered as a badge and a mark on the one line that needs attention. The derived rule moved into `Core/Catalog/Makeability.cs` beside `AmountDisplay`; the browse filters stay set-based SQL, and a test walks the whole catalog asserting the two never disagree |
 | `docs/stories/onboard.md` | epic `ONBOARD` ✅ COMPLETE for MVP — the first minute (FEATURES §7, JJ-021), and the last unbuilt flow. ONBOARD-1 ✅ `/welcome`: two steps over the SAME data and the SAME control as the shelf — guided, not a second way to record what you own (which is why INV-3's pill styles moved from scoped CSS into `app.css`; two copies of one control is how it stops being one). **"Common staples" needed no second curated list** — MARGA-3 had already settled the honest definition, so it asks `/api/cocktails/starters?limit=12` and puts them on screen ALREADY TICKED, which is what makes the step fast. **Nothing is written until Finish**, hence the new `PUT /api/inventory`: the whole shelf in one request, state stated rather than toggled, safe to send twice, an unknown id reported rather than fatal. The per-ingredient `PUT` stays for the shelf, where a tick IS the decision. Every row is sent, not just the changes, or an unticked bottle would silently stay (JJ-023). **Offered, never forced**: no redirect and no dismissal flag, so no "has this household been onboarded" fact to store — `Tenant` is the platform's and holding app state there is the wrong direction. Members joining by invitation skip it for free: they have a shelf, so the front page shows the count |
-| `docs/stories/ui.md` | epic `UI` ✅ COMPLETE — **retrospective** (v3 T59, closing v2 DOC-22): the four 2026-07 web-UI slices that shipped without a story file — UI-1 GDPR export/erasure UI, UI-2 MFA UI, UI-3 notification bell/prefs UI, UI-4 staff `/admin` console; defines what QA §2 + the traceability matrix cite |
-| `docs/stories/billing.md` | epic `BILLING` ✅ COMPLETE — entitlements + Checkout + webhook + Portal (1–4) + seat/usage quotas (5, `IQuotaService`) + trial/dunning (6, `IBillingNotifier` + lapse sweep via NOTIFY) + dissolve cleanup (7, `BillingDataContributor` cancels the provider sub + wipes the projection) + billing page (8, `GET /api/billing` summary + `/billing` UI, fake-provider E2E upgrade loop) + seat re-check at invitation accept (9, 2026-07-14: downgrade left stale invites joinable past the cap → 402 `seat_limit_reached` + `/join` "household full" state, self-heals on upgrade); ADR-006 |
-| `docs/stories/async-jobs.md` | epic `JOBS` ✅ COMPLETE — outbox+dispatcher, inbox, scheduler (ADR-007) |
-| `docs/stories/observability.md` | epic `OBS` ✅ COMPLETE — logging, OpenTelemetry, health, append-only audit log (ADR-008) |
-| `docs/stories/rbac.md` | epic `RBAC` ✅ COMPLETE — `admin` role + permission seam (RBAC-1) + owner-only role change (RBAC-2) + admin-aware roster UI (RBAC-3); ADR-009 |
-| `docs/stories/files.md` | epic `FILES` ✅ COMPLETE — `IFileStorage` local/S3, tenant-scoped keys, signed URLs (FILES-1 abstraction, FILES-2 download, FILES-3 S3); ADR-010 |
-| `docs/stories/gdpr.md` | epic `GDPR` ✅ COMPLETE — tenant data export + account erasure on the contributor/dissolve/file-storage machinery (GDPR-1 export, GDPR-2 erasure); ADR-011 |
-| `docs/stories/mfa.md` | epic `MFA` ✅ COMPLETE — authenticator TOTP; Otp.NET, secret encrypted, hashed recovery codes (MFA-1 enroll/manage, MFA-2 JSON-path step-up, MFA-3 OAuth/magic-link redirect step-up, MFA-4 native step-up — enforced on **every** sign-in path); ADR-012 |
-| `docs/stories/notify.md` | epic `NOTIFY` ✅ COMPLETE — per-user in-app notification center + delivery prefs, fan-out via the outbox (NOTIFY-1 center, NOTIFY-2 prefs+email); 2026-07-09: caller-scoped delete/clear (`DELETE /{id}`, bulk `?read=true`/all) + bell trash/clear-read/clear-all UI; ADR-013 |
-| `docs/stories/admin.md` | epic `ADMIN` ✅ COMPLETE — config-gated platform-staff surface: cross-tenant inspection + short-lived audited impersonation + staff announcements via NOTIFY fan-out (ADMIN-1 gate/inspect, ADMIN-2 impersonate, ADMIN-3 announce — audited in-tenant, per-user rows only); 2026-07-09 (ADR-021 — enumerated admin **writes**): announce `user_ids` targeting + platform-wide `announce-all` (202 → outbox fan-out) + subscription comp/revert (409 when Stripe-backed) w/ console UI; ADR-014 |
-| `docs/stories/pubapi.md` | epic `PUBAPI` — public API + tenant API keys, **config-gated default-off** (PUBAPI-1 ✅ — hash-only keys, API-key auth scheme → `tenant_id`-scoped principal, owner mgmt, scoped `/api/public`; PUBAPI-2 ✅ — per-key rate limit + anonymous public OpenAPI doc `/api/public/openapi.json`); ADR-015 |
-| `docs/stories/hooks.md` | epic `HOOKS` — outbound webhooks, **config-gated default-off** (HOOKS-1 ✅ — `WebhookSubscription` encrypted secret, `IWebhookPublisher` fan-out → outbox → HMAC-signed POST w/ retry, owner `/api/webhooks` + send-test; HOOKS-2 ✅ — delivery log + replay); ADR-016 |
-| `docs/stories/theme.md` | epic `THEME` ✅ COMPLETE — per-user dark mode (THEME-1): Light/Dark/System on Bootstrap `data-bs-theme`; pre-paint `theme.js` bootstrap in BOTH hosts' index.html (parity), `IThemePersistence`/localStorage (one impl serves web + MAUI — no Preferences bootstrap needed, unlike culture), header + login `ThemeSwitcher`, `User.Theme` + `PUT /api/auth/theme` + `theme` JWT claim + `MainLayout` reconcile; dark token block in `app.css`; E2E `ThemeJourneyTests` (suite 30→31), QA-SET-08/DSK-15/AND-14. **Amended by PREFS-1** ("system" now stored verbatim; reconcile on every sign-in) |
 | `docs/stories/prefs.md` | epic `PREFS` ✅ COMPLETE — **PREFS-2** ✅ measurement preference (`PUT /api/auth/unit-system` + `UnitSwitcher` in Settings; three options then, **two since PREFS-3** ✅ (**JJ-041**, 2026-09-15: every volume stored in ounces on the quarter marks through Core's `BarMeasure`, parts as their share of 3 oz, the period glasses as 2 oz / 1 oz, metric read at 30 ml to the ounce, "as written" removed, the authoring form offering the writer's own volume unit, a one-off SQL migration held to `BarMeasure` by a test); "Neutral" is a 400, since it is a property of a unit and not something anyone can prefer; no device-local copy, because the server does the conversion). Per-user preference sync (PREFS-1, ADR-022): Settings → Preferences card (language + theme switchers, signed-in home); `AuthService.SignedIn` event → `MainLayout` reconciles on EVERY sign-in path (not just cold starts); two-way sync (server wins; never-set server value adopts the device choice — a pre-auth login-page pick becomes the account pref; never while impersonating); locale mismatch = persist + ONE reload (WASM satellite assemblies — reverts B7-3's in-process switch); "system" stored verbatim (null = never chose). Fixes QA-I18N-02 (was: locale unreachable from UI) + theme-after-OTP-sign-in instability; E2E `LocaleChoice_FollowsTheUser_AcrossBrowsers` (suite 31→32), QA-I18N-02 now ⚙️ automated |
-| `docs/stories/e2e.md` | epic `E2E` ✅ COMPLETE — Playwright journeys (suite 7→26 tests): E2E-1 RBAC roster; E2E-2 billing seat-quota 402 UX; E2E-3 notification bell/prefs (list/mark-read covered via ADMIN-3 announcements); E2E-4 magic-link sign-in (happy + single-use); E2E-5 membership lifecycle (transfer/leave/dissolve/delete-account); BILLING-8 added the fake-provider upgrade-loop journey. Health = DEPLOY-3 smoke, not a browser test |
-| `docs/stories/deploy.md` | epic `DEPLOY` ✅ COMPLETE — staging/prod on the free tier: DEPLOY-1 single-origin (API serves the WASM) + config-gated forwarded headers; DEPLOY-2 Dockerfile + compose parity + `render.yaml` + `docs/DEPLOYMENT.md` (staging live, all 4 sign-in paths verified); DEPLOY-3 CI deploy pipeline (develop→staging auto + version-gated smoke, main→prod gated) + QA §1.5; ADR-017 |
-| `docs/DEPLOYMENT.md` | Deployment runbook (DEPLOY-2/3) — Render + Neon + Brevo free-tier bring-up; `Dockerfile` + `render.yaml` reference; required env incl. the Production Stripe-key guard; §6 CI-gated deploys — a manual GitHub *Run workflow* (`deploy` = staging/prod) behind every web gate (ADR-031); §10 the retired Forgejo era (ADR-028 → ADR-030), a pointer only |
 | `docs/stories/localci.md` | epic `LOCALCI` — **SUPERSEDED 2026-10-02 by ADR-030: GitHub is the forge again** (Forgejo archived read-only, runners stopped; since the CI rebuild (ADR-031) PRs run backend + web UI only and device legs + Render deploys run only from a manual *Run workflow*). History: **LOCALCI-4 ✅ ported 2026-09-22 (ADR-028): Forgejo is home (`origin`; GitHub = `github`, pushed to on purpose) and runs the FULL pipeline from `.forgejo/workflows/`; pushes/PRs run gates + `e2e` + native builds, native SMOKES and DEPLOYS only from "Run workflow" (`smokes` / `deploy`) or the Monday schedule; a deploy fast-forwards GitHub's `develop`/`main`, then fires the Render hook; `ForgejoCiParityTests` (R80) holds the two workflow copies together — edit BOTH; runbook `DEPLOYMENT.md` §10.** **LOCALCI-3 ✅ shipped 2026-09-11**, ahead of 1 and 2 and needing neither: `changes` computes `code`/`native`/`docs` from the diff and every non-deploy job gates on it, so a docs-only push stops billing ~30 minutes for markdown. **`secret-scan` and `qa-artifacts` NEVER gate on code** — a docs commit can leak a credential, and editing the QA plan without regenerating the PDFs is the only way to break the artifacts check, so gating it would blind CI to exactly what it catches (a test enforces both halves). Fails OPEN on an unknown diff base. The Apple SMOKE (87 billed min, macOS at 10×) moves to a Monday cron + dispatch until `vars.CI_MACOS_RUNNER` is set; the Apple BUILD still runs per develop push, so compile rot is caught within one merge. ⚠️ A green develop run is NOT a green Apple smoke — see QA §13c before shipping a native client. Original plan (2026-09-08) — local + self-hosted CI, pick-up-ready: LOCALCI-1 variable-driven `runs-on` (`vars.CI_{LINUX,WINDOWS,MACOS}_RUNNER` → self-hosted, hosted fallback; deploys stay hosted; R77 tripwire; runner install runbook → DEPLOYMENT §10; ADR-025 draft in the file) · LOCALCI-2 land `ci-local.ps1` (extract from the STALE unpushed `ci/local-gates` branch, never merge it) + R78 pin/gate-list tripwire · LOCALCI-3 paths gate for every non-deploy job + weekly Apple smoke in hosted mode. Measured: ≈190 billed min per develop code push, ≈157 of them macOS/Windows |
-| `docs/stories/flavors.md` | program `FLAVORS` 📋 PLANNED (2026-09-08) — the platform as a stack-neutral **spec** + conformance kit, pick-up-ready: `SPEC` (SPEC-1 extract contract into a `spec` repo, SPEC-2 R1–R76 restated as outcomes + classified K/S/P/X, SPEC-3 kit = Newman 79 requests + 37 journeys + QA-ADV adversarial + DB probes as one Docker image, SPEC-4 test-id contract from the 95 existing ids, SPEC-5 conformance matrix + version protocol) → `FRONT-REACT` (FR-1..8 screen ladder + Capacitor/Tauri) → `BACK-NODE` (BN-1..11 slice ladder) → `BACK-GO` → Spring+Angular → FastAPI → `NATIVE-RN`/`FRONT-FLUTTER`/`DB-SQLSERVER`/`SCAFFOLD` on demand; ADR-026 + spec ADRs S-001..S-003 drafted inside |
-| `docs/stories/gates.md` | epic `GATES` ✅ COMPLETE (ported from the platform 2026-09-11) — **pre-launch gates**, both deployment config, both cleared on launch day (ADR-027): GATES-1 `Billing:Enabled` default-off (billing controllers + provider webhook removed from the application model ⇒ 404; client hides the link and refuses `/billing`; every tenant without a granting subscription resolves Free (resolution is gate-blind — v4 T46); Free seats **3→5**; billing-off seat-limit/full-household copy) · GATES-2 signup green list (`Signup:AllowedEmails`/`AllowedDomains`, empty = open) — the list decides **who may found a household**; a valid pending invitation admits its addressee iff that invitation's tenant **owner** is green-listed. Gates **account creation only, never sign-in**, at `UserService.CreateUserWithTenantAsync`; deliberately does NOT fire at magic-link/OTP **issue** time (user-enumeration oracle) |
-| `docs/stories/test-toolchain.md` | epic `TOOLS` 📋 PLANNED (2026-10-04, v4 audit T65, ported from the platform) — keep the test projects on maintained packages: TOOLS-1 move `Api.Tests`/`Core.Tests`/`Ui.Tests` from `xunit` 2.9.3 (NuGet: Legacy) to `xunit.v3` (test projects become executables, `IAsyncLifetime` returns `ValueTask` — 10 fixtures in `Api.Tests`, new analyzers under `TreatWarningsAsErrors`; order Core → Ui → Api) · TOOLS-2 ✅ `NUnit3TestAdapter` 5.0.0 → 6.3.0, which dropped the deprecated transitive `Microsoft.ApplicationInsights` from `E2E.Tests` |
-| `docs/stories/apple-signin.md` | epic `APPLE` ⏸ DEFERRED (ADR-005) — Sign in with Apple as a third OAuth provider on the provider-agnostic stack; needs the paid Apple Developer Program, so it is picked up web-first when there is a business need; prerequisites and stories are written |
 | `docs/qa-runs/` | Filled QA run logs — `2026-08-run-log.md` (the platform's 2026-08 full pass, inherited) — plus `helpers/`, the small scripts a co-pilot run uses (mint a JWT, fetch links from Mailpit, MFA codes, the adversarial drills). A new pass adds a new dated log; the plan itself is `docs/QA_TEST_PLAN.md` |
-| `docs/stories/native.md` | epic `NATIVE` ✅ COMPLETE (2026-07-14 — NATIVE-6 device pass green; distribution moved downstream, ADR-024) — full MAUI parity (Android/Windows/iOS/macOS): NATIVE-1 ✅ CI build gate (all 4 TFMs; Apple legs on develop pushes — 10× macOS minutes; Maui lockfile excluded by design) + NATIVE-2 ✅ parity audit → gaps G1–G6 + NATIVE-4b ✅ join-by-invite-code on /join (G5 closed; E2E suite 26→28) + NATIVE-5 ✅ culture bootstrap (G6 closed: ICulturePersistence seam, MAUI Preferences + MauiProgram bootstrap; Windows-verified via WebView2 CDP) + NATIVE-3 ✅ downloads (G1 closed: Content-Disposition attachment + IFileDownloadLauncher — web same-tab download, native OS share sheet; E2E suite 28→29); + NATIVE-4 ✅ (G2 refresh-on-resume AppResumeNotifier + G3 Android back handler) — Wave 2 COMPLETE, all six gaps closed; NATIVE-6 QA plan authored (117 cases: DSK-08..14, AND-07..13, iOS/mac first-run smoke, release checklist) + G7 Apple-boot fix (iOS/macCatalyst crashed at startup — WebAuthenticator initiator generalized + Info.plist schemes); **Apple column UNPINNED 2026-07-06** — §13b run on the maintainer's MacBook: QA-IOS-01/02/04 + QA-MAC-01/02 + OAuth PASS (two gaps fixed in PR #125: SMTP revocation knob + Catalyst Debug session store); NATIVE-7 ✅ COMPLETE smokes for all four platforms in CI (Windows WebView2-CDP + Android emulator playwright-core _android + iOS-simulator & Mac Catalyst boot-to-login canaries in one `native-smoke-apple` job — WKWebView has no CDP, so they assert process-alive + provider-probe-200, no UI driving; native-paths gate skips Apple/smoke legs on docs-only pushes; deploy-staging concurrency); **NATIVE-6 ✅ FULL PASS 2026-07-14** — the maintainer completed the entire manual QA process as the plan stood then (125 cases incl. the leftover §13b spot-checks), no open findings; post-pass additions (§14a re-runs + QA-AND-15) are the open device items; **NATIVE-8..11 (signing/installers/stores) ⤵ MOVED DOWNSTREAM (ADR-024)** — per-app work, checklist in `NEW_APP_GUIDE.md` Phase 9, Wave 4 kept as reference incl. the two signing-identity re-verify traps (packaged-MSIX SecureStorage + Apple keychain-access-groups); ADR-018 |
-| `docs/NATIVE_PARITY.md` | NATIVE-2 audit — WebView-vs-browser deltas × platform × screen (✅/⚠️/🔍 verdicts); gap register G1–G6 → Wave-2 slices; maintainer rules (index.html sync, emailed links land on web, forceLoad = leaves the app) |
 | `docs/postman/` | **Postman collection for the whole API** (collection + per-env environments: local, staging/Render + README) — chained OTP sign-in w/ Mailpit auto-fetch, token rotation, all surfaces incl. config-gated PUBAPI/HOOKS and the admin writes. **CI-mirrored to the Postman workspace** (`postman-sync` on develop; one-way, repo canonical); rename on rebrand (incl. the workflow's file path) |
 | `.env.example` | **Config catalog** — every configurable key + its default (CONFIGURATION REFERENCE block) + the compiled-in "not configurable" limits; CI-enforced source of truth (`ConfigKeys_ReadInCode_AreDocumented`) |
 | `.github/pull_request_template.md` | PR checklist (auto-loaded by GitHub) |
-| `src/Infrastructure/Persistence/Migrations/` | Concrete schema — EF Core migrations generated from DATA_MODEL.md |
+| `src/Host/Persistence/Migrations/` | Concrete schema — EF Core migrations generated from DATA_MODEL.md |

@@ -114,4 +114,4 @@ instead). **Admin** requires your email in that environment's `Admin__StaffEmail
   "too many requests" message; that's the abuse guard (QA-AUTH-11), not a bug.
 - Requests marked ⚠ are destructive (account erasure). The tests on each request assert the
   *expected* status set, including documented guard responses (402 quota, 409 provider-managed…).
-- Rebranding: rename the collection/env (`JiggerJot` → your app) — see `docs/REBRANDING.md`.
+- Rebranding: rename the collection/env (`JiggerJot` → your app) — see the platform's `docs/REBRANDING.md`.
