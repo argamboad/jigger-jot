@@ -1,10 +1,15 @@
 {
   "$comment": [
-    "This app's own top-level folders, classed after the platform's rules (perezosoft-platform#375)."
+    "This app's own folders, classed after the platform's rules (perezosoft-platform#375): the catalog's seed tooling, and the",
+    "tests of its own page script (ui.js), which node runs (tests/ui-js; the CI caller's ui-js job)."
   ],
   "rules": [
     {
       "glob": "seed/**",
+      "class": "app"
+    },
+    {
+      "glob": "tests/ui-js/**",
       "class": "app"
     }
   ]
