@@ -20,22 +20,22 @@
       },
       "Perezosoft.Platform.Build": {
         "type": "Direct",
-        "requested": "[1.0.0-beta.6, )",
-        "resolved": "1.0.0-beta.6",
-        "contentHash": "ncSECkbLXCdodrEGh3fzHg7inGTAhbOi1ZNye2ugRYYXrIiV9bNpIw87az8/Av4mxAjATHIgZTU1z7iPnZw/EA=="
+        "requested": "[1.0.0-beta.7, )",
+        "resolved": "1.0.0-beta.7",
+        "contentHash": "lkNni4dEMftD7u7G4/cPmOTDRRvYDKo9wXVMWUNZrq1DfHPFxLOUF8O+2DJA15SOtpCdUPtz138dgByFXcjUPg=="
       },
       "Perezosoft.Platform.Testing": {
         "type": "Direct",
-        "requested": "[1.0.0-beta.6, )",
-        "resolved": "1.0.0-beta.6",
-        "contentHash": "XcL0t5sp8xKdvqewS5iursF+5ykmg08kNGPLMjDEb9F1h4Xvx844xPv1f5w+ITm4TQ9LUuo36zivIXoZ47l/fA==",
+        "requested": "[1.0.0-beta.7, )",
+        "resolved": "1.0.0-beta.7",
+        "contentHash": "r9Erco6ikLs2sD01U+F/HiWPuG/pfWzZhoPZh4CApCQT3E0030TYJOc+QreWJONKtWdaPHRbtljdlMf01YWEfg==",
         "dependencies": {
           "Microsoft.AspNetCore.Mvc.Testing": "10.0.14",
           "Microsoft.AspNetCore.TestHost": "10.0.14",
           "Microsoft.EntityFrameworkCore.Relational": "10.0.14",
           "Microsoft.Extensions.TimeProvider.Testing": "10.7.0",
           "Otp.NET": "1.4.1",
-          "Perezosoft.Platform.Api": "1.0.0-beta.6",
+          "Perezosoft.Platform.Api": "1.0.0-beta.7",
           "SSH.NET": "2026.0.0",
           "Testcontainers.PostgreSql": "4.12.0",
           "xunit.assert": "2.9.3",
@@ -670,13 +670,13 @@
       },
       "Perezosoft.Platform.Core": {
         "type": "Transitive",
-        "resolved": "1.0.0-beta.6",
-        "contentHash": "aZVSREy0sDkezDfdJZHM8xdJ05UssdJ4R7v0c0iCVTm8AmxGoAG2SQDS4Ywl0iQIeIOqJ23dgW4Pqwz5PMSHbw=="
+        "resolved": "1.0.0-beta.7",
+        "contentHash": "zRJnHRe9dNHjuUYJCb/bP9NW+pLkBUPYf2wwZijyO4XQhaRanZr/ojAzwW9/kMUqAIHdDL6k9erB6xqZs3+DRg=="
       },
       "Perezosoft.Platform.Infrastructure": {
         "type": "Transitive",
-        "resolved": "1.0.0-beta.6",
-        "contentHash": "gZXllOZ4SS1Xh4rRUcR+6xkje7+A5PsIx3Mggks4vtd/WJ6sIeE5XAbY8IHywv0oDuN/Al4Mg0x1WBbjS8KE9w==",
+        "resolved": "1.0.0-beta.7",
+        "contentHash": "Z/IXaGZtVwOvbtGj3IKLO4FnxRAsUbuMIUwrHJqhGbSsSPFIUFRvE9T3Lx1hSohP0ROV767D3nGugVsAE+If8A==",
         "dependencies": {
           "AWSSDK.S3": "4.0.100",
           "MailKit": "4.17.0",
@@ -685,7 +685,7 @@
           "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": "10.0.14",
           "Microsoft.EntityFrameworkCore.Relational": "10.0.14",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.3",
-          "Perezosoft.Platform.Core": "1.0.0-beta.6",
+          "Perezosoft.Platform.Core": "1.0.0-beta.7",
           "Stripe.net": "52.1.0",
           "System.Security.Cryptography.Pkcs": "10.0.14"
         }
@@ -790,7 +790,7 @@
       "jiggerjot.host": {
         "type": "Project",
         "dependencies": {
-          "Perezosoft.Platform.Api": "[1.0.0-beta.6, )"
+          "Perezosoft.Platform.Api": "[1.0.0-beta.7, )"
         }
       },
       "AWSSDK.S3": {
@@ -1010,9 +1010,9 @@
       },
       "Perezosoft.Platform.Api": {
         "type": "CentralTransitive",
-        "requested": "[1.0.0-beta.6, )",
-        "resolved": "1.0.0-beta.6",
-        "contentHash": "NOFIpMHIincCeDL62o0LGrvTeuDsiEy76U1FOwZsTjYhqQ/mtdej1o1fUkU1KnrrO14I5YOooYj+3KZF7HEk/w==",
+        "requested": "[1.0.0-beta.7, )",
+        "resolved": "1.0.0-beta.7",
+        "contentHash": "dq5VmAtuKu6Je3GbBo6VUjI9E07qU0FwPlWV/+hneHS1kK6hzexUy+jwp0N17JfzX5EjZbddP8sVwpItuE5+JA==",
         "dependencies": {
           "DotNetEnv": "3.2.0",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "10.0.14",
@@ -1024,8 +1024,8 @@
           "OpenTelemetry.Instrumentation.Http": "1.16.0",
           "OpenTelemetry.Instrumentation.Runtime": "1.18.0",
           "Otp.NET": "1.4.1",
-          "Perezosoft.Platform.Core": "1.0.0-beta.6",
-          "Perezosoft.Platform.Infrastructure": "1.0.0-beta.6",
+          "Perezosoft.Platform.Core": "1.0.0-beta.7",
+          "Perezosoft.Platform.Infrastructure": "1.0.0-beta.7",
           "Swashbuckle.AspNetCore": "7.2.0"
         }
       },
