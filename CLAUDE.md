@@ -154,7 +154,7 @@ repo's documents and links the platform's.
    `ITenantDataContributor` that wipes household rows only.
 
 ## Tech stack (see [platform `TECH_STACK.md`](https://github.com/argamboad/perezosoft-platform/blob/develop/docs/TECH_STACK.md))
-- **Versions:** the platform's, through its packages — **.NET SDK 10.0.402** pinned in `global.json` (`rollForward:
+- **Versions:** the platform's, through its packages — **.NET SDK 10.0.403** pinned in `global.json` (`rollForward:
   disable`), the platform at `PlatformPackagesVersion` in `Directory.Packages.props`, which brings its own ASP.NET
   Core / EF Core / Npgsql line; PostgreSQL 17. A platform release moves them together: `dotnet platform port` writes
   the version, the stamp and the starter's files, and the platform's NEW_APP_GUIDE lists what follows (the lockfiles,
