@@ -52,19 +52,19 @@
       },
       "Perezosoft.Platform.Build": {
         "type": "Direct",
-        "requested": "[1.0.0-beta.8, )",
-        "resolved": "1.0.0-beta.8",
-        "contentHash": "TpiZLMsCLPHjN/yXtkjFCAC4GaDCbIjiPQFt6Tg4KdRd+Q3nHQnkidDfj5XtYfLPRWpHYatAj70gKhkH5cRqWQ=="
+        "requested": "[1.0.0-beta.9, )",
+        "resolved": "1.0.0-beta.9",
+        "contentHash": "n1AIcrm/xQtSQLgmdWSPkjJhpPP+krEotbwsce2h2MBErwwOHH7RvUuKGMAcgoOSD1uXcluiJB2KJPZ/HqtlxA=="
       },
       "Perezosoft.Platform.Testing.Ui": {
         "type": "Direct",
-        "requested": "[1.0.0-beta.8, )",
-        "resolved": "1.0.0-beta.8",
-        "contentHash": "uiAGEOavmYW+svQdEtZzYkYFBB0vGqWrA1zumJtYnEPFkxAJP8ItlkCFkKAFFQHp/M6wfthiUEMKiU5H2oVnkg==",
+        "requested": "[1.0.0-beta.9, )",
+        "resolved": "1.0.0-beta.9",
+        "contentHash": "+OFDlaenRqF5U9kSttw5gnPcojx36ut6sGvpphjwIQ+UJbIDZaOfvsCxHdnSjOgyB9H2Vs1UWKR3qaOOXJFUgg==",
         "dependencies": {
           "AngleSharp": "1.5.2",
           "Microsoft.Extensions.TimeProvider.Testing": "10.7.0",
-          "Perezosoft.Platform.Client": "1.0.0-beta.8",
+          "Perezosoft.Platform.Client": "1.0.0-beta.9",
           "bunit": "2.7.2"
         }
       },
@@ -438,7 +438,7 @@
           "Microsoft.AspNetCore.Components.Authorization": "[10.0.14, )",
           "Microsoft.AspNetCore.Components.Web": "[10.0.14, )",
           "Microsoft.Extensions.Localization": "[10.0.14, )",
-          "Perezosoft.Platform.Client": "[1.0.0-beta.8, )",
+          "Perezosoft.Platform.Client": "[1.0.0-beta.9, )",
           "System.IdentityModel.Tokens.Jwt": "[8.19.1, )"
         }
       },
@@ -492,9 +492,9 @@
       },
       "Perezosoft.Platform.Client": {
         "type": "CentralTransitive",
-        "requested": "[1.0.0-beta.8, )",
-        "resolved": "1.0.0-beta.8",
-        "contentHash": "jU3+9V2HdsYa9+FNiwiwYInbzUpzpYyeckzu7tKLVZJfJgCroSwQJgGaZaYsTH37WMpkGYsThE2mjMYE6swJ9Q==",
+        "requested": "[1.0.0-beta.9, )",
+        "resolved": "1.0.0-beta.9",
+        "contentHash": "mgg47DdHmqWm0n/RtgNGbrmdlNZNoFzMydlSZWBNgV0eBCHXgv5kqyDQGvduzA936mohKe/rvmwdRlfplFGidA==",
         "dependencies": {
           "Microsoft.AspNetCore.Components.Authorization": "10.0.14",
           "Microsoft.AspNetCore.Components.Web": "10.0.14",
