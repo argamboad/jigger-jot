@@ -56,15 +56,15 @@
       },
       "Perezosoft.Platform.Build": {
         "type": "Direct",
-        "requested": "[1.0.0-beta.9, )",
-        "resolved": "1.0.0-beta.9",
-        "contentHash": "n1AIcrm/xQtSQLgmdWSPkjJhpPP+krEotbwsce2h2MBErwwOHH7RvUuKGMAcgoOSD1uXcluiJB2KJPZ/HqtlxA=="
+        "requested": "[1.0.0-beta.10, )",
+        "resolved": "1.0.0-beta.10",
+        "contentHash": "9adiXek4n4c0yyikGS7wknqCNH2TP2XT/bxwTCir7pwxhwAji0sq0KWH8gzdLUt/DAY7jHjkylO1XIcbr66U9A=="
       },
       "Perezosoft.Platform.Testing.E2E": {
         "type": "Direct",
-        "requested": "[1.0.0-beta.9, )",
-        "resolved": "1.0.0-beta.9",
-        "contentHash": "krfRZbQbSV2FR+/8wAaiw8ZxdlHcwOXfMMcoNMqIYk5uk1UWH1G2DkRDCyVAN5yKwP1iGbjG7bq8Zc7Q7BdpUQ==",
+        "requested": "[1.0.0-beta.10, )",
+        "resolved": "1.0.0-beta.10",
+        "contentHash": "V88UPCnfoPiFqRhH1GAFdrZyHp3pmt7JrPHNYLh0h0/4Oh+kaiz+jW/EAcmcBydjO7eoSVdhoi8bMm24znvZzQ==",
         "dependencies": {
           "Microsoft.Playwright.NUnit": "1.60.0",
           "NUnit": "4.3.2",
