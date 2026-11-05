@@ -124,7 +124,7 @@ Notes:
   you out).
 - **Language:** the switcher (Settings → Preferences card; also on the login page for pre-auth
   picks) persists the user's locale via `PUT /api/auth/locale`; it lands in the JWT on the next
-  refresh and localizes the UI and outgoing emails. See `docs/LOCALIZATION.md`.
+  refresh and localizes the UI and outgoing emails. See the platform's `docs/LOCALIZATION.md`.
 - **Theme (THEME-1 + PREFS-1):** a Light/Dark/System switcher in the header, Settings →
   Preferences, and the login page. Applies live via Bootstrap's `data-bs-theme`; persists
   device-locally (`localStorage["app_theme"]`, applied pre-paint by `theme.js`) and — signed in —

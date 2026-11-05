@@ -1,4 +1,5 @@
-using JiggerJot.Core.Entities;
+using JiggerJot.Host.Entities;
+using Perezosoft.Core.Entities;
 
 namespace JiggerJot.Api.Tests.App;
 

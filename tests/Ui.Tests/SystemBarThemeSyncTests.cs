@@ -1,6 +1,7 @@
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 using JiggerJot.Shared.Ui;
+using Perezosoft.Client;
 using JiggerJot.Shared.Ui.Components;
 using JiggerJot.Ui.Tests.Infrastructure;
 using Xunit;

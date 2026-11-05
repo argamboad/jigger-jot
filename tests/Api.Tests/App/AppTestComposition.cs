@@ -1,23 +1,33 @@
-using JiggerJot.Api.Features.Catalog;
-using JiggerJot.Api.Features.Inventory;
-using JiggerJot.Core.Abstractions;
-using JiggerJot.Core.Entities;
-using JiggerJot.Infrastructure.Persistence;
-using JiggerJot.Infrastructure.Repositories;
+using JiggerJot.Host.Features.Catalog;
+using JiggerJot.Host.Features.Inventory;
+using JiggerJot.Host.Entities;
+using JiggerJot.Host.Persistence;
 using Microsoft.Extensions.DependencyInjection;
+using Perezosoft.Core.Abstractions;
+using Perezosoft.Core.Entities;
+using Perezosoft.Infrastructure.Repositories;
+using Perezosoft.Testing;
 
 namespace JiggerJot.Api.Tests.App;
 
 /// <summary>
-/// The app's half of the test chassis (Arch A1, R159). <c>ServiceHarness</c> and <c>IntegrationTestFactory</c> are
-/// the platform's and stay identical across repos; what an app adds to them is said here: the contributors its
-/// slices register, so an accept-and-dissolve test consults what production consults (an empty household must read
-/// as empty to every slice, and every slice's wipe runs inside the dissolve); and the pins its integration host
-/// needs regardless of the developer's <c>.env</c>. JiggerJot needs no pins.
+/// What this app tells the packaged harness: the contributors its slices register (so a dissolve in a test consults what
+/// production consults), the process-level pins its integration host needs, its own service swaps, its web origin.
 /// </summary>
 internal static class AppTestComposition
 {
-    /// <summary>JiggerJot's <see cref="ITenantDataContributor"/>s as production resolves them: the household's catalog and its shelf.</summary>
+#pragma warning disable CA2255 // a module initializer in a test assembly is the point: it runs before any test builds a harness
+    [System.Runtime.CompilerServices.ModuleInitializer]
+#pragma warning restore CA2255
+    internal static void Register()
+    {
+        PlatformTestComposition.Contributors = (db, clock) => Contributors((AppDbContext)db, clock);
+        PlatformTestComposition.PinEnvironment = PinEnvironment;
+        PlatformTestComposition.ConfigureTestServices = ConfigureTestServices;
+        PlatformTestComposition.ClientUrl = LocalPorts.WebHttpsUrl;
+    }
+
+    /// <summary>The app's <see cref="ITenantDataContributor"/>s as production resolves them.</summary>
     public static IEnumerable<ITenantDataContributor> Contributors(AppDbContext db, TimeProvider clock) =>
     [
         new CatalogDataContributor(new EfRepository<Ingredient>(db), new EfRepository<Cocktail>(db), new EfRepository<CocktailIngredient>(db),
@@ -30,7 +40,7 @@ internal static class AppTestComposition
     {
     }
 
-    /// <summary>Service swaps for the integration host, after the platform's own (the throwaway database, the test auth handler).</summary>
+    /// <summary>Service swaps for the integration host, after the platform's own.</summary>
     public static void ConfigureTestServices(IServiceCollection services)
     {
     }

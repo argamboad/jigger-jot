@@ -3,6 +3,7 @@ using Bunit;
 using Xunit;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using Perezosoft.Client.Auth;
 using JiggerJot.Shared.Ui.Auth;
 using JiggerJot.Shared.Ui.Pages;
 using JiggerJot.Ui.Tests.Infrastructure;

@@ -101,8 +101,9 @@ candidate for the OUT list below.
 ## Related docs
 - `FEATURES.md` — concrete user flows and behavior.
 - `DATA_MODEL.md` — entities, relationships, derived rules.
-- `TECH_STACK.md` — stack & architecture (constant).
-- `DECISIONS.md` — ADR log: platform `ADR-…` and app `JJ-…` decisions.
+- `DECISIONS.md` — JiggerJot's decisions, `JJ-…`.
+- `README.md` — this folder's index, and links to the platform's documents (the stack and architecture, the
+  platform's `ADR-…` decisions among them).
 - `../CLAUDE.md` — operating manual for Claude Code (repo root).
 - `../brand/` — the approved brand assets (mark, lockups, icons, palette; JJ-029), staged for the
   rebrand. `../seed/` — seed-catalog extractions and scripts.

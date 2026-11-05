@@ -17,8 +17,8 @@ public class MainActivity : MauiAppCompatActivity
         // Android 15+ enforces edge-to-edge: the WebView is laid out under the transparent status bar,
         // and older Android WebViews resolve env(safe-area-inset-top) to 0 — so the clock and status
         // icons drew over the app header. Restore the classic layout natively: pad the content view down
-        // by the status-bar/cutout inset. The bottom stays edge-to-edge; the page's tab bar clears the
-        // gesture area with env(safe-area-inset-bottom).
+        // by the status-bar/cutout inset. The bottom stays edge-to-edge (the gesture pill floats over
+        // content; 3-button nav draws its own scrim).
         var content = FindViewById(Android.Resource.Id.Content)!;
         ViewCompat.SetOnApplyWindowInsetsListener(content, new TopInsetPaddingListener());
 
@@ -40,8 +40,8 @@ public class MainActivity : MauiAppCompatActivity
 
             // Spent here, so the WebView is not told about them too. Current Android WebViews DO report
             // the status-bar inset to CSS, and the header's env(safe-area-inset-top) then added the same
-            // height again below this padding — an empty band above every screen (2026-09-16). The
-            // navigation-bar inset still reaches the page, which the tab bar needs.
+            // height again below this padding — an empty band above every screen (found downstream,
+            // 2026-09-16). The navigation-bar inset still reaches the page (env(safe-area-inset-bottom)).
             return new WindowInsetsCompat.Builder(insets)
                 .SetInsets(WindowInsetsCompat.Type.StatusBars(), AndroidX.Core.Graphics.Insets.None!)!
                 .SetInsets(WindowInsetsCompat.Type.DisplayCutout(), AndroidX.Core.Graphics.Insets.None!)!
