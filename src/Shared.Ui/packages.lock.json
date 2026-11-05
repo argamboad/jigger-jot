@@ -39,15 +39,15 @@
       },
       "Perezosoft.Platform.Build": {
         "type": "Direct",
-        "requested": "[1.0.0-beta.7, )",
-        "resolved": "1.0.0-beta.7",
-        "contentHash": "lkNni4dEMftD7u7G4/cPmOTDRRvYDKo9wXVMWUNZrq1DfHPFxLOUF8O+2DJA15SOtpCdUPtz138dgByFXcjUPg=="
+        "requested": "[1.0.0-beta.8, )",
+        "resolved": "1.0.0-beta.8",
+        "contentHash": "TpiZLMsCLPHjN/yXtkjFCAC4GaDCbIjiPQFt6Tg4KdRd+Q3nHQnkidDfj5XtYfLPRWpHYatAj70gKhkH5cRqWQ=="
       },
       "Perezosoft.Platform.Client": {
         "type": "Direct",
-        "requested": "[1.0.0-beta.7, )",
-        "resolved": "1.0.0-beta.7",
-        "contentHash": "ZoY/DM0rXMN8EDCyuIpfiqlsEu0PHh7bElmr/x3tDMkXLlgF8I/J4EP5S3RKnHgwp1h6BBQdACyGrOQSp7OXOg==",
+        "requested": "[1.0.0-beta.8, )",
+        "resolved": "1.0.0-beta.8",
+        "contentHash": "jU3+9V2HdsYa9+FNiwiwYInbzUpzpYyeckzu7tKLVZJfJgCroSwQJgGaZaYsTH37WMpkGYsThE2mjMYE6swJ9Q==",
         "dependencies": {
           "Microsoft.AspNetCore.Components.Authorization": "10.0.14",
           "Microsoft.AspNetCore.Components.Web": "10.0.14",
